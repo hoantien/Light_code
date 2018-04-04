@@ -1,0 +1,37 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"ddr_heap.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	ddr_heap_attribute
+  19              		.section	.bss.ddr_heap_attribute,"aw",%nobits
+  20              		.align	2
+  23              	ddr_heap_attribute:
+  24 0000 00000000 		.space	32
+  24      00000000 
+  24      00000000 
+  24      00000000 
+  24      00000000 
+  25              		.text
+  26              	.Letext0:
+  27              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/gen_heap.h"
+  28              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+  29              		.file 3 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/ddr_heap.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 ddr_heap.c
+     /tmp/ccjV5eRb.s:23     .bss.ddr_heap_attribute:00000000 ddr_heap_attribute
+     /tmp/ccjV5eRb.s:20     .bss.ddr_heap_attribute:00000000 $d
+
+NO UNDEFINED SYMBOLS

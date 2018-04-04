@@ -1,0 +1,822 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"main.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.wait_cycles,"ax",%progbits
+  19              		.align	1
+  20              		.global	wait_cycles
+  21              		.thumb
+  22              		.thumb_func
+  24              	wait_cycles:
+  25              	.LFB3:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * @file    main.c
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * @date    Jan-28-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  * @brief   This file contains expand of the main application
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "os.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "log.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "timer.h"
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "rtc.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "light_system.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "gen_heap.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "ddr_heap.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #include "hal_cache.h"
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** extern unsigned long os_heap_start1;
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** extern unsigned long os_heap_end1;
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** extern unsigned long os_heap_start2;
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** extern unsigned long os_heap_end2;
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** extern unsigned long ddr_heap_start;
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** extern unsigned long ddr_heap_end;
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** unsigned int total_os_heap_size;
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** static void  prv_initialise_heap(void);
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** extern void lpddr_test(void);
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** /* Private variables----------------------------------------------------------*/
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** static const char __LIGHT_LCC_TEXT[] = "\tLight Control Board\r\n";
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #ifdef P2
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** static void config_cam_clk_24mhz(void)
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** {
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/*TODO: HAL SCU should config the 192MHz clock first */
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Enable cam clock */
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	uint32_t clken = readl(SCU_BASE + 0x3C);
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Bit [21-16] = 0 to enable cam clock */
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	clken &= ~(uint32_t)(BIT16 | BIT17 | BIT18 | BIT19 | BIT20 | BIT21);
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x3C, clken);
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Select FLL output */
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/*writel(SCU_BASE + 0x24, 0x07); */
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Select cam clock */
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x98, 0x3F);
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Set the divider clk = src_clk / (clk_div + 1)*/
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* src_clk = 192 Mhz */
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* clk = 24 Mhz */
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Divider for cam 0, 1, 2, 3 */
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #ifndef PLL_25MHZ
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x90, 0x07070707);
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Divider for cam 4, 5 */
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x94, 0x00000707);
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #endif
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Enable cam divider */
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x74, 0x1);
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x78, 0x1);
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x7C, 0x1);
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x80, 0x1);
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x84, 0x1);
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x88, 0x1);
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** static void wait_pll_lock(unsigned int pll_num)
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** {
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	unsigned int get_value;
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	unsigned int pll_lock;
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/*Wait PLL lock, and switch clock*/
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	pll_lock = 0;
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	do
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		get_value = readl(SCU_BASE + 0x228);
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		pll_lock = get_value & (0x1 << pll_num);
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	} while(pll_lock != (0x1 << pll_num));
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** void wait_cycles (unsigned int x)
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** {
+  27              		.loc 1 85 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 8
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  33 0000 82B0     		sub	sp, sp, #8
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	volatile int y;
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	y = x;
+  36              		.loc 1 87 0
+  37 0002 0190     		str	r0, [sp, #4]
+  38              	.L2:
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	while (y)
+  39              		.loc 1 89 0
+  40 0004 019B     		ldr	r3, [sp, #4]
+  41 0006 1BB1     		cbz	r3, .L5
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		y--;
+  42              		.loc 1 91 0
+  43 0008 019B     		ldr	r3, [sp, #4]
+  44 000a 013B     		subs	r3, r3, #1
+  45 000c 0193     		str	r3, [sp, #4]
+  46 000e F9E7     		b	.L2
+  47              	.L5:
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	}
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+  48              		.loc 1 93 0
+  49 0010 02B0     		add	sp, sp, #8
+  50              	.LCFI1:
+  51              		.cfi_def_cfa_offset 0
+  52              		@ sp needed
+  53 0012 7047     		bx	lr
+  54              		.cfi_endproc
+  55              	.LFE3:
+  57              		.section	.text.startup.main,"ax",%progbits
+  58              		.align	1
+  59              		.global	main
+  60              		.thumb
+  61              		.thumb_func
+  63              	main:
+  64              	.LFB5:
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** static void pll1_192m_configuration(void)
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** {
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/*
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	M = 63
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	N = 0
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	P = 8
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	PLL Fout = 27 * (M+1) / (N+1)/ (P+1) (FSE = 1)
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	PLL Fout = 27 * (63+1) / (0+1) / (8+1) = 192 MHz. (FSE = 1)
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	*/
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #ifdef PLL_25MHZ
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0xC, 0x12186301);
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0x10, 0x00100035);
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	wait_cycles(5);
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0x10, 0x01101035);
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #else
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0xC, 0x12183F00);
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0x10, 0x00100008);
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	wait_cycles(5);
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x10, 0x01101008);
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	//
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #endif
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	wait_pll_lock(1);
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0x24,0x7); // Select PLL FOUT or 24MHz
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	uint32_t ip_debug_sel = readl(SCU_BASE + 0xA8);
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	ip_debug_sel &= ~(0x00fe0000);
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0xA8, ip_debug_sel);
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	wait_cycles(1000);
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #endif
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** /* Main function--------------------------------------------------------------*/
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** int main(void)
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** {
+  65              		.loc 1 127 0
+  66              		.cfi_startproc
+  67              		@ Volatile: function does not return.
+  68              		@ args = 0, pretend = 0, frame = 40
+  69              		@ frame_needed = 0, uses_anonymous_args = 0
+  70              	.LVL1:
+  71              	.LBB10:
+  72              	.LBB11:
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	prv_initialise_heap();
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #ifdef P2
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* configure sensor clock */
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	pll1_192m_configuration();
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	config_cam_clk_24mhz();
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #endif
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* debuging lib init */
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	log_init();
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* init timer */
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	timer_init();
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* init rtc */
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	rtc_init();
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Wellcom to LightLCC */
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	printf(__LIGHT_LCC_TEXT);
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	printf("ASIC%01d Firmware Ver %02d.%02d - Build id: %04d\r\n\r\n",
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	        ASIC_NUM, ASIC_FW_VERSION_MAJOR, ASIC_FW_VERSION_MINOR, BUILD_ID);
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* lpddr_test cannot be called as we are using DDR for code and data */
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	//lpddr_test();
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Light.co system management */
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	light_main();
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	while (1);
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* The program never reach here :D */
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	return 0;
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** void task_testing(void *param)
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** {
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	task_handle_t *hdl = (task_handle_t *)(param);
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	uint8_t EXIT = 0;
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	uint8_t i = 0;
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	while(!EXIT)
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		if(TASK_READY == task_handler[task_query_tid("console")].state)
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 			/* break out while loop */
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 			EXIT = 1;
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		}
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		vTaskDelay(1);
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	}
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	taskENTER_CRITICAL();
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	log_msg("Start %s\r\n", __FUNCTION__);
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	taskEXIT_CRITICAL();
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	hdl->state = TASK_READY;
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	for (;;)
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		vTaskDelay(5000);
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		if(!i)
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 			lpddr_test();
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 			i = 1;
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		}
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		vTaskDelay(1);
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	}
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** static void  prv_initialise_heap(void)
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** {
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	unsigned int addr_region_1 = (unsigned int)&os_heap_start1;
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****     unsigned int size_region_1 = (unsigned int)&os_heap_end1 - addr_region_1;
+  73              		.loc 1 196 0
+  74 0000 3B48     		ldr	r0, .L10
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	unsigned int addr_region_2 = (unsigned int)&os_heap_start2;
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****     unsigned int size_region_2 = (unsigned int)&os_heap_end2 - addr_region_2;
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	total_os_heap_size = size_region_1 + size_region_2;
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	const HeapRegion_t heap_regions[] =
+  75              		.loc 1 200 0
+  76 0002 0024     		movs	r4, #0
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	total_os_heap_size = size_region_1 + size_region_2;
+  77              		.loc 1 198 0
+  78 0004 3B4E     		ldr	r6, .L10+4
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	unsigned int addr_region_2 = (unsigned int)&os_heap_start2;
+  79              		.loc 1 196 0
+  80 0006 3C4A     		ldr	r2, .L10+8
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	total_os_heap_size = size_region_1 + size_region_2;
+  81              		.loc 1 198 0
+  82 0008 3C4D     		ldr	r5, .L10+12
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	unsigned int addr_region_2 = (unsigned int)&os_heap_start2;
+  83              		.loc 1 196 0
+  84 000a 121A     		subs	r2, r2, r0
+  85              	.LVL2:
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	total_os_heap_size = size_region_1 + size_region_2;
+  86              		.loc 1 198 0
+  87 000c AD1B     		subs	r5, r5, r6
+  88              	.LVL3:
+  89              	.LBE11:
+  90              	.LBE10:
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	prv_initialise_heap();
+  91              		.loc 1 127 0
+  92 000e 80B5     		push	{r7, lr}
+  93              	.LCFI2:
+  94              		.cfi_def_cfa_offset 8
+  95              		.cfi_offset 7, -8
+  96              		.cfi_offset 14, -4
+  97              	.LBB15:
+  98              	.LBB12:
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	const HeapRegion_t heap_regions[] =
+  99              		.loc 1 199 0
+ 100 0010 A918     		adds	r1, r5, r2
+ 101              	.LBE12:
+ 102              	.LBE15:
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	prv_initialise_heap();
+ 103              		.loc 1 127 0
+ 104 0012 8CB0     		sub	sp, sp, #48
+ 105              	.LCFI3:
+ 106              		.cfi_def_cfa_offset 56
+ 107              	.LBB16:
+ 108              	.LBB13:
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	const HeapRegion_t heap_regions[] =
+ 109              		.loc 1 199 0
+ 110 0014 3A4B     		ldr	r3, .L10+16
+ 111 0016 1960     		str	r1, [r3]
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{(uint8_t *)addr_region_1,	size_region_1},
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{(uint8_t *)addr_region_2,	size_region_2},
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{NULL, 0 }
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	};
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Fill zero two regions of os*/
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	memset((uint8_t *)addr_region_1, 0x00, size_region_1);
+ 112              		.loc 1 207 0
+ 113 0018 2146     		mov	r1, r4
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 114              		.loc 1 200 0
+ 115 001a 0792     		str	r2, [sp, #28]
+ 116 001c 0995     		str	r5, [sp, #36]
+ 117 001e 0A94     		str	r4, [sp, #40]
+ 118 0020 0B94     		str	r4, [sp, #44]
+ 119              		.loc 1 207 0
+ 120 0022 384F     		ldr	r7, .L10+20
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 121              		.loc 1 200 0
+ 122 0024 0690     		str	r0, [sp, #24]
+ 123 0026 0896     		str	r6, [sp, #32]
+ 124              		.loc 1 207 0
+ 125 0028 B847     		blx	r7
+ 126              	.LVL4:
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	memset((uint8_t *)addr_region_2, 0x00, size_region_2);
+ 127              		.loc 1 208 0
+ 128 002a 2146     		mov	r1, r4
+ 129 002c 2A46     		mov	r2, r5
+ 130 002e 3046     		mov	r0, r6
+ 131 0030 B847     		blx	r7
+ 132              	.LVL5:
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****     unsigned int addr_ddr_heap = (unsigned int)&ddr_heap_start;
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****     unsigned int size_ddr_heap = (unsigned int)&ddr_heap_end - addr_ddr_heap;
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	const HeapRegion_t ddr_heap_regions[] =
+ 133              		.loc 1 213 0
+ 134 0032 354A     		ldr	r2, .L10+24
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 135              		.loc 1 211 0
+ 136 0034 354B     		ldr	r3, .L10+28
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		/* Start address with dummy offsets		Size */
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{(uint8_t *)addr_ddr_heap,	size_ddr_heap},
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{ NULL, 0 }
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	};
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Initialized the heap regions */
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	gen_vPortDefineHeapRegions(&default_heap_attribute, heap_regions, portBYTE_ALIGNMENT);
+ 137              		.loc 1 221 0
+ 138 0036 06A9     		add	r1, sp, #24
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 139              		.loc 1 213 0
+ 140 0038 0292     		str	r2, [sp, #8]
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 141              		.loc 1 211 0
+ 142 003a 9B1A     		subs	r3, r3, r2
+ 143              	.LVL6:
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 144              		.loc 1 213 0
+ 145 003c 0494     		str	r4, [sp, #16]
+ 146              		.loc 1 221 0
+ 147 003e 0822     		movs	r2, #8
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 148              		.loc 1 213 0
+ 149 0040 0393     		str	r3, [sp, #12]
+ 150 0042 0594     		str	r4, [sp, #20]
+ 151              		.loc 1 221 0
+ 152 0044 3248     		ldr	r0, .L10+32
+ 153 0046 334C     		ldr	r4, .L10+36
+ 154 0048 A047     		blx	r4
+ 155              	.LVL7:
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	size_t min_ddr_heap_alignment = 16; /* 16 byte alignment needed for images */
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	size_t cache_line_len = get_cache_line_len();
+ 156              		.loc 1 224 0
+ 157 004a 334B     		ldr	r3, .L10+40
+ 158 004c 9847     		blx	r3
+ 159              	.LVL8:
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Ensure alignment is a multiple of cache line length to simplify cache management for captured i
+ 226:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****     if (min_ddr_heap_alignment < cache_line_len)
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c ****         min_ddr_heap_alignment = cache_line_len;
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	gen_vPortDefineHeapRegions(&ddr_heap_attribute, ddr_heap_regions, cache_line_len);
+ 160              		.loc 1 228 0
+ 161 004e 02A9     		add	r1, sp, #8
+ 162              	.LBE13:
+ 163              	.LBE16:
+ 164              	.LBB17:
+ 165              	.LBB18:
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	wait_cycles(5);
+ 166              		.loc 1 110 0
+ 167 0050 324D     		ldr	r5, .L10+44
+ 168              	.LVL9:
+ 169              	.LBE18:
+ 170              	.LBE17:
+ 171              	.LBB22:
+ 172              	.LBB14:
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Ensure alignment is a multiple of cache line length to simplify cache management for captured i
+ 173              		.loc 1 224 0
+ 174 0052 0246     		mov	r2, r0
+ 175              	.LVL10:
+ 176              		.loc 1 228 0
+ 177 0054 3248     		ldr	r0, .L10+48
+ 178              	.LVL11:
+ 179 0056 A047     		blx	r4
+ 180              	.LVL12:
+ 181              	.LBE14:
+ 182              	.LBE22:
+ 183              	.LBB23:
+ 184              	.LBB21:
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0x10, 0x00100008);
+ 185              		.loc 1 109 0
+ 186 0058 324A     		ldr	r2, .L10+52
+ 187 005a 334B     		ldr	r3, .L10+56
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x10, 0x01101008);
+ 188              		.loc 1 111 0
+ 189 005c 0520     		movs	r0, #5
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE+0x10, 0x00100008);
+ 190              		.loc 1 109 0
+ 191 005e 1A60     		str	r2, [r3]
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	wait_cycles(5);
+ 192              		.loc 1 110 0
+ 193 0060 324B     		ldr	r3, .L10+60
+ 194 0062 2B60     		str	r3, [r5]
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x10, 0x01101008);
+ 195              		.loc 1 111 0
+ 196 0064 324C     		ldr	r4, .L10+64
+ 197 0066 A047     		blx	r4
+ 198              	.LVL13:
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	//
+ 199              		.loc 1 112 0
+ 200 0068 324B     		ldr	r3, .L10+68
+ 201 006a 2B60     		str	r3, [r5]
+ 202              	.LVL14:
+ 203              	.L7:
+ 204              	.LBB19:
+ 205              	.LBB20:
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		pll_lock = get_value & (0x1 << pll_num);
+ 206              		.loc 1 79 0
+ 207 006c 324B     		ldr	r3, .L10+72
+ 208 006e 1968     		ldr	r1, [r3]
+ 209              	.LVL15:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 210              		.loc 1 81 0
+ 211 0070 11F00205 		ands	r5, r1, #2
+ 212              	.LVL16:
+ 213 0074 FAD0     		beq	.L7
+ 214              	.LBE20:
+ 215              	.LBE19:
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	uint32_t ip_debug_sel = readl(SCU_BASE + 0xA8);
+ 216              		.loc 1 116 0
+ 217 0076 0722     		movs	r2, #7
+ 218 0078 A3F50173 		sub	r3, r3, #516
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 219              		.loc 1 120 0
+ 220 007c 4FF47A70 		mov	r0, #1000
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	uint32_t ip_debug_sel = readl(SCU_BASE + 0xA8);
+ 221              		.loc 1 116 0
+ 222 0080 1A60     		str	r2, [r3]
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	ip_debug_sel &= ~(0x00fe0000);
+ 223              		.loc 1 117 0
+ 224 0082 2E4A     		ldr	r2, .L10+76
+ 225 0084 1368     		ldr	r3, [r2]
+ 226              	.LVL17:
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0xA8, ip_debug_sel);
+ 227              		.loc 1 118 0
+ 228 0086 23F47E03 		bic	r3, r3, #16646144
+ 229              	.LVL18:
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	wait_cycles(1000);
+ 230              		.loc 1 119 0
+ 231 008a 1360     		str	r3, [r2]
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 232              		.loc 1 120 0
+ 233 008c A047     		blx	r4
+ 234              	.LVL19:
+ 235              	.LBE21:
+ 236              	.LBE23:
+ 237              	.LBB24:
+ 238              	.LBB25:
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Bit [21-16] = 0 to enable cam clock */
+ 239              		.loc 1 44 0
+ 240 008e 2C4A     		ldr	r2, .L10+80
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x78, 0x1);
+ 241              		.loc 1 63 0
+ 242 0090 0124     		movs	r4, #1
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Bit [21-16] = 0 to enable cam clock */
+ 243              		.loc 1 44 0
+ 244 0092 1368     		ldr	r3, [r2]
+ 245              	.LVL20:
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x3C, clken);
+ 246              		.loc 1 46 0
+ 247 0094 23F47C13 		bic	r3, r3, #4128768
+ 248              	.LVL21:
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 249              		.loc 1 47 0
+ 250 0098 1360     		str	r3, [r2]
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Set the divider clk = src_clk / (clk_div + 1)*/
+ 251              		.loc 1 52 0
+ 252 009a 3F22     		movs	r2, #63
+ 253 009c 294B     		ldr	r3, .L10+84
+ 254              	.LVL22:
+ 255 009e 1A60     		str	r2, [r3]
+ 256              	.LVL23:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* Divider for cam 4, 5 */
+ 257              		.loc 1 58 0
+ 258 00a0 4FF00732 		mov	r2, #117901063
+ 259 00a4 43F8082C 		str	r2, [r3, #-8]
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** #endif
+ 260              		.loc 1 60 0
+ 261 00a8 40F20772 		movw	r2, #1799
+ 262 00ac 43F8042C 		str	r2, [r3, #-4]
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x78, 0x1);
+ 263              		.loc 1 63 0
+ 264 00b0 43F8244C 		str	r4, [r3, #-36]
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x7C, 0x1);
+ 265              		.loc 1 64 0
+ 266 00b4 43F8204C 		str	r4, [r3, #-32]
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x80, 0x1);
+ 267              		.loc 1 65 0
+ 268 00b8 43F81C4C 		str	r4, [r3, #-28]
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x84, 0x1);
+ 269              		.loc 1 66 0
+ 270 00bc 43F8184C 		str	r4, [r3, #-24]
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	writel(SCU_BASE + 0x88, 0x1);
+ 271              		.loc 1 67 0
+ 272 00c0 43F8144C 		str	r4, [r3, #-20]
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 273              		.loc 1 68 0
+ 274 00c4 43F8104C 		str	r4, [r3, #-16]
+ 275              	.LBE25:
+ 276              	.LBE24:
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* init timer */
+ 277              		.loc 1 135 0
+ 278 00c8 1F4B     		ldr	r3, .L10+88
+ 279 00ca 9847     		blx	r3
+ 280              	.LVL24:
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	/* init rtc */
+ 281              		.loc 1 137 0
+ 282 00cc 1F4B     		ldr	r3, .L10+92
+ 283 00ce 9847     		blx	r3
+ 284              	.LVL25:
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 285              		.loc 1 139 0
+ 286 00d0 1F4B     		ldr	r3, .L10+96
+ 287 00d2 9847     		blx	r3
+ 288              	.LVL26:
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	printf("ASIC%01d Firmware Ver %02d.%02d - Build id: %04d\r\n\r\n",
+ 289              		.loc 1 142 0
+ 290 00d4 1F4B     		ldr	r3, .L10+100
+ 291 00d6 2048     		ldr	r0, .L10+104
+ 292 00d8 9847     		blx	r3
+ 293              	.LVL27:
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	        ASIC_NUM, ASIC_FW_VERSION_MAJOR, ASIC_FW_VERSION_MINOR, BUILD_ID);
+ 294              		.loc 1 143 0
+ 295 00da 0023     		movs	r3, #0
+ 296 00dc 2246     		mov	r2, r4
+ 297 00de 2946     		mov	r1, r5
+ 298 00e0 0093     		str	r3, [sp]
+ 299 00e2 1E48     		ldr	r0, .L10+108
+ 300 00e4 1E4C     		ldr	r4, .L10+112
+ 301 00e6 A047     		blx	r4
+ 302              	.LVL28:
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 303              		.loc 1 150 0
+ 304 00e8 1E4B     		ldr	r3, .L10+116
+ 305 00ea 9847     		blx	r3
+ 306              	.LVL29:
+ 307              	.L8:
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 308              		.loc 1 152 0 discriminator 1
+ 309 00ec FEE7     		b	.L8
+ 310              	.L11:
+ 311 00ee 00BF     		.align	2
+ 312              	.L10:
+ 313 00f0 00000000 		.word	os_heap_start1
+ 314 00f4 00000000 		.word	os_heap_start2
+ 315 00f8 00000000 		.word	os_heap_end1
+ 316 00fc 00000000 		.word	os_heap_end2
+ 317 0100 00000000 		.word	.LANCHOR0
+ 318 0104 00000000 		.word	memset
+ 319 0108 00000000 		.word	ddr_heap_start
+ 320 010c 00000000 		.word	ddr_heap_end
+ 321 0110 00000000 		.word	default_heap_attribute
+ 322 0114 00000000 		.word	gen_vPortDefineHeapRegions
+ 323 0118 00000000 		.word	get_cache_line_len
+ 324 011c 10000002 		.word	33554448
+ 325 0120 00000000 		.word	ddr_heap_attribute
+ 326 0124 003F1812 		.word	303578880
+ 327 0128 0C000002 		.word	33554444
+ 328 012c 08001000 		.word	1048584
+ 329 0130 00000000 		.word	wait_cycles
+ 330 0134 08101001 		.word	17829896
+ 331 0138 28020002 		.word	33554984
+ 332 013c A8000002 		.word	33554600
+ 333 0140 3C000002 		.word	33554492
+ 334 0144 98000002 		.word	33554584
+ 335 0148 00000000 		.word	log_init
+ 336 014c 00000000 		.word	timer_init
+ 337 0150 00000000 		.word	rtc_init
+ 338 0154 00000000 		.word	puts
+ 339 0158 00000000 		.word	.LC0
+ 340 015c 16000000 		.word	.LC1
+ 341 0160 00000000 		.word	printf
+ 342 0164 00000000 		.word	light_main
+ 343              		.cfi_endproc
+ 344              	.LFE5:
+ 346              		.section	.text.task_testing,"ax",%progbits
+ 347              		.align	1
+ 348              		.global	task_testing
+ 349              		.thumb
+ 350              		.thumb_func
+ 352              	task_testing:
+ 353              	.LFB6:
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	task_handle_t *hdl = (task_handle_t *)(param);
+ 354              		.loc 1 160 0
+ 355              		.cfi_startproc
+ 356              		@ args = 0, pretend = 0, frame = 0
+ 357              		@ frame_needed = 0, uses_anonymous_args = 0
+ 358              	.LVL30:
+ 359 0000 70B5     		push	{r4, r5, r6, lr}
+ 360              	.LCFI4:
+ 361              		.cfi_def_cfa_offset 16
+ 362              		.cfi_offset 4, -16
+ 363              		.cfi_offset 5, -12
+ 364              		.cfi_offset 6, -8
+ 365              		.cfi_offset 14, -4
+ 366 0002 0646     		mov	r6, r0
+ 367              	.LVL31:
+ 368              	.L13:
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{
+ 369              		.loc 1 167 0
+ 370 0004 0F4B     		ldr	r3, .L17
+ 371 0006 1048     		ldr	r0, .L17+4
+ 372 0008 9847     		blx	r3
+ 373              	.LVL32:
+ 374 000a 0C23     		movs	r3, #12
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	}
+ 375              		.loc 1 172 0
+ 376 000c 0F4C     		ldr	r4, .L17+8
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{
+ 377              		.loc 1 167 0
+ 378 000e 5843     		muls	r0, r3, r0
+ 379 0010 0F4B     		ldr	r3, .L17+12
+ 380 0012 1D5C     		ldrb	r5, [r3, r0]	@ zero_extendqisi2
+ 381              	.LVL33:
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	}
+ 382              		.loc 1 172 0
+ 383 0014 0120     		movs	r0, #1
+ 384 0016 A047     		blx	r4
+ 385              	.LVL34:
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	{
+ 386              		.loc 1 165 0
+ 387 0018 012D     		cmp	r5, #1
+ 388 001a F3D1     		bne	.L13
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	log_msg("Start %s\r\n", __FUNCTION__);
+ 389              		.loc 1 175 0
+ 390 001c 0D4B     		ldr	r3, .L17+16
+ 391 001e 9847     		blx	r3
+ 392              	.LVL35:
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	taskEXIT_CRITICAL();
+ 393              		.loc 1 176 0
+ 394 0020 0D48     		ldr	r0, .L17+20
+ 395 0022 0E49     		ldr	r1, .L17+24
+ 396 0024 0E4B     		ldr	r3, .L17+28
+ 397 0026 9847     		blx	r3
+ 398              	.LVL36:
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	hdl->state = TASK_READY;
+ 399              		.loc 1 177 0
+ 400 0028 0E4B     		ldr	r3, .L17+32
+ 401 002a 9847     		blx	r3
+ 402              	.LVL37:
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 403              		.loc 1 178 0
+ 404 002c 3570     		strb	r5, [r6]
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 
+ 405              		.loc 1 163 0
+ 406 002e 0025     		movs	r5, #0
+ 407              	.LVL38:
+ 408              	.L15:
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		if(!i)
+ 409              		.loc 1 182 0
+ 410 0030 41F28830 		movw	r0, #5000
+ 411 0034 A047     		blx	r4
+ 412              	.LVL39:
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 		{
+ 413              		.loc 1 183 0
+ 414 0036 0DB9     		cbnz	r5, .L14
+ 415              	.LVL40:
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 			i = 1;
+ 416              		.loc 1 185 0
+ 417 0038 0B4B     		ldr	r3, .L17+36
+ 418 003a 9847     		blx	r3
+ 419              	.LVL41:
+ 420              	.L14:
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** 	}
+ 421              		.loc 1 188 0
+ 422 003c 0120     		movs	r0, #1
+ 423 003e A047     		blx	r4
+ 424              	.LVL42:
+ 425 0040 0125     		movs	r5, #1
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/main.c **** }
+ 426              		.loc 1 189 0
+ 427 0042 F5E7     		b	.L15
+ 428              	.L18:
+ 429              		.align	2
+ 430              	.L17:
+ 431 0044 00000000 		.word	task_query_tid
+ 432 0048 4B000000 		.word	.LC2
+ 433 004c 00000000 		.word	vTaskDelay
+ 434 0050 00000000 		.word	task_handler
+ 435 0054 00000000 		.word	vPortEnterCritical
+ 436 0058 53000000 		.word	.LC3
+ 437 005c 00000000 		.word	.LANCHOR1
+ 438 0060 00000000 		.word	log_msg
+ 439 0064 00000000 		.word	vPortExitCritical
+ 440 0068 00000000 		.word	lpddr_test
+ 441              		.cfi_endproc
+ 442              	.LFE6:
+ 444              		.global	total_os_heap_size
+ 445              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 446              	.LC0:
+ 447 0000 094C6967 		.ascii	"\011Light Control Board\015\000"
+ 447      68742043 
+ 447      6F6E7472 
+ 447      6F6C2042 
+ 447      6F617264 
+ 448              	.LC1:
+ 449 0016 41534943 		.ascii	"ASIC%01d Firmware Ver %02d.%02d - Build id: %04d\015"
+ 449      25303164 
+ 449      20466972 
+ 449      6D776172 
+ 449      65205665 
+ 450 0047 0A0D0A00 		.ascii	"\012\015\012\000"
+ 451              	.LC2:
+ 452 004b 636F6E73 		.ascii	"console\000"
+ 452      6F6C6500 
+ 453              	.LC3:
+ 454 0053 53746172 		.ascii	"Start %s\015\012\000"
+ 454      74202573 
+ 454      0D0A00
+ 455              		.section	.bss.total_os_heap_size,"aw",%nobits
+ 456              		.align	2
+ 457              		.set	.LANCHOR0,. + 0
+ 460              	total_os_heap_size:
+ 461 0000 00000000 		.space	4
+ 462              		.section	.rodata.__FUNCTION__.8937,"a",%progbits
+ 463              		.set	.LANCHOR1,. + 0
+ 466              	__FUNCTION__.8937:
+ 467 0000 7461736B 		.ascii	"task_testing\000"
+ 467      5F746573 
+ 467      74696E67 
+ 467      00
+ 468              		.text
+ 469              	.Letext0:
+ 470              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 471              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 472              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+ 473              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 474              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/portable.h"
+ 475              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/task.h"
+ 476              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/common/os.h"
+ 477              		.file 9 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 478              		.file 10 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/gen_heap.h"
+ 479              		.file 11 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/ddr_heap.h"
+ 480              		.file 12 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+     /tmp/ccNnzmtM.s:19     .text.wait_cycles:00000000 $t
+     /tmp/ccNnzmtM.s:24     .text.wait_cycles:00000000 wait_cycles
+     /tmp/ccNnzmtM.s:58     .text.startup.main:00000000 $t
+     /tmp/ccNnzmtM.s:63     .text.startup.main:00000000 main
+     /tmp/ccNnzmtM.s:313    .text.startup.main:000000f0 $d
+     /tmp/ccNnzmtM.s:347    .text.task_testing:00000000 $t
+     /tmp/ccNnzmtM.s:352    .text.task_testing:00000000 task_testing
+     /tmp/ccNnzmtM.s:431    .text.task_testing:00000044 $d
+     /tmp/ccNnzmtM.s:460    .bss.total_os_heap_size:00000000 total_os_heap_size
+     /tmp/ccNnzmtM.s:456    .bss.total_os_heap_size:00000000 $d
+     /tmp/ccNnzmtM.s:466    .rodata.__FUNCTION__.8937:00000000 __FUNCTION__.8937
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+os_heap_start1
+os_heap_start2
+os_heap_end1
+os_heap_end2
+memset
+ddr_heap_start
+ddr_heap_end
+default_heap_attribute
+gen_vPortDefineHeapRegions
+get_cache_line_len
+ddr_heap_attribute
+log_init
+timer_init
+rtc_init
+puts
+printf
+light_main
+task_query_tid
+vTaskDelay
+task_handler
+vPortEnterCritical
+log_msg
+vPortExitCritical
+lpddr_test

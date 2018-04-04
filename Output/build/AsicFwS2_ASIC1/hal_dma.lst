@@ -1,0 +1,1794 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"hal_dma.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.dma_irq_handler,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	dma_irq_handler:
+  24              	.LFB9:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @file	hal_dma.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @author	The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @version	V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @date	Mar-30-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @brief	This file contains definitions of the DMA controller.
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /* Includes ------------------------------------------------------------------*/
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #include "cortex_r4.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #include "hal_vic.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #include "hal_cache.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #include "hal_dma.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /* Private typedef -----------------------------------------------------------*/
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_REG(name)	__IO uint32_t name; \
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						__IO uint32_t pad_##name
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /**
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @brief dma_regs_t
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  *
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * DMA Registers
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  */
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** typedef struct dma_regs
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(IDR);		/* DMAC ID register. */
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(CVR);		/* DMAC Component Version Register. */
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(CFGR);		/* DMAC Configuration Register. */
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(CHER);		/* DMAC Channel Enable Register. */
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(RESERVED[2]);
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTCHSR);	/* DMAC Interrupt Channel Status Register. */
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTCLR);	/* DMAC Interrupt Clear Register. */
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTSER);	/* Common Register Interrupt Status Enable Register. */
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTSIER);	/* DMAC Common Register Interrupt Signal Enable. */
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTSR);		/* DMAC Common Register Interrupt Status Register. */
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(RR);		/* DMAC Reset Register. */
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** } dma_regs_t;
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /**
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @brief dma_channel_regs_t
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  *
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * DMA channel Registers
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  */
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** typedef struct dma_channel_regs
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(SAR);		/* Source Address Register. */
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(DAR);		/* Destination Address Register. */
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(BTSR);		/* Block Transfer Size Register. */
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t CRL;	/* Control Register Low. */
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t CRH;	/* Control Register High. */
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t CFGL;	/* Configure Register Low. */
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t CFGH; /* Configure Register High. */
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(LLP);		/* Linked List Pointer register. */
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(SR);		/* Status Register. */
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(SWHSSRCR);	/* Software Handshake Source Register. */
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(SWHSDSTR);	/* Software Handshake Destination Register. */
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(RESUMEREQR);/* Block Transfer Resume Request Register. */
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(AXIIDR);	/* AXI ID Register. */
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(AXIQOSR);	/* AXI QOS Register. */
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(SSR);		/* Source Status Register. */
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(DSR);		/* Destination Status Register. */
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(SSFAR);		/* Source Status Fetch Address Register. */
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(DSFAR);		/* Destination Status Fetch Address Register. */
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTSER);	/* Interrupt Status Enable Register. */
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTSR);		/* Interrupt Status Register. */
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTSIER);	/* Interrupt Signal Enable Register. */
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(INTCLR);	/* Interrupt Clear Register. */
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** } dma_channel_regs_t;
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /**
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @brief dma_lli_regs_t
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  *
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * DMA lli registers
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  */
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** typedef struct dma_lli_regs
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(SAR);
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(DAR);
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t BTSR;
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t RESERVED1;
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	DMA_REG(LLPR);
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t CRL;
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t CRH;
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t WB_SRCSR;
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t WB_DSRSR;
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t RESERVED2;
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t RESERVED3;
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t RESERVED4;
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	__IO uint32_t RESERVED5;
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** } dma_lli_regs_t;
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /**
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * @brief dma_hw_config_t
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  *
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  * DMA hardware configuration structure
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c ****  */
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** typedef struct dma_hw_config
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_channel_regs_t	*ch_addr;
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	void				*lli_addr;
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_lli_regs_t		*lli;
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	uint8_t				used;
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	void(*clb_handler)(void);
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** } dma_hw_config_t;
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /* Private define ------------------------------------------------------------*/
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_1	((dma_channel_regs_t *)(DMAC_BASE + 0x100))
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_2	((dma_channel_regs_t *)(DMAC_BASE + 0x200))
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_3	((dma_channel_regs_t *)(DMAC_BASE + 0x300))
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_4	((dma_channel_regs_t *)(DMAC_BASE + 0x400))
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_5	((dma_channel_regs_t *)(DMAC_BASE + 0x500))
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_6	((dma_channel_regs_t *)(DMAC_BASE + 0x600))
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_7	((dma_channel_regs_t *)(DMAC_BASE + 0x700))
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_CH_8	((dma_channel_regs_t *)(DMAC_BASE + 0x800))
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define HS_SEL_SRC						BIT3
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define HS_SEL_DST						BIT4
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CFGH_SRC_PER(n)					(n << 7)
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CFGH_DST_PER(n)					(n << 12)
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SRC_TR_WIDTH(n)					((n & 0x7) << 8)
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DST_TR_WIDTH(n)					((n & 0x7) << 11)
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SRC_MSIZE(n)					((n & 0xF) << 14)
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DST_MSIZE(n)					((n & 0xF) << 18)
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /** Interrupt status/signal enable register field. **/
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define BLOCK_TFR_DONE					BIT0
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DMA_TRANSFER_DONE				BIT1
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SRC_TRANSCOMPLETED				BIT3
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DST_TRANSCOMPLETED				BIT4
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SRC_DEC_ERR						BIT5
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DST_DEC_ERR						BIT6
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SRC_SLV_ERR						BIT7
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define DST_SLV_ERR						BIT8
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define LLI_RD_DEC_ERR					BIT9
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define LLI_WR_DEC_ERR					BIT10
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define LLI_RD_SLV_ERR					BIT11
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define LLI_WR_SLV_ERR					BIT12
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SHADOWREG_OR_LLI_INVALID_ERR	BIT13
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SLVIF_MULTIBLKTYPE_ERR			BIT14
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SLVIF_DEC_ERR					BIT16
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SLVIF_WR2RO_ERR					BIT17
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SLVIF_RD2RWO_ERR				BIT18
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SLVIF_WRONCHEN_ERR				BIT19
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SLVIF_SHADOWREG_WRON_VALID_ERR	BIT20
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SLVIF_WRONHOLD_ERR				BIT21
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CHLOCK_CLEARED					BIT27
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CH_SRC_SUSPENDED				BIT28
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CH_SUSPENDED					BIT29
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CH_DISABLED						BIT30
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CH_ABORTED						BIT31
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SHADOWREG_OR_LLI_LAST			BIT30
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define SHADOWREG_OR_LLI_VALID			BIT31
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CFG_SRC_MB_TYPE(n)				((n & 0x03) << 0)
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define CFG_DST_MB_TYPE(n)				((n & 0x03) << 2)
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define INT_COMMOM						BIT16
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define INT_DMA_TFR_DONE				BIT1
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** #define MAX_DMA_BLOCK_TS				32767
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /* Private function prototypes -----------------------------------------------*/
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** static void dma_irq_handler(void);
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /* Private variables ---------------------------------------------------------*/
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** static dma_hw_config_t dma_hw[HAL_DMA_CH_MAX] =
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_1, NULL, NULL, 0, NULL},
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_2, NULL, NULL, 0, NULL},
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_3, NULL, NULL, 0, NULL},
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_4, NULL, NULL, 0, NULL},
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_5, NULL, NULL, 0, NULL},
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_6, NULL, NULL, 0, NULL},
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_7, NULL, NULL, 0, NULL},
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{DMA_CH_8, NULL, NULL, 0, NULL},
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** };
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** static dma_regs_t *dma_base = (dma_regs_t *)DMAC_BASE;
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** static uint8_t dma_init_irq_flag;
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** /* Exported functions --------------------------------------------------------*/
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_init(dma_init_type_t *init)
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Check NULL pointer. */
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(init == NULL)
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_NULL_PTR;
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == init->chid)
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_INVALID;
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(dma_hw[init->chid].used)
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_BUSY;
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	uint8_t chid = init->chid;
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	uint32_t tmp;
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_channel_regs_t *dma = dma_hw[chid].ch_addr;
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the DMA channel is used. */
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_hw[chid].used = 1;
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the DMA transfer type and flow control. */
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH &= ~0x7;
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH |= (init->trans_type & 0x07);
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the source hardware handshaking interface. */
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH &= ~(0x7 << 7);
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the destination hardware handshaking interface. */
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH &= ~(0x7 << 12);
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the source and destination software handshaking selection. */
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH |= HS_SEL_SRC | HS_SEL_DST;
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	switch(init->trans_type)
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case MEM_TO_PER:
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			/* Set the destination hardware handshaking interface. */
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGH &= ~HS_SEL_DST;
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGH |= CFGH_DST_PER(init->periph_type);
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case PER_TO_MEM:
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			/* Set the source hardware handshaking interface. */
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGH &= ~HS_SEL_SRC;
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGH |= CFGH_SRC_PER(init->periph_type);
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case MEM_TO_MEM:
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case PER_TO_PER:
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		default:
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the source address */
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->SAR = init->src_addr;
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->pad_SAR = 0;
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the destination address. */
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->DAR = init->dst_addr;
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->pad_DAR = 0;
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Calculate the block transfer size. */
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	tmp = (init->length + ((1 << init->src_wdata) - 1)) >> init->src_wdata;
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	tmp = tmp ? tmp - 1 : 0;
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->BTSR = tmp;
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the DMA control register. */
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CRL &= ~(SRC_TR_WIDTH(0x7) | DST_TR_WIDTH(0x7) |
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(0xF) | DST_MSIZE(0xF));
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CRL |= (SRC_TR_WIDTH(init->src_wdata) | DST_TR_WIDTH(init->dst_wdata) |
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the source master select. */
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CRL |= init->src_axi & 0x1;
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the destination master select. */
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CRL |= (init->dst_axi & 0x1) << 2;
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the Source/Destination address increment. */
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CRL &= ~((BIT4) | (BIT6));
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	switch(init->trans_type)
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case MEM_TO_PER:
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			/* Set the destination address no-increment because the device is
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			fetching data from a source peripheral FIFO with a fixed address. */
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CRL |= BIT6;
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case PER_TO_MEM:
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			/* Set the source address no-increment because the device is
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			fetching data from a source peripheral FIFO with a fixed address. */
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CRL |= BIT4;
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case MEM_TO_MEM:
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		case PER_TO_PER:
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		default:
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the interrupt enable/signal register. */
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->INTSER |= (DMA_TRANSFER_DONE | SHADOWREG_OR_LLI_INVALID_ERR |
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SLVIF_MULTIBLKTYPE_ERR | CH_ABORTED);
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->INTSIER |= (DMA_TRANSFER_DONE | SHADOWREG_OR_LLI_INVALID_ERR |
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SLVIF_MULTIBLKTYPE_ERR | CH_ABORTED);
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Initialize the call back function if it is used. */
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(init->clb_func)
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_hw[chid].clb_handler = init->clb_func;
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Initialize the linked list interface if it is used. */
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(init->lli)
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		uint32_t block_cnt = init->lli_cnt;
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		void *lli_addr = NULL;
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_hw[chid].lli_addr = malloc(block_cnt * sizeof(dma_lli_regs_t));
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		if (dma_hw[chid].lli_addr == NULL)
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			return HAL_DMA_NULL_PTR;
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		lli_addr = dma_hw[chid].lli_addr;
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		if((uint32_t)lli_addr % 64)
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli = (dma_lli_regs_t *)((uint32_t)lli_addr +
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						(64 - ((uint32_t)lli_addr % 64)));
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		}
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		else
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli = (dma_lli_regs_t *)dma_hw[chid].lli_addr;
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		}
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		for(int i = 0; i < block_cnt ; i++)
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].SAR = init->lli[i].src_addr;
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].pad_SAR = 0;
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].DAR = init->lli[i].dst_addr;
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].pad_DAR = 0;
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			tmp = (init->lli[i].length >> init->src_wdata);
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			tmp = tmp ? tmp - 1 : 0;
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].BTSR = tmp;
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRH = dma->CRH;
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRH &= ~SHADOWREG_OR_LLI_LAST;
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRH |= SHADOWREG_OR_LLI_VALID;
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRL = dma->CRL;
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			/* The last LLi. */
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			if(i == (block_cnt - 1))
+ 309:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].LLPR = (uint32_t)&(dma_hw[chid].lli[0]);
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].CRH |= SHADOWREG_OR_LLI_LAST;
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 313:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			else
+ 314:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].LLPR = (uint32_t)&(dma_hw[chid].lli[i+1]);
+ 316:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 317:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		}
+ 318:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		flush_cache((unsigned long)dma_hw[chid].lli,
+ 319:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 											sizeof(dma_lli_regs_t) * block_cnt);
+ 320:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma->LLP = (uint32_t)dma_hw[chid].lli;
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma->CFGL |= CFG_SRC_MB_TYPE(LINKED_LIST) |
+ 322:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						CFG_DST_MB_TYPE(LINKED_LIST);
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 324:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	else
+ 325:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		if((init->length >> init->src_wdata) > MAX_DMA_BLOCK_TS)
+ 327:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			uint32_t block_cnt = 1 + ((init->length >> init->src_wdata) - 1) /
+ 329:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 								MAX_DMA_BLOCK_TS;
+ 330:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			void *lli_addr = NULL;
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli_addr =
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 								malloc(sizeof(dma_lli_regs_t) * block_cnt);
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			if (dma_hw[chid].lli_addr == NULL)
+ 334:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				return HAL_DMA_NULL_PTR;
+ 335:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			lli_addr = dma_hw[chid].lli_addr;
+ 336:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			if((uint32_t)lli_addr % 64)
+ 337:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli = (dma_lli_regs_t *)((uint32_t)lli_addr +
+ 339:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 							(64 - ((uint32_t)lli_addr % 64)));
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 341:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			else
+ 342:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 343:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli = (dma_lli_regs_t *)dma_hw[chid].lli_addr;
+ 344:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 345:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			for(int i = 0; i < block_cnt ; i++)
+ 346:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].SAR = init->src_addr + i * MAX_DMA_BLOCK_TS;
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_SAR = 0;
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].DAR = init->dst_addr + i * MAX_DMA_BLOCK_TS;
+ 350:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_DAR = 0;
+ 351:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].CRH = dma->CRH;
+ 353:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].CRH |= SHADOWREG_OR_LLI_VALID;
+ 354:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].CRL = dma->CRL;
+ 355:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				/* The last LLi. */
+ 356:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				if(i == block_cnt - 1)
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				{
+ 358:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					dma_hw[chid].lli[i].BTSR =
+ 359:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					(
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						(init->length - (((MAX_DMA_BLOCK_TS * (block_cnt - 1))
+ 361:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						<< init->src_wdata) >> init->src_wdata)) - 1
+ 362:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					);
+ 363:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					dma_hw[chid].lli[i].CRH |= SHADOWREG_OR_LLI_LAST;
+ 364:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				}
+ 365:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				else
+ 366:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				{
+ 367:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					dma_hw[chid].lli[i].BTSR = MAX_DMA_BLOCK_TS - 1;
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					dma_hw[chid].lli[i].LLPR =
+ 369:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 											(uint32_t)&(dma_hw[chid].lli[i+1]);
+ 370:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				}
+ 371:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 372:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			flush_cache((unsigned long)dma_hw[chid].lli,
+ 373:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 											sizeof(dma_lli_regs_t)*block_cnt);
+ 374:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->LLP = (uint32_t)dma_hw[chid].lli;
+ 375:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGL |= CFG_SRC_MB_TYPE(LINKED_LIST) |
+ 376:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						CFG_DST_MB_TYPE(LINKED_LIST);
+ 377:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		}
+ 378:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 379:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 380:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 381:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_deinit(hal_dma_channel_t chid)
+ 382:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 383:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 384:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_INVALID;
+ 386:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 387:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	hal_dma_channel_disable(chid);
+ 388:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_hw[chid].used = 0;
+ 389:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_hw[chid].clb_handler = NULL;
+ 390:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 391:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 392:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_channel_enable(hal_dma_channel_t chid)
+ 393:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 394:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 395:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 396:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_INVALID;
+ 397:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 398:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_channel_regs_t *dma = dma_hw[chid].ch_addr;
+ 399:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the clear interrupt register. */
+ 400:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->INTCLR = 0xFFFFFFFF;
+ 401:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Enable the DMA channel register. */
+ 402:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_base->CHER |= 0x101 << chid;
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 404:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 405:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_channel_disable(hal_dma_channel_t chid)
+ 406:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 407:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 408:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 409:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_INVALID;
+ 410:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 411:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_channel_regs_t *dma = dma_hw[chid].ch_addr;
+ 412:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the clear interrupt register. */
+ 413:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->INTCLR = 0xFFFFFFFF;
+ 414:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Enable the DMA channel register. */
+ 415:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_base->CHER &= ~(0x101 << chid);
+ 416:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 417:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 418:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_set_channel_priority(hal_dma_channel_t chid,
+ 419:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 															uint8_t priority)
+ 420:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 421:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 422:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 423:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_INVALID;
+ 424:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 425:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_channel_regs_t *dma = dma_hw[chid].ch_addr;
+ 426:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH &= ~(0x7 << 17);
+ 427:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH |= priority << 17;
+ 428:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 429:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 430:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** uint8_t hal_dma_get_channel_priority(hal_dma_channel_t chid)
+ 431:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 432:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 433:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 434:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return (uint8_t)HAL_DMA_CH_INVALID;
+ 435:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 436:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_channel_regs_t *dma = dma_hw[chid].ch_addr;
+ 437:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	uint8_t priority = 0;
+ 438:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	priority = (dma->CFGH >> 17) & 0x7;
+ 439:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return priority;
+ 440:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 441:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_is_transfer_completed(hal_dma_channel_t chid)
+ 442:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 443:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	uint32_t reg = 0;
+ 444:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	hal_dma_status_t ret;
+ 445:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	reg = dma_base->CHER;
+ 446:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(!(reg & (1 << chid)))
+ 447:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 448:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		ret = HAL_DMA_RESULT_YES;
+ 449:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 450:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	else
+ 451:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 452:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		ret = HAL_DMA_RESULT_NO;
+ 453:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 454:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return ret;
+ 455:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 456:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** void hal_dma_reset(void)
+ 457:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 458:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_base->RR = 0x1;
+ 459:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	while(dma_base->RR & 0x1);
+ 460:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 461:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** void hal_dma_enable_global_interrupt(uint8_t irq_priority)
+ 462:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+ 463:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Is the DMA interrupt flag initialized. */
+ 464:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(!dma_init_irq_flag)
+ 465:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 466:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Enable the DMA global interrupt. */
+ 467:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_base->CFGR = 0x03;
+ 468:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Register the interrupt line for the DMA controller. */
+ 469:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		vic_register_irq(DMA_IRQn, dma_irq_handler);
+ 470:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Set the priority of the DMA interrupt. */
+ 471:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		vic_set_priority_irq(DMA_IRQn, irq_priority);
+ 472:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_init_irq_flag = 1;
+ 473:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 474:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 475:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** static void dma_irq_handler(void)
+ 476:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** {
+  26              		.loc 1 476 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+ 477:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	register uint32_t common_int = 0;
+ 478:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	common_int = dma_base->INTCHSR;
+  31              		.loc 1 478 0
+  32 0000 114B     		ldr	r3, .L20
+ 476:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	register uint32_t common_int = 0;
+  33              		.loc 1 476 0
+  34 0002 70B5     		push	{r4, r5, r6, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 16
+  37              		.cfi_offset 4, -16
+  38              		.cfi_offset 5, -12
+  39              		.cfi_offset 6, -8
+  40              		.cfi_offset 14, -4
+  41              		.loc 1 478 0
+  42 0004 1E6B     		ldr	r6, [r3, #48]
+  43              	.LVL1:
+ 476:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	register uint32_t common_int = 0;
+  44              		.loc 1 476 0
+  45 0006 0025     		movs	r5, #0
+  46 0008 104C     		ldr	r4, .L20+4
+ 479:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(common_int & INT_COMMOM)
+  47              		.loc 1 479 0
+  48 000a F203     		lsls	r2, r6, #15
+ 480:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 481:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Clear the interrupt register. */
+ 482:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_base->INTCLR = 0xFFFFFFFF;
+  49              		.loc 1 482 0
+  50 000c 44BF     		itt	mi
+  51 000e 4FF0FF32 		movmi	r2, #-1
+  52 0012 9A63     		strmi	r2, [r3, #56]
+  53              	.LVL2:
+  54              	.L5:
+  55              	.LBB2:
+ 483:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 484:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	for(int i = 0; i < HAL_DMA_CH_MAX; i++)
+ 485:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 486:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		if(common_int & (1 << i))
+  56              		.loc 1 486 0
+  57 0014 0123     		movs	r3, #1
+  58 0016 AB40     		lsls	r3, r3, r5
+  59 0018 3342     		tst	r3, r6
+  60 001a 0ED0     		beq	.L3
+ 487:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 488:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			if(dma_hw[i].ch_addr->INTSR & INT_DMA_TFR_DONE)
+  61              		.loc 1 488 0
+  62 001c 54F8103C 		ldr	r3, [r4, #-16]
+  63 0020 D3F88830 		ldr	r3, [r3, #136]
+  64 0024 9B07     		lsls	r3, r3, #30
+  65 0026 02D5     		bpl	.L4
+ 489:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 490:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				/* Call back function When the DMA transfer completed data. */
+ 491:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				if(dma_hw[i].clb_handler)
+  66              		.loc 1 491 0
+  67 0028 2368     		ldr	r3, [r4]
+  68 002a 03B1     		cbz	r3, .L4
+ 492:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				{
+ 493:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					dma_hw[i].clb_handler();
+  69              		.loc 1 493 0
+  70 002c 9847     		blx	r3
+  71              	.LVL3:
+  72              	.L4:
+ 494:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				}
+ 495:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 496:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			/* Clear all bits of the channel interrupt register. */
+ 497:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[i].ch_addr->INTCLR = 0xFFFFFFFF;
+  73              		.loc 1 497 0
+  74 002e 4FF0FF32 		mov	r2, #-1
+  75 0032 54F8103C 		ldr	r3, [r4, #-16]
+  76 0036 C3F89820 		str	r2, [r3, #152]
+  77              	.L3:
+ 484:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+  78              		.loc 1 484 0 discriminator 2
+  79 003a 0135     		adds	r5, r5, #1
+  80              	.LVL4:
+  81 003c 082D     		cmp	r5, #8
+  82 003e 04F11404 		add	r4, r4, #20
+  83 0042 E7D1     		bne	.L5
+  84              	.LBE2:
+ 498:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		}
+ 499:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 500:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+  85              		.loc 1 500 0
+  86 0044 70BD     		pop	{r4, r5, r6, pc}
+  87              	.LVL5:
+  88              	.L21:
+  89 0046 00BF     		.align	2
+  90              	.L20:
+  91 0048 00000302 		.word	33751040
+  92 004c 10000000 		.word	.LANCHOR0+16
+  93              		.cfi_endproc
+  94              	.LFE9:
+  96              		.section	.text.hal_dma_init,"ax",%progbits
+  97              		.align	1
+  98              		.global	hal_dma_init
+  99              		.thumb
+ 100              		.thumb_func
+ 102              	hal_dma_init:
+ 103              	.LFB0:
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Check NULL pointer. */
+ 104              		.loc 1 186 0
+ 105              		.cfi_startproc
+ 106              		@ args = 0, pretend = 0, frame = 0
+ 107              		@ frame_needed = 0, uses_anonymous_args = 0
+ 108              	.LVL6:
+ 109 0000 2DE9F84F 		push	{r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 110              	.LCFI1:
+ 111              		.cfi_def_cfa_offset 40
+ 112              		.cfi_offset 3, -40
+ 113              		.cfi_offset 4, -36
+ 114              		.cfi_offset 5, -32
+ 115              		.cfi_offset 6, -28
+ 116              		.cfi_offset 7, -24
+ 117              		.cfi_offset 8, -20
+ 118              		.cfi_offset 9, -16
+ 119              		.cfi_offset 10, -12
+ 120              		.cfi_offset 11, -8
+ 121              		.cfi_offset 14, -4
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_NULL_PTR;
+ 122              		.loc 1 188 0
+ 123 0004 0546     		mov	r5, r0
+ 124 0006 10B9     		cbnz	r0, .L23
+ 125              	.LVL7:
+ 126              	.L34:
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == init->chid)
+ 127              		.loc 1 189 0
+ 128 0008 0220     		movs	r0, #2
+ 129 000a BDE8F88F 		pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 130              	.LVL8:
+ 131              	.L23:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_INVALID;
+ 132              		.loc 1 190 0
+ 133 000e 0678     		ldrb	r6, [r0]	@ zero_extendqisi2
+ 134 0010 082E     		cmp	r6, #8
+ 135 0012 00F07281 		beq	.L48
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		return HAL_DMA_CH_BUSY;
+ 136              		.loc 1 192 0
+ 137 0016 1422     		movs	r2, #20
+ 138 0018 B949     		ldr	r1, .L71
+ 139 001a 0120     		movs	r0, #1
+ 140              	.LVL9:
+ 141 001c 7243     		muls	r2, r6, r2
+ 142 001e 8846     		mov	r8, r1
+ 143 0020 8B18     		adds	r3, r1, r2
+ 144 0022 1C7B     		ldrb	r4, [r3, #12]	@ zero_extendqisi2
+ 145 0024 0833     		adds	r3, r3, #8
+ 146 0026 002C     		cmp	r4, #0
+ 147 0028 40F06881 		bne	.L24
+ 148              	.LVL10:
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the DMA channel is used. */
+ 149              		.loc 1 198 0
+ 150 002c 8C58     		ldr	r4, [r1, r2]
+ 151              	.LVL11:
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the DMA transfer type and flow control. */
+ 152              		.loc 1 200 0
+ 153 002e 1871     		strb	r0, [r3, #4]
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the source hardware handshaking interface. */
+ 154              		.loc 1 203 0
+ 155 0030 287D     		ldrb	r0, [r5, #20]	@ zero_extendqisi2
+ 156 0032 00F00702 		and	r2, r0, #7
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH |= (init->trans_type & 0x07);
+ 157              		.loc 1 202 0
+ 158 0036 636A     		ldr	r3, [r4, #36]
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 159              		.loc 1 210 0
+ 160 0038 0128     		cmp	r0, #1
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH |= (init->trans_type & 0x07);
+ 161              		.loc 1 202 0
+ 162 003a 23F00703 		bic	r3, r3, #7
+ 163 003e 6362     		str	r3, [r4, #36]
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the source hardware handshaking interface. */
+ 164              		.loc 1 203 0
+ 165 0040 636A     		ldr	r3, [r4, #36]
+ 166 0042 43EA0203 		orr	r3, r3, r2
+ 167 0046 6362     		str	r3, [r4, #36]
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the destination hardware handshaking interface. */
+ 168              		.loc 1 205 0
+ 169 0048 636A     		ldr	r3, [r4, #36]
+ 170 004a 23F46073 		bic	r3, r3, #896
+ 171 004e 6362     		str	r3, [r4, #36]
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the source and destination software handshaking selection. */
+ 172              		.loc 1 207 0
+ 173 0050 636A     		ldr	r3, [r4, #36]
+ 174 0052 23F4E043 		bic	r3, r3, #28672
+ 175 0056 6362     		str	r3, [r4, #36]
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	switch(init->trans_type)
+ 176              		.loc 1 209 0
+ 177 0058 636A     		ldr	r3, [r4, #36]
+ 178 005a 43F01803 		orr	r3, r3, #24
+ 179 005e 6362     		str	r3, [r4, #36]
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 180              		.loc 1 210 0
+ 181 0060 0AD0     		beq	.L26
+ 182 0062 0228     		cmp	r0, #2
+ 183 0064 11D1     		bne	.L25
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGH |= CFGH_SRC_PER(init->periph_type);
+ 184              		.loc 1 220 0
+ 185 0066 636A     		ldr	r3, [r4, #36]
+ 186 0068 23F00803 		bic	r3, r3, #8
+ 187 006c 6362     		str	r3, [r4, #36]
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 188              		.loc 1 221 0
+ 189 006e EA7D     		ldrb	r2, [r5, #23]	@ zero_extendqisi2
+ 190 0070 636A     		ldr	r3, [r4, #36]
+ 191 0072 43EAC213 		orr	r3, r3, r2, lsl #7
+ 192 0076 07E0     		b	.L66
+ 193              	.L26:
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGH |= CFGH_DST_PER(init->periph_type);
+ 194              		.loc 1 215 0
+ 195 0078 636A     		ldr	r3, [r4, #36]
+ 196 007a 23F01003 		bic	r3, r3, #16
+ 197 007e 6362     		str	r3, [r4, #36]
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 198              		.loc 1 216 0
+ 199 0080 EA7D     		ldrb	r2, [r5, #23]	@ zero_extendqisi2
+ 200 0082 636A     		ldr	r3, [r4, #36]
+ 201 0084 43EA0233 		orr	r3, r3, r2, lsl #12
+ 202              	.L66:
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 203              		.loc 1 221 0
+ 204 0088 6362     		str	r3, [r4, #36]
+ 205              	.L25:
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->pad_SAR = 0;
+ 206              		.loc 1 229 0
+ 207 008a 6B68     		ldr	r3, [r5, #4]
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	tmp = tmp ? tmp - 1 : 0;
+ 208              		.loc 1 235 0
+ 209 008c 95F812E0 		ldrb	lr, [r5, #18]	@ zero_extendqisi2
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->pad_SAR = 0;
+ 210              		.loc 1 229 0
+ 211 0090 2360     		str	r3, [r4]
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the destination address. */
+ 212              		.loc 1 230 0
+ 213 0092 0023     		movs	r3, #0
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->pad_DAR = 0;
+ 214              		.loc 1 232 0
+ 215 0094 AA68     		ldr	r2, [r5, #8]
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 216              		.loc 1 241 0
+ 217 0096 E97C     		ldrb	r1, [r5, #19]	@ zero_extendqisi2
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the destination address. */
+ 218              		.loc 1 230 0
+ 219 0098 6360     		str	r3, [r4, #4]
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 220              		.loc 1 241 0
+ 221 009a 01F00701 		and	r1, r1, #7
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->pad_DAR = 0;
+ 222              		.loc 1 232 0
+ 223 009e A260     		str	r2, [r4, #8]
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	tmp = tmp ? tmp - 1 : 0;
+ 224              		.loc 1 235 0
+ 225 00a0 EF68     		ldr	r7, [r5, #12]
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Calculate the block transfer size. */
+ 226              		.loc 1 233 0
+ 227 00a2 E360     		str	r3, [r4, #12]
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	tmp = tmp ? tmp - 1 : 0;
+ 228              		.loc 1 235 0
+ 229 00a4 0123     		movs	r3, #1
+ 230 00a6 7A1E     		subs	r2, r7, #1
+ 231 00a8 03FA0EF3 		lsl	r3, r3, lr
+ 232 00ac 1344     		add	r3, r3, r2
+ 233              	.LVL12:
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 234              		.loc 1 241 0
+ 235 00ae 0EF00702 		and	r2, lr, #7
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->BTSR = tmp;
+ 236              		.loc 1 236 0
+ 237 00b2 33FA0EF3 		lsrs	r3, r3, lr
+ 238              	.LVL13:
+ 239 00b6 18BF     		it	ne
+ 240 00b8 03F1FF33 		addne	r3, r3, #-1
+ 241              	.LVL14:
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 242              		.loc 1 241 0
+ 243 00bc 1202     		lsls	r2, r2, #8
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the DMA control register. */
+ 244              		.loc 1 237 0
+ 245 00be 2361     		str	r3, [r4, #16]
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 246              		.loc 1 241 0
+ 247 00c0 42EAC121 		orr	r1, r2, r1, lsl #11
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(0xF) | DST_MSIZE(0xF));
+ 248              		.loc 1 239 0
+ 249 00c4 A369     		ldr	r3, [r4, #24]
+ 250              	.LVL15:
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 251              		.loc 1 249 0
+ 252 00c6 0128     		cmp	r0, #1
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(0xF) | DST_MSIZE(0xF));
+ 253              		.loc 1 239 0
+ 254 00c8 23F47F13 		bic	r3, r3, #4177920
+ 255 00cc 23F47C53 		bic	r3, r3, #16128
+ 256 00d0 A361     		str	r3, [r4, #24]
+ 257              	.LVL16:
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the source master select. */
+ 258              		.loc 1 242 0
+ 259 00d2 2B7C     		ldrb	r3, [r5, #16]	@ zero_extendqisi2
+ 260 00d4 03F00F03 		and	r3, r3, #15
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 261              		.loc 1 241 0
+ 262 00d8 D4F818C0 		ldr	ip, [r4, #24]
+ 263 00dc 41EA8332 		orr	r2, r1, r3, lsl #14
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the source master select. */
+ 264              		.loc 1 242 0
+ 265 00e0 6B7C     		ldrb	r3, [r5, #17]	@ zero_extendqisi2
+ 266 00e2 03F00F03 		and	r3, r3, #15
+ 267 00e6 42EA8343 		orr	r3, r2, r3, lsl #18
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SRC_MSIZE(init->src_bsize) | DST_MSIZE(init->dst_bsize));
+ 268              		.loc 1 241 0
+ 269 00ea 43EA0C03 		orr	r3, r3, ip
+ 270 00ee A361     		str	r3, [r4, #24]
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Set the destination master select. */
+ 271              		.loc 1 244 0
+ 272 00f0 6B7D     		ldrb	r3, [r5, #21]	@ zero_extendqisi2
+ 273 00f2 A269     		ldr	r2, [r4, #24]
+ 274 00f4 03F00103 		and	r3, r3, #1
+ 275 00f8 43EA0203 		orr	r3, r3, r2
+ 276 00fc A361     		str	r3, [r4, #24]
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the Source/Destination address increment. */
+ 277              		.loc 1 246 0
+ 278 00fe AB7D     		ldrb	r3, [r5, #22]	@ zero_extendqisi2
+ 279 0100 A269     		ldr	r2, [r4, #24]
+ 280 0102 03F00103 		and	r3, r3, #1
+ 281 0106 42EA8303 		orr	r3, r2, r3, lsl #2
+ 282 010a A361     		str	r3, [r4, #24]
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	switch(init->trans_type)
+ 283              		.loc 1 248 0
+ 284 010c A369     		ldr	r3, [r4, #24]
+ 285 010e 23F05003 		bic	r3, r3, #80
+ 286 0112 A361     		str	r3, [r4, #24]
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 287              		.loc 1 249 0
+ 288 0114 05D0     		beq	.L30
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 289              		.loc 1 249 0 is_stmt 0 discriminator 4
+ 290 0116 0228     		cmp	r0, #2
+ 291 0118 07D1     		bne	.L29
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 292              		.loc 1 259 0 is_stmt 1
+ 293 011a A369     		ldr	r3, [r4, #24]
+ 294 011c 43F01003 		orr	r3, r3, #16
+ 295 0120 02E0     		b	.L67
+ 296              	.L30:
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 297              		.loc 1 254 0
+ 298 0122 A369     		ldr	r3, [r4, #24]
+ 299 0124 43F04003 		orr	r3, r3, #64
+ 300              	.L67:
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			break;
+ 301              		.loc 1 259 0
+ 302 0128 A361     		str	r3, [r4, #24]
+ 303              	.L29:
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SLVIF_MULTIBLKTYPE_ERR | CH_ABORTED);
+ 304              		.loc 1 267 0
+ 305 012a D4F88020 		ldr	r2, [r4, #128]
+ 306 012e 754B     		ldr	r3, .L71+4
+ 307 0130 1343     		orrs	r3, r3, r2
+ 308 0132 C4F88030 		str	r3, [r4, #128]
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SLVIF_MULTIBLKTYPE_ERR | CH_ABORTED);
+ 309              		.loc 1 269 0
+ 310 0136 734B     		ldr	r3, .L71+4
+ 311 0138 D4F89020 		ldr	r2, [r4, #144]
+ 312 013c 1343     		orrs	r3, r3, r2
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_hw[chid].clb_handler = init->clb_func;
+ 313              		.loc 1 272 0
+ 314 013e 2A6A     		ldr	r2, [r5, #32]
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					SLVIF_MULTIBLKTYPE_ERR | CH_ABORTED);
+ 315              		.loc 1 269 0
+ 316 0140 C4F89030 		str	r3, [r4, #144]
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_hw[chid].clb_handler = init->clb_func;
+ 317              		.loc 1 272 0
+ 318 0144 1AB1     		cbz	r2, .L32
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Initialize the linked list interface if it is used. */
+ 319              		.loc 1 273 0
+ 320 0146 1423     		movs	r3, #20
+ 321 0148 03FB0683 		mla	r3, r3, r6, r8
+ 322 014c 1A61     		str	r2, [r3, #16]
+ 323              	.L32:
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 324              		.loc 1 275 0
+ 325 014e A869     		ldr	r0, [r5, #24]
+ 326 0150 0028     		cmp	r0, #0
+ 327 0152 60D0     		beq	.L33
+ 328              	.LBB3:
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		void *lli_addr = NULL;
+ 329              		.loc 1 277 0
+ 330 0154 D5F81C90 		ldr	r9, [r5, #28]
+ 331              	.LVL17:
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		if (dma_hw[chid].lli_addr == NULL)
+ 332              		.loc 1 279 0
+ 333 0158 6B4B     		ldr	r3, .L71+8
+ 334 015a 4FEA8917 		lsl	r7, r9, #6
+ 335              	.LVL18:
+ 336 015e 3846     		mov	r0, r7
+ 337 0160 9847     		blx	r3
+ 338              	.LVL19:
+ 339 0162 1423     		movs	r3, #20
+ 340 0164 03FB0683 		mla	r3, r3, r6, r8
+ 341 0168 5860     		str	r0, [r3, #4]
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			return HAL_DMA_NULL_PTR;
+ 342              		.loc 1 280 0
+ 343 016a 0028     		cmp	r0, #0
+ 344 016c 3FF44CAF 		beq	.L34
+ 345              	.LVL20:
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 346              		.loc 1 284 0
+ 347 0170 10F03F02 		ands	r2, r0, #63
+ 348 0174 1CBF     		itt	ne
+ 349 0176 4030     		addne	r0, r0, #64
+ 350              	.LVL21:
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						(64 - ((uint32_t)lli_addr % 64)));
+ 351              		.loc 1 286 0
+ 352 0178 801A     		subne	r0, r0, r2
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		}
+ 353              		.loc 1 291 0
+ 354 017a 9860     		str	r0, [r3, #8]
+ 355              	.LBE3:
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Check NULL pointer. */
+ 356              		.loc 1 186 0
+ 357 017c 0020     		movs	r0, #0
+ 358              	.LVL22:
+ 359              	.L37:
+ 360              	.LBB5:
+ 361              	.LBB4:
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 362              		.loc 1 293 0 discriminator 1
+ 363 017e 4845     		cmp	r0, r9
+ 364 0180 4FF01403 		mov	r3, #20
+ 365              	.LVL23:
+ 366 0184 42D0     		beq	.L69
+ 367 0186 4FF00C0E 		mov	lr, #12
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].pad_SAR = 0;
+ 368              		.loc 1 295 0
+ 369 018a 03FB0683 		mla	r3, r3, r6, r8
+ 370              	.LVL24:
+ 371 018e 0EFB00FE 		mul	lr, lr, r0
+ 372 0192 AA69     		ldr	r2, [r5, #24]
+ 373 0194 8101     		lsls	r1, r0, #6
+ 374 0196 D3F808C0 		ldr	ip, [r3, #8]
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].DAR = init->lli[i].dst_addr;
+ 375              		.loc 1 296 0
+ 376 019a 4FF0000A 		mov	r10, #0
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].pad_SAR = 0;
+ 377              		.loc 1 295 0
+ 378 019e 02EB0E0B 		add	fp, r2, lr
+ 379 01a2 52F80E20 		ldr	r2, [r2, lr]
+ 380 01a6 0CEB0103 		add	r3, ip, r1
+ 381 01aa 4CF80120 		str	r2, [ip, r1]
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].pad_DAR = 0;
+ 382              		.loc 1 297 0
+ 383 01ae AA69     		ldr	r2, [r5, #24]
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].DAR = init->lli[i].dst_addr;
+ 384              		.loc 1 296 0
+ 385 01b0 C3F804A0 		str	r10, [r3, #4]
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].pad_DAR = 0;
+ 386              		.loc 1 297 0
+ 387 01b4 7244     		add	r2, r2, lr
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			tmp = tmp ? tmp - 1 : 0;
+ 388              		.loc 1 299 0
+ 389 01b6 95F812E0 		ldrb	lr, [r5, #18]	@ zero_extendqisi2
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].pad_DAR = 0;
+ 390              		.loc 1 297 0
+ 391 01ba 5268     		ldr	r2, [r2, #4]
+ 392 01bc 9A60     		str	r2, [r3, #8]
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			tmp = tmp ? tmp - 1 : 0;
+ 393              		.loc 1 299 0
+ 394 01be DBF80820 		ldr	r2, [fp, #8]
+ 395              	.LVL25:
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			tmp = (init->lli[i].length >> init->src_wdata);
+ 396              		.loc 1 298 0
+ 397 01c2 C3F80CA0 		str	r10, [r3, #12]
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].BTSR = tmp;
+ 398              		.loc 1 300 0
+ 399 01c6 32FA0EF2 		lsrs	r2, r2, lr
+ 400              	.LVL26:
+ 401 01ca 18BF     		it	ne
+ 402 01cc 02F1FF32 		addne	r2, r2, #-1
+ 403              	.LVL27:
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRH = dma->CRH;
+ 404              		.loc 1 301 0
+ 405 01d0 1A61     		str	r2, [r3, #16]
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRH &= ~SHADOWREG_OR_LLI_LAST;
+ 406              		.loc 1 302 0
+ 407 01d2 E269     		ldr	r2, [r4, #28]
+ 408              	.LVL28:
+ 409 01d4 5A62     		str	r2, [r3, #36]
+ 410              	.LVL29:
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRH |= SHADOWREG_OR_LLI_VALID;
+ 411              		.loc 1 303 0
+ 412 01d6 5A6A     		ldr	r2, [r3, #36]
+ 413 01d8 22F08042 		bic	r2, r2, #1073741824
+ 414 01dc 5A62     		str	r2, [r3, #36]
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma_hw[chid].lli[i].CRL = dma->CRL;
+ 415              		.loc 1 304 0
+ 416 01de 5A6A     		ldr	r2, [r3, #36]
+ 417 01e0 42F00042 		orr	r2, r2, #-2147483648
+ 418 01e4 5A62     		str	r2, [r3, #36]
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 419              		.loc 1 305 0
+ 420 01e6 A269     		ldr	r2, [r4, #24]
+ 421 01e8 1A62     		str	r2, [r3, #32]
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 422              		.loc 1 308 0
+ 423 01ea 09F1FF32 		add	r2, r9, #-1
+ 424 01ee 9042     		cmp	r0, r2
+ 425              	.LVL30:
+ 426 01f0 15BF     		itete	ne
+ 427 01f2 4031     		addne	r1, r1, #64
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].CRH |= SHADOWREG_OR_LLI_LAST;
+ 428              		.loc 1 310 0
+ 429 01f4 C3F818C0 		streq	ip, [r3, #24]
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 430              		.loc 1 315 0
+ 431 01f8 6144     		addne	r1, r1, ip
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 432              		.loc 1 311 0
+ 433 01fa 5A6A     		ldreq	r2, [r3, #36]
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 434              		.loc 1 293 0
+ 435 01fc 00F10100 		add	r0, r0, #1
+ 436              	.LVL31:
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 437              		.loc 1 315 0
+ 438 0200 12BF     		itee	ne
+ 439 0202 9961     		strne	r1, [r3, #24]
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 440              		.loc 1 311 0
+ 441 0204 42F08042 		orreq	r2, r2, #1073741824
+ 442 0208 5A62     		streq	r2, [r3, #36]
+ 443 020a B8E7     		b	.L37
+ 444              	.LVL32:
+ 445              	.L69:
+ 446              	.LBE4:
+ 318:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 											sizeof(dma_lli_regs_t) * block_cnt);
+ 447              		.loc 1 318 0
+ 448 020c 03FB0686 		mla	r6, r3, r6, r8
+ 449              	.LVL33:
+ 450 0210 3946     		mov	r1, r7
+ 451 0212 B068     		ldr	r0, [r6, #8]
+ 452              	.LVL34:
+ 453 0214 66E0     		b	.L68
+ 454              	.LVL35:
+ 455              	.L33:
+ 456              	.LBE5:
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		{
+ 457              		.loc 1 326 0
+ 458 0216 27FA0EF7 		lsr	r7, r7, lr
+ 459              	.LVL36:
+ 460 021a B7F5004F 		cmp	r7, #32768
+ 461 021e 6DD3     		bcc	.L24
+ 462              	.LBB6:
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 								MAX_DMA_BLOCK_TS;
+ 463              		.loc 1 328 0
+ 464 0220 47F6FF73 		movw	r3, #32767
+ 465 0224 013F     		subs	r7, r7, #1
+ 466 0226 B7FBF3F7 		udiv	r7, r7, r3
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			if (dma_hw[chid].lli_addr == NULL)
+ 467              		.loc 1 332 0
+ 468 022a 374B     		ldr	r3, .L71+8
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 								MAX_DMA_BLOCK_TS;
+ 469              		.loc 1 328 0
+ 470 022c 07F1010A 		add	r10, r7, #1
+ 471              	.LVL37:
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			if (dma_hw[chid].lli_addr == NULL)
+ 472              		.loc 1 332 0
+ 473 0230 4FEA8A19 		lsl	r9, r10, #6
+ 474 0234 4846     		mov	r0, r9
+ 475 0236 9847     		blx	r3
+ 476              	.LVL38:
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 								malloc(sizeof(dma_lli_regs_t) * block_cnt);
+ 477              		.loc 1 331 0
+ 478 0238 1423     		movs	r3, #20
+ 479 023a 03FB0688 		mla	r8, r3, r6, r8
+ 480 023e C8F80400 		str	r0, [r8, #4]
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				return HAL_DMA_NULL_PTR;
+ 481              		.loc 1 333 0
+ 482 0242 0028     		cmp	r0, #0
+ 483 0244 3FF4E0AE 		beq	.L34
+ 484              	.LVL39:
+ 336:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 485              		.loc 1 336 0
+ 486 0248 10F03F03 		ands	r3, r0, #63
+ 487 024c 1CBF     		itt	ne
+ 488 024e 4030     		addne	r0, r0, #64
+ 489              	.LVL40:
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 							(64 - ((uint32_t)lli_addr % 64)));
+ 490              		.loc 1 338 0
+ 491 0250 C01A     		subne	r0, r0, r3
+ 492              	.LBB7:
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						<< init->src_wdata) >> init->src_wdata)) - 1
+ 493              		.loc 1 360 0
+ 494 0252 CAEBCA3C 		rsb	ip, r10, r10, lsl #15
+ 495 0256 ACF5FF4C 		sub	ip, ip, #32640
+ 496              	.LBE7:
+ 343:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			}
+ 497              		.loc 1 343 0
+ 498 025a C8F80800 		str	r0, [r8, #8]
+ 499              	.LBB8:
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						<< init->src_wdata) >> init->src_wdata)) - 1
+ 500              		.loc 1 360 0
+ 501 025e ACF17F0C 		sub	ip, ip, #127
+ 502 0262 0020     		movs	r0, #0
+ 503              	.LVL41:
+ 504              	.L44:
+ 345:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 505              		.loc 1 345 0 discriminator 1
+ 506 0264 5045     		cmp	r0, r10
+ 507 0266 264A     		ldr	r2, .L71
+ 508 0268 4FF01403 		mov	r3, #20
+ 509              	.LVL42:
+ 510 026c 36D2     		bcs	.L70
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_SAR = 0;
+ 511              		.loc 1 347 0
+ 512 026e 03FB0623 		mla	r3, r3, r6, r2
+ 513              	.LVL43:
+ 514 0272 6968     		ldr	r1, [r5, #4]
+ 515 0274 C0EBC03B 		rsb	fp, r0, r0, lsl #15
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_DAR = 0;
+ 516              		.loc 1 349 0
+ 517 0278 AA68     		ldr	r2, [r5, #8]
+ 518 027a 4FEA801E 		lsl	lr, r0, #6
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_SAR = 0;
+ 519              		.loc 1 347 0
+ 520 027e 5944     		add	r1, r1, fp
+ 521 0280 D3F80880 		ldr	r8, [r3, #8]
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_DAR = 0;
+ 522              		.loc 1 349 0
+ 523 0284 5A44     		add	r2, r2, fp
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_SAR = 0;
+ 524              		.loc 1 347 0
+ 525 0286 48F80E10 		str	r1, [r8, lr]
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].DAR = init->dst_addr + i * MAX_DMA_BLOCK_TS;
+ 526              		.loc 1 348 0
+ 527 028a 0021     		movs	r1, #0
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_SAR = 0;
+ 528              		.loc 1 347 0
+ 529 028c 08EB0E03 		add	r3, r8, lr
+ 356:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				{
+ 530              		.loc 1 356 0
+ 531 0290 B842     		cmp	r0, r7
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].DAR = init->dst_addr + i * MAX_DMA_BLOCK_TS;
+ 532              		.loc 1 348 0
+ 533 0292 5960     		str	r1, [r3, #4]
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].pad_DAR = 0;
+ 534              		.loc 1 349 0
+ 535 0294 9A60     		str	r2, [r3, #8]
+ 350:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 
+ 536              		.loc 1 350 0
+ 537 0296 D960     		str	r1, [r3, #12]
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].CRH |= SHADOWREG_OR_LLI_VALID;
+ 538              		.loc 1 352 0
+ 539 0298 E269     		ldr	r2, [r4, #28]
+ 540 029a 5A62     		str	r2, [r3, #36]
+ 353:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				dma_hw[chid].lli[i].CRL = dma->CRL;
+ 541              		.loc 1 353 0
+ 542 029c 5A6A     		ldr	r2, [r3, #36]
+ 543 029e 42F00042 		orr	r2, r2, #-2147483648
+ 544 02a2 5A62     		str	r2, [r3, #36]
+ 354:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				/* The last LLi. */
+ 545              		.loc 1 354 0
+ 546 02a4 A269     		ldr	r2, [r4, #24]
+ 547 02a6 1A62     		str	r2, [r3, #32]
+ 356:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				{
+ 548              		.loc 1 356 0
+ 549 02a8 0ED1     		bne	.L45
+ 550 02aa EA68     		ldr	r2, [r5, #12]
+ 361:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					);
+ 551              		.loc 1 361 0
+ 552 02ac 95F812E0 		ldrb	lr, [r5, #18]	@ zero_extendqisi2
+ 553 02b0 511E     		subs	r1, r2, #1
+ 554 02b2 0CFA0EF2 		lsl	r2, ip, lr
+ 555 02b6 22FA0EF2 		lsr	r2, r2, lr
+ 556 02ba 8A1A     		subs	r2, r1, r2
+ 358:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					(
+ 557              		.loc 1 358 0
+ 558 02bc 1A61     		str	r2, [r3, #16]
+ 363:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				}
+ 559              		.loc 1 363 0
+ 560 02be 5A6A     		ldr	r2, [r3, #36]
+ 561 02c0 42F08042 		orr	r2, r2, #1073741824
+ 562 02c4 5A62     		str	r2, [r3, #36]
+ 563 02c6 07E0     		b	.L46
+ 564              	.L45:
+ 367:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 					dma_hw[chid].lli[i].LLPR =
+ 565              		.loc 1 367 0
+ 566 02c8 47F6FE72 		movw	r2, #32766
+ 567 02cc 0EF1400E 		add	lr, lr, #64
+ 568 02d0 1A61     		str	r2, [r3, #16]
+ 369:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 				}
+ 569              		.loc 1 369 0
+ 570 02d2 08EB0E02 		add	r2, r8, lr
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 											(uint32_t)&(dma_hw[chid].lli[i+1]);
+ 571              		.loc 1 368 0
+ 572 02d6 9A61     		str	r2, [r3, #24]
+ 573              	.L46:
+ 345:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			{
+ 574              		.loc 1 345 0 discriminator 2
+ 575 02d8 0130     		adds	r0, r0, #1
+ 576              	.LVL44:
+ 577 02da C3E7     		b	.L44
+ 578              	.LVL45:
+ 579              	.L70:
+ 580              	.LBE8:
+ 372:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 											sizeof(dma_lli_regs_t)*block_cnt);
+ 581              		.loc 1 372 0
+ 582 02dc 03FB0626 		mla	r6, r3, r6, r2
+ 583              	.LVL46:
+ 584 02e0 4946     		mov	r1, r9
+ 585 02e2 B068     		ldr	r0, [r6, #8]
+ 586              	.LVL47:
+ 587              	.L68:
+ 588 02e4 094B     		ldr	r3, .L71+12
+ 589 02e6 9847     		blx	r3
+ 590              	.LVL48:
+ 374:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 			dma->CFGL |= CFG_SRC_MB_TYPE(LINKED_LIST) |
+ 591              		.loc 1 374 0
+ 592 02e8 B368     		ldr	r3, [r6, #8]
+ 593 02ea A362     		str	r3, [r4, #40]
+ 594              	.LBE6:
+ 379:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 595              		.loc 1 379 0
+ 596 02ec 0020     		movs	r0, #0
+ 597              	.LBB9:
+ 375:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 						CFG_DST_MB_TYPE(LINKED_LIST);
+ 598              		.loc 1 375 0
+ 599 02ee 236A     		ldr	r3, [r4, #32]
+ 600 02f0 43F00F03 		orr	r3, r3, #15
+ 601 02f4 2362     		str	r3, [r4, #32]
+ 602 02f6 BDE8F88F 		pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 603              	.LVL49:
+ 604              	.L48:
+ 605              	.LBE9:
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(dma_hw[init->chid].used)
+ 606              		.loc 1 191 0
+ 607 02fa 0320     		movs	r0, #3
+ 608              	.LVL50:
+ 609              	.L24:
+ 380:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_deinit(hal_dma_channel_t chid)
+ 610              		.loc 1 380 0
+ 611 02fc BDE8F88F 		pop	{r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 612              	.LVL51:
+ 613              	.L72:
+ 614              		.align	2
+ 615              	.L71:
+ 616 0300 00000000 		.word	.LANCHOR0
+ 617 0304 02600080 		.word	-2147459070
+ 618 0308 00000000 		.word	malloc
+ 619 030c 00000000 		.word	flush_cache
+ 620              		.cfi_endproc
+ 621              	.LFE0:
+ 623              		.section	.text.hal_dma_channel_enable,"ax",%progbits
+ 624              		.align	1
+ 625              		.global	hal_dma_channel_enable
+ 626              		.thumb
+ 627              		.thumb_func
+ 629              	hal_dma_channel_enable:
+ 630              	.LFB2:
+ 393:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 631              		.loc 1 393 0
+ 632              		.cfi_startproc
+ 633              		@ args = 0, pretend = 0, frame = 0
+ 634              		@ frame_needed = 0, uses_anonymous_args = 0
+ 635              		@ link register save eliminated.
+ 636              	.LVL52:
+ 394:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 637              		.loc 1 394 0
+ 638 0000 0828     		cmp	r0, #8
+ 639 0002 10D0     		beq	.L75
+ 398:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the clear interrupt register. */
+ 640              		.loc 1 398 0
+ 641 0004 1423     		movs	r3, #20
+ 642 0006 094A     		ldr	r2, .L76
+ 643 0008 4343     		muls	r3, r0, r3
+ 402:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 644              		.loc 1 402 0
+ 645 000a 0949     		ldr	r1, .L76+4
+ 398:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the clear interrupt register. */
+ 646              		.loc 1 398 0
+ 647 000c D358     		ldr	r3, [r2, r3]
+ 648              	.LVL53:
+ 400:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Enable the DMA channel register. */
+ 649              		.loc 1 400 0
+ 650 000e 4FF0FF32 		mov	r2, #-1
+ 651 0012 C3F89820 		str	r2, [r3, #152]
+ 402:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 652              		.loc 1 402 0
+ 653 0016 40F20113 		movw	r3, #257
+ 654              	.LVL54:
+ 655 001a 8A69     		ldr	r2, [r1, #24]
+ 656 001c 8340     		lsls	r3, r3, r0
+ 657 001e 1343     		orrs	r3, r3, r2
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 658              		.loc 1 403 0
+ 659 0020 0020     		movs	r0, #0
+ 660              	.LVL55:
+ 402:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 661              		.loc 1 402 0
+ 662 0022 8B61     		str	r3, [r1, #24]
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 663              		.loc 1 403 0
+ 664 0024 7047     		bx	lr
+ 665              	.LVL56:
+ 666              	.L75:
+ 396:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 667              		.loc 1 396 0
+ 668 0026 0320     		movs	r0, #3
+ 669              	.LVL57:
+ 404:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_channel_disable(hal_dma_channel_t chid)
+ 670              		.loc 1 404 0
+ 671 0028 7047     		bx	lr
+ 672              	.L77:
+ 673 002a 00BF     		.align	2
+ 674              	.L76:
+ 675 002c 00000000 		.word	.LANCHOR0
+ 676 0030 00000302 		.word	33751040
+ 677              		.cfi_endproc
+ 678              	.LFE2:
+ 680              		.section	.text.hal_dma_channel_disable,"ax",%progbits
+ 681              		.align	1
+ 682              		.global	hal_dma_channel_disable
+ 683              		.thumb
+ 684              		.thumb_func
+ 686              	hal_dma_channel_disable:
+ 687              	.LFB3:
+ 406:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 688              		.loc 1 406 0
+ 689              		.cfi_startproc
+ 690              		@ args = 0, pretend = 0, frame = 0
+ 691              		@ frame_needed = 0, uses_anonymous_args = 0
+ 692              		@ link register save eliminated.
+ 693              	.LVL58:
+ 407:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 694              		.loc 1 407 0
+ 695 0000 0828     		cmp	r0, #8
+ 696 0002 11D0     		beq	.L80
+ 697              	.LVL59:
+ 698              	.LBB12:
+ 699              	.LBB13:
+ 411:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the clear interrupt register. */
+ 700              		.loc 1 411 0
+ 701 0004 1423     		movs	r3, #20
+ 702 0006 094A     		ldr	r2, .L81
+ 703 0008 4343     		muls	r3, r0, r3
+ 415:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 704              		.loc 1 415 0
+ 705 000a 0949     		ldr	r1, .L81+4
+ 411:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Clear the clear interrupt register. */
+ 706              		.loc 1 411 0
+ 707 000c D358     		ldr	r3, [r2, r3]
+ 708              	.LVL60:
+ 413:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Enable the DMA channel register. */
+ 709              		.loc 1 413 0
+ 710 000e 4FF0FF32 		mov	r2, #-1
+ 711 0012 C3F89820 		str	r2, [r3, #152]
+ 415:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 712              		.loc 1 415 0
+ 713 0016 40F20113 		movw	r3, #257
+ 714              	.LVL61:
+ 715 001a 8A69     		ldr	r2, [r1, #24]
+ 716 001c 8340     		lsls	r3, r3, r0
+ 717 001e 22EA0303 		bic	r3, r2, r3
+ 718 0022 0020     		movs	r0, #0
+ 719              	.LVL62:
+ 720 0024 8B61     		str	r3, [r1, #24]
+ 721 0026 7047     		bx	lr
+ 722              	.LVL63:
+ 723              	.L80:
+ 724              	.LBE13:
+ 725              	.LBE12:
+ 409:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 726              		.loc 1 409 0
+ 727 0028 0320     		movs	r0, #3
+ 728              	.LVL64:
+ 417:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_set_channel_priority(hal_dma_channel_t chid,
+ 729              		.loc 1 417 0
+ 730 002a 7047     		bx	lr
+ 731              	.L82:
+ 732              		.align	2
+ 733              	.L81:
+ 734 002c 00000000 		.word	.LANCHOR0
+ 735 0030 00000302 		.word	33751040
+ 736              		.cfi_endproc
+ 737              	.LFE3:
+ 739              		.section	.text.hal_dma_deinit,"ax",%progbits
+ 740              		.align	1
+ 741              		.global	hal_dma_deinit
+ 742              		.thumb
+ 743              		.thumb_func
+ 745              	hal_dma_deinit:
+ 746              	.LFB1:
+ 382:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 747              		.loc 1 382 0
+ 748              		.cfi_startproc
+ 749              		@ args = 0, pretend = 0, frame = 0
+ 750              		@ frame_needed = 0, uses_anonymous_args = 0
+ 751              	.LVL65:
+ 383:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 752              		.loc 1 383 0
+ 753 0000 0828     		cmp	r0, #8
+ 382:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 754              		.loc 1 382 0
+ 755 0002 10B5     		push	{r4, lr}
+ 756              	.LCFI2:
+ 757              		.cfi_def_cfa_offset 8
+ 758              		.cfi_offset 4, -8
+ 759              		.cfi_offset 14, -4
+ 382:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 760              		.loc 1 382 0
+ 761 0004 0446     		mov	r4, r0
+ 383:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 762              		.loc 1 383 0
+ 763 0006 09D0     		beq	.L85
+ 387:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_hw[chid].used = 0;
+ 764              		.loc 1 387 0
+ 765 0008 054B     		ldr	r3, .L86
+ 766 000a 9847     		blx	r3
+ 767              	.LVL66:
+ 388:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_hw[chid].clb_handler = NULL;
+ 768              		.loc 1 388 0
+ 769 000c 054B     		ldr	r3, .L86+4
+ 770 000e 1422     		movs	r2, #20
+ 771 0010 0020     		movs	r0, #0
+ 772 0012 02FB0434 		mla	r4, r2, r4, r3
+ 773 0016 2073     		strb	r0, [r4, #12]
+ 389:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 774              		.loc 1 389 0
+ 775 0018 2061     		str	r0, [r4, #16]
+ 390:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 776              		.loc 1 390 0
+ 777 001a 10BD     		pop	{r4, pc}
+ 778              	.LVL67:
+ 779              	.L85:
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 780              		.loc 1 385 0
+ 781 001c 0320     		movs	r0, #3
+ 782              	.LVL68:
+ 391:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_channel_enable(hal_dma_channel_t chid)
+ 783              		.loc 1 391 0
+ 784 001e 10BD     		pop	{r4, pc}
+ 785              	.L87:
+ 786              		.align	2
+ 787              	.L86:
+ 788 0020 00000000 		.word	hal_dma_channel_disable
+ 789 0024 00000000 		.word	.LANCHOR0
+ 790              		.cfi_endproc
+ 791              	.LFE1:
+ 793              		.section	.text.hal_dma_set_channel_priority,"ax",%progbits
+ 794              		.align	1
+ 795              		.global	hal_dma_set_channel_priority
+ 796              		.thumb
+ 797              		.thumb_func
+ 799              	hal_dma_set_channel_priority:
+ 800              	.LFB4:
+ 420:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 801              		.loc 1 420 0
+ 802              		.cfi_startproc
+ 803              		@ args = 0, pretend = 0, frame = 0
+ 804              		@ frame_needed = 0, uses_anonymous_args = 0
+ 805              		@ link register save eliminated.
+ 806              	.LVL69:
+ 421:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 807              		.loc 1 421 0
+ 808 0000 0828     		cmp	r0, #8
+ 425:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH &= ~(0x7 << 17);
+ 809              		.loc 1 425 0
+ 810 0002 1FBF     		itttt	ne
+ 811 0004 1423     		movne	r3, #20
+ 812 0006 5843     		mulne	r0, r3, r0
+ 813              	.LVL70:
+ 814 0008 074B     		ldrne	r3, .L91
+ 815 000a 1B58     		ldrne	r3, [r3, r0]
+ 816              	.LVL71:
+ 428:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 817              		.loc 1 428 0
+ 818 000c 17BF     		itett	ne
+ 819 000e 0020     		movne	r0, #0
+ 423:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 820              		.loc 1 423 0
+ 821 0010 0320     		moveq	r0, #3
+ 426:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma->CFGH |= priority << 17;
+ 822              		.loc 1 426 0
+ 823 0012 5A6A     		ldrne	r2, [r3, #36]
+ 824 0014 22F46022 		bicne	r2, r2, #917504
+ 825 0018 1FBF     		itttt	ne
+ 826 001a 5A62     		strne	r2, [r3, #36]
+ 427:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return HAL_DMA_OK;
+ 827              		.loc 1 427 0
+ 828 001c 5A6A     		ldrne	r2, [r3, #36]
+ 829 001e 42EA4141 		orrne	r1, r2, r1, lsl #17
+ 830              	.LVL72:
+ 831 0022 5962     		strne	r1, [r3, #36]
+ 429:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** uint8_t hal_dma_get_channel_priority(hal_dma_channel_t chid)
+ 832              		.loc 1 429 0
+ 833 0024 7047     		bx	lr
+ 834              	.L92:
+ 835 0026 00BF     		.align	2
+ 836              	.L91:
+ 837 0028 00000000 		.word	.LANCHOR0
+ 838              		.cfi_endproc
+ 839              	.LFE4:
+ 841              		.section	.text.hal_dma_get_channel_priority,"ax",%progbits
+ 842              		.align	1
+ 843              		.global	hal_dma_get_channel_priority
+ 844              		.thumb
+ 845              		.thumb_func
+ 847              	hal_dma_get_channel_priority:
+ 848              	.LFB5:
+ 431:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(HAL_DMA_CH_MAX == chid)
+ 849              		.loc 1 431 0
+ 850              		.cfi_startproc
+ 851              		@ args = 0, pretend = 0, frame = 0
+ 852              		@ frame_needed = 0, uses_anonymous_args = 0
+ 853              		@ link register save eliminated.
+ 854              	.LVL73:
+ 432:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 855              		.loc 1 432 0
+ 856 0000 0828     		cmp	r0, #8
+ 436:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	uint8_t priority = 0;
+ 857              		.loc 1 436 0
+ 858 0002 1FBF     		itttt	ne
+ 859 0004 1423     		movne	r3, #20
+ 860 0006 5843     		mulne	r0, r3, r0
+ 861              	.LVL74:
+ 862 0008 034B     		ldrne	r3, .L96
+ 863 000a 1B58     		ldrne	r3, [r3, r0]
+ 864              	.LVL75:
+ 438:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	return priority;
+ 865              		.loc 1 438 0
+ 866 000c 1ABF     		itte	ne
+ 867 000e 586A     		ldrne	r0, [r3, #36]
+ 868 0010 C0F34240 		ubfxne	r0, r0, #17, #3
+ 869              	.LVL76:
+ 434:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 870              		.loc 1 434 0
+ 871 0014 0320     		moveq	r0, #3
+ 440:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** hal_dma_status_t hal_dma_is_transfer_completed(hal_dma_channel_t chid)
+ 872              		.loc 1 440 0
+ 873 0016 7047     		bx	lr
+ 874              	.L97:
+ 875              		.align	2
+ 876              	.L96:
+ 877 0018 00000000 		.word	.LANCHOR0
+ 878              		.cfi_endproc
+ 879              	.LFE5:
+ 881              		.section	.text.hal_dma_is_transfer_completed,"ax",%progbits
+ 882              		.align	1
+ 883              		.global	hal_dma_is_transfer_completed
+ 884              		.thumb
+ 885              		.thumb_func
+ 887              	hal_dma_is_transfer_completed:
+ 888              	.LFB6:
+ 442:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	uint32_t reg = 0;
+ 889              		.loc 1 442 0
+ 890              		.cfi_startproc
+ 891              		@ args = 0, pretend = 0, frame = 0
+ 892              		@ frame_needed = 0, uses_anonymous_args = 0
+ 893              		@ link register save eliminated.
+ 894              	.LVL77:
+ 445:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	if(!(reg & (1 << chid)))
+ 895              		.loc 1 445 0
+ 896 0000 044B     		ldr	r3, .L101
+ 897 0002 9A69     		ldr	r2, [r3, #24]
+ 898              	.LVL78:
+ 446:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 899              		.loc 1 446 0
+ 900 0004 0123     		movs	r3, #1
+ 901 0006 8340     		lsls	r3, r3, r0
+ 902 0008 1342     		tst	r3, r2
+ 903              	.LVL79:
+ 455:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** void hal_dma_reset(void)
+ 904              		.loc 1 455 0
+ 905 000a 0CBF     		ite	eq
+ 906 000c 0420     		moveq	r0, #4
+ 907              	.LVL80:
+ 908 000e 0520     		movne	r0, #5
+ 909 0010 7047     		bx	lr
+ 910              	.L102:
+ 911 0012 00BF     		.align	2
+ 912              	.L101:
+ 913 0014 00000302 		.word	33751040
+ 914              		.cfi_endproc
+ 915              	.LFE6:
+ 917              		.section	.text.hal_dma_reset,"ax",%progbits
+ 918              		.align	1
+ 919              		.global	hal_dma_reset
+ 920              		.thumb
+ 921              		.thumb_func
+ 923              	hal_dma_reset:
+ 924              	.LFB7:
+ 457:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	dma_base->RR = 0x1;
+ 925              		.loc 1 457 0
+ 926              		.cfi_startproc
+ 927              		@ args = 0, pretend = 0, frame = 0
+ 928              		@ frame_needed = 0, uses_anonymous_args = 0
+ 929              		@ link register save eliminated.
+ 458:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	while(dma_base->RR & 0x1);
+ 930              		.loc 1 458 0
+ 931 0000 0122     		movs	r2, #1
+ 932 0002 034B     		ldr	r3, .L106
+ 933 0004 9A65     		str	r2, [r3, #88]
+ 934              	.L104:
+ 459:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** }
+ 935              		.loc 1 459 0 discriminator 1
+ 936 0006 9A6D     		ldr	r2, [r3, #88]
+ 937 0008 D207     		lsls	r2, r2, #31
+ 938 000a FCD4     		bmi	.L104
+ 460:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** void hal_dma_enable_global_interrupt(uint8_t irq_priority)
+ 939              		.loc 1 460 0
+ 940 000c 7047     		bx	lr
+ 941              	.L107:
+ 942 000e 00BF     		.align	2
+ 943              	.L106:
+ 944 0010 00000302 		.word	33751040
+ 945              		.cfi_endproc
+ 946              	.LFE7:
+ 948              		.section	.text.hal_dma_enable_global_interrupt,"ax",%progbits
+ 949              		.align	1
+ 950              		.global	hal_dma_enable_global_interrupt
+ 951              		.thumb
+ 952              		.thumb_func
+ 954              	hal_dma_enable_global_interrupt:
+ 955              	.LFB8:
+ 462:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Is the DMA interrupt flag initialized. */
+ 956              		.loc 1 462 0
+ 957              		.cfi_startproc
+ 958              		@ args = 0, pretend = 0, frame = 0
+ 959              		@ frame_needed = 0, uses_anonymous_args = 0
+ 960              	.LVL81:
+ 961 0000 38B5     		push	{r3, r4, r5, lr}
+ 962              	.LCFI3:
+ 963              		.cfi_def_cfa_offset 16
+ 964              		.cfi_offset 3, -16
+ 965              		.cfi_offset 4, -12
+ 966              		.cfi_offset 5, -8
+ 967              		.cfi_offset 14, -4
+ 464:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 968              		.loc 1 464 0
+ 969 0002 094C     		ldr	r4, .L110
+ 462:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	/* Is the DMA interrupt flag initialized. */
+ 970              		.loc 1 462 0
+ 971 0004 0546     		mov	r5, r0
+ 464:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	{
+ 972              		.loc 1 464 0
+ 973 0006 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 974 0008 63B9     		cbnz	r3, .L108
+ 467:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Register the interrupt line for the DMA controller. */
+ 975              		.loc 1 467 0
+ 976 000a 0322     		movs	r2, #3
+ 977 000c 074B     		ldr	r3, .L110+4
+ 469:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Set the priority of the DMA interrupt. */
+ 978              		.loc 1 469 0
+ 979 000e 0120     		movs	r0, #1
+ 980              	.LVL82:
+ 467:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Register the interrupt line for the DMA controller. */
+ 981              		.loc 1 467 0
+ 982 0010 1A61     		str	r2, [r3, #16]
+ 469:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		/* Set the priority of the DMA interrupt. */
+ 983              		.loc 1 469 0
+ 984 0012 0749     		ldr	r1, .L110+8
+ 985 0014 074B     		ldr	r3, .L110+12
+ 986 0016 9847     		blx	r3
+ 987              	.LVL83:
+ 471:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 		dma_init_irq_flag = 1;
+ 988              		.loc 1 471 0
+ 989 0018 074B     		ldr	r3, .L110+16
+ 990 001a 0120     		movs	r0, #1
+ 991 001c 2946     		mov	r1, r5
+ 992 001e 9847     		blx	r3
+ 993              	.LVL84:
+ 472:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_dma.c **** 	}
+ 994              		.loc 1 472 0
+ 995 0020 0123     		movs	r3, #1
+ 996 0022 2370     		strb	r3, [r4]
+ 997              	.L108:
+ 998 0024 38BD     		pop	{r3, r4, r5, pc}
+ 999              	.L111:
+ 1000 0026 00BF     		.align	2
+ 1001              	.L110:
+ 1002 0028 00000000 		.word	.LANCHOR1
+ 1003 002c 00000302 		.word	33751040
+ 1004 0030 00000000 		.word	dma_irq_handler
+ 1005 0034 00000000 		.word	vic_register_irq
+ 1006 0038 00000000 		.word	vic_set_priority_irq
+ 1007              		.cfi_endproc
+ 1008              	.LFE8:
+ 1010              		.section	.bss.dma_init_irq_flag,"aw",%nobits
+ 1011              		.set	.LANCHOR1,. + 0
+ 1014              	dma_init_irq_flag:
+ 1015 0000 00       		.space	1
+ 1016              		.section	.data.dma_hw,"aw",%progbits
+ 1017              		.align	2
+ 1018              		.set	.LANCHOR0,. + 0
+ 1021              	dma_hw:
+ 1022 0000 00010302 		.word	33751296
+ 1023 0004 00000000 		.word	0
+ 1024 0008 00000000 		.word	0
+ 1025 000c 00       		.byte	0
+ 1026 000d 000000   		.space	3
+ 1027 0010 00000000 		.word	0
+ 1028 0014 00020302 		.word	33751552
+ 1029 0018 00000000 		.word	0
+ 1030 001c 00000000 		.word	0
+ 1031 0020 00       		.byte	0
+ 1032 0021 000000   		.space	3
+ 1033 0024 00000000 		.word	0
+ 1034 0028 00030302 		.word	33751808
+ 1035 002c 00000000 		.word	0
+ 1036 0030 00000000 		.word	0
+ 1037 0034 00       		.byte	0
+ 1038 0035 000000   		.space	3
+ 1039 0038 00000000 		.word	0
+ 1040 003c 00040302 		.word	33752064
+ 1041 0040 00000000 		.word	0
+ 1042 0044 00000000 		.word	0
+ 1043 0048 00       		.byte	0
+ 1044 0049 000000   		.space	3
+ 1045 004c 00000000 		.word	0
+ 1046 0050 00050302 		.word	33752320
+ 1047 0054 00000000 		.word	0
+ 1048 0058 00000000 		.word	0
+ 1049 005c 00       		.byte	0
+ 1050 005d 000000   		.space	3
+ 1051 0060 00000000 		.word	0
+ 1052 0064 00060302 		.word	33752576
+ 1053 0068 00000000 		.word	0
+ 1054 006c 00000000 		.word	0
+ 1055 0070 00       		.byte	0
+ 1056 0071 000000   		.space	3
+ 1057 0074 00000000 		.word	0
+ 1058 0078 00070302 		.word	33752832
+ 1059 007c 00000000 		.word	0
+ 1060 0080 00000000 		.word	0
+ 1061 0084 00       		.byte	0
+ 1062 0085 000000   		.space	3
+ 1063 0088 00000000 		.word	0
+ 1064 008c 00080302 		.word	33753088
+ 1065 0090 00000000 		.word	0
+ 1066 0094 00000000 		.word	0
+ 1067 0098 00       		.byte	0
+ 1068 0099 000000   		.space	3
+ 1069 009c 00000000 		.word	0
+ 1070              		.text
+ 1071              	.Letext0:
+ 1072              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1073              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1074              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+ 1075              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_dma.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_dma.c
+     /tmp/ccADeZ0Y.s:19     .text.dma_irq_handler:00000000 $t
+     /tmp/ccADeZ0Y.s:23     .text.dma_irq_handler:00000000 dma_irq_handler
+     /tmp/ccADeZ0Y.s:91     .text.dma_irq_handler:00000048 $d
+     /tmp/ccADeZ0Y.s:97     .text.hal_dma_init:00000000 $t
+     /tmp/ccADeZ0Y.s:102    .text.hal_dma_init:00000000 hal_dma_init
+     /tmp/ccADeZ0Y.s:616    .text.hal_dma_init:00000300 $d
+     /tmp/ccADeZ0Y.s:624    .text.hal_dma_channel_enable:00000000 $t
+     /tmp/ccADeZ0Y.s:629    .text.hal_dma_channel_enable:00000000 hal_dma_channel_enable
+     /tmp/ccADeZ0Y.s:675    .text.hal_dma_channel_enable:0000002c $d
+     /tmp/ccADeZ0Y.s:681    .text.hal_dma_channel_disable:00000000 $t
+     /tmp/ccADeZ0Y.s:686    .text.hal_dma_channel_disable:00000000 hal_dma_channel_disable
+     /tmp/ccADeZ0Y.s:734    .text.hal_dma_channel_disable:0000002c $d
+     /tmp/ccADeZ0Y.s:740    .text.hal_dma_deinit:00000000 $t
+     /tmp/ccADeZ0Y.s:745    .text.hal_dma_deinit:00000000 hal_dma_deinit
+     /tmp/ccADeZ0Y.s:788    .text.hal_dma_deinit:00000020 $d
+     /tmp/ccADeZ0Y.s:794    .text.hal_dma_set_channel_priority:00000000 $t
+     /tmp/ccADeZ0Y.s:799    .text.hal_dma_set_channel_priority:00000000 hal_dma_set_channel_priority
+     /tmp/ccADeZ0Y.s:837    .text.hal_dma_set_channel_priority:00000028 $d
+     /tmp/ccADeZ0Y.s:842    .text.hal_dma_get_channel_priority:00000000 $t
+     /tmp/ccADeZ0Y.s:847    .text.hal_dma_get_channel_priority:00000000 hal_dma_get_channel_priority
+     /tmp/ccADeZ0Y.s:877    .text.hal_dma_get_channel_priority:00000018 $d
+     /tmp/ccADeZ0Y.s:882    .text.hal_dma_is_transfer_completed:00000000 $t
+     /tmp/ccADeZ0Y.s:887    .text.hal_dma_is_transfer_completed:00000000 hal_dma_is_transfer_completed
+     /tmp/ccADeZ0Y.s:913    .text.hal_dma_is_transfer_completed:00000014 $d
+     /tmp/ccADeZ0Y.s:918    .text.hal_dma_reset:00000000 $t
+     /tmp/ccADeZ0Y.s:923    .text.hal_dma_reset:00000000 hal_dma_reset
+     /tmp/ccADeZ0Y.s:944    .text.hal_dma_reset:00000010 $d
+     /tmp/ccADeZ0Y.s:949    .text.hal_dma_enable_global_interrupt:00000000 $t
+     /tmp/ccADeZ0Y.s:954    .text.hal_dma_enable_global_interrupt:00000000 hal_dma_enable_global_interrupt
+     /tmp/ccADeZ0Y.s:1002   .text.hal_dma_enable_global_interrupt:00000028 $d
+     /tmp/ccADeZ0Y.s:1014   .bss.dma_init_irq_flag:00000000 dma_init_irq_flag
+     /tmp/ccADeZ0Y.s:1015   .bss.dma_init_irq_flag:00000000 $d
+     /tmp/ccADeZ0Y.s:1017   .data.dma_hw:00000000 $d
+     /tmp/ccADeZ0Y.s:1021   .data.dma_hw:00000000 dma_hw
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+malloc
+flush_cache
+vic_register_irq
+vic_set_priority_irq

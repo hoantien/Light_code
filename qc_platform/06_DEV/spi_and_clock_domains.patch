@@ -1,0 +1,68 @@
+diff --git a/platform/asic/hal/src/hal_spi.c b/platform/asic/hal/src/hal_spi.c
+index e0a1ce4..6b0d863 100644
+--- a/platform/asic/hal/src/hal_spi.c
++++ b/platform/asic/hal/src/hal_spi.c
+@@ -137,6 +137,37 @@ spi_status_t hal_spi_init(spi_config_t *spi)
+ {
+ 	uint32_t control_0_reg = 0;
+ 
++	#if (ASIC_NUM == ASIC1)
++	/* Bit [0:0] of Ox58 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x58) |= 0xFFFFFFFF;
++	/* Bit [20:20] of Ox40 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x40) &= 0xFFEFFFFF;
++	/* Bit [20:20] of Ox34 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x34) &= 0xFFEFFFFF;
++	/* Bit [23:23] of Ox38 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x38) &= 0xFFBFFFFF;
++	/* Bit [23:23] of Ox44 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x44) &= 0xFF7FFFFF;
++	#else
++	/* Bit [7:10] of OxA8 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0xA8) &= 0xFFFFF85F;
++	*(volatile uint32_t*)(SCU_BASE + 0x18) &= 0xFFFFFFFB;
++	/* Bit [0:0] of Ox58 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x58) &= 0xFFFFFFFE     ;
++	/* Bit [21:21] of Ox40 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x40) &=    0xFFDFFFFF  ;
++	*(volatile uint32_t*)(SCU_BASE + 0x40) |= (~(0xFFEFFFFF));
++	/* Bit [21:21] of Ox34 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x34) &=    0xFFDFFFFF  ;
++	*(volatile uint32_t*)(SCU_BASE + 0x34) |= (~(0xFFEFFFFF));
++	/* Bit [23:23] of Ox38 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x38) &=    0xFF7FFFFF  ;
++	*(volatile uint32_t*)(SCU_BASE + 0x38) |= (~(0xFFBFFFFF));
++	/* Bit [24:24] of Ox44 register have to be zero */
++	*(volatile uint32_t*)(SCU_BASE + 0x44) &=    0xFEFFFFFF  ;
++	*(volatile uint32_t*)(SCU_BASE + 0x44) |= (~(0xFF7FFFFF));
++	#endif
++
+ 	/* Check parameters */
+ 	assert_param(IS_SPI_DATA_SIZE(spi->data_size));
+ 	assert_param(IS_SPI_PHASE_MODE(spi->spi_mode));
+@@ -154,7 +185,7 @@ spi_status_t hal_spi_init(spi_config_t *spi)
+ 	/* Configure baud rate
+ 	 * Fclk_out = Fssi_clk/SCKDV Offset 0x14 - Baud Rate Select
+ 	 */
+-	spi_hw[spi->channel].spix->BAUDR = BOARD_PCLOCK / spi->master_clk_freq;
++	spi_hw[spi->channel].spix->BAUDR = LP_APBCLK / spi->master_clk_freq;
+ 
+ #ifdef TEST_LOOPBACK
+ 	control_0_reg |= (uint32_t)(1 << 11);
+diff --git a/platform/common/board_config.h b/platform/common/board_config.h
+index 2bfd0ef..1228f28 100644
+--- a/platform/common/board_config.h
++++ b/platform/common/board_config.h
+@@ -25,6 +25,12 @@ extern "C" {
+ /** Board peripheral clock */
+ #define BOARD_PCLOCK						533000000
+ #define CLOCK_133MHZ						133000000
++#define SYSCLK                              533000000
++#define NICCLK                              533000000
++#define HS_APBCLK                           266000000
++#define LP_APBCLK                           133000000
++#define PLL0CLKOUT                          533000000
++#define PLL1CLKOUT                          192000000
+ /** Board version ASB */
+ #define BOARD_ASB							1
+ 

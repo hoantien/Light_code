@@ -1,0 +1,1586 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"optical.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.nudge_isr,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	nudge_isr:
+  24              	.LFB1:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * @file    optical_bc.c
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * @date    Mar-10-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * @brief   This file contains expand of task_optical_bc
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "os.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "log.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "lcc_cmd.h"
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "stdlib.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "light_system.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "assert.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "lcc_cmd_log.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #include "actuator.h"
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Private define-------------------------------------------------------------*/
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #define SLOGF_ID				SLOG_ID_OPTICAL
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Private macro -------------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Private typedef -----------------------------------------------------------*/
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Private function ----------------------------------------------------------*/
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** static void nudge_isr(void *cb_param)
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** {
+  26              		.loc 1 32 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  31              	.LVL0:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	*((bool *)cb_param) = FALSE;
+  32              		.loc 1 33 0
+  33 0000 0023     		movs	r3, #0
+  34 0002 0370     		strb	r3, [r0]
+  35 0004 7047     		bx	lr
+  36              		.cfi_endproc
+  37              	.LFE1:
+  39              		.section	.text.task_actuator_lens,"ax",%progbits
+  40              		.align	1
+  41              		.global	task_actuator_lens
+  42              		.thumb
+  43              		.thumb_func
+  45              	task_actuator_lens:
+  46              	.LFB3:
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** }
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Private variables----------------------------------------------------------*/
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** static SemaphoreHandle_t gpio_intr = NULL;
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #endif
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Exported variables --------------------------------------------------------*/
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /* Export functions ----------------------------------------------------------*/
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /*
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * task_actuator_create
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  *
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  */
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** void task_actuator_create(void)
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** {
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint8_t i;
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	cam_typedef_t *pcam;
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	char task_name[16];
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	BaseType_t ret = pdFALSE;
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	 /* Create mutex to protect shared resource */
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	gpio_intr = xSemaphoreCreateMutex();
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	if(gpio_intr == NULL )
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		SLOGF(SLOG_ERROR, "Failed to create mutex");
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #endif
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Piezo task to control LENS creation */
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	for (i = 0; i < light_system->cam_tbl_size; i++)
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		pcam = &light_system->cam_tbl[i];
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (pcam->info.ch > 0)
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if ((pcam->info.grp == GRP_B) || (pcam->info.grp == GRP_C))
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			{
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				snprintf (task_name, 16, "lens_%x", pcam->info.module);
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				ret = xTaskCreate(
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								task_actuator_lens,		/* task function */
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								task_name,				/* task name */
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								__TASK_STACK_SIZE_256,	/* stack size */
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								pcam,					/* passing parameters */
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								__TASK_PRIO_HIGHEST - 5,/* task priority */
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								NULL					/* handle */
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							);
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				/* Assert the creation task return to make sure all of
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					piezo task was created */
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				assert_param(pdPASS == ret);
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				if (xSemaphoreTake(gpio_intr, (TickType_t)10) == pdTRUE)
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				{
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					light_system->check_asic_ready++;
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					/* Release resource */
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					xSemaphoreGive(gpio_intr);
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				}
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #endif
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			}
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Piezo task to control MIRROR creation */
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	for (i = 0; i < light_system->cam_tbl_size; i++)
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		pcam = &light_system->cam_tbl[i];
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (pcam->info.ch > 0)
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if (((pcam->info.grp == GRP_B) || (pcam->info.grp == GRP_C)) &&
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_B4) &&
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_C5) &&
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_C6))
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			{
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				snprintf (task_name, 16, "mirr_%x", pcam->info.module);
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				ret = xTaskCreate(
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								task_actuator_mirr,		/* task function */
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								task_name,				/* task name */
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								__TASK_STACK_SIZE_256,	/* stack size */
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								pcam,					/* passing parameters */
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								__TASK_PRIO_HIGHEST - 5,/* task priority */
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								NULL					/* handle */
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							);
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				/* Assert the creation task return to make sure all of
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					piezo task was created */
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				assert_param(pdPASS == ret);
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (xSemaphoreTake(gpio_intr, (TickType_t)10) == pdTRUE)
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			light_system->check_asic_ready++;
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			/* Release resource */
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			xSemaphoreGive(gpio_intr);
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #endif
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			}
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** }
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /*
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * task_actuator_ctrl
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  *
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  */
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** void task_actuator_lens(void *vParameter)
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** {
+  47              		.loc 1 134 0
+  48              		.cfi_startproc
+  49              		@ args = 0, pretend = 0, frame = 8
+  50              		@ frame_needed = 0, uses_anonymous_args = 0
+  51              	.LVL1:
+  52 0000 2DE9FF47 		push	{r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, lr}
+  53              	.LCFI0:
+  54              		.cfi_def_cfa_offset 48
+  55              		.cfi_offset 4, -32
+  56              		.cfi_offset 5, -28
+  57              		.cfi_offset 6, -24
+  58              		.cfi_offset 7, -20
+  59              		.cfi_offset 8, -16
+  60              		.cfi_offset 9, -12
+  61              		.cfi_offset 10, -8
+  62              		.cfi_offset 14, -4
+  63 0004 0646     		mov	r6, r0
+  64              	.LVL2:
+  65              	.L3:
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	cam_typedef_t *pcam = (cam_typedef_t *)(vParameter);
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint32_t event;
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint16_t cmd_tid;
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	lcc_cmd_tid_t pcmd;
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint16_t cmd_status = 0;
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Start initialize #task_actuator_ctrl is dependency to #lcccmd */
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	while (TASK_READY != task_handler[task_query_tid("lcccmd")].state ||
+  66              		.loc 1 142 0
+  67 0006 6148     		ldr	r0, .L23
+  68 0008 0C24     		movs	r4, #12
+  69 000a 614F     		ldr	r7, .L23+4
+  70 000c B847     		blx	r7
+  71              	.LVL3:
+  72 000e 614D     		ldr	r5, .L23+8
+  73 0010 6043     		muls	r0, r4, r0
+  74 0012 2B5C     		ldrb	r3, [r5, r0]	@ zero_extendqisi2
+  75 0014 012B     		cmp	r3, #1
+  76 0016 03D0     		beq	.L21
+  77              	.L15:
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			TASK_READY != task_handler[task_query_tid("ccb_ctrl")].state)
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		vTaskDelay(1);
+  78              		.loc 1 145 0
+  79 0018 0120     		movs	r0, #1
+  80 001a 5F4B     		ldr	r3, .L23+12
+  81 001c 9847     		blx	r3
+  82              	.LVL4:
+  83 001e F2E7     		b	.L3
+  84              	.L21:
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			TASK_READY != task_handler[task_query_tid("ccb_ctrl")].state)
+  85              		.loc 1 143 0 discriminator 1
+  86 0020 5E48     		ldr	r0, .L23+16
+  87 0022 B847     		blx	r7
+  88              	.LVL5:
+  89 0024 6043     		muls	r0, r4, r0
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			TASK_READY != task_handler[task_query_tid("ccb_ctrl")].state)
+  90              		.loc 1 142 0 discriminator 1
+  91 0026 2B5C     		ldrb	r3, [r5, r0]	@ zero_extendqisi2
+  92 0028 012B     		cmp	r3, #1
+  93 002a F5D1     		bne	.L15
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Task start */
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	taskENTER_CRITICAL();
+  94              		.loc 1 149 0
+  95 002c 5C4B     		ldr	r3, .L23+20
+  96 002e 9847     		blx	r3
+  97              	.LVL6:
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	log_msg("Start %s: %x\r\n", __FUNCTION__, pcam->info.module);
+  98              		.loc 1 150 0
+  99 0030 5C48     		ldr	r0, .L23+24
+ 100 0032 5D49     		ldr	r1, .L23+28
+ 101 0034 96F82920 		ldrb	r2, [r6, #41]	@ zero_extendqisi2
+ 102 0038 5C4B     		ldr	r3, .L23+32
+ 103 003a 9847     		blx	r3
+ 104              	.LVL7:
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	taskEXIT_CRITICAL();
+ 105              		.loc 1 151 0
+ 106 003c 5C4B     		ldr	r3, .L23+36
+ 107 003e 9847     		blx	r3
+ 108              	.LVL8:
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	actuator_t *piezo = (actuator_t *)pcam->optical->lens;
+ 109              		.loc 1 153 0
+ 110 0040 7368     		ldr	r3, [r6, #4]
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	piezo->queue = xQueueCreate(10, sizeof(lcc_cmd_tid_t));
+ 111              		.loc 1 155 0
+ 112 0042 0A20     		movs	r0, #10
+ 113 0044 0821     		movs	r1, #8
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 114              		.loc 1 153 0
+ 115 0046 1C68     		ldr	r4, [r3]
+ 116              	.LVL9:
+ 117              		.loc 1 155 0
+ 118 0048 0022     		movs	r2, #0
+ 119 004a 5A4B     		ldr	r3, .L23+40
+ 120 004c 9847     		blx	r3
+ 121              	.LVL10:
+ 122 004e 2061     		str	r0, [r4, #16]
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	assert_param(piezo->queue);
+ 123              		.loc 1 156 0
+ 124 0050 18B9     		cbnz	r0, .L5
+ 125              		.loc 1 156 0 is_stmt 0 discriminator 1
+ 126 0052 5548     		ldr	r0, .L23+28
+ 127 0054 9C21     		movs	r1, #156
+ 128 0056 584B     		ldr	r3, .L23+44
+ 129 0058 9847     		blx	r3
+ 130              	.LVL11:
+ 131              	.L5:
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	actuator_init(piezo);
+ 132              		.loc 1 158 0 is_stmt 1
+ 133 005a 584B     		ldr	r3, .L23+48
+ 134 005c 2046     		mov	r0, r4
+ 135 005e 9847     		blx	r3
+ 136              	.LVL12:
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Get the initial position */
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	piezo->hall_obj->read_position(piezo->hall_i2c,
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					(uint16_t *)pcam->optical->settings->lens_position);
+ 137              		.loc 1 161 0
+ 138 0060 7268     		ldr	r2, [r6, #4]
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					(uint16_t *)pcam->optical->settings->lens_position);
+ 139              		.loc 1 160 0
+ 140 0062 636A     		ldr	r3, [r4, #36]
+ 141 0064 E078     		ldrb	r0, [r4, #3]	@ zero_extendqisi2
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	if (xSemaphoreTake(gpio_intr, (TickType_t)10) == pdTRUE)
+ 142              		.loc 1 163 0
+ 143 0066 564D     		ldr	r5, .L23+52
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 144              		.loc 1 161 0
+ 145 0068 9168     		ldr	r1, [r2, #8]
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					(uint16_t *)pcam->optical->settings->lens_position);
+ 146              		.loc 1 160 0
+ 147 006a DB68     		ldr	r3, [r3, #12]
+ 148 006c 0631     		adds	r1, r1, #6
+ 149 006e 9847     		blx	r3
+ 150              	.LVL13:
+ 151              		.loc 1 163 0
+ 152 0070 0021     		movs	r1, #0
+ 153 0072 2868     		ldr	r0, [r5]
+ 154 0074 0A22     		movs	r2, #10
+ 155 0076 0B46     		mov	r3, r1
+ 156 0078 524F     		ldr	r7, .L23+56
+ 157 007a B847     		blx	r7
+ 158              	.LVL14:
+ 159 007c DFF87C81 		ldr	r8, .L23+112
+ 160 0080 0128     		cmp	r0, #1
+ 161 0082 8146     		mov	r9, r0
+ 162 0084 15D1     		bne	.L14
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if(--light_system->check_asic_ready == 0)
+ 163              		.loc 1 165 0
+ 164 0086 504B     		ldr	r3, .L23+60
+ 165 0088 1A68     		ldr	r2, [r3]
+ 166 008a 92F84430 		ldrb	r3, [r2, #68]	@ zero_extendqisi2
+ 167 008e 013B     		subs	r3, r3, #1
+ 168 0090 DBB2     		uxtb	r3, r3
+ 169 0092 82F84430 		strb	r3, [r2, #68]
+ 170 0096 33B9     		cbnz	r3, .L7
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_INFO, "Raise up the interrupt pin");
+ 171              		.loc 1 167 0
+ 172 0098 2820     		movs	r0, #40
+ 173 009a 0821     		movs	r1, #8
+ 174 009c 4B4A     		ldr	r2, .L23+64
+ 175 009e C047     		blx	r8
+ 176              	.LVL15:
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			set_intr_pin(ON);
+ 177              		.loc 1 168 0
+ 178 00a0 4846     		mov	r0, r9
+ 179 00a2 4B4B     		ldr	r3, .L23+68
+ 180 00a4 9847     		blx	r3
+ 181              	.LVL16:
+ 182              	.L7:
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* Release resource */
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xSemaphoreGive(gpio_intr);
+ 183              		.loc 1 171 0
+ 184 00a6 0021     		movs	r1, #0
+ 185 00a8 2868     		ldr	r0, [r5]
+ 186 00aa 0A46     		mov	r2, r1
+ 187 00ac 0B46     		mov	r3, r1
+ 188 00ae 494D     		ldr	r5, .L23+72
+ 189 00b0 A847     		blx	r5
+ 190              	.LVL17:
+ 191              	.L14:
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #endif
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	while(1)
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xQueueReceive(piezo->queue, &pcmd, portMAX_DELAY);
+ 192              		.loc 1 177 0
+ 193 00b2 02A9     		add	r1, sp, #8
+ 194 00b4 4FF0FF32 		mov	r2, #-1
+ 195 00b8 0023     		movs	r3, #0
+ 196 00ba 2069     		ldr	r0, [r4, #16]
+ 197 00bc B847     		blx	r7
+ 198              	.LVL18:
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		cmd_tid = pcmd.cmd_tid;
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		event = pcmd.event;
+ 199              		.loc 1 179 0
+ 200 00be 0399     		ldr	r1, [sp, #12]
+ 201 00c0 7268     		ldr	r2, [r6, #4]
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		cmd_tid = pcmd.cmd_tid;
+ 202              		.loc 1 178 0
+ 203 00c2 BDF80890 		ldrh	r9, [sp, #8]
+ 204              	.LVL19:
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (event & OPT_EVENT_LENS_POSITION)
+ 205              		.loc 1 181 0
+ 206 00c6 11F0020F 		tst	r1, #2
+ 207 00ca 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 208              	.LBB2:
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			uint16_t *p_lens_position =
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->lens_position;
+ 209              		.loc 1 184 0
+ 210 00ce 9568     		ldr	r5, [r2, #8]
+ 211              	.LBE2:
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 212              		.loc 1 181 0
+ 213 00d0 0FD0     		beq	.L8
+ 214              	.LVL20:
+ 215              	.LBB3:
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			uint16_t tolerance =  pcam->optical->settings->lens_position_tolerance;
+ 216              		.loc 1 185 0
+ 217 00d2 B5F808A0 		ldrh	r10, [r5, #8]
+ 218              	.LVL21:
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_DEBUG, "CAM-%X : Lens position to %u with tolerance %d",
+ 219              		.loc 1 186 0
+ 220 00d6 2820     		movs	r0, #40
+ 221 00d8 35F8062F 		ldrh	r2, [r5, #6]!
+ 222              	.LVL22:
+ 223 00dc 1021     		movs	r1, #16
+ 224              	.LVL23:
+ 225 00de 8DE80404 		stmia	sp, {r2, r10}
+ 226 00e2 3D4A     		ldr	r2, .L23+76
+ 227 00e4 C047     		blx	r8
+ 228              	.LVL24:
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			        pcam->info.module, *p_lens_position, tolerance);
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if(actuator_move_to_position(piezo, p_lens_position, tolerance) == ACTUATOR_OK)
+ 229              		.loc 1 188 0
+ 230 00e6 2046     		mov	r0, r4
+ 231 00e8 2946     		mov	r1, r5
+ 232 00ea 5246     		mov	r2, r10
+ 233 00ec 3B4B     		ldr	r3, .L23+80
+ 234 00ee 9847     		blx	r3
+ 235              	.LVL25:
+ 236 00f0 0AE0     		b	.L19
+ 237              	.LVL26:
+ 238              	.L8:
+ 239              	.LBE3:
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_SUCCESS;
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			else
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_UNSUCCESS;
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		else if (event & OPT_EVENT_FOCUS_DISTANCE)
+ 240              		.loc 1 193 0
+ 241 00f2 CA07     		lsls	r2, r1, #31
+ 242 00f4 0CD5     		bpl	.L10
+ 243              	.LBB4:
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			uint32_t *p_focus_distance =
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint32_t *)pcam->optical->settings->focus_distance;
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_DEBUG, "CAM-%X : Focus distance", pcam->info.module);
+ 244              		.loc 1 198 0
+ 245 00f6 2820     		movs	r0, #40
+ 246 00f8 1021     		movs	r1, #16
+ 247              	.LVL27:
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint32_t *)pcam->optical->settings->focus_distance;
+ 248              		.loc 1 195 0
+ 249 00fa 0235     		adds	r5, r5, #2
+ 250              	.LVL28:
+ 251              		.loc 1 198 0
+ 252 00fc 384A     		ldr	r2, .L23+84
+ 253 00fe C047     		blx	r8
+ 254              	.LVL29:
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if(actuator_move_to_distance(piezo, p_focus_distance) == ACTUATOR_OK)
+ 255              		.loc 1 199 0
+ 256 0100 2046     		mov	r0, r4
+ 257 0102 2946     		mov	r1, r5
+ 258 0104 374B     		ldr	r3, .L23+88
+ 259 0106 9847     		blx	r3
+ 260              	.LVL30:
+ 261              	.L19:
+ 262              	.LBE4:
+ 263              	.LBB5:
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 264              		.loc 1 191 0
+ 265 0108 B0FA80F5 		clz	r5, r0
+ 266 010c 6D09     		lsrs	r5, r5, #5
+ 267              	.LBE5:
+ 268              	.LBB6:
+ 269 010e 1DE0     		b	.L9
+ 270              	.LVL31:
+ 271              	.L10:
+ 272              	.LBE6:
+ 273              	.LBB7:
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_SUCCESS;
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			else
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_UNSUCCESS;
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		else /* if (event & OPT_EVENT_LENS_NUDGE) */
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			uint8_t *lens_nudge = pcam->optical->settings->lens_nudge;
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_DEBUG, "CAM-%X : Nudge lens", pcam->info.module);
+ 274              		.loc 1 208 0
+ 275 0110 2820     		movs	r0, #40
+ 276 0112 1021     		movs	r1, #16
+ 277              	.LVL32:
+ 278 0114 344A     		ldr	r2, .L23+92
+ 279 0116 C047     		blx	r8
+ 280              	.LVL33:
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if(actuator_nudge(piezo, lens_nudge[0],
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					*((uint16_t *)(lens_nudge + 1)), nudge_isr, &piezo->moving) == ACTUATOR_OK)
+ 281              		.loc 1 210 0
+ 282 0118 04F11C03 		add	r3, r4, #28
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if(actuator_nudge(piezo, lens_nudge[0],
+ 283              		.loc 1 209 0
+ 284 011c 297B     		ldrb	r1, [r5, #12]	@ zero_extendqisi2
+ 285 011e B5F80D20 		ldrh	r2, [r5, #13]
+ 286 0122 2046     		mov	r0, r4
+ 287 0124 0093     		str	r3, [sp]
+ 288 0126 314D     		ldr	r5, .L23+96
+ 289              	.LVL34:
+ 290 0128 314B     		ldr	r3, .L23+100
+ 291 012a A847     		blx	r5
+ 292              	.LVL35:
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_SUCCESS;
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			else
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_UNSUCCESS;
+ 293              		.loc 1 213 0
+ 294 012c B0FA80F5 		clz	r5, r0
+ 295 0130 6D09     		lsrs	r5, r5, #5
+ 296              	.L11:
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			while (piezo->moving == TRUE)
+ 297              		.loc 1 215 0
+ 298 0132 237F     		ldrb	r3, [r4, #28]	@ zero_extendqisi2
+ 299 0134 1BB1     		cbz	r3, .L22
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			{
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				vTaskDelay(1);
+ 300              		.loc 1 217 0
+ 301 0136 0120     		movs	r0, #1
+ 302 0138 174B     		ldr	r3, .L23+12
+ 303 013a 9847     		blx	r3
+ 304              	.LVL36:
+ 305 013c F9E7     		b	.L11
+ 306              	.L22:
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			}
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			/* update current position to camera setting */
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			piezo->hall_obj->read_position(piezo->hall_i2c,
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->lens_position);
+ 307              		.loc 1 221 0
+ 308 013e 7268     		ldr	r2, [r6, #4]
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->lens_position);
+ 309              		.loc 1 220 0
+ 310 0140 E078     		ldrb	r0, [r4, #3]	@ zero_extendqisi2
+ 311 0142 636A     		ldr	r3, [r4, #36]
+ 312              		.loc 1 221 0
+ 313 0144 9168     		ldr	r1, [r2, #8]
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->lens_position);
+ 314              		.loc 1 220 0
+ 315 0146 DB68     		ldr	r3, [r3, #12]
+ 316 0148 0631     		adds	r1, r1, #6
+ 317 014a 9847     		blx	r3
+ 318              	.LVL37:
+ 319              	.L9:
+ 320              	.LBE7:
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* take semaphore to access settings memory */
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xSemaphoreTake(piezo->semaphore, portMAX_DELAY);
+ 226:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* update moving status */
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		piezo->moving = FALSE;
+ 321              		.loc 1 227 0
+ 322 014c 4FF0000A 		mov	r10, #0
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* update moving status */
+ 323              		.loc 1 225 0
+ 324 0150 0021     		movs	r1, #0
+ 325 0152 0B46     		mov	r3, r1
+ 326 0154 4FF0FF32 		mov	r2, #-1
+ 327 0158 E068     		ldr	r0, [r4, #12]
+ 328 015a B847     		blx	r7
+ 329              	.LVL38:
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* release semaphore after accessing data */
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xSemaphoreGive(piezo->semaphore);
+ 330              		.loc 1 229 0
+ 331 015c 5346     		mov	r3, r10
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* release semaphore after accessing data */
+ 332              		.loc 1 227 0
+ 333 015e 84F81CA0 		strb	r10, [r4, #28]
+ 334              		.loc 1 229 0
+ 335 0162 5146     		mov	r1, r10
+ 336 0164 E068     		ldr	r0, [r4, #12]
+ 337 0166 5246     		mov	r2, r10
+ 338 0168 DFF868C0 		ldr	ip, .L23+72
+ 339 016c E047     		blx	ip
+ 340              	.LVL39:
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* call back to upper layer */
+ 231:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (piezo->cb_func != NULL)
+ 341              		.loc 1 231 0
+ 342 016e 6369     		ldr	r3, [r4, #20]
+ 343 0170 1BB1     		cbz	r3, .L13
+ 232:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			piezo->cb_func(piezo->cb_param);
+ 344              		.loc 1 233 0
+ 345 0172 A069     		ldr	r0, [r4, #24]
+ 346 0174 9847     		blx	r3
+ 347              	.LVL40:
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			/* disable call-back function in the case of LCC command */
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			piezo->cb_func = NULL;
+ 348              		.loc 1 235 0
+ 349 0176 C4F814A0 		str	r10, [r4, #20]
+ 350              	.L13:
+ 236:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		lcc_cmd_log_update_status(cmd_tid, cmd_status, object_to_cam_bitmask(pcam));
+ 351              		.loc 1 237 0
+ 352 017a 3046     		mov	r0, r6
+ 353 017c 1D4B     		ldr	r3, .L23+104
+ 354 017e 9847     		blx	r3
+ 355              	.LVL41:
+ 356 0180 2946     		mov	r1, r5
+ 357 0182 1D4B     		ldr	r3, .L23+108
+ 358 0184 0246     		mov	r2, r0
+ 359 0186 4846     		mov	r0, r9
+ 360 0188 9847     		blx	r3
+ 361              	.LVL42:
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 362              		.loc 1 238 0
+ 363 018a 92E7     		b	.L14
+ 364              	.L24:
+ 365              		.align	2
+ 366              	.L23:
+ 367 018c 00000000 		.word	.LC0
+ 368 0190 00000000 		.word	task_query_tid
+ 369 0194 00000000 		.word	task_handler
+ 370 0198 00000000 		.word	vTaskDelay
+ 371 019c 07000000 		.word	.LC1
+ 372 01a0 00000000 		.word	vPortEnterCritical
+ 373 01a4 10000000 		.word	.LC2
+ 374 01a8 00000000 		.word	.LANCHOR0
+ 375 01ac 00000000 		.word	log_msg
+ 376 01b0 00000000 		.word	vPortExitCritical
+ 377 01b4 00000000 		.word	xQueueGenericCreate
+ 378 01b8 00000000 		.word	assert_failed
+ 379 01bc 00000000 		.word	actuator_init
+ 380 01c0 00000000 		.word	.LANCHOR1
+ 381 01c4 00000000 		.word	xQueueGenericReceive
+ 382 01c8 00000000 		.word	light_system
+ 383 01cc 1F000000 		.word	.LC3
+ 384 01d0 00000000 		.word	set_intr_pin
+ 385 01d4 00000000 		.word	xQueueGenericSend
+ 386 01d8 3A000000 		.word	.LC4
+ 387 01dc 00000000 		.word	actuator_move_to_position
+ 388 01e0 69000000 		.word	.LC5
+ 389 01e4 00000000 		.word	actuator_move_to_distance
+ 390 01e8 81000000 		.word	.LC6
+ 391 01ec 00000000 		.word	actuator_nudge
+ 392 01f0 00000000 		.word	nudge_isr
+ 393 01f4 00000000 		.word	object_to_cam_bitmask
+ 394 01f8 00000000 		.word	lcc_cmd_log_update_status
+ 395 01fc 00000000 		.word	slogf
+ 396              		.cfi_endproc
+ 397              	.LFE3:
+ 399              		.section	.text.task_actuator_mirr,"ax",%progbits
+ 400              		.align	1
+ 401              		.global	task_actuator_mirr
+ 402              		.thumb
+ 403              		.thumb_func
+ 405              	task_actuator_mirr:
+ 406              	.LFB4:
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** }
+ 240:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 241:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** /*
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  * task_actuator_ctrl
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  *
+ 244:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c ****  */
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** void task_actuator_mirr(void *vParameter)
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** {
+ 407              		.loc 1 246 0
+ 408              		.cfi_startproc
+ 409              		@ args = 0, pretend = 0, frame = 8
+ 410              		@ frame_needed = 0, uses_anonymous_args = 0
+ 411              	.LVL43:
+ 412 0000 2DE9FF47 		push	{r0, r1, r2, r3, r4, r5, r6, r7, r8, r9, r10, lr}
+ 413              	.LCFI1:
+ 414              		.cfi_def_cfa_offset 48
+ 415              		.cfi_offset 4, -32
+ 416              		.cfi_offset 5, -28
+ 417              		.cfi_offset 6, -24
+ 418              		.cfi_offset 7, -20
+ 419              		.cfi_offset 8, -16
+ 420              		.cfi_offset 9, -12
+ 421              		.cfi_offset 10, -8
+ 422              		.cfi_offset 14, -4
+ 423 0004 0646     		mov	r6, r0
+ 424              	.LVL44:
+ 425              	.L26:
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	cam_typedef_t *pcam = (cam_typedef_t *)(vParameter);
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint16_t *p_mirr_position;
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 250:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint32_t event;
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint16_t cmd_tid;
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	lcc_cmd_tid_t pcmd;
+ 253:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint16_t cmd_status = 0;
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Start initialize #task_actuator_ctrl is dependency to #lcccmd */
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	while (TASK_READY != task_handler[task_query_tid("lcccmd")].state ||
+ 426              		.loc 1 256 0
+ 427 0006 5F48     		ldr	r0, .L45
+ 428 0008 0C24     		movs	r4, #12
+ 429 000a 5F4F     		ldr	r7, .L45+4
+ 430 000c B847     		blx	r7
+ 431              	.LVL45:
+ 432 000e 5F4D     		ldr	r5, .L45+8
+ 433 0010 6043     		muls	r0, r4, r0
+ 434 0012 2B5C     		ldrb	r3, [r5, r0]	@ zero_extendqisi2
+ 435 0014 012B     		cmp	r3, #1
+ 436 0016 03D0     		beq	.L43
+ 437              	.L38:
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			TASK_READY != task_handler[task_query_tid("ccb_ctrl")].state)
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 259:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		vTaskDelay(1);
+ 438              		.loc 1 259 0
+ 439 0018 0120     		movs	r0, #1
+ 440 001a 5D4B     		ldr	r3, .L45+12
+ 441 001c 9847     		blx	r3
+ 442              	.LVL46:
+ 443 001e F2E7     		b	.L26
+ 444              	.L43:
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			TASK_READY != task_handler[task_query_tid("ccb_ctrl")].state)
+ 445              		.loc 1 257 0 discriminator 1
+ 446 0020 5C48     		ldr	r0, .L45+16
+ 447 0022 B847     		blx	r7
+ 448              	.LVL47:
+ 449 0024 6043     		muls	r0, r4, r0
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			TASK_READY != task_handler[task_query_tid("ccb_ctrl")].state)
+ 450              		.loc 1 256 0 discriminator 1
+ 451 0026 2B5C     		ldrb	r3, [r5, r0]	@ zero_extendqisi2
+ 452 0028 012B     		cmp	r3, #1
+ 453 002a F5D1     		bne	.L38
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 261:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 262:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Task start */
+ 263:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	taskENTER_CRITICAL();
+ 454              		.loc 1 263 0
+ 455 002c 5A4B     		ldr	r3, .L45+20
+ 456 002e 9847     		blx	r3
+ 457              	.LVL48:
+ 264:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	log_msg("Start %s: %x\r\n", __FUNCTION__, pcam->info.module);
+ 458              		.loc 1 264 0
+ 459 0030 5A48     		ldr	r0, .L45+24
+ 460 0032 5B49     		ldr	r1, .L45+28
+ 461 0034 96F82920 		ldrb	r2, [r6, #41]	@ zero_extendqisi2
+ 462 0038 5A4B     		ldr	r3, .L45+32
+ 463 003a 9847     		blx	r3
+ 464              	.LVL49:
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	taskEXIT_CRITICAL();
+ 465              		.loc 1 265 0
+ 466 003c 5A4B     		ldr	r3, .L45+36
+ 467 003e 9847     		blx	r3
+ 468              	.LVL50:
+ 266:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	actuator_t *piezo = (actuator_t *)pcam->optical->mirr;
+ 469              		.loc 1 267 0
+ 470 0040 7368     		ldr	r3, [r6, #4]
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 269:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	piezo->queue = xQueueCreate(10, sizeof(lcc_cmd_tid_t));
+ 471              		.loc 1 269 0
+ 472 0042 0A20     		movs	r0, #10
+ 473 0044 0821     		movs	r1, #8
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 474              		.loc 1 267 0
+ 475 0046 5C68     		ldr	r4, [r3, #4]
+ 476              	.LVL51:
+ 477              		.loc 1 269 0
+ 478 0048 0022     		movs	r2, #0
+ 479 004a 584B     		ldr	r3, .L45+40
+ 480 004c 9847     		blx	r3
+ 481              	.LVL52:
+ 482 004e 2061     		str	r0, [r4, #16]
+ 270:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	assert_param(piezo->queue);
+ 483              		.loc 1 270 0
+ 484 0050 20B9     		cbnz	r0, .L28
+ 485              		.loc 1 270 0 is_stmt 0 discriminator 1
+ 486 0052 5348     		ldr	r0, .L45+28
+ 487 0054 4FF48771 		mov	r1, #270
+ 488 0058 554B     		ldr	r3, .L45+44
+ 489 005a 9847     		blx	r3
+ 490              	.LVL53:
+ 491              	.L28:
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	actuator_init(piezo);
+ 492              		.loc 1 272 0 is_stmt 1
+ 493 005c 554B     		ldr	r3, .L45+48
+ 494 005e 2046     		mov	r0, r4
+ 495 0060 9847     		blx	r3
+ 496              	.LVL54:
+ 273:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	/* Get the initial position */
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	piezo->hall_obj->read_position(piezo->hall_i2c,
+ 275:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					(uint16_t *)pcam->optical->settings->mirr_position);
+ 497              		.loc 1 275 0
+ 498 0062 7268     		ldr	r2, [r6, #4]
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					(uint16_t *)pcam->optical->settings->mirr_position);
+ 499              		.loc 1 274 0
+ 500 0064 636A     		ldr	r3, [r4, #36]
+ 501 0066 E078     		ldrb	r0, [r4, #3]	@ zero_extendqisi2
+ 276:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 277:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	if (xSemaphoreTake(gpio_intr, (TickType_t)10) == pdTRUE)
+ 502              		.loc 1 277 0
+ 503 0068 534D     		ldr	r5, .L45+52
+ 275:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 504              		.loc 1 275 0
+ 505 006a 9168     		ldr	r1, [r2, #8]
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					(uint16_t *)pcam->optical->settings->mirr_position);
+ 506              		.loc 1 274 0
+ 507 006c DB68     		ldr	r3, [r3, #12]
+ 508 006e 0A31     		adds	r1, r1, #10
+ 509 0070 9847     		blx	r3
+ 510              	.LVL55:
+ 511              		.loc 1 277 0
+ 512 0072 0021     		movs	r1, #0
+ 513 0074 2868     		ldr	r0, [r5]
+ 514 0076 0A22     		movs	r2, #10
+ 515 0078 0B46     		mov	r3, r1
+ 516 007a 504F     		ldr	r7, .L45+56
+ 517 007c B847     		blx	r7
+ 518              	.LVL56:
+ 519 007e DFF87481 		ldr	r8, .L45+112
+ 520 0082 0128     		cmp	r0, #1
+ 521 0084 8146     		mov	r9, r0
+ 522 0086 15D1     		bne	.L37
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if(--light_system->check_asic_ready == 0)
+ 523              		.loc 1 279 0
+ 524 0088 4D4B     		ldr	r3, .L45+60
+ 525 008a 1A68     		ldr	r2, [r3]
+ 526 008c 92F84430 		ldrb	r3, [r2, #68]	@ zero_extendqisi2
+ 527 0090 013B     		subs	r3, r3, #1
+ 528 0092 DBB2     		uxtb	r3, r3
+ 529 0094 82F84430 		strb	r3, [r2, #68]
+ 530 0098 33B9     		cbnz	r3, .L30
+ 280:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_INFO, "Raise up the interrupt pin");
+ 531              		.loc 1 281 0
+ 532 009a 2820     		movs	r0, #40
+ 533 009c 0821     		movs	r1, #8
+ 534 009e 494A     		ldr	r2, .L45+64
+ 535 00a0 C047     		blx	r8
+ 536              	.LVL57:
+ 282:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			set_intr_pin(ON);
+ 537              		.loc 1 282 0
+ 538 00a2 4846     		mov	r0, r9
+ 539 00a4 484B     		ldr	r3, .L45+68
+ 540 00a6 9847     		blx	r3
+ 541              	.LVL58:
+ 542              	.L30:
+ 283:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 284:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* Release resource */
+ 285:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xSemaphoreGive(gpio_intr);
+ 543              		.loc 1 285 0
+ 544 00a8 0021     		movs	r1, #0
+ 545 00aa 2868     		ldr	r0, [r5]
+ 546 00ac 0A46     		mov	r2, r1
+ 547 00ae 0B46     		mov	r3, r1
+ 548 00b0 464D     		ldr	r5, .L45+72
+ 549 00b2 A847     		blx	r5
+ 550              	.LVL59:
+ 551              	.L37:
+ 286:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 287:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #endif
+ 288:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	while(1)
+ 289:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 290:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xQueueReceive(piezo->queue, &pcmd, portMAX_DELAY);
+ 552              		.loc 1 290 0
+ 553 00b4 4FF0FF32 		mov	r2, #-1
+ 554 00b8 0023     		movs	r3, #0
+ 555 00ba 2069     		ldr	r0, [r4, #16]
+ 556 00bc 02A9     		add	r1, sp, #8
+ 557 00be B847     		blx	r7
+ 558              	.LVL60:
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		cmd_tid = pcmd.cmd_tid;
+ 292:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		event = pcmd.event;
+ 559              		.loc 1 292 0
+ 560 00c0 039A     		ldr	r2, [sp, #12]
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		cmd_tid = pcmd.cmd_tid;
+ 561              		.loc 1 291 0
+ 562 00c2 BDF808A0 		ldrh	r10, [sp, #8]
+ 563              	.LVL61:
+ 564 00c6 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 293:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 294:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (event & OPT_EVENT_MIRROR_POSITION)
+ 565              		.loc 1 294 0
+ 566 00ca 12F0040F 		tst	r2, #4
+ 567 00ce 0CD0     		beq	.L31
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			p_mirr_position =
+ 297:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->mirr_position;
+ 568              		.loc 1 297 0
+ 569 00d0 7268     		ldr	r2, [r6, #4]
+ 570              	.LVL62:
+ 298:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_DEBUG, "CAM-%X : Mirror position", pcam->info.module);
+ 571              		.loc 1 299 0
+ 572 00d2 2820     		movs	r0, #40
+ 573 00d4 1021     		movs	r1, #16
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->mirr_position;
+ 574              		.loc 1 296 0
+ 575 00d6 9568     		ldr	r5, [r2, #8]
+ 576              		.loc 1 299 0
+ 577 00d8 3D4A     		ldr	r2, .L45+76
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->mirr_position;
+ 578              		.loc 1 296 0
+ 579 00da 0A35     		adds	r5, r5, #10
+ 580              	.LVL63:
+ 581              		.loc 1 299 0
+ 582 00dc C047     		blx	r8
+ 583              	.LVL64:
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if(actuator_move_to_position(piezo, p_mirr_position, 1) == ACTUATOR_OK)
+ 584              		.loc 1 300 0
+ 585 00de 2046     		mov	r0, r4
+ 586 00e0 2946     		mov	r1, r5
+ 587 00e2 0122     		movs	r2, #1
+ 588 00e4 3B4B     		ldr	r3, .L45+80
+ 589 00e6 9847     		blx	r3
+ 590              	.LVL65:
+ 591 00e8 08E0     		b	.L42
+ 592              	.LVL66:
+ 593              	.L31:
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_SUCCESS;
+ 302:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			else
+ 303:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_UNSUCCESS;
+ 304:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 305:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		else if (event & OPT_EVENT_MIRROR_CALIB)
+ 594              		.loc 1 305 0
+ 595 00ea 9206     		lsls	r2, r2, #26
+ 596              	.LVL67:
+ 597 00ec 0AD5     		bpl	.L33
+ 306:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 307:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_DEBUG, "CAM-%X : Mirror calibration", pcam->info.module);
+ 598              		.loc 1 307 0
+ 599 00ee 2820     		movs	r0, #40
+ 600 00f0 1021     		movs	r1, #16
+ 601 00f2 394A     		ldr	r2, .L45+84
+ 602 00f4 C047     		blx	r8
+ 603              	.LVL68:
+ 308:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if(actuator_calibrate(piezo) == ACTUATOR_OK)
+ 604              		.loc 1 308 0
+ 605 00f6 2046     		mov	r0, r4
+ 606 00f8 384B     		ldr	r3, .L45+88
+ 607 00fa 9847     		blx	r3
+ 608              	.LVL69:
+ 609              	.L42:
+ 303:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 610              		.loc 1 303 0
+ 611 00fc B0FA80F5 		clz	r5, r0
+ 612 0100 6D09     		lsrs	r5, r5, #5
+ 613 0102 1EE0     		b	.L32
+ 614              	.LVL70:
+ 615              	.L33:
+ 616              	.LBB8:
+ 309:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_SUCCESS;
+ 310:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			else
+ 311:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_UNSUCCESS;
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 313:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		else /* if (event & OPT_EVENT_MIRROR_NUDGE) */
+ 314:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			uint8_t *mirr_nudge = pcam->optical->settings->mirr_nudge;
+ 617              		.loc 1 315 0
+ 618 0104 7268     		ldr	r2, [r6, #4]
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			SLOGF(SLOG_DEBUG, "CAM-%X : Nudge mirror", pcam->info.module);
+ 619              		.loc 1 317 0
+ 620 0106 2820     		movs	r0, #40
+ 621 0108 1021     		movs	r1, #16
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 622              		.loc 1 315 0
+ 623 010a 9568     		ldr	r5, [r2, #8]
+ 624              	.LVL71:
+ 625              		.loc 1 317 0
+ 626 010c 344A     		ldr	r2, .L45+92
+ 627 010e C047     		blx	r8
+ 628              	.LVL72:
+ 318:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 319:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			if(actuator_nudge(piezo, mirr_nudge[0],
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					*((uint16_t *)(mirr_nudge + 1)), nudge_isr, &piezo->moving) == ACTUATOR_OK)
+ 629              		.loc 1 320 0
+ 630 0110 04F11C03 		add	r3, r4, #28
+ 319:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					*((uint16_t *)(mirr_nudge + 1)), nudge_isr, &piezo->moving) == ACTUATOR_OK)
+ 631              		.loc 1 319 0
+ 632 0114 E97B     		ldrb	r1, [r5, #15]	@ zero_extendqisi2
+ 633 0116 2A8A     		ldrh	r2, [r5, #16]
+ 634 0118 2046     		mov	r0, r4
+ 635 011a 0093     		str	r3, [sp]
+ 636 011c 314D     		ldr	r5, .L45+96
+ 637              	.LVL73:
+ 638 011e 324B     		ldr	r3, .L45+100
+ 639 0120 A847     		blx	r5
+ 640              	.LVL74:
+ 321:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_SUCCESS;
+ 322:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			else
+ 323:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				cmd_status = LCC_CMD_UNSUCCESS;
+ 641              		.loc 1 323 0
+ 642 0122 B0FA80F5 		clz	r5, r0
+ 643 0126 6D09     		lsrs	r5, r5, #5
+ 644              	.L34:
+ 324:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 325:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			while (piezo->moving == TRUE)
+ 645              		.loc 1 325 0
+ 646 0128 237F     		ldrb	r3, [r4, #28]	@ zero_extendqisi2
+ 647 012a 1BB1     		cbz	r3, .L44
+ 326:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			{
+ 327:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				vTaskDelay(1);
+ 648              		.loc 1 327 0
+ 649 012c 0120     		movs	r0, #1
+ 650 012e 184B     		ldr	r3, .L45+12
+ 651 0130 9847     		blx	r3
+ 652              	.LVL75:
+ 653 0132 F9E7     		b	.L34
+ 654              	.L44:
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			}
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			/* update current position to camera setting */
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			piezo->hall_obj->read_position(piezo->hall_i2c,
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->mirr_position);
+ 655              		.loc 1 331 0
+ 656 0134 7268     		ldr	r2, [r6, #4]
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->mirr_position);
+ 657              		.loc 1 330 0
+ 658 0136 E078     		ldrb	r0, [r4, #3]	@ zero_extendqisi2
+ 659 0138 636A     		ldr	r3, [r4, #36]
+ 660              		.loc 1 331 0
+ 661 013a 9168     		ldr	r1, [r2, #8]
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 							(uint16_t *)pcam->optical->settings->mirr_position);
+ 662              		.loc 1 330 0
+ 663 013c DB68     		ldr	r3, [r3, #12]
+ 664 013e 0A31     		adds	r1, r1, #10
+ 665 0140 9847     		blx	r3
+ 666              	.LVL76:
+ 667              	.L32:
+ 668              	.LBE8:
+ 332:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 333:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* take semaphore to access settings memory */
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xSemaphoreTake(piezo->semaphore, portMAX_DELAY);
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* update moving status */
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		piezo->moving = FALSE;
+ 669              		.loc 1 337 0
+ 670 0142 4FF00009 		mov	r9, #0
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* update moving status */
+ 671              		.loc 1 335 0
+ 672 0146 0021     		movs	r1, #0
+ 673 0148 0B46     		mov	r3, r1
+ 674 014a 4FF0FF32 		mov	r2, #-1
+ 675 014e E068     		ldr	r0, [r4, #12]
+ 676 0150 B847     		blx	r7
+ 677              	.LVL77:
+ 338:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* release semaphore after accessing data */
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		xSemaphoreGive(piezo->semaphore);
+ 678              		.loc 1 339 0
+ 679 0152 4B46     		mov	r3, r9
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* release semaphore after accessing data */
+ 680              		.loc 1 337 0
+ 681 0154 84F81C90 		strb	r9, [r4, #28]
+ 682              		.loc 1 339 0
+ 683 0158 4946     		mov	r1, r9
+ 684 015a E068     		ldr	r0, [r4, #12]
+ 685 015c 4A46     		mov	r2, r9
+ 686 015e DFF86CC0 		ldr	ip, .L45+72
+ 687 0162 E047     		blx	ip
+ 688              	.LVL78:
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		/* call back to upper layer */
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (piezo->cb_func != NULL)
+ 689              		.loc 1 341 0
+ 690 0164 6369     		ldr	r3, [r4, #20]
+ 691 0166 1BB1     		cbz	r3, .L36
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			piezo->cb_func(piezo->cb_param);
+ 692              		.loc 1 343 0
+ 693 0168 A069     		ldr	r0, [r4, #24]
+ 694 016a 9847     		blx	r3
+ 695              	.LVL79:
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			/* disable call-back function in the case of LCC command */
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			piezo->cb_func = NULL;
+ 696              		.loc 1 345 0
+ 697 016c C4F81490 		str	r9, [r4, #20]
+ 698              	.L36:
+ 346:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 347:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		lcc_cmd_log_update_status(cmd_tid, cmd_status, object_to_cam_bitmask(pcam));
+ 699              		.loc 1 347 0
+ 700 0170 3046     		mov	r0, r6
+ 701 0172 1E4B     		ldr	r3, .L45+104
+ 702 0174 9847     		blx	r3
+ 703              	.LVL80:
+ 704 0176 2946     		mov	r1, r5
+ 705 0178 1D4B     		ldr	r3, .L45+108
+ 706 017a 0246     		mov	r2, r0
+ 707 017c 5046     		mov	r0, r10
+ 708 017e 9847     		blx	r3
+ 709              	.LVL81:
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 710              		.loc 1 348 0
+ 711 0180 98E7     		b	.L37
+ 712              	.L46:
+ 713 0182 00BF     		.align	2
+ 714              	.L45:
+ 715 0184 00000000 		.word	.LC0
+ 716 0188 00000000 		.word	task_query_tid
+ 717 018c 00000000 		.word	task_handler
+ 718 0190 00000000 		.word	vTaskDelay
+ 719 0194 07000000 		.word	.LC1
+ 720 0198 00000000 		.word	vPortEnterCritical
+ 721 019c 10000000 		.word	.LC2
+ 722 01a0 00000000 		.word	.LANCHOR2
+ 723 01a4 00000000 		.word	log_msg
+ 724 01a8 00000000 		.word	vPortExitCritical
+ 725 01ac 00000000 		.word	xQueueGenericCreate
+ 726 01b0 00000000 		.word	assert_failed
+ 727 01b4 00000000 		.word	actuator_init
+ 728 01b8 00000000 		.word	.LANCHOR1
+ 729 01bc 00000000 		.word	xQueueGenericReceive
+ 730 01c0 00000000 		.word	light_system
+ 731 01c4 1F000000 		.word	.LC3
+ 732 01c8 00000000 		.word	set_intr_pin
+ 733 01cc 00000000 		.word	xQueueGenericSend
+ 734 01d0 95000000 		.word	.LC7
+ 735 01d4 00000000 		.word	actuator_move_to_position
+ 736 01d8 AE000000 		.word	.LC8
+ 737 01dc 00000000 		.word	actuator_calibrate
+ 738 01e0 CA000000 		.word	.LC9
+ 739 01e4 00000000 		.word	actuator_nudge
+ 740 01e8 00000000 		.word	nudge_isr
+ 741 01ec 00000000 		.word	object_to_cam_bitmask
+ 742 01f0 00000000 		.word	lcc_cmd_log_update_status
+ 743 01f4 00000000 		.word	slogf
+ 744              		.cfi_endproc
+ 745              	.LFE4:
+ 747              		.section	.text.task_actuator_create,"ax",%progbits
+ 748              		.align	1
+ 749              		.global	task_actuator_create
+ 750              		.thumb
+ 751              		.thumb_func
+ 753              	task_actuator_create:
+ 754              	.LFB2:
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint8_t i;
+ 755              		.loc 1 48 0
+ 756              		.cfi_startproc
+ 757              		@ args = 0, pretend = 0, frame = 16
+ 758              		@ frame_needed = 0, uses_anonymous_args = 0
+ 759              	.LVL82:
+ 760 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 761              	.LCFI2:
+ 762              		.cfi_def_cfa_offset 20
+ 763              		.cfi_offset 4, -20
+ 764              		.cfi_offset 5, -16
+ 765              		.cfi_offset 6, -12
+ 766              		.cfi_offset 7, -8
+ 767              		.cfi_offset 14, -4
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	if(gpio_intr == NULL )
+ 768              		.loc 1 55 0
+ 769 0002 0120     		movs	r0, #1
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint8_t i;
+ 770              		.loc 1 48 0
+ 771 0004 89B0     		sub	sp, sp, #36
+ 772              	.LCFI3:
+ 773              		.cfi_def_cfa_offset 56
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	if(gpio_intr == NULL )
+ 774              		.loc 1 55 0
+ 775 0006 514B     		ldr	r3, .L80
+ 776 0008 9847     		blx	r3
+ 777              	.LVL83:
+ 778 000a 514E     		ldr	r6, .L80+4
+ 779 000c 3060     		str	r0, [r6]
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 780              		.loc 1 56 0
+ 781 000e 20B9     		cbnz	r0, .L48
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	}
+ 782              		.loc 1 58 0
+ 783 0010 2820     		movs	r0, #40
+ 784 0012 0221     		movs	r1, #2
+ 785 0014 4F4A     		ldr	r2, .L80+8
+ 786 0016 504B     		ldr	r3, .L80+12
+ 787 0018 9847     		blx	r3
+ 788              	.LVL84:
+ 789              	.L48:
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	uint8_t i;
+ 790              		.loc 1 48 0 discriminator 1
+ 791 001a 0027     		movs	r7, #0
+ 792              	.LVL85:
+ 793              	.L49:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 794              		.loc 1 62 0 discriminator 1
+ 795 001c 4F4B     		ldr	r3, .L80+16
+ 796 001e 1C68     		ldr	r4, [r3]
+ 797 0020 FBB2     		uxtb	r3, r7
+ 798 0022 94F82A20 		ldrb	r2, [r4, #42]	@ zero_extendqisi2
+ 799 0026 9A42     		cmp	r2, r3
+ 800 0028 40D9     		bls	.L78
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (pcam->info.ch > 0)
+ 801              		.loc 1 64 0
+ 802 002a 2268     		ldr	r2, [r4]
+ 803 002c 3825     		movs	r5, #56
+ 804 002e 05FB0325 		mla	r5, r5, r3, r2
+ 805              	.LVL86:
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 806              		.loc 1 65 0
+ 807 0032 95F82830 		ldrb	r3, [r5, #40]	@ zero_extendqisi2
+ 808 0036 1B07     		lsls	r3, r3, #28
+ 809 0038 36D0     		beq	.L51
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			{
+ 810              		.loc 1 67 0
+ 811 003a 95F82930 		ldrb	r3, [r5, #41]	@ zero_extendqisi2
+ 812 003e 03F0F003 		and	r3, r3, #240
+ 813 0042 B02B     		cmp	r3, #176
+ 814 0044 01D0     		beq	.L52
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			{
+ 815              		.loc 1 67 0 is_stmt 0 discriminator 1
+ 816 0046 C02B     		cmp	r3, #192
+ 817 0048 2ED1     		bne	.L51
+ 818              	.L52:
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				ret = xTaskCreate(
+ 819              		.loc 1 69 0 is_stmt 1
+ 820 004a 95F82930 		ldrb	r3, [r5, #41]	@ zero_extendqisi2
+ 821 004e 1021     		movs	r1, #16
+ 822 0050 434A     		ldr	r2, .L80+20
+ 823 0052 04A8     		add	r0, sp, #16
+ 824 0054 DFF82CC1 		ldr	ip, .L80+56
+ 825 0058 E047     		blx	ip
+ 826              	.LVL87:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								task_actuator_lens,		/* task function */
+ 827              		.loc 1 70 0
+ 828 005a 0A23     		movs	r3, #10
+ 829 005c 4148     		ldr	r0, .L80+24
+ 830 005e 04A9     		add	r1, sp, #16
+ 831 0060 0093     		str	r3, [sp]
+ 832 0062 0023     		movs	r3, #0
+ 833 0064 4FF4C072 		mov	r2, #384
+ 834 0068 0193     		str	r3, [sp, #4]
+ 835 006a 0293     		str	r3, [sp, #8]
+ 836 006c 0393     		str	r3, [sp, #12]
+ 837 006e 2B46     		mov	r3, r5
+ 838 0070 3D4D     		ldr	r5, .L80+28
+ 839              	.LVL88:
+ 840 0072 A847     		blx	r5
+ 841              	.LVL89:
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 842              		.loc 1 80 0
+ 843 0074 0128     		cmp	r0, #1
+ 844 0076 03D0     		beq	.L54
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 845              		.loc 1 80 0 is_stmt 0 discriminator 1
+ 846 0078 3C48     		ldr	r0, .L80+32
+ 847              	.LVL90:
+ 848 007a 5021     		movs	r1, #80
+ 849 007c 3C4B     		ldr	r3, .L80+36
+ 850 007e 9847     		blx	r3
+ 851              	.LVL91:
+ 852              	.L54:
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				{
+ 853              		.loc 1 82 0 is_stmt 1
+ 854 0080 0021     		movs	r1, #0
+ 855 0082 3068     		ldr	r0, [r6]
+ 856 0084 0A22     		movs	r2, #10
+ 857 0086 0B46     		mov	r3, r1
+ 858 0088 3A4D     		ldr	r5, .L80+40
+ 859 008a A847     		blx	r5
+ 860              	.LVL92:
+ 861 008c 0128     		cmp	r0, #1
+ 862 008e 0BD1     		bne	.L51
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					/* Release resource */
+ 863              		.loc 1 84 0
+ 864 0090 94F84430 		ldrb	r3, [r4, #68]	@ zero_extendqisi2
+ 865 0094 0133     		adds	r3, r3, #1
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				}
+ 866              		.loc 1 86 0
+ 867 0096 0021     		movs	r1, #0
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 					/* Release resource */
+ 868              		.loc 1 84 0
+ 869 0098 84F84430 		strb	r3, [r4, #68]
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				}
+ 870              		.loc 1 86 0
+ 871 009c 0A46     		mov	r2, r1
+ 872 009e 2C4B     		ldr	r3, .L80+4
+ 873 00a0 354C     		ldr	r4, .L80+44
+ 874 00a2 1868     		ldr	r0, [r3]
+ 875 00a4 0B46     		mov	r3, r1
+ 876 00a6 A047     		blx	r4
+ 877              	.LVL93:
+ 878              	.L51:
+ 879 00a8 0137     		adds	r7, r7, #1
+ 880              	.LVL94:
+ 881 00aa B7E7     		b	.L49
+ 882              	.LVL95:
+ 883              	.L78:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 884              		.loc 1 62 0
+ 885 00ac 0027     		movs	r7, #0
+ 886              	.LVL96:
+ 887              	.L56:
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 	{
+ 888              		.loc 1 94 0 discriminator 1
+ 889 00ae FBB2     		uxtb	r3, r7
+ 890 00b0 94F82A20 		ldrb	r2, [r4, #42]	@ zero_extendqisi2
+ 891 00b4 9A42     		cmp	r2, r3
+ 892 00b6 47D9     		bls	.L79
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		if (pcam->info.ch > 0)
+ 893              		.loc 1 96 0
+ 894 00b8 2268     		ldr	r2, [r4]
+ 895 00ba 3825     		movs	r5, #56
+ 896 00bc 05FB0325 		mla	r5, r5, r3, r2
+ 897              	.LVL97:
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 898              		.loc 1 97 0
+ 899 00c0 95F82830 		ldrb	r3, [r5, #40]	@ zero_extendqisi2
+ 900 00c4 1907     		lsls	r1, r3, #28
+ 901 00c6 3DD0     		beq	.L58
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_B4) &&
+ 902              		.loc 1 99 0
+ 903 00c8 95F82930 		ldrb	r3, [r5, #41]	@ zero_extendqisi2
+ 904 00cc 03F0F003 		and	r3, r3, #240
+ 905 00d0 B02B     		cmp	r3, #176
+ 906 00d2 01D0     		beq	.L59
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_B4) &&
+ 907              		.loc 1 99 0 is_stmt 0 discriminator 2
+ 908 00d4 C02B     		cmp	r3, #192
+ 909 00d6 35D1     		bne	.L58
+ 910              	.L59:
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_C5) &&
+ 911              		.loc 1 100 0 is_stmt 1 discriminator 3
+ 912 00d8 95F82930 		ldrb	r3, [r5, #41]	@ zero_extendqisi2
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_B4) &&
+ 913              		.loc 1 99 0 discriminator 3
+ 914 00dc B42B     		cmp	r3, #180
+ 915 00de 31D0     		beq	.L58
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				(pcam->info.module != CAM_C5) &&
+ 916              		.loc 1 100 0
+ 917 00e0 03F13B02 		add	r2, r3, #59
+ 918 00e4 D2B2     		uxtb	r2, r2
+ 919 00e6 012A     		cmp	r2, #1
+ 920 00e8 2CD9     		bls	.L58
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 				ret = xTaskCreate(
+ 921              		.loc 1 104 0
+ 922 00ea 1021     		movs	r1, #16
+ 923 00ec 234A     		ldr	r2, .L80+48
+ 924 00ee 04A8     		add	r0, sp, #16
+ 925 00f0 DFF890C0 		ldr	ip, .L80+56
+ 926 00f4 E047     		blx	ip
+ 927              	.LVL98:
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 								task_actuator_mirr,		/* task function */
+ 928              		.loc 1 105 0
+ 929 00f6 0A23     		movs	r3, #10
+ 930 00f8 2148     		ldr	r0, .L80+52
+ 931 00fa 04A9     		add	r1, sp, #16
+ 932 00fc 0093     		str	r3, [sp]
+ 933 00fe 0023     		movs	r3, #0
+ 934 0100 4FF4C072 		mov	r2, #384
+ 935 0104 0193     		str	r3, [sp, #4]
+ 936 0106 0293     		str	r3, [sp, #8]
+ 937 0108 0393     		str	r3, [sp, #12]
+ 938 010a 2B46     		mov	r3, r5
+ 939 010c 164D     		ldr	r5, .L80+28
+ 940              	.LVL99:
+ 941 010e A847     		blx	r5
+ 942              	.LVL100:
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 943              		.loc 1 115 0
+ 944 0110 0128     		cmp	r0, #1
+ 945 0112 03D0     		beq	.L61
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** #if (ASIC_NUM != ASIC1)
+ 946              		.loc 1 115 0 is_stmt 0 discriminator 1
+ 947 0114 1548     		ldr	r0, .L80+32
+ 948              	.LVL101:
+ 949 0116 7321     		movs	r1, #115
+ 950 0118 154B     		ldr	r3, .L80+36
+ 951 011a 9847     		blx	r3
+ 952              	.LVL102:
+ 953              	.L61:
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		{
+ 954              		.loc 1 117 0 is_stmt 1
+ 955 011c 0021     		movs	r1, #0
+ 956 011e 3068     		ldr	r0, [r6]
+ 957 0120 0A22     		movs	r2, #10
+ 958 0122 0B46     		mov	r3, r1
+ 959 0124 134D     		ldr	r5, .L80+40
+ 960 0126 A847     		blx	r5
+ 961              	.LVL103:
+ 962 0128 0128     		cmp	r0, #1
+ 963 012a 0BD1     		bne	.L58
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			/* Release resource */
+ 964              		.loc 1 119 0
+ 965 012c 94F84430 		ldrb	r3, [r4, #68]	@ zero_extendqisi2
+ 966 0130 0133     		adds	r3, r3, #1
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 967              		.loc 1 121 0
+ 968 0132 0021     		movs	r1, #0
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 			/* Release resource */
+ 969              		.loc 1 119 0
+ 970 0134 84F84430 		strb	r3, [r4, #68]
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 		}
+ 971              		.loc 1 121 0
+ 972 0138 0A46     		mov	r2, r1
+ 973 013a 054B     		ldr	r3, .L80+4
+ 974 013c 0E4D     		ldr	r5, .L80+44
+ 975 013e 1868     		ldr	r0, [r3]
+ 976 0140 0B46     		mov	r3, r1
+ 977 0142 A847     		blx	r5
+ 978              	.LVL104:
+ 979              	.L58:
+ 980 0144 0137     		adds	r7, r7, #1
+ 981              	.LVL105:
+ 982 0146 B2E7     		b	.L56
+ 983              	.LVL106:
+ 984              	.L79:
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/optical.c **** 
+ 985              		.loc 1 127 0
+ 986 0148 09B0     		add	sp, sp, #36
+ 987              	.LCFI4:
+ 988              		.cfi_def_cfa_offset 20
+ 989              		@ sp needed
+ 990 014a F0BD     		pop	{r4, r5, r6, r7, pc}
+ 991              	.LVL107:
+ 992              	.L81:
+ 993              		.align	2
+ 994              	.L80:
+ 995 014c 00000000 		.word	xQueueCreateMutex
+ 996 0150 00000000 		.word	.LANCHOR1
+ 997 0154 E0000000 		.word	.LC10
+ 998 0158 00000000 		.word	slogf
+ 999 015c 00000000 		.word	light_system
+ 1000 0160 F7000000 		.word	.LC11
+ 1001 0164 00000000 		.word	task_actuator_lens
+ 1002 0168 00000000 		.word	xTaskGenericCreate
+ 1003 016c 00000000 		.word	.LANCHOR3
+ 1004 0170 00000000 		.word	assert_failed
+ 1005 0174 00000000 		.word	xQueueGenericReceive
+ 1006 0178 00000000 		.word	xQueueGenericSend
+ 1007 017c FF000000 		.word	.LC12
+ 1008 0180 00000000 		.word	task_actuator_mirr
+ 1009 0184 00000000 		.word	snprintf
+ 1010              		.cfi_endproc
+ 1011              	.LFE2:
+ 1013              		.section	.rodata.__FUNCTION__.8957,"a",%progbits
+ 1014              		.set	.LANCHOR0,. + 0
+ 1017              	__FUNCTION__.8957:
+ 1018 0000 7461736B 		.ascii	"task_actuator_lens\000"
+ 1018      5F616374 
+ 1018      7561746F 
+ 1018      725F6C65 
+ 1018      6E7300
+ 1019              		.section	.bss.gpio_intr,"aw",%nobits
+ 1020              		.align	2
+ 1021              		.set	.LANCHOR1,. + 0
+ 1024              	gpio_intr:
+ 1025 0000 00000000 		.space	4
+ 1026              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 1027              	.LC0:
+ 1028 0000 6C636363 		.ascii	"lcccmd\000"
+ 1028      6D6400
+ 1029              	.LC1:
+ 1030 0007 6363625F 		.ascii	"ccb_ctrl\000"
+ 1030      6374726C 
+ 1030      00
+ 1031              	.LC2:
+ 1032 0010 53746172 		.ascii	"Start %s: %x\015\012\000"
+ 1032      74202573 
+ 1032      3A202578 
+ 1032      0D0A00
+ 1033              	.LC3:
+ 1034 001f 52616973 		.ascii	"Raise up the interrupt pin\000"
+ 1034      65207570 
+ 1034      20746865 
+ 1034      20696E74 
+ 1034      65727275 
+ 1035              	.LC4:
+ 1036 003a 43414D2D 		.ascii	"CAM-%X : Lens position to %u with tolerance %d\000"
+ 1036      2558203A 
+ 1036      204C656E 
+ 1036      7320706F 
+ 1036      73697469 
+ 1037              	.LC5:
+ 1038 0069 43414D2D 		.ascii	"CAM-%X : Focus distance\000"
+ 1038      2558203A 
+ 1038      20466F63 
+ 1038      75732064 
+ 1038      69737461 
+ 1039              	.LC6:
+ 1040 0081 43414D2D 		.ascii	"CAM-%X : Nudge lens\000"
+ 1040      2558203A 
+ 1040      204E7564 
+ 1040      6765206C 
+ 1040      656E7300 
+ 1041              	.LC7:
+ 1042 0095 43414D2D 		.ascii	"CAM-%X : Mirror position\000"
+ 1042      2558203A 
+ 1042      204D6972 
+ 1042      726F7220 
+ 1042      706F7369 
+ 1043              	.LC8:
+ 1044 00ae 43414D2D 		.ascii	"CAM-%X : Mirror calibration\000"
+ 1044      2558203A 
+ 1044      204D6972 
+ 1044      726F7220 
+ 1044      63616C69 
+ 1045              	.LC9:
+ 1046 00ca 43414D2D 		.ascii	"CAM-%X : Nudge mirror\000"
+ 1046      2558203A 
+ 1046      204E7564 
+ 1046      6765206D 
+ 1046      6972726F 
+ 1047              	.LC10:
+ 1048 00e0 4661696C 		.ascii	"Failed to create mutex\000"
+ 1048      65642074 
+ 1048      6F206372 
+ 1048      65617465 
+ 1048      206D7574 
+ 1049              	.LC11:
+ 1050 00f7 6C656E73 		.ascii	"lens_%x\000"
+ 1050      5F257800 
+ 1051              	.LC12:
+ 1052 00ff 6D697272 		.ascii	"mirr_%x\000"
+ 1052      5F257800 
+ 1053              		.section	.rodata.__FUNCTION__.8979,"a",%progbits
+ 1054              		.set	.LANCHOR2,. + 0
+ 1057              	__FUNCTION__.8979:
+ 1058 0000 7461736B 		.ascii	"task_actuator_mirr\000"
+ 1058      5F616374 
+ 1058      7561746F 
+ 1058      725F6D69 
+ 1058      727200
+ 1059              		.section	.rodata.__FUNCTION__.8939,"a",%progbits
+ 1060              		.set	.LANCHOR3,. + 0
+ 1063              	__FUNCTION__.8939:
+ 1064 0000 7461736B 		.ascii	"task_actuator_create\000"
+ 1064      5F616374 
+ 1064      7561746F 
+ 1064      725F6372 
+ 1064      65617465 
+ 1065              		.text
+ 1066              	.Letext0:
+ 1067              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1068              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1069              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 1070              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/task.h"
+ 1071              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 1072              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 1073              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/event_groups.h"
+ 1074              		.file 9 "/home/tienluong/workspace/atlantis_fw/platform/common/os.h"
+ 1075              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_syncio.h"
+ 1076              		.file 11 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_pwm.h"
+ 1077              		.file 12 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 1078              		.file 13 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 1079              		.file 14 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 1080              		.file 15 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/lcc_cmd.h"
+ 1081              		.file 16 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/optical.h"
+ 1082              		.file 17 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/pwr_ctrl.h"
+ 1083              		.file 18 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/eeprom.h"
+ 1084              		.file 19 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/task_af_ctrl.h"
+ 1085              		.file 20 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/light_system.h"
+ 1086              		.file 21 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/hall.h"
+ 1087              		.file 22 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/actuator.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 optical.c
+     /tmp/cc9Pq4et.s:19     .text.nudge_isr:00000000 $t
+     /tmp/cc9Pq4et.s:23     .text.nudge_isr:00000000 nudge_isr
+     /tmp/cc9Pq4et.s:40     .text.task_actuator_lens:00000000 $t
+     /tmp/cc9Pq4et.s:45     .text.task_actuator_lens:00000000 task_actuator_lens
+     /tmp/cc9Pq4et.s:367    .text.task_actuator_lens:0000018c $d
+     /tmp/cc9Pq4et.s:400    .text.task_actuator_mirr:00000000 $t
+     /tmp/cc9Pq4et.s:405    .text.task_actuator_mirr:00000000 task_actuator_mirr
+     /tmp/cc9Pq4et.s:715    .text.task_actuator_mirr:00000184 $d
+     /tmp/cc9Pq4et.s:748    .text.task_actuator_create:00000000 $t
+     /tmp/cc9Pq4et.s:753    .text.task_actuator_create:00000000 task_actuator_create
+     /tmp/cc9Pq4et.s:995    .text.task_actuator_create:0000014c $d
+     /tmp/cc9Pq4et.s:1017   .rodata.__FUNCTION__.8957:00000000 __FUNCTION__.8957
+     /tmp/cc9Pq4et.s:1020   .bss.gpio_intr:00000000 $d
+     /tmp/cc9Pq4et.s:1024   .bss.gpio_intr:00000000 gpio_intr
+     /tmp/cc9Pq4et.s:1057   .rodata.__FUNCTION__.8979:00000000 __FUNCTION__.8979
+     /tmp/cc9Pq4et.s:1063   .rodata.__FUNCTION__.8939:00000000 __FUNCTION__.8939
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+task_query_tid
+task_handler
+vTaskDelay
+vPortEnterCritical
+log_msg
+vPortExitCritical
+xQueueGenericCreate
+assert_failed
+actuator_init
+xQueueGenericReceive
+light_system
+set_intr_pin
+xQueueGenericSend
+actuator_move_to_position
+actuator_move_to_distance
+actuator_nudge
+object_to_cam_bitmask
+lcc_cmd_log_update_status
+slogf
+actuator_calibrate
+xQueueCreateMutex
+xTaskGenericCreate
+snprintf

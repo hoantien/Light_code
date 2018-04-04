@@ -1,0 +1,1251 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"rectangle.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._Z17debug_print_imagePKvRK9rectangleS3_9flip_modet,"ax",%progbits
+  19              		.align	1
+  20              		.global	_Z17debug_print_imagePKvRK9rectangleS3_9flip_modet
+  21              		.thumb
+  22              		.thumb_func
+  24              	_Z17debug_print_imagePKvRK9rectangleS3_9flip_modet:
+  25              	.LFB18:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * @file    roi.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * @date    August-8-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  * @brief   Region of interest rectangle
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** #include "os.h"             // for debug_print_image()
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** #include "image_raw10.h"    // for debug_print_image()
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** #include "rectangle.h"
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** void debug_print_image(const void* img, const rectangle& capt_rect, const rectangle& roi_rect,
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         flip_mode_t flip_mode, std::uint16_t scale) {
+  27              		.loc 1 21 0
+  28              		.cfi_startproc
+  29              		@ args = 4, pretend = 0, frame = 32
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 36
+  35              		.cfi_offset 4, -36
+  36              		.cfi_offset 5, -32
+  37              		.cfi_offset 6, -28
+  38              		.cfi_offset 7, -24
+  39              		.cfi_offset 8, -20
+  40              		.cfi_offset 9, -16
+  41              		.cfi_offset 10, -12
+  42              		.cfi_offset 11, -8
+  43              		.cfi_offset 14, -4
+  44 0004 8146     		mov	r9, r0
+  45 0006 8BB0     		sub	sp, sp, #44
+  46              	.LCFI1:
+  47              		.cfi_def_cfa_offset 80
+  48              		.loc 1 21 0
+  49 0008 9A46     		mov	r10, r3
+  50              	.LBB76:
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     vTaskDelay(50);
+  51              		.loc 1 22 0
+  52 000a 3220     		movs	r0, #50
+  53              	.LVL1:
+  54 000c 3D4B     		ldr	r3, .L10
+  55              	.LVL2:
+  56              	.LBE76:
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     vTaskDelay(50);
+  57              		.loc 1 21 0
+  58 000e BDF85060 		ldrh	r6, [sp, #80]
+  59 0012 1746     		mov	r7, r2
+  60 0014 8846     		mov	r8, r1
+  61              	.LBB125:
+  62              		.loc 1 22 0
+  63 0016 9847     		blx	r3
+  64              	.LVL3:
+  65              	.LBB77:
+  66              	.LBB78:
+  67              	.LBB79:
+  68              	.LBB80:
+  69              	.LBB81:
+  70              	.LBB82:
+  71              	.LBB83:
+  72              		.file 2 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @file    roi.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @date    August-8-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @brief   Region of interest rectangle
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #ifndef __RECTANGLE_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #define __RECTANGLE_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #ifdef __cplusplus
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #include <cstdint>
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #include "img_sensor.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** class rectangle {
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** public:
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     rectangle(std::int16_t left_x, std::int16_t top_y, std::uint16_t width, std::uint16_t height);
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     rectangle() :
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****             rectangle{0,0,0,0} {
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     void set(std::int16_t left_x, std::int16_t top_y, std::uint16_t width, std::uint16_t height);
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::int16_t left_x() const {
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return left_x_;
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::int16_t top_y() const {
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return top_y_;
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::uint16_t width() const {
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return width_;
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::uint16_t height() const {
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return height_;
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::uint32_t area() const {
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return static_cast<std::uint32_t>(width_) * height_;
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     void translate(std::int16_t delta_x, std::int16_t delta_y);
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t scaled_width(std::uint16_t width, std::uint16_t scale) {
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return (width + scale - 1) / scale;
+  73              		.loc 2 57 0
+  74 0018 B988     		ldrh	r1, [r7, #4]
+  75 001a 3144     		add	r1, r1, r6
+  76              	.LBE83:
+  77              	.LBE82:
+  78              	.LBE81:
+  79              	.LBE80:
+  80              	.LBE79:
+  81              	.LBE78:
+  82              	.LBE77:
+  83              	.LBB108:
+  84              	.LBB109:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t scaled_height(std::uint16_t height, std::uint16_t scale) {
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return (height + scale - 1) / scale;
+  85              		.loc 2 61 0
+  86 001c FD88     		ldrh	r5, [r7, #6]
+  87              	.LBE109:
+  88              	.LBE108:
+  89              	.LBB112:
+  90              	.LBB103:
+  91              	.LBB98:
+  92              	.LBB93:
+  93              	.LBB88:
+  94              	.LBB86:
+  95              	.LBB84:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  96              		.loc 2 57 0
+  97 001e 0139     		subs	r1, r1, #1
+  98              	.LBE84:
+  99              	.LBE86:
+ 100              	.LBE88:
+ 101              	.LBE93:
+ 102              	.LBE98:
+ 103              	.LBE103:
+ 104              	.LBE112:
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t num_bytes_per_line = roi_rect.image_line_size_padded(scale);
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t scaled_w = rectangle::scaled_width(roi_rect.width(), scale);
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t scaled_h = rectangle::scaled_height(roi_rect.height(), scale);
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t x_off = (roi_rect.left_x() - capt_rect.left_x()) / scale;
+ 105              		.loc 1 26 0
+ 106 0020 B8F90020 		ldrsh	r2, [r8]
+ 107              	.LBB113:
+ 108              	.LBB104:
+ 109              	.LBB99:
+ 110              	.LBB94:
+ 111              	.LBB89:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t image_line_size(std::uint16_t width, std::uint16_t scale) {
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return (10*static_cast<std::uint32_t>(scaled_width(width, scale)) + 7) / 8;
+ 112              		.loc 2 65 0
+ 113 0024 0A24     		movs	r4, #10
+ 114              	.LBB87:
+ 115              	.LBB85:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+ 116              		.loc 2 57 0
+ 117 0026 91FBF6F1 		sdiv	r1, r1, r6
+ 118              	.LBE85:
+ 119              	.LBE87:
+ 120              	.LBE89:
+ 121              	.LBE94:
+ 122              	.LBE99:
+ 123              	.LBE104:
+ 124              	.LBE113:
+ 125              	.LBB114:
+ 126              	.LBB110:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+ 127              		.loc 2 61 0
+ 128 002a 3544     		add	r5, r5, r6
+ 129 002c 013D     		subs	r5, r5, #1
+ 130              	.LBE110:
+ 131              	.LBE114:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t y_off = (roi_rect.top_y() - capt_rect.top_y()) / scale;
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     bool flip_horizontal = ((flip_mode & FLIP_HORIZONTAL) != 0);
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     flip_horizontal = (flip_horizontal != ((x_off & 1) != 0));
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     bool flip_vertical = ((flip_mode & FLIP_VERTICAL) != 0);
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     flip_vertical = (flip_vertical != ((y_off & 1) != 0));
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     printf("\r\n\r\n##Image## %u %u %u %u",
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             (unsigned int)(scaled_w), (unsigned int)(scaled_h),
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             (unsigned int)flip_horizontal, (unsigned int)flip_vertical);
+ 132              		.loc 1 34 0
+ 133 002e 3648     		ldr	r0, .L10+4
+ 134              	.LBB115:
+ 135              	.LBB111:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+ 136              		.loc 2 61 0
+ 137 0030 95FBF6F5 		sdiv	r5, r5, r6
+ 138              	.LBE111:
+ 139              	.LBE115:
+ 140              	.LBB116:
+ 141              	.LBB105:
+ 142              	.LBB100:
+ 143              	.LBB95:
+ 144              	.LBB90:
+ 145              		.loc 2 65 0
+ 146 0034 4C43     		muls	r4, r1, r4
+ 147              	.LBE90:
+ 148              	.LBE95:
+ 149              	.LBE100:
+ 150              	.LBE105:
+ 151              	.LBE116:
+ 152              		.loc 1 34 0
+ 153 0036 89B2     		uxth	r1, r1
+ 154              	.LBB117:
+ 155              	.LBB106:
+ 156              	.LBB101:
+ 157              	.LBB96:
+ 158              	.LBB91:
+ 159              		.loc 2 65 0
+ 160 0038 0734     		adds	r4, r4, #7
+ 161              	.LBE91:
+ 162              	.LBE96:
+ 163              	.LBE101:
+ 164              	.LBE106:
+ 165              	.LBE117:
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t x_off = (roi_rect.left_x() - capt_rect.left_x()) / scale;
+ 166              		.loc 1 25 0
+ 167 003a ADB2     		uxth	r5, r5
+ 168              	.LBB118:
+ 169              	.LBB107:
+ 170              	.LBB102:
+ 171              	.LBB97:
+ 172              	.LBB92:
+ 173              		.loc 2 65 0
+ 174 003c E408     		lsrs	r4, r4, #3
+ 175              	.LBE92:
+ 176              	.LBE97:
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t image_line_size_padded(std::uint16_t width, std::uint16_t scale) {
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return ((image_line_size(width, scale) + 15) / 16) * 16;
+ 177              		.loc 2 69 0
+ 178 003e 0F34     		adds	r4, r4, #15
+ 179 0040 24F00F04 		bic	r4, r4, #15
+ 180              	.LBE102:
+ 181              	.LBE107:
+ 182              	.LBE118:
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t scaled_w = rectangle::scaled_width(roi_rect.width(), scale);
+ 183              		.loc 1 23 0
+ 184 0044 A3B2     		uxth	r3, r4
+ 185              		.loc 1 34 0
+ 186 0046 314C     		ldr	r4, .L10+8
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t scaled_w = rectangle::scaled_width(roi_rect.width(), scale);
+ 187              		.loc 1 23 0
+ 188 0048 0393     		str	r3, [sp, #12]
+ 189              	.LVL4:
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t y_off = (roi_rect.top_y() - capt_rect.top_y()) / scale;
+ 190              		.loc 1 26 0
+ 191 004a B7F90030 		ldrsh	r3, [r7]
+ 192 004e 9B1A     		subs	r3, r3, r2
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     bool flip_horizontal = ((flip_mode & FLIP_HORIZONTAL) != 0);
+ 193              		.loc 1 27 0
+ 194 0050 B7F90220 		ldrsh	r2, [r7, #2]
+ 195 0054 B8F90270 		ldrsh	r7, [r8, #2]
+ 196              	.LVL5:
+ 197 0058 D71B     		subs	r7, r2, r7
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t y_off = (roi_rect.top_y() - capt_rect.top_y()) / scale;
+ 198              		.loc 1 26 0
+ 199 005a 93FBF6F3 		sdiv	r3, r3, r6
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     bool flip_horizontal = ((flip_mode & FLIP_HORIZONTAL) != 0);
+ 200              		.loc 1 27 0
+ 201 005e 97FBF6F7 		sdiv	r7, r7, r6
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t y_off = (roi_rect.top_y() - capt_rect.top_y()) / scale;
+ 202              		.loc 1 26 0
+ 203 0062 1FFA83FB 		uxth	fp, r3
+ 204              	.LVL6:
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     bool flip_vertical = ((flip_mode & FLIP_VERTICAL) != 0);
+ 205              		.loc 1 29 0
+ 206 0066 83EA0A03 		eor	r3, r3, r10
+ 207              	.LVL7:
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     printf("\r\n\r\n##Image## %u %u %u %u",
+ 208              		.loc 1 31 0
+ 209 006a 87EA5A0A 		eor	r10, r7, r10, lsr #1
+ 210              	.LVL8:
+ 211              		.loc 1 34 0
+ 212 006e 0AF00102 		and	r2, r10, #1
+ 213 0072 03F00103 		and	r3, r3, #1
+ 214 0076 0092     		str	r2, [sp]
+ 215              	.LVL9:
+ 216 0078 2A46     		mov	r2, r5
+ 217 007a A047     		blx	r4
+ 218              	.LVL10:
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     image_raw10 img_r10(img, capt_rect.width()/scale);
+ 219              		.loc 1 35 0
+ 220 007c 4946     		mov	r1, r9
+ 221              	.LBB119:
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     for (std::uint16_t y = 0; y < scaled_h; ++y) {
+ 222              		.loc 1 36 0
+ 223 007e 4FF00009 		mov	r9, #0
+ 224              	.LVL11:
+ 225              	.LBE119:
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     image_raw10 img_r10(img, capt_rect.width()/scale);
+ 226              		.loc 1 35 0
+ 227 0082 B8F80420 		ldrh	r2, [r8, #4]
+ 228 0086 06A8     		add	r0, sp, #24
+ 229 0088 B2FBF6F2 		udiv	r2, r2, r6
+ 230 008c 204B     		ldr	r3, .L10+12
+ 231 008e 9847     		blx	r3
+ 232              	.LVL12:
+ 233 0090 0494     		str	r4, [sp, #16]
+ 234              	.LVL13:
+ 235              	.L2:
+ 236 0092 1FFA89F2 		uxth	r2, r9
+ 237              	.LBB124:
+ 238              		.loc 1 36 0 discriminator 1
+ 239 0096 AA42     		cmp	r2, r5
+ 240 0098 30D2     		bcs	.L8
+ 241 009a 3A44     		add	r2, r2, r7
+ 242              	.LBB120:
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         image_pixel_iter p_it = img_r10.get_iter(y_off + y, x_off);
+ 243              		.loc 1 37 0
+ 244 009c 1D4E     		ldr	r6, .L10+16
+ 245 009e 08A8     		add	r0, sp, #32
+ 246 00a0 06A9     		add	r1, sp, #24
+ 247 00a2 92B2     		uxth	r2, r2
+ 248 00a4 5B46     		mov	r3, fp
+ 249 00a6 B047     		blx	r6
+ 250              	.LVL14:
+ 251 00a8 DDF820A0 		ldr	r10, [sp, #32]
+ 252              	.LVL15:
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         const std::uint8_t* p = static_cast<const std::uint8_t*>(p_it.current_pixelp());
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         std::uint8_t bit_off = p_it.current_pixel_bit();
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         std::uint16_t value_carry = *p >> bit_off;
+ 253              		.loc 1 40 0
+ 254 00ac 9DF82440 		ldrb	r4, [sp, #36]	@ zero_extendqisi2
+ 255 00b0 9AF80060 		ldrb	r6, [r10]	@ zero_extendqisi2
+ 256 00b4 2641     		asrs	r6, r6, r4
+ 257              	.LBB121:
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++p;
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         for (std::uint16_t x = 0; x < num_bytes_per_line; ++x) {
+ 258              		.loc 1 42 0
+ 259 00b6 D046     		mov	r8, r10
+ 260              	.LBE121:
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++p;
+ 261              		.loc 1 40 0
+ 262 00b8 B6B2     		uxth	r6, r6
+ 263              	.LVL16:
+ 264              	.L3:
+ 265 00ba CAEB0803 		rsb	r3, r10, r8
+ 266              	.LBB123:
+ 267              		.loc 1 42 0 discriminator 1
+ 268 00be 039A     		ldr	r2, [sp, #12]
+ 269 00c0 9BB2     		uxth	r3, r3
+ 270              	.LVL17:
+ 271 00c2 9342     		cmp	r3, r2
+ 272 00c4 14D2     		bcs	.L9
+ 273              	.LBB122:
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             if ((x & 31) == 0) {
+ 274              		.loc 1 43 0
+ 275 00c6 DB06     		lsls	r3, r3, #27
+ 276              	.LVL18:
+ 277 00c8 02D1     		bne	.L4
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****                 printf("\r\n");
+ 278              		.loc 1 44 0
+ 279 00ca 1348     		ldr	r0, .L10+20
+ 280 00cc 134B     		ldr	r3, .L10+24
+ 281 00ce 9847     		blx	r3
+ 282              	.LVL19:
+ 283              	.L4:
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             }
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             std::uint16_t v = *p;
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             std::uint16_t v_aligned = ((v << (8 - bit_off)) & 0xff) | value_carry;
+ 284              		.loc 1 47 0 discriminator 2
+ 285 00d0 C4F10801 		rsb	r1, r4, #8
+ 286 00d4 18F8013F 		ldrb	r3, [r8, #1]!	@ zero_extendqisi2
+ 287              	.LVL20:
+ 288 00d8 03FA01F1 		lsl	r1, r3, r1
+ 289              	.LVL21:
+ 290 00dc 0593     		str	r3, [sp, #20]
+ 291 00de C9B2     		uxtb	r1, r1
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             printf("%02x ", (unsigned int)v_aligned);
+ 292              		.loc 1 48 0 discriminator 2
+ 293 00e0 3143     		orrs	r1, r1, r6
+ 294 00e2 049B     		ldr	r3, [sp, #16]
+ 295              	.LVL22:
+ 296 00e4 0E48     		ldr	r0, .L10+28
+ 297 00e6 9847     		blx	r3
+ 298              	.LVL23:
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             value_carry = v >> bit_off;
+ 299              		.loc 1 49 0 discriminator 2
+ 300 00e8 059B     		ldr	r3, [sp, #20]
+ 301 00ea 2341     		asrs	r3, r3, r4
+ 302 00ec 9EB2     		uxth	r6, r3
+ 303              	.LVL24:
+ 304 00ee E4E7     		b	.L3
+ 305              	.LVL25:
+ 306              	.L9:
+ 307              	.LBE122:
+ 308              	.LBE123:
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****             ++p;
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         }
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         printf("\r\n");
+ 309              		.loc 1 52 0 discriminator 2
+ 310 00f0 0948     		ldr	r0, .L10+20
+ 311 00f2 09F10109 		add	r9, r9, #1
+ 312              	.LVL26:
+ 313 00f6 094B     		ldr	r3, .L10+24
+ 314              	.LVL27:
+ 315 00f8 9847     		blx	r3
+ 316              	.LVL28:
+ 317 00fa CAE7     		b	.L2
+ 318              	.LVL29:
+ 319              	.L8:
+ 320              	.LBE120:
+ 321              	.LBE124:
+ 322              	.LBE125:
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     }
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 323              		.loc 1 54 0
+ 324 00fc 0BB0     		add	sp, sp, #44
+ 325              	.LCFI2:
+ 326              		.cfi_def_cfa_offset 36
+ 327              		@ sp needed
+ 328 00fe BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 329              	.LVL30:
+ 330              	.L11:
+ 331 0102 00BF     		.align	2
+ 332              	.L10:
+ 333 0104 00000000 		.word	vTaskDelay
+ 334 0108 00000000 		.word	.LC0
+ 335 010c 00000000 		.word	printf
+ 336 0110 00000000 		.word	_ZN11image_raw10C1EPKvt
+ 337 0114 00000000 		.word	_ZN11image_raw108get_iterEtt
+ 338 0118 1A000000 		.word	.LC1
+ 339 011c 00000000 		.word	puts
+ 340 0120 1C000000 		.word	.LC2
+ 341              		.cfi_endproc
+ 342              	.LFE18:
+ 344              		.section	.text._ZN9rectangle3setEsstt,"ax",%progbits
+ 345              		.align	1
+ 346              		.global	_ZN9rectangle3setEsstt
+ 347              		.thumb
+ 348              		.thumb_func
+ 350              	_ZN9rectangle3setEsstt:
+ 351              	.LFB22:
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** rectangle::rectangle(std::int16_t left_x, std::int16_t top_y, std::uint16_t width, std::uint16_t he
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     set(left_x, top_y, width, height);
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** void rectangle::set(std::int16_t left_x, std::int16_t top_y, std::uint16_t width, std::uint16_t hei
+ 352              		.loc 1 60 0
+ 353              		.cfi_startproc
+ 354              		@ args = 4, pretend = 0, frame = 0
+ 355              		@ frame_needed = 0, uses_anonymous_args = 0
+ 356              		@ link register save eliminated.
+ 357              	.LVL31:
+ 358              	.LBB126:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t even_mask = 1;
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     even_mask = ~even_mask;
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     left_x_ = left_x & even_mask;
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ = top_y & even_mask;
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     width_ = (width + 1) & even_mask;
+ 359              		.loc 1 65 0
+ 360 0000 0133     		adds	r3, r3, #1
+ 361              	.LVL32:
+ 362 0002 23F00103 		bic	r3, r3, #1
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ = top_y & even_mask;
+ 363              		.loc 1 63 0
+ 364 0006 21F00101 		bic	r1, r1, #1
+ 365              	.LVL33:
+ 366              		.loc 1 65 0
+ 367 000a 8380     		strh	r3, [r0, #4]	@ movhi
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     height_ = (height + 1) & even_mask;
+ 368              		.loc 1 66 0
+ 369 000c BDF80030 		ldrh	r3, [sp]
+ 370 0010 0133     		adds	r3, r3, #1
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     width_ = (width + 1) & even_mask;
+ 371              		.loc 1 64 0
+ 372 0012 22F00102 		bic	r2, r2, #1
+ 373              	.LVL34:
+ 374              		.loc 1 66 0
+ 375 0016 23F00103 		bic	r3, r3, #1
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ = top_y & even_mask;
+ 376              		.loc 1 63 0
+ 377 001a 0180     		strh	r1, [r0]	@ movhi
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     width_ = (width + 1) & even_mask;
+ 378              		.loc 1 64 0
+ 379 001c 4280     		strh	r2, [r0, #2]	@ movhi
+ 380              		.loc 1 66 0
+ 381 001e C380     		strh	r3, [r0, #6]	@ movhi
+ 382 0020 7047     		bx	lr
+ 383              	.LBE126:
+ 384              		.cfi_endproc
+ 385              	.LFE22:
+ 387              		.section	.text._ZN9rectangleC2Esstt,"ax",%progbits
+ 388              		.align	1
+ 389              		.global	_ZN9rectangleC2Esstt
+ 390              		.thumb
+ 391              		.thumb_func
+ 393              	_ZN9rectangleC2Esstt:
+ 394              	.LFB20:
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     set(left_x, top_y, width, height);
+ 395              		.loc 1 56 0
+ 396              		.cfi_startproc
+ 397              		@ args = 4, pretend = 0, frame = 0
+ 398              		@ frame_needed = 0, uses_anonymous_args = 0
+ 399              	.LVL35:
+ 400 0000 37B5     		push	{r0, r1, r2, r4, r5, lr}
+ 401              	.LCFI3:
+ 402              		.cfi_def_cfa_offset 24
+ 403              		.cfi_offset 4, -12
+ 404              		.cfi_offset 5, -8
+ 405              		.cfi_offset 14, -4
+ 406              	.LBB127:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 407              		.loc 1 57 0
+ 408 0002 BDF81850 		ldrh	r5, [sp, #24]
+ 409 0006 0095     		str	r5, [sp]
+ 410              	.LBE127:
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     set(left_x, top_y, width, height);
+ 411              		.loc 1 56 0
+ 412 0008 0446     		mov	r4, r0
+ 413              	.LBB128:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 414              		.loc 1 57 0
+ 415 000a 024D     		ldr	r5, .L14
+ 416 000c A847     		blx	r5
+ 417              	.LVL36:
+ 418              	.LBE128:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+ 419              		.loc 1 58 0
+ 420 000e 2046     		mov	r0, r4
+ 421 0010 03B0     		add	sp, sp, #12
+ 422              	.LCFI4:
+ 423              		.cfi_def_cfa_offset 12
+ 424              		@ sp needed
+ 425 0012 30BD     		pop	{r4, r5, pc}
+ 426              	.LVL37:
+ 427              	.L15:
+ 428              		.align	2
+ 429              	.L14:
+ 430 0014 00000000 		.word	_ZN9rectangle3setEsstt
+ 431              		.cfi_endproc
+ 432              	.LFE20:
+ 434              		.global	_ZN9rectangleC1Esstt
+ 435              		.thumb_set _ZN9rectangleC1Esstt,_ZN9rectangleC2Esstt
+ 436              		.section	.text._ZN9rectangle9translateEss,"ax",%progbits
+ 437              		.align	1
+ 438              		.global	_ZN9rectangle9translateEss
+ 439              		.thumb
+ 440              		.thumb_func
+ 442              	_ZN9rectangle9translateEss:
+ 443              	.LFB23:
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** void rectangle::translate(std::int16_t delta_x, std::int16_t delta_y) {
+ 444              		.loc 1 69 0
+ 445              		.cfi_startproc
+ 446              		@ args = 0, pretend = 0, frame = 0
+ 447              		@ frame_needed = 0, uses_anonymous_args = 0
+ 448              		@ link register save eliminated.
+ 449              	.LVL38:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     left_x_ += delta_x;
+ 450              		.loc 1 70 0
+ 451 0000 0388     		ldrh	r3, [r0]
+ 452 0002 1944     		add	r1, r1, r3
+ 453              	.LVL39:
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ += delta_y;
+ 454              		.loc 1 71 0
+ 455 0004 4388     		ldrh	r3, [r0, #2]
+ 456 0006 1A44     		add	r2, r2, r3
+ 457              	.LVL40:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     left_x_ += delta_x;
+ 458              		.loc 1 70 0
+ 459 0008 0180     		strh	r1, [r0]	@ movhi
+ 460              		.loc 1 71 0
+ 461 000a 4280     		strh	r2, [r0, #2]	@ movhi
+ 462 000c 7047     		bx	lr
+ 463              		.cfi_endproc
+ 464              	.LFE23:
+ 466              		.section	.text._ZNK9rectangle25minimum_capture_rectangleEt,"ax",%progbits
+ 467              		.align	1
+ 468              		.global	_ZNK9rectangle25minimum_capture_rectangleEt
+ 469              		.thumb
+ 470              		.thumb_func
+ 472              	_ZNK9rectangle25minimum_capture_rectangleEt:
+ 473              	.LFB24:
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** rectangle rectangle::minimum_capture_rectangle(std::uint16_t scale) const {
+ 474              		.loc 1 74 0
+ 475              		.cfi_startproc
+ 476              		@ args = 0, pretend = 0, frame = 0
+ 477              		@ frame_needed = 0, uses_anonymous_args = 0
+ 478              	.LVL41:
+ 479 0000 F7B5     		push	{r0, r1, r2, r4, r5, r6, r7, lr}
+ 480              	.LCFI5:
+ 481              		.cfi_def_cfa_offset 32
+ 482              		.cfi_offset 4, -20
+ 483              		.cfi_offset 5, -16
+ 484              		.cfi_offset 6, -12
+ 485              		.cfi_offset 7, -8
+ 486              		.cfi_offset 14, -4
+ 487              	.LBB129:
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::int16_t c_left_x{left_x_};
+ 488              		.loc 1 75 0
+ 489 0002 0F88     		ldrh	r7, [r1]
+ 490              	.LVL42:
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t c_width{width_};
+ 491              		.loc 1 76 0
+ 492 0004 8B88     		ldrh	r3, [r1, #4]
+ 493              	.LVL43:
+ 494              	.LBE129:
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::int16_t c_left_x{left_x_};
+ 495              		.loc 1 74 0
+ 496 0006 0546     		mov	r5, r0
+ 497              	.LBB144:
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if (c_left_x < 8) {
+ 498              		.loc 1 77 0
+ 499 0008 38B2     		sxth	r0, r7
+ 500              	.LVL44:
+ 501 000a 0728     		cmp	r0, #7
+ 502 000c DFBF     		itttt	le
+ 503 000e 083B     		suble	r3, r3, #8
+ 504              	.LVL45:
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_width -= (8 - c_left_x);
+ 505              		.loc 1 78 0
+ 506 0010 17FA83F3 		uxtahle	r3, r7, r3
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_left_x = 8;
+ 507              		.loc 1 79 0
+ 508 0014 0827     		movle	r7, #8
+ 509              	.LVL46:
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_width -= (8 - c_left_x);
+ 510              		.loc 1 78 0
+ 511 0016 9BB2     		uxthle	r3, r3
+ 512              	.LVL47:
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     }
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((c_left_x & 1) != 0) {
+ 513              		.loc 1 81 0
+ 514 0018 B8B2     		uxth	r0, r7
+ 515 001a C607     		lsls	r6, r0, #31
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         --c_left_x;
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++c_width;
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     }
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::int16_t c_top_y{top_y_};
+ 516              		.loc 1 85 0
+ 517 001c 4E88     		ldrh	r6, [r1, #2]
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         --c_left_x;
+ 518              		.loc 1 82 0
+ 519 001e 48BF     		it	mi
+ 520 0020 00F1FF37 		addmi	r7, r0, #-1
+ 521              	.LVL48:
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t c_height{height_};
+ 522              		.loc 1 86 0
+ 523 0024 C888     		ldrh	r0, [r1, #6]
+ 524              	.LVL49:
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     }
+ 525              		.loc 1 83 0
+ 526 0026 48BF     		it	mi
+ 527 0028 0133     		addmi	r3, r3, #1
+ 528              	.LVL50:
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if (c_top_y < 8) {
+ 529              		.loc 1 87 0
+ 530 002a 31B2     		sxth	r1, r6
+ 531              	.LVL51:
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++c_width;
+ 532              		.loc 1 82 0
+ 533 002c 44BF     		itt	mi
+ 534 002e BFB2     		uxthmi	r7, r7
+ 535              	.LVL52:
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     }
+ 536              		.loc 1 83 0
+ 537 0030 9BB2     		uxthmi	r3, r3
+ 538              	.LVL53:
+ 539              		.loc 1 87 0
+ 540 0032 0729     		cmp	r1, #7
+ 541 0034 DFBF     		itttt	le
+ 542 0036 0838     		suble	r0, r0, #8
+ 543              	.LVL54:
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_height -= (8 - c_top_y);
+ 544              		.loc 1 88 0
+ 545 0038 16FA80F0 		uxtahle	r0, r6, r0
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_top_y = 8;
+ 546              		.loc 1 89 0
+ 547 003c 0826     		movle	r6, #8
+ 548              	.LVL55:
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_height -= (8 - c_top_y);
+ 549              		.loc 1 88 0
+ 550 003e 80B2     		uxthle	r0, r0
+ 551              	.LVL56:
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     }
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((c_top_y & 1) != 0) {
+ 552              		.loc 1 91 0
+ 553 0040 B1B2     		uxth	r1, r6
+ 554 0042 CC07     		lsls	r4, r1, #31
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         --c_top_y;
+ 555              		.loc 1 92 0
+ 556 0044 48BF     		it	mi
+ 557 0046 01F1FF36 		addmi	r6, r1, #-1
+ 558              	.LVL57:
+ 559              	.LBB130:
+ 560              	.LBB131:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+ 561              		.loc 2 57 0
+ 562 004a 03EB0201 		add	r1, r3, r2
+ 563              	.LVL58:
+ 564 004e 01F1FF31 		add	r1, r1, #-1
+ 565              	.LBE131:
+ 566              	.LBE130:
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++c_height;
+ 567              		.loc 1 93 0
+ 568 0052 48BF     		it	mi
+ 569 0054 0130     		addmi	r0, r0, #1
+ 570              	.LVL59:
+ 571              	.LBB133:
+ 572              	.LBB132:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+ 573              		.loc 2 57 0
+ 574 0056 91FBF2F1 		sdiv	r1, r1, r2
+ 575              	.LBE132:
+ 576              	.LBE133:
+ 577              		.loc 1 93 0
+ 578 005a 44BF     		itt	mi
+ 579 005c 80B2     		uxthmi	r0, r0
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         --c_top_y;
+ 580              		.loc 1 92 0
+ 581 005e B6B2     		uxthmi	r6, r6
+ 582              	.LVL60:
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     }
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((c_height & 1) != 0)
+ 583              		.loc 1 95 0
+ 584 0060 C407     		lsls	r4, r0, #31
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++c_height;
+ 585              		.loc 1 96 0
+ 586 0062 48BF     		it	mi
+ 587 0064 0130     		addmi	r0, r0, #1
+ 588              	.LVL61:
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     // X output size must be multiple of 16 pixels for raw10 output, so we enforce here a scaled ca
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t c_scaled_width = scaled_width(c_width, scale);
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     c_scaled_width = (c_scaled_width + 15) / 16 * 16;
+ 589              		.loc 1 100 0
+ 590 0066 4FF6F073 		movw	r3, #65520
+ 591              	.LVL62:
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++c_height;
+ 592              		.loc 1 96 0
+ 593 006a 48BF     		it	mi
+ 594 006c 80B2     		uxthmi	r0, r0
+ 595              	.LVL63:
+ 596              		.loc 1 100 0
+ 597 006e 0F31     		adds	r1, r1, #15
+ 598 0070 0B40     		ands	r3, r3, r1
+ 599              	.LVL64:
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     c_width = scale * c_scaled_width;
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     const std::int16_t right_x_max{4208+16+8};
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     const std::uint16_t scaled_width_min = 320; // minimum capture width 320 per sensor spec
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if (c_scaled_width < scaled_width_min)
+ 600              		.loc 1 104 0
+ 601 0072 B3F5A07F 		cmp	r3, #320
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_width = scale * scaled_width_min;
+ 602              		.loc 1 105 0
+ 603 0076 36BF     		itet	cc
+ 604 0078 02EB8203 		addcc	r3, r2, r2, lsl #2
+ 605              	.LVL65:
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     c_width = scale * c_scaled_width;
+ 606              		.loc 1 101 0
+ 607 007c 13FB02F3 		smulbbcs	r3, r3, r2
+ 608              		.loc 1 105 0
+ 609 0080 9B01     		lslcc	r3, r3, #6
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((c_left_x + c_width) > right_x_max)
+ 610              		.loc 1 106 0
+ 611 0082 41F28801 		movw	r1, #4232
+ 612              	.LVL66:
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_width = scale * scaled_width_min;
+ 613              		.loc 1 105 0
+ 614 0086 9BB2     		uxth	r3, r3
+ 615              	.LVL67:
+ 616              		.loc 1 106 0
+ 617 0088 03FA87F4 		sxtah	r4, r3, r7
+ 618 008c 8C42     		cmp	r4, r1
+ 619              	.LBB134:
+ 620              	.LBB135:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+ 621              		.loc 2 61 0
+ 622 008e 00EB0204 		add	r4, r0, r2
+ 623 0092 04F1FF34 		add	r4, r4, #-1
+ 624              	.LBE135:
+ 625              	.LBE134:
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_left_x = right_x_max - c_width;
+ 626              		.loc 1 107 0
+ 627 0096 C8BF     		it	gt
+ 628 0098 C3F58457 		rsbgt	r7, r3, #4224
+ 629              	.LVL68:
+ 630              	.LBB137:
+ 631              	.LBB136:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+ 632              		.loc 2 61 0
+ 633 009c 94FBF2F4 		sdiv	r4, r4, r2
+ 634              	.LBE136:
+ 635              	.LBE137:
+ 636              		.loc 1 107 0
+ 637 00a0 C8BF     		it	gt
+ 638 00a2 0837     		addgt	r7, r7, #8
+ 639              	.LBB138:
+ 640              	.LBB139:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 641              		.loc 1 57 0
+ 642 00a4 2846     		mov	r0, r5
+ 643              	.LVL69:
+ 644              	.LBE139:
+ 645              	.LBE138:
+ 646              		.loc 1 107 0
+ 647 00a6 C8BF     		it	gt
+ 648 00a8 BFB2     		uxthgt	r7, r7
+ 649              	.LVL70:
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     // Y output size must be even
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t c_scaled_height = scaled_height(c_height, scale);
+ 650              		.loc 1 110 0
+ 651 00aa A4B2     		uxth	r4, r4
+ 652              	.LVL71:
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((c_scaled_height & 1) != 0)
+ 653              		.loc 1 111 0
+ 654 00ac E107     		lsls	r1, r4, #31
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         ++c_scaled_height;
+ 655              		.loc 1 112 0
+ 656 00ae 44BF     		itt	mi
+ 657 00b0 0134     		addmi	r4, r4, #1
+ 658              	.LVL72:
+ 659 00b2 A4B2     		uxthmi	r4, r4
+ 660              	.LVL73:
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     c_height = scale * c_scaled_height;
+ 661              		.loc 1 113 0
+ 662 00b4 14FB02F4 		smulbb	r4, r4, r2
+ 663              	.LVL74:
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     const std::int16_t bottom_y_max{3120+16+8};
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((c_top_y + c_height) > bottom_y_max)
+ 664              		.loc 1 115 0
+ 665 00b8 40F64842 		movw	r2, #3144
+ 666              	.LVL75:
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     c_height = scale * c_scaled_height;
+ 667              		.loc 1 113 0
+ 668 00bc A4B2     		uxth	r4, r4
+ 669              	.LVL76:
+ 670              		.loc 1 115 0
+ 671 00be 04FA86F1 		sxtah	r1, r4, r6
+ 672 00c2 9142     		cmp	r1, r2
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         c_top_y = bottom_y_max - c_height;
+ 673              		.loc 1 116 0
+ 674 00c4 C4BF     		itt	gt
+ 675 00c6 C4F54466 		rsbgt	r6, r4, #3136
+ 676              	.LVL77:
+ 677 00ca 0836     		addgt	r6, r6, #8
+ 678              	.LBB142:
+ 679              	.LBB140:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 680              		.loc 1 57 0
+ 681 00cc 0094     		str	r4, [sp]
+ 682              	.LVL78:
+ 683 00ce 39B2     		sxth	r1, r7
+ 684              	.LBE140:
+ 685              	.LBE142:
+ 686              		.loc 1 116 0
+ 687 00d0 C8BF     		it	gt
+ 688 00d2 B6B2     		uxthgt	r6, r6
+ 689              	.LVL79:
+ 690              	.LBB143:
+ 691              	.LBB141:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 692              		.loc 1 57 0
+ 693 00d4 024C     		ldr	r4, .L41
+ 694              	.LVL80:
+ 695 00d6 32B2     		sxth	r2, r6
+ 696 00d8 A047     		blx	r4
+ 697              	.LVL81:
+ 698              	.LBE141:
+ 699              	.LBE143:
+ 700              	.LBE144:
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     return rectangle{c_left_x, c_top_y, c_width, c_height};
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 701              		.loc 1 118 0
+ 702 00da 2846     		mov	r0, r5
+ 703 00dc 03B0     		add	sp, sp, #12
+ 704              	.LCFI6:
+ 705              		.cfi_def_cfa_offset 20
+ 706              		@ sp needed
+ 707 00de F0BD     		pop	{r4, r5, r6, r7, pc}
+ 708              	.LVL82:
+ 709              	.L42:
+ 710              		.align	2
+ 711              	.L41:
+ 712 00e0 00000000 		.word	_ZN9rectangle3setEsstt
+ 713              		.cfi_endproc
+ 714              	.LFE24:
+ 716              		.section	.text._Z14rectangle_flipRK9rectangle9flip_mode,"ax",%progbits
+ 717              		.align	1
+ 718              		.global	_Z14rectangle_flipRK9rectangle9flip_mode
+ 719              		.thumb
+ 720              		.thumb_func
+ 722              	_Z14rectangle_flipRK9rectangle9flip_mode:
+ 723              	.LFB25:
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** const std::int16_t abs_pixel_offset_x{40};
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** const std::int16_t abs_pixel_offset_y{16};
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** const std::uint16_t full_res_width{4160};
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** const std::uint16_t full_res_height{3120};
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** rectangle rectangle_flip(const rectangle& r, flip_mode_t flip_mode) {
+ 724              		.loc 1 125 0
+ 725              		.cfi_startproc
+ 726              		@ args = 0, pretend = 0, frame = 0
+ 727              		@ frame_needed = 0, uses_anonymous_args = 0
+ 728              	.LVL83:
+ 729 0000 73B5     		push	{r0, r1, r4, r5, r6, lr}
+ 730              	.LCFI7:
+ 731              		.cfi_def_cfa_offset 24
+ 732              		.cfi_offset 4, -16
+ 733              		.cfi_offset 5, -12
+ 734              		.cfi_offset 6, -8
+ 735              		.cfi_offset 14, -4
+ 736 0002 8B88     		ldrh	r3, [r1, #4]
+ 737 0004 0D88     		ldrh	r5, [r1]
+ 738              	.LVL84:
+ 739 0006 4C88     		ldrh	r4, [r1, #2]
+ 740              		.loc 1 125 0
+ 741 0008 0646     		mov	r6, r0
+ 742              	.LBB145:
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::int16_t left_x{r.left_x()};
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t width{r.width()};
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((flip_mode & FLIP_HORIZONTAL) != 0)
+ 743              		.loc 1 128 0
+ 744 000a D007     		lsls	r0, r2, #31
+ 745              	.LVL85:
+ 746 000c 48BF     		it	mi
+ 747 000e C3F58250 		rsbmi	r0, r3, #4160
+ 748 0012 C988     		ldrh	r1, [r1, #6]
+ 749              	.LVL86:
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         left_x = full_res_width - (left_x + width);
+ 750              		.loc 1 129 0
+ 751 0014 48BF     		it	mi
+ 752 0016 451B     		submi	r5, r0, r5
+ 753              	.LBB146:
+ 754              	.LBB147:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 755              		.loc 1 57 0
+ 756 0018 0091     		str	r1, [sp]
+ 757 001a 3046     		mov	r0, r6
+ 758              	.LBE147:
+ 759              	.LBE146:
+ 760              		.loc 1 129 0
+ 761 001c 48BF     		it	mi
+ 762 001e ADB2     		uxthmi	r5, r5
+ 763              	.LVL87:
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::int16_t top_y{r.top_y()};
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     std::uint16_t height{r.height()};
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     if ((flip_mode & FLIP_VERTICAL) != 0)
+ 764              		.loc 1 132 0
+ 765 0020 9207     		lsls	r2, r2, #30
+ 766              	.LVL88:
+ 767 0022 44BF     		itt	mi
+ 768 0024 C1F54362 		rsbmi	r2, r1, #3120
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****         top_y = full_res_height - (top_y + height);
+ 769              		.loc 1 133 0
+ 770 0028 141B     		submi	r4, r2, r4
+ 771              	.LBB150:
+ 772              	.LBB148:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 773              		.loc 1 57 0
+ 774 002a 29B2     		sxth	r1, r5
+ 775              	.LBE148:
+ 776              	.LBE150:
+ 777              		.loc 1 133 0
+ 778 002c 48BF     		it	mi
+ 779 002e A4B2     		uxthmi	r4, r4
+ 780              	.LVL89:
+ 781              	.LBB151:
+ 782              	.LBB149:
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 783              		.loc 1 57 0
+ 784 0030 22B2     		sxth	r2, r4
+ 785 0032 024C     		ldr	r4, .L52
+ 786              	.LVL90:
+ 787 0034 A047     		blx	r4
+ 788              	.LVL91:
+ 789              	.LBE149:
+ 790              	.LBE151:
+ 791              	.LBE145:
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     return rectangle{left_x, top_y, width, height};
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 792              		.loc 1 135 0
+ 793 0036 3046     		mov	r0, r6
+ 794 0038 02B0     		add	sp, sp, #8
+ 795              	.LCFI8:
+ 796              		.cfi_def_cfa_offset 16
+ 797              		@ sp needed
+ 798 003a 70BD     		pop	{r4, r5, r6, pc}
+ 799              	.LVL92:
+ 800              	.L53:
+ 801              		.align	2
+ 802              	.L52:
+ 803 003c 00000000 		.word	_ZN9rectangle3setEsstt
+ 804              		.cfi_endproc
+ 805              	.LFE25:
+ 807              		.section	.text._Z22calib_rectangle_to_absRK9rectangle9flip_mode,"ax",%progbits
+ 808              		.align	1
+ 809              		.global	_Z22calib_rectangle_to_absRK9rectangle9flip_mode
+ 810              		.thumb
+ 811              		.thumb_func
+ 813              	_Z22calib_rectangle_to_absRK9rectangle9flip_mode:
+ 814              	.LFB26:
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** rectangle calib_rectangle_to_abs(const rectangle& r, flip_mode_t flip_mode) {
+ 815              		.loc 1 137 0
+ 816              		.cfi_startproc
+ 817              		@ args = 0, pretend = 0, frame = 0
+ 818              		@ frame_needed = 0, uses_anonymous_args = 0
+ 819              	.LVL93:
+ 820 0000 10B5     		push	{r4, lr}
+ 821              	.LCFI9:
+ 822              		.cfi_def_cfa_offset 8
+ 823              		.cfi_offset 4, -8
+ 824              		.cfi_offset 14, -4
+ 825              	.LBB152:
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     rectangle r_abs{rectangle_flip(r, flip_mode)};
+ 826              		.loc 1 138 0
+ 827 0002 054B     		ldr	r3, .L55
+ 828              	.LBE152:
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     rectangle r_abs{rectangle_flip(r, flip_mode)};
+ 829              		.loc 1 137 0
+ 830 0004 0446     		mov	r4, r0
+ 831              	.LBB157:
+ 832              		.loc 1 138 0
+ 833 0006 9847     		blx	r3
+ 834              	.LVL94:
+ 835              	.LBB153:
+ 836              	.LBB154:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ += delta_y;
+ 837              		.loc 1 70 0
+ 838 0008 2388     		ldrh	r3, [r4]
+ 839 000a 2833     		adds	r3, r3, #40
+ 840              	.LBE154:
+ 841              	.LBE153:
+ 842              	.LBE157:
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     r_abs.translate(abs_pixel_offset_x,abs_pixel_offset_y);
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     return r_abs;
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 843              		.loc 1 141 0
+ 844 000c 2046     		mov	r0, r4
+ 845              	.LBB158:
+ 846              	.LBB156:
+ 847              	.LBB155:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ += delta_y;
+ 848              		.loc 1 70 0
+ 849 000e 2380     		strh	r3, [r4]	@ movhi
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 850              		.loc 1 71 0
+ 851 0010 6388     		ldrh	r3, [r4, #2]
+ 852 0012 1033     		adds	r3, r3, #16
+ 853 0014 6380     		strh	r3, [r4, #2]	@ movhi
+ 854              	.LBE155:
+ 855              	.LBE156:
+ 856              	.LBE158:
+ 857              		.loc 1 141 0
+ 858 0016 10BD     		pop	{r4, pc}
+ 859              	.LVL95:
+ 860              	.L56:
+ 861              		.align	2
+ 862              	.L55:
+ 863 0018 00000000 		.word	_Z14rectangle_flipRK9rectangle9flip_mode
+ 864              		.cfi_endproc
+ 865              	.LFE26:
+ 867              		.section	.text._Z22abs_rectangle_to_calibRK9rectangle9flip_mode,"ax",%progbits
+ 868              		.align	1
+ 869              		.global	_Z22abs_rectangle_to_calibRK9rectangle9flip_mode
+ 870              		.thumb
+ 871              		.thumb_func
+ 873              	_Z22abs_rectangle_to_calibRK9rectangle9flip_mode:
+ 874              	.LFB27:
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** 
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** rectangle abs_rectangle_to_calib(const rectangle& r, flip_mode_t flip_mode) {
+ 875              		.loc 1 143 0
+ 876              		.cfi_startproc
+ 877              		@ args = 0, pretend = 0, frame = 8
+ 878              		@ frame_needed = 0, uses_anonymous_args = 0
+ 879              	.LVL96:
+ 880 0000 13B5     		push	{r0, r1, r4, lr}
+ 881              	.LCFI10:
+ 882              		.cfi_def_cfa_offset 16
+ 883              		.cfi_offset 4, -8
+ 884              		.cfi_offset 14, -4
+ 885              	.LBB159:
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     rectangle r_tmp{r};
+ 886              		.loc 1 144 0
+ 887 0002 6B46     		mov	r3, sp
+ 888              	.LBE159:
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     rectangle r_tmp{r};
+ 889              		.loc 1 143 0
+ 890 0004 0446     		mov	r4, r0
+ 891              	.LBB164:
+ 892              		.loc 1 144 0
+ 893 0006 0868     		ldr	r0, [r1]	@ unaligned
+ 894              	.LVL97:
+ 895 0008 4968     		ldr	r1, [r1, #4]	@ unaligned
+ 896              	.LVL98:
+ 897 000a 03C3     		stmia	r3!, {r0, r1}
+ 898              	.LVL99:
+ 899              	.LBB160:
+ 900              	.LBB161:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ += delta_y;
+ 901              		.loc 1 70 0
+ 902 000c BDF80030 		ldrh	r3, [sp]
+ 903 0010 283B     		subs	r3, r3, #40
+ 904              	.LBE161:
+ 905              	.LBE160:
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     r_tmp.translate(-abs_pixel_offset_x,-abs_pixel_offset_y);
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     return rectangle_flip(r_tmp, flip_mode);
+ 906              		.loc 1 146 0
+ 907 0012 2046     		mov	r0, r4
+ 908 0014 6946     		mov	r1, sp
+ 909              	.LBB163:
+ 910              	.LBB162:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp ****     top_y_ += delta_y;
+ 911              		.loc 1 70 0
+ 912 0016 ADF80030 		strh	r3, [sp]	@ movhi
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 913              		.loc 1 71 0
+ 914 001a BDF80230 		ldrh	r3, [sp, #2]
+ 915 001e 103B     		subs	r3, r3, #16
+ 916 0020 ADF80230 		strh	r3, [sp, #2]	@ movhi
+ 917              	.LBE162:
+ 918              	.LBE163:
+ 919              		.loc 1 146 0
+ 920 0024 024B     		ldr	r3, .L58
+ 921 0026 9847     		blx	r3
+ 922              	.LVL100:
+ 923              	.LBE164:
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/rectangle.cpp **** }
+ 924              		.loc 1 147 0
+ 925 0028 2046     		mov	r0, r4
+ 926 002a 02B0     		add	sp, sp, #8
+ 927              	.LCFI11:
+ 928              		.cfi_def_cfa_offset 8
+ 929              	.LVL101:
+ 930              		@ sp needed
+ 931 002c 10BD     		pop	{r4, pc}
+ 932              	.LVL102:
+ 933              	.L59:
+ 934 002e 00BF     		.align	2
+ 935              	.L58:
+ 936 0030 00000000 		.word	_Z14rectangle_flipRK9rectangle9flip_mode
+ 937              		.cfi_endproc
+ 938              	.LFE27:
+ 940              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 941              	.LC0:
+ 942 0000 0D0A0D0A 		.ascii	"\015\012\015\012##Image## %u %u %u %u\000"
+ 942      2323496D 
+ 942      61676523 
+ 942      23202575 
+ 942      20257520 
+ 943              	.LC1:
+ 944 001a 0D00     		.ascii	"\015\000"
+ 945              	.LC2:
+ 946 001c 25303278 		.ascii	"%02x \000"
+ 946      2000
+ 947              		.text
+ 948              	.Letext0:
+ 949              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 950              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 951              		.file 5 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 952              		.file 6 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/arm-none-eab
+ 953              		.file 7 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/image_pixel_iter.h"
+ 954              		.file 8 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/image_raw10.h"
+ 955              		.file 9 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 956              		.file 10 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 rectangle.cpp
+     /tmp/ccvTbsjf.s:19     .text._Z17debug_print_imagePKvRK9rectangleS3_9flip_modet:00000000 $t
+     /tmp/ccvTbsjf.s:24     .text._Z17debug_print_imagePKvRK9rectangleS3_9flip_modet:00000000 _Z17debug_print_imagePKvRK9rectangleS3_9flip_modet
+     /tmp/ccvTbsjf.s:333    .text._Z17debug_print_imagePKvRK9rectangleS3_9flip_modet:00000104 $d
+     /tmp/ccvTbsjf.s:345    .text._ZN9rectangle3setEsstt:00000000 $t
+     /tmp/ccvTbsjf.s:350    .text._ZN9rectangle3setEsstt:00000000 _ZN9rectangle3setEsstt
+     /tmp/ccvTbsjf.s:388    .text._ZN9rectangleC2Esstt:00000000 $t
+     /tmp/ccvTbsjf.s:393    .text._ZN9rectangleC2Esstt:00000000 _ZN9rectangleC2Esstt
+     /tmp/ccvTbsjf.s:430    .text._ZN9rectangleC2Esstt:00000014 $d
+     /tmp/ccvTbsjf.s:393    .text._ZN9rectangleC2Esstt:00000000 _ZN9rectangleC1Esstt
+     /tmp/ccvTbsjf.s:437    .text._ZN9rectangle9translateEss:00000000 $t
+     /tmp/ccvTbsjf.s:442    .text._ZN9rectangle9translateEss:00000000 _ZN9rectangle9translateEss
+     /tmp/ccvTbsjf.s:467    .text._ZNK9rectangle25minimum_capture_rectangleEt:00000000 $t
+     /tmp/ccvTbsjf.s:472    .text._ZNK9rectangle25minimum_capture_rectangleEt:00000000 _ZNK9rectangle25minimum_capture_rectangleEt
+     /tmp/ccvTbsjf.s:712    .text._ZNK9rectangle25minimum_capture_rectangleEt:000000e0 $d
+     /tmp/ccvTbsjf.s:717    .text._Z14rectangle_flipRK9rectangle9flip_mode:00000000 $t
+     /tmp/ccvTbsjf.s:722    .text._Z14rectangle_flipRK9rectangle9flip_mode:00000000 _Z14rectangle_flipRK9rectangle9flip_mode
+     /tmp/ccvTbsjf.s:803    .text._Z14rectangle_flipRK9rectangle9flip_mode:0000003c $d
+     /tmp/ccvTbsjf.s:808    .text._Z22calib_rectangle_to_absRK9rectangle9flip_mode:00000000 $t
+     /tmp/ccvTbsjf.s:813    .text._Z22calib_rectangle_to_absRK9rectangle9flip_mode:00000000 _Z22calib_rectangle_to_absRK9rectangle9flip_mode
+     /tmp/ccvTbsjf.s:863    .text._Z22calib_rectangle_to_absRK9rectangle9flip_mode:00000018 $d
+     /tmp/ccvTbsjf.s:868    .text._Z22abs_rectangle_to_calibRK9rectangle9flip_mode:00000000 $t
+     /tmp/ccvTbsjf.s:873    .text._Z22abs_rectangle_to_calibRK9rectangle9flip_mode:00000000 _Z22abs_rectangle_to_calibRK9rectangle9flip_mode
+     /tmp/ccvTbsjf.s:936    .text._Z22abs_rectangle_to_calibRK9rectangle9flip_mode:00000030 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+vTaskDelay
+printf
+_ZN11image_raw10C1EPKvt
+_ZN11image_raw108get_iterEtt
+puts

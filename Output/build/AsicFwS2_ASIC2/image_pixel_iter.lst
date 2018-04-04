@@ -1,0 +1,164 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"image_pixel_iter.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._ZN16image_pixel_iterC2EPKvh,"ax",%progbits
+  19              		.align	1
+  20              		.global	_ZN16image_pixel_iterC2EPKvh
+  21              		.thumb
+  22              		.thumb_func
+  24              	_ZN16image_pixel_iterC2EPKvh:
+  25              	.LFB3:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * @file    image_pixel_iter.cpp
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * @date    August-15-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  * @brief   Raw10 image pixel forward iterator
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** #include "image_pixel_iter.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** 
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** image_pixel_iter::image_pixel_iter(const void* current_pixelp, std::uint8_t bitp) :
+  27              		.loc 1 18 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  33              	.LBB2:
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****         current_pixelp_{static_cast<const unsigned char*>(current_pixelp)},
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****         bitp_{bitp} {
+  34              		.loc 1 20 0
+  35 0000 0160     		str	r1, [r0]
+  36 0002 0271     		strb	r2, [r0, #4]
+  37              	.LBE2:
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** }
+  38              		.loc 1 21 0
+  39 0004 7047     		bx	lr
+  40              		.cfi_endproc
+  41              	.LFE3:
+  43              		.global	_ZN16image_pixel_iterC1EPKvh
+  44              		.thumb_set _ZN16image_pixel_iterC1EPKvh,_ZN16image_pixel_iterC2EPKvh
+  45              		.section	.text._ZN16image_pixel_iter16next_pixel_valueEv,"ax",%progbits
+  46              		.align	1
+  47              		.global	_ZN16image_pixel_iter16next_pixel_valueEv
+  48              		.thumb
+  49              		.thumb_func
+  51              	_ZN16image_pixel_iter16next_pixel_valueEv:
+  52              	.LFB5:
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** 
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** std::int16_t image_pixel_iter::next_pixel_value() {
+  53              		.loc 1 23 0
+  54              		.cfi_startproc
+  55              		@ args = 0, pretend = 0, frame = 0
+  56              		@ frame_needed = 0, uses_anonymous_args = 0
+  57              	.LVL1:
+  58 0000 30B5     		push	{r4, r5, lr}
+  59              	.LCFI0:
+  60              		.cfi_def_cfa_offset 12
+  61              		.cfi_offset 4, -12
+  62              		.cfi_offset 5, -8
+  63              		.cfi_offset 14, -4
+  64              	.LBB3:
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     std::int16_t value = *current_pixelp_ >> bitp_;
+  65              		.loc 1 24 0
+  66 0002 0379     		ldrb	r3, [r0, #4]	@ zero_extendqisi2
+  67 0004 0468     		ldr	r4, [r0]
+  68 0006 2546     		mov	r5, r4
+  69 0008 15F8012B 		ldrb	r2, [r5], #1	@ zero_extendqisi2
+  70 000c 1A41     		asrs	r2, r2, r3
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     ++current_pixelp_;
+  71              		.loc 1 25 0
+  72 000e 0560     		str	r5, [r0]
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     value |= (static_cast<std::uint16_t>(*current_pixelp_) << (8 - bitp_)) & 0x3ff;
+  73              		.loc 1 26 0
+  74 0010 C3F10805 		rsb	r5, r3, #8
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     bitp_ += 2;
+  75              		.loc 1 27 0
+  76 0014 0233     		adds	r3, r3, #2
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     ++current_pixelp_;
+  77              		.loc 1 24 0
+  78 0016 91B2     		uxth	r1, r2
+  79              	.LVL2:
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     value |= (static_cast<std::uint16_t>(*current_pixelp_) << (8 - bitp_)) & 0x3ff;
+  80              		.loc 1 26 0
+  81 0018 6278     		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+  82              		.loc 1 27 0
+  83 001a DBB2     		uxtb	r3, r3
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     value |= (static_cast<std::uint16_t>(*current_pixelp_) << (8 - bitp_)) & 0x3ff;
+  84              		.loc 1 26 0
+  85 001c AA40     		lsls	r2, r2, r5
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     if (bitp_ == 8) {
+  86              		.loc 1 28 0
+  87 001e 082B     		cmp	r3, #8
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     bitp_ += 2;
+  88              		.loc 1 26 0
+  89 0020 C2F30902 		ubfx	r2, r2, #0, #10
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     if (bitp_ == 8) {
+  90              		.loc 1 27 0
+  91 0024 0371     		strb	r3, [r0, #4]
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     bitp_ += 2;
+  92              		.loc 1 26 0
+  93 0026 42EA0102 		orr	r2, r2, r1
+  94              	.LVL3:
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****         ++current_pixelp_;
+  95              		.loc 1 29 0
+  96 002a 01BF     		itttt	eq
+  97 002c 0234     		addeq	r4, r4, #2
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****         bitp_ = 0;
+  98              		.loc 1 30 0
+  99 002e 0023     		moveq	r3, #0
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****         ++current_pixelp_;
+ 100              		.loc 1 29 0
+ 101 0030 0460     		streq	r4, [r0]
+ 102              		.loc 1 30 0
+ 103 0032 0371     		strbeq	r3, [r0, #4]
+ 104              	.LBE3:
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     }
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp ****     return value;
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_pixel_iter.cpp **** }
+ 105              		.loc 1 33 0
+ 106 0034 10B2     		sxth	r0, r2
+ 107              	.LVL4:
+ 108 0036 30BD     		pop	{r4, r5, pc}
+ 109              		.cfi_endproc
+ 110              	.LFE5:
+ 112              		.text
+ 113              	.Letext0:
+ 114              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 115              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 116              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 117              		.file 5 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/image_pixel_iter.h"
+ 118              		.file 6 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 image_pixel_iter.cpp
+     /tmp/ccTF8iRC.s:19     .text._ZN16image_pixel_iterC2EPKvh:00000000 $t
+     /tmp/ccTF8iRC.s:24     .text._ZN16image_pixel_iterC2EPKvh:00000000 _ZN16image_pixel_iterC2EPKvh
+     /tmp/ccTF8iRC.s:24     .text._ZN16image_pixel_iterC2EPKvh:00000000 _ZN16image_pixel_iterC1EPKvh
+     /tmp/ccTF8iRC.s:46     .text._ZN16image_pixel_iter16next_pixel_valueEv:00000000 $t
+     /tmp/ccTF8iRC.s:51     .text._ZN16image_pixel_iter16next_pixel_valueEv:00000000 _ZN16image_pixel_iter16next_pixel_valueEv
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

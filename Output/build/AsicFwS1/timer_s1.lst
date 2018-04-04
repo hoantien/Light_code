@@ -1,0 +1,518 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"timer_s1.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.timerN_enable,"ax",%progbits
+  17              		.align	2
+  18              		.global	timerN_enable
+  20              	timerN_enable:
+  21              	.LFB0:
+  22              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * @file    timer.c
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * @date    aug-28-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  * @brief   This file contains expand of the main application.
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include <stdlib.h>
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include <stdio.h>
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include <string.h>
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include "hal_com.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include "hal_gpio.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include "hal_pwm.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include "hal_ddr.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include "flash.h"
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #include "sb.h"
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define TICKS_PER_USEC          (533000000 / 1000000)
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define TICKS_PER_MSEC          (533000000 / 1000)
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define FREERUN_TIMERn			2
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define	TIMER_LoadCount_OFF	0x00
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define	TIMER_CurrentValue_OFF	0x04
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define	TIMER_Control_OFF	0x08
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define	TIMER_EOI_OFF		0x0C
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** #define	TIMER_IntStatus_OFF	0x10
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** void
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** timerN_enable( int n )
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+  23              		.loc 1 37 0
+  24              		.cfi_startproc
+  25              		@ args = 0, pretend = 0, frame = 0
+  26              		@ frame_needed = 0, uses_anonymous_args = 0
+  27              		@ link register save eliminated.
+  28              	.LVL0:
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	unsigned int x;
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	x = readl( TIMER_BASE + (n * 20) + TIMER_Control_OFF );
+  29              		.loc 1 39 0
+  30 0000 1430A0E3 		mov	r3, #20
+  31 0004 10209FE5 		ldr	r2, .L2
+  32 0008 930000E0 		mul	r0, r3, r0
+  33              	.LVL1:
+  34 000c 023090E7 		ldr	r3, [r0, r2]
+  35              	.LVL2:
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	writel(TIMER_BASE + (n * 20) + TIMER_Control_OFF,  x | 0x1);
+  36              		.loc 1 40 0
+  37 0010 013083E3 		orr	r3, r3, #1
+  38              	.LVL3:
+  39 0014 023080E7 		str	r3, [r0, r2]
+  40 0018 1EFF2FE1 		bx	lr
+  41              	.L3:
+  42              		.align	2
+  43              	.L2:
+  44 001c 08100002 		.word	33558536
+  45              		.cfi_endproc
+  46              	.LFE0:
+  48              		.section	.text.timerN_disable,"ax",%progbits
+  49              		.align	2
+  50              		.global	timerN_disable
+  52              	timerN_disable:
+  53              	.LFB1:
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** void
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** timerN_disable( int n )
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+  54              		.loc 1 45 0
+  55              		.cfi_startproc
+  56              		@ args = 0, pretend = 0, frame = 0
+  57              		@ frame_needed = 0, uses_anonymous_args = 0
+  58              		@ link register save eliminated.
+  59              	.LVL4:
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	unsigned int x;
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	x = readl( TIMER_BASE + (n * 20) + TIMER_Control_OFF );
+  60              		.loc 1 47 0
+  61 0000 1430A0E3 		mov	r3, #20
+  62 0004 10209FE5 		ldr	r2, .L5
+  63 0008 930000E0 		mul	r0, r3, r0
+  64              	.LVL5:
+  65 000c 023090E7 		ldr	r3, [r0, r2]
+  66              	.LVL6:
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	writel(TIMER_BASE + (n * 20) + TIMER_Control_OFF, x &(~0x1));
+  67              		.loc 1 48 0
+  68 0010 0130C3E3 		bic	r3, r3, #1
+  69              	.LVL7:
+  70 0014 023080E7 		str	r3, [r0, r2]
+  71 0018 1EFF2FE1 		bx	lr
+  72              	.L6:
+  73              		.align	2
+  74              	.L5:
+  75 001c 08100002 		.word	33558536
+  76              		.cfi_endproc
+  77              	.LFE1:
+  79              		.global	__aeabi_uidiv
+  80              		.section	.text.timerN_config,"ax",%progbits
+  81              		.align	2
+  82              		.global	timerN_config
+  84              	timerN_config:
+  85              	.LFB2:
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** void
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** timerN_config( int n, unsigned int rate, int enable_int)
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+  86              		.loc 1 54 0
+  87              		.cfi_startproc
+  88              		@ args = 0, pretend = 0, frame = 0
+  89              		@ frame_needed = 0, uses_anonymous_args = 0
+  90              	.LVL8:
+  91 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+  92              	.LCFI0:
+  93              		.cfi_def_cfa_offset 16
+  94              		.cfi_offset 4, -16
+  95              		.cfi_offset 5, -12
+  96              		.cfi_offset 6, -8
+  97              		.cfi_offset 14, -4
+  98              		.loc 1 54 0
+  99 0004 0160A0E1 		mov	r6, r1
+ 100 0008 0050A0E1 		mov	r5, r0
+ 101 000c 0240A0E1 		mov	r4, r2
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	unsigned int x;
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	timerN_disable( n );
+ 102              		.loc 1 57 0
+ 103 0010 FEFFFFEB 		bl	timerN_disable
+ 104              	.LVL9:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	if (rate) {
+ 105              		.loc 1 59 0
+ 106 0014 000056E3 		cmp	r6, #0
+ 107 0018 0900000A 		beq	.L8
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		writel(533000000 / rate, TIMER_BASE + (n * 20) + TIMER_LoadCount_OFF);
+ 108              		.loc 1 60 0
+ 109 001c 58009FE5 		ldr	r0, .L15
+ 110 0020 0610A0E1 		mov	r1, r6
+ 111 0024 FEFFFFEB 		bl	__aeabi_uidiv
+ 112              	.LVL10:
+ 113 0028 1430A0E3 		mov	r3, #20
+ 114 002c 930503E0 		mul	r3, r3, r5
+ 115 0030 023483E2 		add	r3, r3, #33554432
+ 116 0034 013A83E2 		add	r3, r3, #4096
+ 117 0038 003080E5 		str	r3, [r0]
+ 118              	.LVL11:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		x = 0;
+ 119              		.loc 1 61 0
+ 120 003c 0030A0E3 		mov	r3, #0
+ 121 0040 060000EA 		b	.L9
+ 122              	.LVL12:
+ 123              	.L8:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	}
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	else {
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		writel(TIMER_BASE + (n * 20) + TIMER_LoadCount_OFF, 0xFFFFFFFF);
+ 124              		.loc 1 64 0
+ 125 0044 1430A0E3 		mov	r3, #20
+ 126 0048 0020E0E3 		mvn	r2, #0
+ 127 004c 930503E0 		mul	r3, r3, r5
+ 128 0050 023483E2 		add	r3, r3, #33554432
+ 129 0054 013A83E2 		add	r3, r3, #4096
+ 130 0058 002083E5 		str	r2, [r3]
+ 131              	.LVL13:
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		x = 2;
+ 132              		.loc 1 65 0
+ 133 005c 0230A0E3 		mov	r3, #2
+ 134              	.LVL14:
+ 135              	.L9:
+ 136 0060 1400A0E3 		mov	r0, #20
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	}
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	if( enable_int ) {
+ 137              		.loc 1 68 0
+ 138 0064 000054E3 		cmp	r4, #0
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		writel(TIMER_BASE + (n * 20) + TIMER_Control_OFF, x);
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	}
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	else {
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		writel(TIMER_BASE + (n * 20) + TIMER_Control_OFF, x | 0x4);
+ 139              		.loc 1 72 0
+ 140 0068 04308303 		orreq	r3, r3, #4
+ 141              	.LVL15:
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		writel(TIMER_BASE + (n * 20) + TIMER_Control_OFF, x);
+ 142              		.loc 1 69 0
+ 143 006c 900500E0 		mul	r0, r0, r5
+ 144 0070 08209FE5 		ldr	r2, .L15+4
+ 145              		.loc 1 72 0
+ 146 0074 023080E7 		str	r3, [r0, r2]
+ 147 0078 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 148              	.L16:
+ 149              		.align	2
+ 150              	.L15:
+ 151 007c 40EFC41F 		.word	533000000
+ 152 0080 08100002 		.word	33558536
+ 153              		.cfi_endproc
+ 154              	.LFE2:
+ 156              		.section	.text.timerN_get_count,"ax",%progbits
+ 157              		.align	2
+ 158              		.global	timerN_get_count
+ 160              	timerN_get_count:
+ 161              	.LFB3:
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	}
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** unsigned int
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** timerN_get_count( int n )
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+ 162              		.loc 1 80 0
+ 163              		.cfi_startproc
+ 164              		@ args = 0, pretend = 0, frame = 0
+ 165              		@ frame_needed = 0, uses_anonymous_args = 0
+ 166              		@ link register save eliminated.
+ 167              	.LVL16:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	return( readl( TIMER_BASE + (n * 20) + TIMER_CurrentValue_OFF ) );
+ 168              		.loc 1 81 0
+ 169 0000 1430A0E3 		mov	r3, #20
+ 170 0004 930000E0 		mul	r0, r3, r0
+ 171              	.LVL17:
+ 172 0008 04309FE5 		ldr	r3, .L18
+ 173 000c 030090E7 		ldr	r0, [r0, r3]
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 174              		.loc 1 82 0
+ 175 0010 1EFF2FE1 		bx	lr
+ 176              	.L19:
+ 177              		.align	2
+ 178              	.L18:
+ 179 0014 04100002 		.word	33558532
+ 180              		.cfi_endproc
+ 181              	.LFE3:
+ 183              		.section	.text.timerN_clear_int,"ax",%progbits
+ 184              		.align	2
+ 185              		.global	timerN_clear_int
+ 187              	timerN_clear_int:
+ 188              	.LFB4:
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** unsigned int
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** timerN_clear_int( int n )
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+ 189              		.loc 1 88 0
+ 190              		.cfi_startproc
+ 191              		@ args = 0, pretend = 0, frame = 0
+ 192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 193              		@ link register save eliminated.
+ 194              	.LVL18:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	return( readl( TIMER_BASE + (n * 20) + TIMER_EOI_OFF ) );
+ 195              		.loc 1 89 0
+ 196 0000 1430A0E3 		mov	r3, #20
+ 197 0004 930000E0 		mul	r0, r3, r0
+ 198              	.LVL19:
+ 199 0008 04309FE5 		ldr	r3, .L21
+ 200 000c 030090E7 		ldr	r0, [r0, r3]
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 201              		.loc 1 90 0
+ 202 0010 1EFF2FE1 		bx	lr
+ 203              	.L22:
+ 204              		.align	2
+ 205              	.L21:
+ 206 0014 0C100002 		.word	33558540
+ 207              		.cfi_endproc
+ 208              	.LFE4:
+ 210              		.section	.text.timerN_get_int_status,"ax",%progbits
+ 211              		.align	2
+ 212              		.global	timerN_get_int_status
+ 214              	timerN_get_int_status:
+ 215              	.LFB5:
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** unsigned int
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** timerN_get_int_status( int n )
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+ 216              		.loc 1 95 0
+ 217              		.cfi_startproc
+ 218              		@ args = 0, pretend = 0, frame = 0
+ 219              		@ frame_needed = 0, uses_anonymous_args = 0
+ 220              		@ link register save eliminated.
+ 221              	.LVL20:
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	return( readl( TIMER_BASE + (n * 20) + TIMER_IntStatus_OFF ) );
+ 222              		.loc 1 96 0
+ 223 0000 1430A0E3 		mov	r3, #20
+ 224 0004 930000E0 		mul	r0, r3, r0
+ 225              	.LVL21:
+ 226 0008 04309FE5 		ldr	r3, .L24
+ 227 000c 030090E7 		ldr	r0, [r0, r3]
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 228              		.loc 1 97 0
+ 229 0010 1EFF2FE1 		bx	lr
+ 230              	.L25:
+ 231              		.align	2
+ 232              	.L24:
+ 233 0014 10100002 		.word	33558544
+ 234              		.cfi_endproc
+ 235              	.LFE5:
+ 237              		.section	.text.timerN_get_LoadCount,"ax",%progbits
+ 238              		.align	2
+ 239              		.global	timerN_get_LoadCount
+ 241              	timerN_get_LoadCount:
+ 242              	.LFB6:
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** unsigned int
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** timerN_get_LoadCount( int n )
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+ 243              		.loc 1 102 0
+ 244              		.cfi_startproc
+ 245              		@ args = 0, pretend = 0, frame = 0
+ 246              		@ frame_needed = 0, uses_anonymous_args = 0
+ 247              		@ link register save eliminated.
+ 248              	.LVL22:
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	return( readl( TIMER_BASE + (n * 20) + TIMER_LoadCount_OFF ) );
+ 249              		.loc 1 103 0
+ 250 0000 1430A0E3 		mov	r3, #20
+ 251 0004 930000E0 		mul	r0, r3, r0
+ 252              	.LVL23:
+ 253 0008 020480E2 		add	r0, r0, #33554432
+ 254 000c 010A80E2 		add	r0, r0, #4096
+ 255 0010 000090E5 		ldr	r0, [r0]
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 256              		.loc 1 104 0
+ 257 0014 1EFF2FE1 		bx	lr
+ 258              		.cfi_endproc
+ 259              	.LFE6:
+ 261              		.section	.text.udelay,"ax",%progbits
+ 262              		.align	2
+ 263              		.global	udelay
+ 265              	udelay:
+ 266              	.LFB7:
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** void
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** udelay( unsigned long usec )
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** {
+ 267              		.loc 1 108 0
+ 268              		.cfi_startproc
+ 269              		@ args = 0, pretend = 0, frame = 8
+ 270              		@ frame_needed = 0, uses_anonymous_args = 0
+ 271              		@ link register save eliminated.
+ 272              	.LVL24:
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	unsigned int v, end_v, total_tick;
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	volatile unsigned int x;
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	total_tick = usec * TICKS_PER_USEC;
+ 273              		.loc 1 112 0
+ 274 0000 153200E3 		movw	r3, #533
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	unsigned int v, end_v, total_tick;
+ 275              		.loc 1 108 0
+ 276 0004 08D04DE2 		sub	sp, sp, #8
+ 277              	.LCFI1:
+ 278              		.cfi_def_cfa_offset 8
+ 279              	.LBB10:
+ 280              	.LBB11:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 281              		.loc 1 81 0
+ 282 0008 64109FE5 		ldr	r1, .L38
+ 283              	.LBE11:
+ 284              	.LBE10:
+ 285              		.loc 1 112 0
+ 286 000c 930000E0 		mul	r0, r3, r0
+ 287              	.LVL25:
+ 288              	.LBB13:
+ 289              	.LBB12:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 290              		.loc 1 81 0
+ 291 0010 2C2091E5 		ldr	r2, [r1, #44]
+ 292              	.LBE12:
+ 293              	.LBE13:
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	v = timerN_get_count(FREERUN_TIMERn);
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	if( v < total_tick ) {
+ 294              		.loc 1 115 0
+ 295 0014 000052E1 		cmp	r2, r0
+ 296 0018 0D00002A 		bcs	.L28
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		end_v = 0xFFFFFFFF - (total_tick - v);
+ 297              		.loc 1 116 0
+ 298 001c 000062E0 		rsb	r0, r2, r0
+ 299              	.LVL26:
+ 300 0020 0030E0E1 		mvn	r3, r0
+ 301              	.LVL27:
+ 302              	.L29:
+ 303              	.LBB14:
+ 304              	.LBB15:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 305              		.loc 1 81 0 discriminator 1
+ 306 0024 2C0091E5 		ldr	r0, [r1, #44]
+ 307              	.LBE15:
+ 308              	.LBE14:
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		do {
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 			x = timerN_get_count(FREERUN_TIMERn);
+ 309              		.loc 1 118 0 discriminator 1
+ 310 0028 04008DE5 		str	r0, [sp, #4]
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		} while( x < v );
+ 311              		.loc 1 119 0 discriminator 1
+ 312 002c 04009DE5 		ldr	r0, [sp, #4]
+ 313 0030 020050E1 		cmp	r0, r2
+ 314 0034 FAFFFF3A 		bcc	.L29
+ 315              	.L33:
+ 316              	.LVL28:
+ 317              	.LBB16:
+ 318              	.LBB17:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 319              		.loc 1 81 0 discriminator 1
+ 320 0038 34209FE5 		ldr	r2, .L38
+ 321 003c 2C2092E5 		ldr	r2, [r2, #44]
+ 322              	.LBE17:
+ 323              	.LBE16:
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		do {
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 			x = timerN_get_count(FREERUN_TIMERn);
+ 324              		.loc 1 122 0 discriminator 1
+ 325 0040 04208DE5 		str	r2, [sp, #4]
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		} while( x > end_v );
+ 326              		.loc 1 123 0 discriminator 1
+ 327 0044 04209DE5 		ldr	r2, [sp, #4]
+ 328 0048 030052E1 		cmp	r2, r3
+ 329 004c F9FFFF8A 		bhi	.L33
+ 330 0050 050000EA 		b	.L27
+ 331              	.LVL29:
+ 332              	.L28:
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	}
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	else {
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		end_v = v - total_tick;
+ 333              		.loc 1 126 0
+ 334 0054 020060E0 		rsb	r0, r0, r2
+ 335              	.LVL30:
+ 336              	.L31:
+ 337              	.LBB18:
+ 338              	.LBB19:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 339              		.loc 1 81 0 discriminator 1
+ 340 0058 2C3091E5 		ldr	r3, [r1, #44]
+ 341              	.LBE19:
+ 342              	.LBE18:
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		do {
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 			x = timerN_get_count(FREERUN_TIMERn);
+ 343              		.loc 1 128 0 discriminator 1
+ 344 005c 04308DE5 		str	r3, [sp, #4]
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 		} while( x > end_v );
+ 345              		.loc 1 129 0 discriminator 1
+ 346 0060 04309DE5 		ldr	r3, [sp, #4]
+ 347 0064 000053E1 		cmp	r3, r0
+ 348 0068 FAFFFF8A 		bhi	.L31
+ 349              	.LVL31:
+ 350              	.L27:
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** 	}
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/timer_s1.c **** }
+ 351              		.loc 1 131 0
+ 352 006c 08D08DE2 		add	sp, sp, #8
+ 353              	.LCFI2:
+ 354              		.cfi_def_cfa_offset 0
+ 355              		@ sp needed
+ 356 0070 1EFF2FE1 		bx	lr
+ 357              	.L39:
+ 358              		.align	2
+ 359              	.L38:
+ 360 0074 00100002 		.word	33558528
+ 361              		.cfi_endproc
+ 362              	.LFE7:
+ 364              		.text
+ 365              	.Letext0:
+ 366              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 367              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 timer_s1.c
+     /tmp/ccjIle9p.s:17     .text.timerN_enable:00000000 $a
+     /tmp/ccjIle9p.s:20     .text.timerN_enable:00000000 timerN_enable
+     /tmp/ccjIle9p.s:44     .text.timerN_enable:0000001c $d
+     /tmp/ccjIle9p.s:49     .text.timerN_disable:00000000 $a
+     /tmp/ccjIle9p.s:52     .text.timerN_disable:00000000 timerN_disable
+     /tmp/ccjIle9p.s:75     .text.timerN_disable:0000001c $d
+     /tmp/ccjIle9p.s:81     .text.timerN_config:00000000 $a
+     /tmp/ccjIle9p.s:84     .text.timerN_config:00000000 timerN_config
+     /tmp/ccjIle9p.s:151    .text.timerN_config:0000007c $d
+     /tmp/ccjIle9p.s:157    .text.timerN_get_count:00000000 $a
+     /tmp/ccjIle9p.s:160    .text.timerN_get_count:00000000 timerN_get_count
+     /tmp/ccjIle9p.s:179    .text.timerN_get_count:00000014 $d
+     /tmp/ccjIle9p.s:184    .text.timerN_clear_int:00000000 $a
+     /tmp/ccjIle9p.s:187    .text.timerN_clear_int:00000000 timerN_clear_int
+     /tmp/ccjIle9p.s:206    .text.timerN_clear_int:00000014 $d
+     /tmp/ccjIle9p.s:211    .text.timerN_get_int_status:00000000 $a
+     /tmp/ccjIle9p.s:214    .text.timerN_get_int_status:00000000 timerN_get_int_status
+     /tmp/ccjIle9p.s:233    .text.timerN_get_int_status:00000014 $d
+     /tmp/ccjIle9p.s:238    .text.timerN_get_LoadCount:00000000 $a
+     /tmp/ccjIle9p.s:241    .text.timerN_get_LoadCount:00000000 timerN_get_LoadCount
+     /tmp/ccjIle9p.s:262    .text.udelay:00000000 $a
+     /tmp/ccjIle9p.s:265    .text.udelay:00000000 udelay
+     /tmp/ccjIle9p.s:360    .text.udelay:00000074 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_uidiv

@@ -1,0 +1,824 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"hal_timer.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.timer_irq_handler,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	timer_irq_handler:
+  24              	.LFB6:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @file    hal_timer.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @date    Jan-28-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @brief   This file contains expand of hal_timer
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #include "board_config.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #include "cortex_r4.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #include "hal_vic.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #include "hal_timer.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Private typedef -----------------------------------------------------------*/
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @brief timer_regs
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  *
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Timer registers structure
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** typedef struct timer_reg
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	__IO uint32_t	LCR;		/* Load Count Register */
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	__I  uint32_t	CVR;		/* Current Value Register */
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	__IO uint32_t	TCR;		/* Control Register */
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	__I  uint32_t	EOIR;		/* End Of Interrupt Register */
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	__I  uint32_t	ISR;		/* Interrupt Status Register */
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** } timer_regs;
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @brief timer_config_t
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  *
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Timer configuration structure
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** typedef struct timer_config
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	timer_regs		*handle;							/* Timer handle */
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	void			(*callback_handler)(void *params);	/* Interrupt handler */
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	void			*params;
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** } timer_config_t;
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Private define ------------------------------------------------------------*/
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Timer handles */
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER1		(((timer_regs *)TIMER_BASE) + 0)
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER2		(((timer_regs *)TIMER_BASE) + 1)
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER4		(((timer_regs *)TIMER_BASE) + 3)
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER3		(((timer_regs *)TIMER_BASE) + 2)
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER5		(((timer_regs *)TIMER_BASE) + 4)
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER6		(((timer_regs *)TIMER_BASE) + 5)
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER7		(((timer_regs *)TIMER_BASE) + 6)
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER8		(((timer_regs *)TIMER_BASE) + 7)
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIMER_INTR_STATUS	(TIMER_BASE + 0xA0)
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Definition of bits in Timer Control Register */
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIM_TCR_INT_MASK	BIT1
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** #define TIM_TCR_ENABLE		BIT0
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Private typedef -----------------------------------------------------------*/
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Private function prototypes -----------------------------------------------*/
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** static void hal_timer_irq(uint8_t chid);
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** static void timer_irq_handler(void);
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Private variables ---------------------------------------------------------*/
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Timer configurations */
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** static timer_config_t	timer_configs[HAL_TIM_MAX] =
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 1 */
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER1,
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	},
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 2 */
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER2,
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	},
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 3 */
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER3,
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	},
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 4 */
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER4,
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	},
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 5 */
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER5,
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	},
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 6 */
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER6,
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	},
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 7 */
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER7,
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	},
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Timer 8 */
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.handle = TIMER8,
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.callback_handler = NULL_PTR,
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		.params = NULL_PTR
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** };
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** static uint8_t intr_int_flag;
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Exported functions --------------------------------------------------------*/
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * hal_timer_init
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Initialize timer module
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** hal_timer_return_t hal_timer_init(hal_timer_t *tim)
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Check null pointer */
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	if(NULL_PTR == tim)
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_NULL_PTR;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	else if((HAL_TIM_MAX <= tim->chid) || (HAL_TIM_CH1 > tim->chid))
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_INVALID_CHANNEL;
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	else
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer_regs *timer = timer_configs[tim->chid].handle;
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Disable the selected timer */
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer->TCR &= (~TIM_TCR_ENABLE);
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Enable interrupt for the selected timer */
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer->TCR |= TIM_TCR_INT_MASK;
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Set interrupt handler */
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer_configs[tim->chid].callback_handler = tim->callback_handler;
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Set the timer period */
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer->LCR = tim->period * (CLOCK_133MHZ / 1000000);
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		if(!intr_int_flag)
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		{
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 			vic_register_irq(TIMER_IRQn, timer_irq_handler);
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 			vic_set_priority_irq(TIMER_IRQn, 15);
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 			intr_int_flag = 1;
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		}
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_OK;
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	return ret;
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * hal_timer_update_period
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Update timer period
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** hal_timer_return_t hal_timer_update_period(hal_timer_t *tim)
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Check null pointer */
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	if (NULL_PTR == tim)
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_NULL_PTR;
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	else if ((HAL_TIM_MAX <= tim->chid) || (HAL_TIM_CH1 > tim->chid))
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_INVALID_CHANNEL;
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	else
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer_regs		*timer = timer_configs[tim->chid].handle;
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Set the timer period */
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer->LCR = tim->period * (CLOCK_133MHZ / 1000000);
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_OK;
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	return ret;
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * hal_timer_start
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Enable timer
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** hal_timer_return_t hal_timer_start(hal_timer_channel_t chid)
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	if ((HAL_TIM_MAX <= chid) || (HAL_TIM_CH1 > chid))
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_INVALID_CHANNEL;
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	else
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer_regs *timer = timer_configs[chid].handle;
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Enable the selected timer */
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer->TCR |= TIM_TCR_ENABLE;
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_OK;
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	return ret;
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * hal_timer_stop
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Disable timer
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** hal_timer_return_t hal_timer_stop(hal_timer_channel_t chid)
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	if ((HAL_TIM_MAX <= chid) || (HAL_TIM_CH1 > chid))
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_INVALID_CHANNEL;
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	else
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer_regs *timer = timer_configs[chid].handle;
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Disable the selected timer */
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		timer->TCR &= (~TIM_TCR_ENABLE);
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		ret = HAL_TIM_OK;
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	return ret;
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * hal_timer_read_counter_reg
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Read value from counter register of Timer
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** unsigned int hal_timer_read_counter_reg(hal_timer_channel_t chid)
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	timer_regs *timer = timer_configs[chid].handle;
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	return (unsigned int)(timer->CVR);
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * hal_timer_set_period
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Read value from counter register of Timer
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** void hal_timer_set_period(hal_timer_channel_t chid, unsigned int value)
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	timer_regs *timer = timer_configs[chid].handle;
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Set the timer period */
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	timer->LCR = value;
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /*
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * timer_irq_handler
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * @TODO: should be invoked in an interrupt vector table file
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** static void timer_irq_handler(void)
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+  26              		.loc 1 271 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 24
+  33              		.cfi_offset 3, -24
+  34              		.cfi_offset 4, -20
+  35              		.cfi_offset 5, -16
+  36              		.cfi_offset 6, -12
+  37              		.cfi_offset 7, -8
+  38              		.cfi_offset 14, -4
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	register uint8_t intr_n = readl(TIMER_INTR_STATUS);
+  39              		.loc 1 272 0
+  40 0002 0B4B     		ldr	r3, .L13
+  41 0004 0025     		movs	r5, #0
+  42 0006 0B4C     		ldr	r4, .L13+4
+  43 0008 1E68     		ldr	r6, [r3]
+  44              	.LVL0:
+  45              	.L4:
+  46 000a F3B2     		uxtb	r3, r6
+  47              	.LBB5:
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	for(uint8_t i = 0; i < HAL_TIM_MAX; i++)
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		if(intr_n & (1 << i))
+  48              		.loc 1 275 0
+  49 000c 2B41     		asrs	r3, r3, r5
+  50 000e DB07     		lsls	r3, r3, #31
+  51 0010 07D5     		bpl	.L2
+  52              	.LVL1:
+  53              	.LBB6:
+  54              	.LBB7:
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		{
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 			hal_timer_irq(i);
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		}
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Private functions ---------------------------------------------------------*/
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /**
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * hal_timer_irq
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  * Process timer irq
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c ****  */
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** static void hal_timer_irq(uint8_t chid)
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** {
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	register uint8_t	dummy;
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	timer_regs		*timer = timer_configs[chid].handle;
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	void			*params = timer_configs[chid].params;
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	if(NULL_PTR != timer_configs[chid].callback_handler)
+  55              		.loc 1 292 0
+  56 0012 54F8043C 		ldr	r3, [r4, #-4]
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	void			*params = timer_configs[chid].params;
+  57              		.loc 1 290 0
+  58 0016 54F8087C 		ldr	r7, [r4, #-8]
+  59              	.LVL2:
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	if(NULL_PTR != timer_configs[chid].callback_handler)
+  60              		.loc 1 291 0
+  61 001a 2068     		ldr	r0, [r4]
+  62              	.LVL3:
+  63              		.loc 1 292 0
+  64 001c 03B1     		cbz	r3, .L3
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Call back function to upper layer */
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		(*(timer_configs[chid].callback_handler))(params);
+  65              		.loc 1 295 0
+  66 001e 9847     		blx	r3
+  67              	.LVL4:
+  68              	.L3:
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Dummy read the end-of-interrupt register to clear interrupt pending */
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	dummy = timer->EOIR;
+  69              		.loc 1 298 0
+  70 0020 FB68     		ldr	r3, [r7, #12]
+  71              	.LVL5:
+  72              	.L2:
+  73 0022 0135     		adds	r5, r5, #1
+  74              	.LVL6:
+  75              	.LBE7:
+  76              	.LBE6:
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+  77              		.loc 1 273 0 discriminator 2
+  78 0024 082D     		cmp	r5, #8
+  79 0026 04F10C04 		add	r4, r4, #12
+  80 002a EED1     		bne	.L4
+  81              	.LBE5:
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** /* Private functions ---------------------------------------------------------*/
+  82              		.loc 1 280 0
+  83 002c F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+  84              	.LVL7:
+  85              	.L14:
+  86 002e 00BF     		.align	2
+  87              	.L13:
+  88 0030 A0100002 		.word	33558688
+  89 0034 08000000 		.word	.LANCHOR0+8
+  90              		.cfi_endproc
+  91              	.LFE6:
+  93              		.section	.text.hal_timer_init,"ax",%progbits
+  94              		.align	1
+  95              		.global	hal_timer_init
+  96              		.thumb
+  97              		.thumb_func
+  99              	hal_timer_init:
+ 100              	.LFB0:
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 101              		.loc 1 133 0
+ 102              		.cfi_startproc
+ 103              		@ args = 0, pretend = 0, frame = 0
+ 104              		@ frame_needed = 0, uses_anonymous_args = 0
+ 105              	.LVL8:
+ 106 0000 38B5     		push	{r3, r4, r5, lr}
+ 107              	.LCFI1:
+ 108              		.cfi_def_cfa_offset 16
+ 109              		.cfi_offset 3, -16
+ 110              		.cfi_offset 4, -12
+ 111              		.cfi_offset 5, -8
+ 112              		.cfi_offset 14, -4
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 113              		.loc 1 137 0
+ 114 0002 18B3     		cbz	r0, .L17
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 115              		.loc 1 141 0
+ 116 0004 0178     		ldrb	r1, [r0]	@ zero_extendqisi2
+ 117 0006 0729     		cmp	r1, #7
+ 118 0008 22D8     		bhi	.L18
+ 119              	.LBB8:
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 120              		.loc 1 147 0
+ 121 000a 0C23     		movs	r3, #12
+ 122 000c 124A     		ldr	r2, .L20
+ 123 000e 4B43     		muls	r3, r1, r3
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		{
+ 124              		.loc 1 157 0
+ 125 0010 124D     		ldr	r5, .L20+4
+ 126 0012 2C78     		ldrb	r4, [r5]	@ zero_extendqisi2
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 127              		.loc 1 147 0
+ 128 0014 D118     		adds	r1, r2, r3
+ 129 0016 D358     		ldr	r3, [r2, r3]
+ 130              	.LVL9:
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Enable interrupt for the selected timer */
+ 131              		.loc 1 150 0
+ 132 0018 9A68     		ldr	r2, [r3, #8]
+ 133 001a 22F00102 		bic	r2, r2, #1
+ 134 001e 9A60     		str	r2, [r3, #8]
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Set interrupt handler */
+ 135              		.loc 1 152 0
+ 136 0020 9A68     		ldr	r2, [r3, #8]
+ 137 0022 42F00202 		orr	r2, r2, #2
+ 138 0026 9A60     		str	r2, [r3, #8]
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		/* Set the timer period */
+ 139              		.loc 1 154 0
+ 140 0028 8268     		ldr	r2, [r0, #8]
+ 141 002a 4A60     		str	r2, [r1, #4]
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		if(!intr_int_flag)
+ 142              		.loc 1 156 0
+ 143 002c 8522     		movs	r2, #133
+ 144 002e 4168     		ldr	r1, [r0, #4]
+ 145 0030 4A43     		muls	r2, r1, r2
+ 146 0032 1A60     		str	r2, [r3]
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		{
+ 147              		.loc 1 157 0
+ 148 0034 74B9     		cbnz	r4, .L19
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 			vic_set_priority_irq(TIMER_IRQn, 15);
+ 149              		.loc 1 159 0
+ 150 0036 0320     		movs	r0, #3
+ 151              	.LVL10:
+ 152 0038 0949     		ldr	r1, .L20+8
+ 153 003a 0A4B     		ldr	r3, .L20+12
+ 154              	.LVL11:
+ 155 003c 9847     		blx	r3
+ 156              	.LVL12:
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 			intr_int_flag = 1;
+ 157              		.loc 1 160 0
+ 158 003e 0A4B     		ldr	r3, .L20+16
+ 159 0040 0320     		movs	r0, #3
+ 160 0042 0F21     		movs	r1, #15
+ 161 0044 9847     		blx	r3
+ 162              	.LVL13:
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 		}
+ 163              		.loc 1 161 0
+ 164 0046 0123     		movs	r3, #1
+ 165 0048 2B70     		strb	r3, [r5]
+ 166 004a 03E0     		b	.L19
+ 167              	.LVL14:
+ 168              	.L17:
+ 169              	.LBE8:
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 170              		.loc 1 139 0
+ 171 004c 0120     		movs	r0, #1
+ 172              	.LVL15:
+ 173 004e 38BD     		pop	{r3, r4, r5, pc}
+ 174              	.LVL16:
+ 175              	.L18:
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 176              		.loc 1 143 0
+ 177 0050 0220     		movs	r0, #2
+ 178              	.LVL17:
+ 179 0052 38BD     		pop	{r3, r4, r5, pc}
+ 180              	.L19:
+ 181              	.LBB9:
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 182              		.loc 1 163 0
+ 183 0054 0020     		movs	r0, #0
+ 184              	.LVL18:
+ 185              	.LBE9:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 186              		.loc 1 166 0
+ 187 0056 38BD     		pop	{r3, r4, r5, pc}
+ 188              	.L21:
+ 189              		.align	2
+ 190              	.L20:
+ 191 0058 00000000 		.word	.LANCHOR0
+ 192 005c 00000000 		.word	.LANCHOR1
+ 193 0060 00000000 		.word	timer_irq_handler
+ 194 0064 00000000 		.word	vic_register_irq
+ 195 0068 00000000 		.word	vic_set_priority_irq
+ 196              		.cfi_endproc
+ 197              	.LFE0:
+ 199              		.section	.text.hal_timer_update_period,"ax",%progbits
+ 200              		.align	1
+ 201              		.global	hal_timer_update_period
+ 202              		.thumb
+ 203              		.thumb_func
+ 205              	hal_timer_update_period:
+ 206              	.LFB1:
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 207              		.loc 1 173 0
+ 208              		.cfi_startproc
+ 209              		@ args = 0, pretend = 0, frame = 0
+ 210              		@ frame_needed = 0, uses_anonymous_args = 0
+ 211              		@ link register save eliminated.
+ 212              	.LVL19:
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 213              		.loc 1 177 0
+ 214 0000 60B1     		cbz	r0, .L24
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 215              		.loc 1 181 0
+ 216 0002 0278     		ldrb	r2, [r0]	@ zero_extendqisi2
+ 217 0004 072A     		cmp	r2, #7
+ 218 0006 0BD8     		bhi	.L25
+ 219              	.LBB10:
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 220              		.loc 1 187 0
+ 221 0008 0C23     		movs	r3, #12
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 222              		.loc 1 190 0
+ 223 000a 4168     		ldr	r1, [r0, #4]
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 224              		.loc 1 192 0
+ 225 000c 0020     		movs	r0, #0
+ 226              	.LVL20:
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 227              		.loc 1 187 0
+ 228 000e 5343     		muls	r3, r2, r3
+ 229 0010 044A     		ldr	r2, .L26
+ 230 0012 D258     		ldr	r2, [r2, r3]
+ 231              	.LVL21:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 232              		.loc 1 190 0
+ 233 0014 8523     		movs	r3, #133
+ 234 0016 4B43     		muls	r3, r1, r3
+ 235 0018 1360     		str	r3, [r2]
+ 236 001a 7047     		bx	lr
+ 237              	.LVL22:
+ 238              	.L24:
+ 239              	.LBE10:
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 240              		.loc 1 179 0
+ 241 001c 0120     		movs	r0, #1
+ 242              	.LVL23:
+ 243 001e 7047     		bx	lr
+ 244              	.LVL24:
+ 245              	.L25:
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 246              		.loc 1 183 0
+ 247 0020 0220     		movs	r0, #2
+ 248              	.LVL25:
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 249              		.loc 1 195 0
+ 250 0022 7047     		bx	lr
+ 251              	.L27:
+ 252              		.align	2
+ 253              	.L26:
+ 254 0024 00000000 		.word	.LANCHOR0
+ 255              		.cfi_endproc
+ 256              	.LFE1:
+ 258              		.section	.text.hal_timer_start,"ax",%progbits
+ 259              		.align	1
+ 260              		.global	hal_timer_start
+ 261              		.thumb
+ 262              		.thumb_func
+ 264              	hal_timer_start:
+ 265              	.LFB2:
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 266              		.loc 1 202 0
+ 267              		.cfi_startproc
+ 268              		@ args = 0, pretend = 0, frame = 0
+ 269              		@ frame_needed = 0, uses_anonymous_args = 0
+ 270              		@ link register save eliminated.
+ 271              	.LVL26:
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 272              		.loc 1 205 0
+ 273 0000 0728     		cmp	r0, #7
+ 274              	.LBB11:
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 275              		.loc 1 211 0
+ 276 0002 9FBF     		itttt	ls
+ 277 0004 0C23     		movls	r3, #12
+ 278 0006 5843     		mulls	r0, r3, r0
+ 279              	.LVL27:
+ 280 0008 054B     		ldrls	r3, .L31
+ 281 000a 1A58     		ldrls	r2, [r3, r0]
+ 282              	.LVL28:
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 283              		.loc 1 216 0
+ 284 000c 97BF     		itett	ls
+ 285 000e 0020     		movls	r0, #0
+ 286              	.LBE11:
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 287              		.loc 1 207 0
+ 288 0010 0220     		movhi	r0, #2
+ 289              	.LBB12:
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 290              		.loc 1 214 0
+ 291 0012 9368     		ldrls	r3, [r2, #8]
+ 292 0014 43F00103 		orrls	r3, r3, #1
+ 293 0018 98BF     		it	ls
+ 294 001a 9360     		strls	r3, [r2, #8]
+ 295              	.LVL29:
+ 296              	.LBE12:
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 297              		.loc 1 219 0
+ 298 001c 7047     		bx	lr
+ 299              	.L32:
+ 300 001e 00BF     		.align	2
+ 301              	.L31:
+ 302 0020 00000000 		.word	.LANCHOR0
+ 303              		.cfi_endproc
+ 304              	.LFE2:
+ 306              		.section	.text.hal_timer_stop,"ax",%progbits
+ 307              		.align	1
+ 308              		.global	hal_timer_stop
+ 309              		.thumb
+ 310              		.thumb_func
+ 312              	hal_timer_stop:
+ 313              	.LFB3:
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	hal_timer_return_t ret = HAL_TIM_OK;
+ 314              		.loc 1 226 0
+ 315              		.cfi_startproc
+ 316              		@ args = 0, pretend = 0, frame = 0
+ 317              		@ frame_needed = 0, uses_anonymous_args = 0
+ 318              		@ link register save eliminated.
+ 319              	.LVL30:
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	{
+ 320              		.loc 1 229 0
+ 321 0000 0728     		cmp	r0, #7
+ 322              	.LBB13:
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 323              		.loc 1 235 0
+ 324 0002 9FBF     		itttt	ls
+ 325 0004 0C23     		movls	r3, #12
+ 326 0006 5843     		mulls	r0, r3, r0
+ 327              	.LVL31:
+ 328 0008 054B     		ldrls	r3, .L36
+ 329 000a 1A58     		ldrls	r2, [r3, r0]
+ 330              	.LVL32:
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 331              		.loc 1 240 0
+ 332 000c 97BF     		itett	ls
+ 333 000e 0020     		movls	r0, #0
+ 334              	.LBE13:
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	}
+ 335              		.loc 1 231 0
+ 336 0010 0220     		movhi	r0, #2
+ 337              	.LBB14:
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 338              		.loc 1 238 0
+ 339 0012 9368     		ldrls	r3, [r2, #8]
+ 340 0014 23F00103 		bicls	r3, r3, #1
+ 341 0018 98BF     		it	ls
+ 342 001a 9360     		strls	r3, [r2, #8]
+ 343              	.LVL33:
+ 344              	.LBE14:
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 345              		.loc 1 243 0
+ 346 001c 7047     		bx	lr
+ 347              	.L37:
+ 348 001e 00BF     		.align	2
+ 349              	.L36:
+ 350 0020 00000000 		.word	.LANCHOR0
+ 351              		.cfi_endproc
+ 352              	.LFE3:
+ 354              		.section	.text.hal_timer_read_counter_reg,"ax",%progbits
+ 355              		.align	1
+ 356              		.global	hal_timer_read_counter_reg
+ 357              		.thumb
+ 358              		.thumb_func
+ 360              	hal_timer_read_counter_reg:
+ 361              	.LFB4:
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	timer_regs *timer = timer_configs[chid].handle;
+ 362              		.loc 1 250 0
+ 363              		.cfi_startproc
+ 364              		@ args = 0, pretend = 0, frame = 0
+ 365              		@ frame_needed = 0, uses_anonymous_args = 0
+ 366              		@ link register save eliminated.
+ 367              	.LVL34:
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	return (unsigned int)(timer->CVR);
+ 368              		.loc 1 251 0
+ 369 0000 0C23     		movs	r3, #12
+ 370 0002 5843     		muls	r0, r3, r0
+ 371              	.LVL35:
+ 372 0004 014B     		ldr	r3, .L39
+ 373 0006 1B58     		ldr	r3, [r3, r0]
+ 374              	.LVL36:
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 375              		.loc 1 252 0
+ 376 0008 5868     		ldr	r0, [r3, #4]
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 
+ 377              		.loc 1 253 0
+ 378 000a 7047     		bx	lr
+ 379              	.L40:
+ 380              		.align	2
+ 381              	.L39:
+ 382 000c 00000000 		.word	.LANCHOR0
+ 383              		.cfi_endproc
+ 384              	.LFE4:
+ 386              		.section	.text.hal_timer_set_period,"ax",%progbits
+ 387              		.align	1
+ 388              		.global	hal_timer_set_period
+ 389              		.thumb
+ 390              		.thumb_func
+ 392              	hal_timer_set_period:
+ 393              	.LFB5:
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	timer_regs *timer = timer_configs[chid].handle;
+ 394              		.loc 1 260 0
+ 395              		.cfi_startproc
+ 396              		@ args = 0, pretend = 0, frame = 0
+ 397              		@ frame_needed = 0, uses_anonymous_args = 0
+ 398              		@ link register save eliminated.
+ 399              	.LVL37:
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** 	/* Set the timer period */
+ 400              		.loc 1 261 0
+ 401 0000 0C23     		movs	r3, #12
+ 402 0002 5843     		muls	r0, r3, r0
+ 403              	.LVL38:
+ 404 0004 014B     		ldr	r3, .L42
+ 405 0006 1B58     		ldr	r3, [r3, r0]
+ 406              	.LVL39:
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_timer.c **** }
+ 407              		.loc 1 263 0
+ 408 0008 1960     		str	r1, [r3]
+ 409 000a 7047     		bx	lr
+ 410              	.L43:
+ 411              		.align	2
+ 412              	.L42:
+ 413 000c 00000000 		.word	.LANCHOR0
+ 414              		.cfi_endproc
+ 415              	.LFE5:
+ 417              		.section	.bss.intr_int_flag,"aw",%nobits
+ 418              		.set	.LANCHOR1,. + 0
+ 421              	intr_int_flag:
+ 422 0000 00       		.space	1
+ 423              		.section	.data.timer_configs,"aw",%progbits
+ 424              		.align	2
+ 425              		.set	.LANCHOR0,. + 0
+ 428              	timer_configs:
+ 429 0000 00100002 		.word	33558528
+ 430 0004 00000000 		.word	0
+ 431 0008 00000000 		.word	0
+ 432 000c 14100002 		.word	33558548
+ 433 0010 00000000 		.word	0
+ 434 0014 00000000 		.word	0
+ 435 0018 28100002 		.word	33558568
+ 436 001c 00000000 		.word	0
+ 437 0020 00000000 		.word	0
+ 438 0024 3C100002 		.word	33558588
+ 439 0028 00000000 		.word	0
+ 440 002c 00000000 		.word	0
+ 441 0030 50100002 		.word	33558608
+ 442 0034 00000000 		.word	0
+ 443 0038 00000000 		.word	0
+ 444 003c 64100002 		.word	33558628
+ 445 0040 00000000 		.word	0
+ 446 0044 00000000 		.word	0
+ 447 0048 78100002 		.word	33558648
+ 448 004c 00000000 		.word	0
+ 449 0050 00000000 		.word	0
+ 450 0054 8C100002 		.word	33558668
+ 451 0058 00000000 		.word	0
+ 452 005c 00000000 		.word	0
+ 453              		.text
+ 454              	.Letext0:
+ 455              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 456              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 457              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+ 458              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_timer.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_timer.c
+     /tmp/ccSn5crf.s:19     .text.timer_irq_handler:00000000 $t
+     /tmp/ccSn5crf.s:23     .text.timer_irq_handler:00000000 timer_irq_handler
+     /tmp/ccSn5crf.s:88     .text.timer_irq_handler:00000030 $d
+     /tmp/ccSn5crf.s:94     .text.hal_timer_init:00000000 $t
+     /tmp/ccSn5crf.s:99     .text.hal_timer_init:00000000 hal_timer_init
+     /tmp/ccSn5crf.s:191    .text.hal_timer_init:00000058 $d
+     /tmp/ccSn5crf.s:200    .text.hal_timer_update_period:00000000 $t
+     /tmp/ccSn5crf.s:205    .text.hal_timer_update_period:00000000 hal_timer_update_period
+     /tmp/ccSn5crf.s:254    .text.hal_timer_update_period:00000024 $d
+     /tmp/ccSn5crf.s:259    .text.hal_timer_start:00000000 $t
+     /tmp/ccSn5crf.s:264    .text.hal_timer_start:00000000 hal_timer_start
+     /tmp/ccSn5crf.s:302    .text.hal_timer_start:00000020 $d
+     /tmp/ccSn5crf.s:307    .text.hal_timer_stop:00000000 $t
+     /tmp/ccSn5crf.s:312    .text.hal_timer_stop:00000000 hal_timer_stop
+     /tmp/ccSn5crf.s:350    .text.hal_timer_stop:00000020 $d
+     /tmp/ccSn5crf.s:355    .text.hal_timer_read_counter_reg:00000000 $t
+     /tmp/ccSn5crf.s:360    .text.hal_timer_read_counter_reg:00000000 hal_timer_read_counter_reg
+     /tmp/ccSn5crf.s:382    .text.hal_timer_read_counter_reg:0000000c $d
+     /tmp/ccSn5crf.s:387    .text.hal_timer_set_period:00000000 $t
+     /tmp/ccSn5crf.s:392    .text.hal_timer_set_period:00000000 hal_timer_set_period
+     /tmp/ccSn5crf.s:413    .text.hal_timer_set_period:0000000c $d
+     /tmp/ccSn5crf.s:421    .bss.intr_int_flag:00000000 intr_int_flag
+     /tmp/ccSn5crf.s:422    .bss.intr_int_flag:00000000 $d
+     /tmp/ccSn5crf.s:424    .data.timer_configs:00000000 $d
+     /tmp/ccSn5crf.s:428    .data.timer_configs:00000000 timer_configs
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+vic_register_irq
+vic_set_priority_irq

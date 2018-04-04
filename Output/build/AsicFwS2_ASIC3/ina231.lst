@@ -1,0 +1,803 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"ina231.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	__aeabi_i2d
+  19              		.global	__aeabi_dmul
+  20              		.global	__aeabi_ddiv
+  21              		.global	__aeabi_d2uiz
+  22              		.section	.text.ina231_config,"ax",%progbits
+  23              		.align	1
+  24              		.global	ina231_config
+  25              		.thumb
+  26              		.thumb_func
+  28              	ina231_config:
+  29              	.LFB1:
+  30              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * @file	ina231.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * @author	The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * @version	V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * @date	April-1-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * @brief	This file contains expand for INA231 current/power sensor driver
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #include "std_type.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #include "lcc_system.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #include "os.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #include "log.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #include "ina231.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Privated define------------------------------------------------------------*/
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_TIMEOUT				50		/* ms */
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* INA231 Register addresses*/
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG					0x00
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_SHUNT_VOLT			0x01
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_BUS_VOLT				0x02
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_POWER				0x03
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CURRENT				0x04
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CALIB				0x05
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN				0x06
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_ALERT				0x07
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* INA232 Configurate mode */
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_MODE_MASK		(7 << 0)
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_MODE_PWRDWN		(0 << 0)
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_MODE_SHUNT		(1 << 0)
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_MODE_BUS			(1 << 1)
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_MODE_TRG			(0 << 2)
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_MODE_CONT		(1 << 2)
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* INA232 Configurate convert time for the shunt voltage measurement */
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_140		(0 << 3)
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_204		(1 << 3)
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_332		(2 << 3)
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_588		(3 << 3)
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_1100	(4 << 3)
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_2116	(5 << 3)
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_4156	(6 << 3)
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_SHUNT_8244	(7 << 3)
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* INA232 Configurate convert time for the bus voltage measurement */
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_140		(0 << 6)
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_204		(1 << 6)
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_332		(2 << 6)
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_588		(3 << 6)
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_1100		(4 << 6)
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_2116		(5 << 6)
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_4156		(6 << 6)
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CT_BUS_8244		(7 << 6)
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* INA232 Configurate the number of samples that are collected and averaged */
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_1			(0 << 9)
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_4			(1 << 9)
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_16			(2 << 9)
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_64			(3 << 9)
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_128			(4 << 9)
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_256			(5 << 9)
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_512			(6 << 9)
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_AVG_1024			(7 << 9)
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* INA232 mask/enable*/
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_LEN			(1 << 0)	/* Alert Latch Enable */
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_APOL			(1 << 1)	/* Alert Polarity */
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_OVF			(1 << 2)	/* Math Overflow Flag */
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_CVRF			(1 << 3)	/* Conversion Ready Flag */
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_AFF			(1 << 4)	/* Alert Function Flag */
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_CNVR			(1 << 10)	/* Conversion Ready */
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_POL			(1 << 11)	/* Over-Limit Power */
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_BUL			(1 << 12)	/* Bus Voltage Under-Voltage */
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_BOL			(1 << 13)	/* Bus Voltage Over-Voltage */
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_SUL			(1 << 14)	/* Shunt Voltage Under-Voltage*/
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_MSK_EN_SOL			(1 << 15)	/* Shunt Voltage Over-Voltage */
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_RSHUNT_LSB		0.0025		/* mV */
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_DEFAULT			0x4527		/* averages=16 */
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_CFG_CALIB_DIVIDED	2048
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Calibration value to get current LSB = cur_lsb */
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define CALIB_VALUE(cur_lsb, rsense)	(5120000/(rsense * cur_lsb))
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Bus voltage LSB : 1.25mV / bit */
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_BUS_mV(val)				((reg * 125) / 100)
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Power LSB : 25mW / current_lsb (uA) */
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define INA231_POW_mW(val, cur_lsb)		((reg * 25 * cur_lsb)/1000)
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define SLOGF_ID					SLOG_ID_INA231
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #define USE_I2CM_RW_FUNCTION
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Privated functions prototypes ---------------------------------------------*/
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Privated variables --------------------------------------------------------*/
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #ifndef USE_I2CM_RW_FUNCTION
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** static volatile i2cm_error_t ina231_status;
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #endif
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Privated functions implementation -----------------------------------------*/
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #ifndef USE_I2CM_RW_FUNCTION
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** static void ina231_callback(i2cm_error_t i2c_status, void *param)
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** {
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_callback_msg_t *i2c_callback_msg =(i2cm_callback_msg_t *)param;
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	BaseType_t higher_pri_task_woken = pdFALSE;
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	*((uint8_t *)i2c_callback_msg->status) = i2c_status;
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	xSemaphoreGiveFromISR(i2c_callback_msg->sem_msg, &higher_pri_task_woken);
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	portEND_SWITCHING_ISR(higher_pri_task_woken);
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** }
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /*
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * ina231_read
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Read word value
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  */
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** static int ina231_read(i2c_t i2c, uint8_t sla, uint8_t reg, uint16_t *data)
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** {
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_callback_msg_t i2c_callback_msg;
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	volatile i2cm_error_t status = I2CM_ERROR_TRANSCEIVED;
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint8_t buf[3] = {reg, 0, 0};
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ina231_status = I2CM_ERROR_BUSY;
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	/* Update register pointer want to read value */
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_transceiver(i2c, sla, &buf[0], 1, &buf[1], 2, ina231_callback, &(i2c_callback_msg));
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2c_callback_msg.status = &status;
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2c_callback_msg.sem_msg = xSemaphoreCreateBinary();
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	/* Waiting for updating register pointer INA231_TIMEOUT */
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	xSemaphoreTake(i2c_callback_msg.sem_msg, portMAX_DELAY);
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	vSemaphoreDelete(i2c_callback_msg.sem_msg);
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2c_callback_msg.sem_msg = NULL;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	/* Convert data value to word format */
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	*data = (buf[1]<<8) | buf[2];
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	return status ? INA231_I2C_BUSY : INA231_OK;
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** }
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /*
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * ina231_read
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Write configure
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  */
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** static int ina231_write(i2c_t i2c, uint8_t sla, uint8_t reg, uint16_t *data)
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** {
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_callback_msg_t i2c_callback_msg;
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	volatile i2cm_error_t status = I2CM_ERROR_TRANSCEIVED;
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint8_t buf[3];
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	buf[0] = reg;
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	buf[1] = (uint8_t)(data[0]>>8);
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	buf[2] = (uint8_t)(data[0]);
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ina231_status = I2CM_ERROR_BUSY;
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	/* Write data */
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_transceiver(i2c, sla, buf, 3, NULL, 0, ina231_callback, &i2c_callback_msg);
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2c_callback_msg.status = &status;
+ 163:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2c_callback_msg.sem_msg = xSemaphoreCreateBinary();
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 165:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	/* Wait for transaction to complete INA231_TIMEOUT */
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	xSemaphoreTake(i2c_callback_msg.sem_msg, portMAX_DELAY);
+ 167:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	vSemaphoreDelete(i2c_callback_msg.sem_msg);
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2c_callback_msg.sem_msg = NULL;
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	return  status ? INA231_I2C_BUSY : INA231_OK;
+ 170:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** }
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #endif
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /* Exported functions implementation -----------------------------------------*/
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #ifndef USE_I2CM_RW_FUNCTION
+ 174:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /*
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * ina231_configure
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Configure the INA devices, input the rsense value, current_unit
+ 177:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  */
+ 178:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** int ina231_config(hal_i2c_channel_t chid, ina231_info_t *info)
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** {
+ 180:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ina231_status_t ret = INA231_OK;
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint16_t reg = 0;
+ 182:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 183:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if ((info->rsense == 0) || (info->current_unit == 0) || (info->addr == 0))
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_VALUE_INVALID;
+ 185:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 186:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = ina231_read(chid, info->addr, INA231_CFG, &reg);
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (INA231_I2C_BUSY != ret)		/* Cannot connect to devices */
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	{
+ 189:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		/* Keep all configuration as default
+ 190:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		 * Averaging Mode: AVG = 1;
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		 * Bus Voltage Conversion Time: VCT BUS = 1.1ms
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		 * Shunt Voltage Conversion Time: VCT SH = 1.1ms
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		 * Mode: Shunt and bus, continuous
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		 * Enable all alert flags
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		 */
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = 0xF801;
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret = ina231_write(chid, info->addr, INA231_CALIB, &reg);
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret |= ina231_read(chid, info->addr, INA231_CFG, &reg);
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = CALIB_VALUE(info->rsense, info->current_unit);
+ 200:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret |= ina231_write(chid, info->addr, INA231_CALIB, &reg);
+ 201:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		info->is_calibrated = 1;
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	}
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	return ret;
+ 204:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** }
+ 205:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 206:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /*
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * ina231_get_info
+ 208:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Query INA information include: Current, Voltage, Power
+ 209:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  */
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** int ina231_get_info(hal_i2c_channel_t chid, ina231_info_t *info)
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** {
+ 212:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ina231_status_t ret = INA231_OK;
+ 213:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint16_t reg = 0;
+ 214:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 215:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	/* Checking the input parameter and devices status */
+ 216:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (info->is_calibrated == INA231_UNCALIBRATED)
+ 217:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_UNCALIBRATED;
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (info->addr == 0)
+ 219:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_VALUE_INVALID;
+ 220:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 221:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = ina231_read(chid, info->addr, INA231_ALERT, &reg);
+ 222:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (INA231_I2C_BUSY == ret)		/* Cannot connect to devices */
+ 223:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return ret;
+ 224:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 225:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (reg & 0xF800)
+ 226:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_OVERFLOW;		/* Overflow found */
+ 227:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 228:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = ina231_read(chid, info->addr, INA231_CURRENT, &reg);
+ 229:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->curr = ((signed short)reg)*info->current_unit;
+ 230:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret |= ina231_read(chid, info->addr, INA231_BUS_VOLT, &reg);
+ 231:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->volt = INA231_BUS_mV((int)reg);
+ 232:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret |= ina231_read(chid, info->addr, INA231_POWER, &reg);
+ 233:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->power = INA231_POW_mW((int)reg, info->current_unit);
+ 234:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	return ret;
+ 235:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** }
+ 236:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** #else
+ 237:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /*
+ 238:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * ina231_configure
+ 239:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Configure the INA devices, input the rsense value, current_unit
+ 240:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  */
+ 241:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** int ina231_config(hal_i2c_channel_t chid, ina231_info_t *info)
+ 242:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** {
+  31              		.loc 1 242 0
+  32              		.cfi_startproc
+  33              		@ args = 0, pretend = 0, frame = 8
+  34              		@ frame_needed = 0, uses_anonymous_args = 0
+  35              	.LVL0:
+  36 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+  37              	.LCFI0:
+  38              		.cfi_def_cfa_offset 36
+  39              		.cfi_offset 4, -36
+  40              		.cfi_offset 5, -32
+  41              		.cfi_offset 6, -28
+  42              		.cfi_offset 7, -24
+  43              		.cfi_offset 8, -20
+  44              		.cfi_offset 9, -16
+  45              		.cfi_offset 10, -12
+  46              		.cfi_offset 11, -8
+  47              		.cfi_offset 14, -4
+ 243:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_error_t ret = I2CM_ERROR_NONE;
+ 244:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint16_t reg = 0;
+ 245:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint8_t buf[2];
+ 246:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 247:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if ((info->rsense == 0) || (info->current_unit == 0) || (info->addr == 0))
+  48              		.loc 1 247 0
+  49 0004 8B89     		ldrh	r3, [r1, #12]
+ 242:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_error_t ret = I2CM_ERROR_NONE;
+  50              		.loc 1 242 0
+  51 0006 85B0     		sub	sp, sp, #20
+  52              	.LCFI1:
+  53              		.cfi_def_cfa_offset 56
+ 242:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_error_t ret = I2CM_ERROR_NONE;
+  54              		.loc 1 242 0
+  55 0008 8046     		mov	r8, r0
+  56 000a 0C46     		mov	r4, r1
+  57              		.loc 1 247 0
+  58 000c 002B     		cmp	r3, #0
+  59 000e 68D0     		beq	.L5
+  60              		.loc 1 247 0 is_stmt 0 discriminator 1
+  61 0010 CB89     		ldrh	r3, [r1, #14]
+  62 0012 002B     		cmp	r3, #0
+  63 0014 65D0     		beq	.L5
+  64              		.loc 1 247 0 discriminator 2
+  65 0016 0A7C     		ldrb	r2, [r1, #16]	@ zero_extendqisi2
+  66 0018 002A     		cmp	r2, #0
+  67 001a 62D0     		beq	.L5
+ 248:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_VALUE_INVALID;
+ 249:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 250:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = i2cm.read(chid, WORD_ADDR8, info->addr, INA231_CFG, buf);
+  68              		.loc 1 250 0 is_stmt 1
+  69 001c 364D     		ldr	r5, .L8+8
+  70 001e 03AE     		add	r6, sp, #12
+  71 0020 0221     		movs	r1, #2
+  72              	.LVL1:
+  73 0022 0096     		str	r6, [sp]
+  74 0024 0023     		movs	r3, #0
+  75 0026 EF68     		ldr	r7, [r5, #12]
+  76 0028 B847     		blx	r7
+  77              	.LVL2:
+ 251:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (ret == I2CM_ERROR_TRANSCEIVED)
+  78              		.loc 1 251 0
+  79 002a 0728     		cmp	r0, #7
+  80 002c 5BD1     		bne	.L6
+  81              	.LVL3:
+ 252:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	{
+ 253:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = INA231_CFG_DEFAULT;
+ 254:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[0] = (uint8_t)(reg >> 8);
+  82              		.loc 1 254 0
+  83 002e 4523     		movs	r3, #69
+ 255:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[1] = (uint8_t)(reg);
+ 256:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret = i2cm.write(chid, WORD_ADDR8, info->addr, INA231_CFG, buf);
+  84              		.loc 1 256 0
+  85 0030 227C     		ldrb	r2, [r4, #16]	@ zero_extendqisi2
+  86 0032 0096     		str	r6, [sp]
+  87 0034 0221     		movs	r1, #2
+ 254:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[1] = (uint8_t)(reg);
+  88              		.loc 1 254 0
+  89 0036 8DF80C30 		strb	r3, [sp, #12]
+ 255:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[1] = (uint8_t)(reg);
+  90              		.loc 1 255 0
+  91 003a 2723     		movs	r3, #39
+  92              		.loc 1 256 0
+  93 003c 2F69     		ldr	r7, [r5, #16]
+  94 003e 4046     		mov	r0, r8
+  95              	.LVL4:
+ 255:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[1] = (uint8_t)(reg);
+  96              		.loc 1 255 0
+  97 0040 8DF80D30 		strb	r3, [sp, #13]
+  98              		.loc 1 256 0
+  99 0044 0023     		movs	r3, #0
+ 100 0046 B847     		blx	r7
+ 101              	.LVL5:
+ 257:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret = i2cm.read(chid, WORD_ADDR8, info->addr, INA231_CFG, buf);
+ 102              		.loc 1 257 0
+ 103 0048 227C     		ldrb	r2, [r4, #16]	@ zero_extendqisi2
+ 104 004a 0096     		str	r6, [sp]
+ 105 004c 0221     		movs	r1, #2
+ 106 004e EF68     		ldr	r7, [r5, #12]
+ 107 0050 0023     		movs	r3, #0
+ 108 0052 4046     		mov	r0, r8
+ 109 0054 B847     		blx	r7
+ 110              	.LVL6:
+ 258:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = buf[1] | (uint16_t)(buf[0] << 8);
+ 259:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		SLOGF(SLOG_INFO, "INA231_CFG: %X",reg);
+ 111              		.loc 1 259 0
+ 112 0056 0820     		movs	r0, #8
+ 258:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = buf[1] | (uint16_t)(buf[0] << 8);
+ 113              		.loc 1 258 0
+ 114 0058 9DF80C70 		ldrb	r7, [sp, #12]	@ zero_extendqisi2
+ 115              		.loc 1 259 0
+ 116 005c 0146     		mov	r1, r0
+ 117 005e 274A     		ldr	r2, .L8+12
+ 258:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = buf[1] | (uint16_t)(buf[0] << 8);
+ 118              		.loc 1 258 0
+ 119 0060 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 120              		.loc 1 259 0
+ 121 0064 DFF8AC90 		ldr	r9, .L8+36
+ 122 0068 43EA0723 		orr	r3, r3, r7, lsl #8
+ 123 006c C847     		blx	r9
+ 124              	.LVL7:
+ 260:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = (INA231_CFG_RSHUNT_LSB * info->current_unit *
+ 125              		.loc 1 260 0
+ 126 006e 244F     		ldr	r7, .L8+16
+ 127 0070 E089     		ldrh	r0, [r4, #14]
+ 128 0072 DFF8A4A0 		ldr	r10, .L8+40
+ 129 0076 B847     		blx	r7
+ 130              	.LVL8:
+ 131 0078 1DA3     		adr	r3, .L8
+ 132 007a D3E90023 		ldrd	r2, [r3]
+ 133 007e D047     		blx	r10
+ 134              	.LVL9:
+ 135 0080 0022     		movs	r2, #0
+ 136 0082 204B     		ldr	r3, .L8+20
+ 137 0084 D047     		blx	r10
+ 138              	.LVL10:
+ 139 0086 8246     		mov	r10, r0
+ 261:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 			INA231_CFG_CALIB_DIVIDED) / info->rsense;
+ 140              		.loc 1 261 0
+ 141 0088 A089     		ldrh	r0, [r4, #12]
+ 260:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = (INA231_CFG_RSHUNT_LSB * info->current_unit *
+ 142              		.loc 1 260 0
+ 143 008a 8B46     		mov	fp, r1
+ 144              		.loc 1 261 0
+ 145 008c B847     		blx	r7
+ 146              	.LVL11:
+ 147 008e 1E4F     		ldr	r7, .L8+24
+ 148 0090 0246     		mov	r2, r0
+ 149 0092 0B46     		mov	r3, r1
+ 150 0094 5046     		mov	r0, r10
+ 151 0096 5946     		mov	r1, fp
+ 152 0098 B847     		blx	r7
+ 153              	.LVL12:
+ 260:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = (INA231_CFG_RSHUNT_LSB * info->current_unit *
+ 154              		.loc 1 260 0
+ 155 009a 1C4B     		ldr	r3, .L8+28
+ 156 009c 9847     		blx	r3
+ 157              	.LVL13:
+ 262:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[0] = (uint8_t)(reg >> 8);
+ 263:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[1] = (uint8_t)(reg);
+ 264:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret = i2cm.write(chid, WORD_ADDR8, info->addr, INA231_CALIB, buf);
+ 158              		.loc 1 264 0
+ 159 009e 227C     		ldrb	r2, [r4, #16]	@ zero_extendqisi2
+ 160 00a0 0096     		str	r6, [sp]
+ 161 00a2 0221     		movs	r1, #2
+ 162 00a4 2F69     		ldr	r7, [r5, #16]
+ 260:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 			INA231_CFG_CALIB_DIVIDED) / info->rsense;
+ 163              		.loc 1 260 0
+ 164 00a6 80B2     		uxth	r0, r0
+ 165              	.LVL14:
+ 262:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[0] = (uint8_t)(reg >> 8);
+ 166              		.loc 1 262 0
+ 167 00a8 030A     		lsrs	r3, r0, #8
+ 263:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret = i2cm.write(chid, WORD_ADDR8, info->addr, INA231_CALIB, buf);
+ 168              		.loc 1 263 0
+ 169 00aa 8DF80D00 		strb	r0, [sp, #13]
+ 170              		.loc 1 264 0
+ 171 00ae 4046     		mov	r0, r8
+ 172              	.LVL15:
+ 262:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		buf[0] = (uint8_t)(reg >> 8);
+ 173              		.loc 1 262 0
+ 174 00b0 8DF80C30 		strb	r3, [sp, #12]
+ 175              		.loc 1 264 0
+ 176 00b4 0523     		movs	r3, #5
+ 177 00b6 B847     		blx	r7
+ 178              	.LVL16:
+ 265:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		ret = i2cm.read(chid, WORD_ADDR8, info->addr, INA231_CALIB, buf);
+ 179              		.loc 1 265 0
+ 180 00b8 227C     		ldrb	r2, [r4, #16]	@ zero_extendqisi2
+ 181 00ba 0096     		str	r6, [sp]
+ 182 00bc 0221     		movs	r1, #2
+ 183 00be ED68     		ldr	r5, [r5, #12]
+ 184 00c0 0523     		movs	r3, #5
+ 185 00c2 4046     		mov	r0, r8
+ 186 00c4 A847     		blx	r5
+ 187              	.LVL17:
+ 266:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = buf[1] | (uint16_t)(buf[0] << 8);
+ 267:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		SLOGF(SLOG_INFO, "INA231_CALIB: %X",reg);
+ 188              		.loc 1 267 0
+ 189 00c6 0820     		movs	r0, #8
+ 266:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		reg = buf[1] | (uint16_t)(buf[0] << 8);
+ 190              		.loc 1 266 0
+ 191 00c8 9DF80C50 		ldrb	r5, [sp, #12]	@ zero_extendqisi2
+ 192 00cc 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 193              		.loc 1 267 0
+ 194 00d0 0146     		mov	r1, r0
+ 195 00d2 43EA0523 		orr	r3, r3, r5, lsl #8
+ 196 00d6 0E4A     		ldr	r2, .L8+32
+ 197 00d8 C847     		blx	r9
+ 198              	.LVL18:
+ 268:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		info->is_calibrated = 1;
+ 199              		.loc 1 268 0
+ 200 00da 0123     		movs	r3, #1
+ 269:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_OK;
+ 201              		.loc 1 269 0
+ 202 00dc 0020     		movs	r0, #0
+ 268:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		info->is_calibrated = 1;
+ 203              		.loc 1 268 0
+ 204 00de 6374     		strb	r3, [r4, #17]
+ 205              		.loc 1 269 0
+ 206 00e0 02E0     		b	.L2
+ 207              	.LVL19:
+ 208              	.L5:
+ 248:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 209              		.loc 1 248 0
+ 210 00e2 0420     		movs	r0, #4
+ 211              	.LVL20:
+ 212 00e4 00E0     		b	.L2
+ 213              	.LVL21:
+ 214              	.L6:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	}
+ 271:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	return INA231_I2C_BUSY;
+ 215              		.loc 1 271 0
+ 216 00e6 0120     		movs	r0, #1
+ 217              	.LVL22:
+ 218              	.L2:
+ 272:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** }
+ 219              		.loc 1 272 0
+ 220 00e8 05B0     		add	sp, sp, #20
+ 221              	.LCFI2:
+ 222              		.cfi_def_cfa_offset 36
+ 223              		@ sp needed
+ 224 00ea BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 225              	.LVL23:
+ 226              	.L9:
+ 227 00ee 00BF     		.align	3
+ 228              	.L8:
+ 229 00f0 7B14AE47 		.word	1202590843
+ 230 00f4 E17A643F 		.word	1063549665
+ 231 00f8 00000000 		.word	i2cm
+ 232 00fc 00000000 		.word	.LC0
+ 233 0100 00000000 		.word	__aeabi_i2d
+ 234 0104 0000A040 		.word	1084227584
+ 235 0108 00000000 		.word	__aeabi_ddiv
+ 236 010c 00000000 		.word	__aeabi_d2uiz
+ 237 0110 0F000000 		.word	.LC1
+ 238 0114 00000000 		.word	slogf
+ 239 0118 00000000 		.word	__aeabi_dmul
+ 240              		.cfi_endproc
+ 241              	.LFE1:
+ 243 011c AFF30080 		.section	.text.ina231_get_info,"ax",%progbits
+ 244              		.align	1
+ 245              		.global	ina231_get_info
+ 246              		.thumb
+ 247              		.thumb_func
+ 249              	ina231_get_info:
+ 250              	.LFB2:
+ 273:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 274:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** /*
+ 275:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * ina231_get_info
+ 276:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  * Query INA information include: Current, Voltage, Power
+ 277:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c ****  */
+ 278:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** int ina231_get_info(hal_i2c_channel_t chid, ina231_info_t *info)
+ 279:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** {
+ 251              		.loc 1 279 0
+ 252              		.cfi_startproc
+ 253              		@ args = 0, pretend = 0, frame = 8
+ 254              		@ frame_needed = 0, uses_anonymous_args = 0
+ 255              	.LVL24:
+ 256 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 257              	.LCFI3:
+ 258              		.cfi_def_cfa_offset 28
+ 259              		.cfi_offset 4, -28
+ 260              		.cfi_offset 5, -24
+ 261              		.cfi_offset 6, -20
+ 262              		.cfi_offset 7, -16
+ 263              		.cfi_offset 8, -12
+ 264              		.cfi_offset 9, -8
+ 265              		.cfi_offset 14, -4
+ 280:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_error_t ret = I2CM_ERROR_NONE;
+ 281:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint16_t reg = 0;
+ 282:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	uint8_t buf[2];
+ 283:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 284:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	/* Checking the input parameter and devices status */
+ 285:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (info->is_calibrated == INA231_UNCALIBRATED)
+ 266              		.loc 1 285 0
+ 267 0004 4B7C     		ldrb	r3, [r1, #17]	@ zero_extendqisi2
+ 268 0006 022B     		cmp	r3, #2
+ 279:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_error_t ret = I2CM_ERROR_NONE;
+ 269              		.loc 1 279 0
+ 270 0008 85B0     		sub	sp, sp, #20
+ 271              	.LCFI4:
+ 272              		.cfi_def_cfa_offset 48
+ 279:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	i2cm_error_t ret = I2CM_ERROR_NONE;
+ 273              		.loc 1 279 0
+ 274 000a 8046     		mov	r8, r0
+ 275 000c 0D46     		mov	r5, r1
+ 276              		.loc 1 285 0
+ 277 000e 52D0     		beq	.L14
+ 286:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_UNCALIBRATED;
+ 287:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (info->addr == 0)
+ 278              		.loc 1 287 0
+ 279 0010 0A7C     		ldrb	r2, [r1, #16]	@ zero_extendqisi2
+ 280 0012 002A     		cmp	r2, #0
+ 281 0014 51D0     		beq	.L15
+ 288:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_VALUE_INVALID;
+ 289:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 290:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = i2cm.read(chid, WORD_ADDR8, info->addr, INA231_ALERT, buf);
+ 282              		.loc 1 290 0
+ 283 0016 2C4F     		ldr	r7, .L17
+ 284 0018 03AE     		add	r6, sp, #12
+ 285 001a 0221     		movs	r1, #2
+ 286              	.LVL25:
+ 287 001c 0096     		str	r6, [sp]
+ 288 001e 0723     		movs	r3, #7
+ 289 0020 FC68     		ldr	r4, [r7, #12]
+ 290 0022 A047     		blx	r4
+ 291              	.LVL26:
+ 291:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (I2CM_ERROR_BUSY == ret)		/* Cannot connect to devices */
+ 292              		.loc 1 291 0
+ 293 0024 8028     		cmp	r0, #128
+ 294 0026 01D1     		bne	.L12
+ 295              	.LVL27:
+ 296              	.L13:
+ 292:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_I2C_BUSY;
+ 297              		.loc 1 292 0
+ 298 0028 0120     		movs	r0, #1
+ 299              	.LVL28:
+ 300 002a 49E0     		b	.L11
+ 301              	.LVL29:
+ 302              	.L12:
+ 293:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 294:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	reg = (((uint16_t)buf[0]) << 8) | buf[1];
+ 303              		.loc 1 294 0
+ 304 002c 9DF80C00 		ldrb	r0, [sp, #12]	@ zero_extendqisi2
+ 305              	.LVL30:
+ 306 0030 0002     		lsls	r0, r0, #8
+ 295:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (reg & 0xF800)
+ 307              		.loc 1 295 0
+ 308 0032 10F47849 		ands	r9, r0, #63488
+ 309 0036 42D1     		bne	.L16
+ 296:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_OVERFLOW;		/* Overflow found */
+ 297:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 298:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = i2cm.read(chid, WORD_ADDR8, info->addr, INA231_CURRENT, buf);
+ 310              		.loc 1 298 0
+ 311 0038 0096     		str	r6, [sp]
+ 312 003a 2A7C     		ldrb	r2, [r5, #16]	@ zero_extendqisi2
+ 313 003c 4046     		mov	r0, r8
+ 314 003e 0221     		movs	r1, #2
+ 315 0040 0423     		movs	r3, #4
+ 316 0042 FC68     		ldr	r4, [r7, #12]
+ 317 0044 A047     		blx	r4
+ 318              	.LVL31:
+ 299:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (ret != I2CM_ERROR_TRANSCEIVED)
+ 319              		.loc 1 299 0
+ 320 0046 0728     		cmp	r0, #7
+ 321 0048 EED1     		bne	.L13
+ 322              	.LVL32:
+ 300:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_I2C_BUSY;
+ 301:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	reg = (((uint16_t)buf[0]) << 8) | buf[1];
+ 323              		.loc 1 301 0
+ 324 004a 9DF80C20 		ldrb	r2, [sp, #12]	@ zero_extendqisi2
+ 325 004e 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 302:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->curr = (int)reg;
+ 326              		.loc 1 302 0
+ 327 0052 43EA0223 		orr	r3, r3, r2, lsl #8
+ 303:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 304:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = i2cm.read(chid, WORD_ADDR8, info->addr, INA231_BUS_VOLT, buf);
+ 328              		.loc 1 304 0
+ 329 0056 2A7C     		ldrb	r2, [r5, #16]	@ zero_extendqisi2
+ 330 0058 0096     		str	r6, [sp]
+ 331 005a 0221     		movs	r1, #2
+ 302:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->curr = (int)reg;
+ 332              		.loc 1 302 0
+ 333 005c 2B60     		str	r3, [r5]
+ 334              		.loc 1 304 0
+ 335 005e 4046     		mov	r0, r8
+ 336              	.LVL33:
+ 337 0060 0B46     		mov	r3, r1
+ 338 0062 FC68     		ldr	r4, [r7, #12]
+ 339 0064 A047     		blx	r4
+ 340              	.LVL34:
+ 305:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (ret != I2CM_ERROR_TRANSCEIVED)
+ 341              		.loc 1 305 0
+ 342 0066 0728     		cmp	r0, #7
+ 343 0068 DED1     		bne	.L13
+ 344              	.LVL35:
+ 306:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_I2C_BUSY;
+ 307:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	reg = (((uint16_t)buf[0]) << 8) | buf[1];
+ 345              		.loc 1 307 0
+ 346 006a 9DF80C20 		ldrb	r2, [sp, #12]	@ zero_extendqisi2
+ 347 006e 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 308:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->volt = INA231_BUS_mV((int)reg);
+ 348              		.loc 1 308 0
+ 349 0072 43EA0223 		orr	r3, r3, r2, lsl #8
+ 350 0076 7D22     		movs	r2, #125
+ 309:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 310:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	ret = i2cm.read(chid, WORD_ADDR8, info->addr, INA231_POWER, buf);
+ 351              		.loc 1 310 0
+ 352 0078 0096     		str	r6, [sp]
+ 353 007a 4046     		mov	r0, r8
+ 354              	.LVL36:
+ 308:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->volt = INA231_BUS_mV((int)reg);
+ 355              		.loc 1 308 0
+ 356 007c 5343     		muls	r3, r2, r3
+ 357 007e 6422     		movs	r2, #100
+ 358              		.loc 1 310 0
+ 359 0080 FE68     		ldr	r6, [r7, #12]
+ 360              	.LVL37:
+ 361 0082 0221     		movs	r1, #2
+ 308:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->volt = INA231_BUS_mV((int)reg);
+ 362              		.loc 1 308 0
+ 363 0084 93FBF2F3 		sdiv	r3, r3, r2
+ 364              		.loc 1 310 0
+ 365 0088 2A7C     		ldrb	r2, [r5, #16]	@ zero_extendqisi2
+ 308:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->volt = INA231_BUS_mV((int)reg);
+ 366              		.loc 1 308 0
+ 367 008a 6B60     		str	r3, [r5, #4]
+ 368              	.LVL38:
+ 369              		.loc 1 310 0
+ 370 008c 0323     		movs	r3, #3
+ 371 008e B047     		blx	r6
+ 372              	.LVL39:
+ 311:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (ret != I2CM_ERROR_TRANSCEIVED)
+ 373              		.loc 1 311 0
+ 374 0090 0728     		cmp	r0, #7
+ 375 0092 C9D1     		bne	.L13
+ 376              	.LVL40:
+ 312:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 		return INA231_I2C_BUSY;
+ 313:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	reg = (((uint16_t)buf[0]) << 8) | buf[1];
+ 377              		.loc 1 313 0
+ 378 0094 9DF80C20 		ldrb	r2, [sp, #12]	@ zero_extendqisi2
+ 379 0098 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 314:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->power = INA231_POW_mW((int)reg, info->current_unit);
+ 380              		.loc 1 314 0
+ 381 009c 43EA0223 		orr	r3, r3, r2, lsl #8
+ 382 00a0 1922     		movs	r2, #25
+ 315:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 316:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	return INA231_OK;
+ 383              		.loc 1 316 0
+ 384 00a2 4846     		mov	r0, r9
+ 385              	.LVL41:
+ 314:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	info->power = INA231_POW_mW((int)reg, info->current_unit);
+ 386              		.loc 1 314 0
+ 387 00a4 5343     		muls	r3, r2, r3
+ 388 00a6 EA89     		ldrh	r2, [r5, #14]
+ 389 00a8 5343     		muls	r3, r2, r3
+ 390 00aa 4FF47A72 		mov	r2, #1000
+ 391 00ae 93FBF2F3 		sdiv	r3, r3, r2
+ 392 00b2 AB60     		str	r3, [r5, #8]
+ 393              		.loc 1 316 0
+ 394 00b4 04E0     		b	.L11
+ 395              	.LVL42:
+ 396              	.L14:
+ 286:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 	if (info->addr == 0)
+ 397              		.loc 1 286 0
+ 398 00b6 1846     		mov	r0, r3
+ 399              	.LVL43:
+ 400 00b8 02E0     		b	.L11
+ 401              	.LVL44:
+ 402              	.L15:
+ 288:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 403              		.loc 1 288 0
+ 404 00ba 0420     		movs	r0, #4
+ 405              	.LVL45:
+ 406 00bc 00E0     		b	.L11
+ 407              	.LVL46:
+ 408              	.L16:
+ 296:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** 
+ 409              		.loc 1 296 0
+ 410 00be 0320     		movs	r0, #3
+ 411              	.LVL47:
+ 412              	.L11:
+ 317:/home/tienluong/workspace/atlantis_fw/platform/driver/src/ina231.c **** }
+ 413              		.loc 1 317 0
+ 414 00c0 05B0     		add	sp, sp, #20
+ 415              	.LCFI5:
+ 416              		.cfi_def_cfa_offset 28
+ 417              		@ sp needed
+ 418 00c2 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 419              	.LVL48:
+ 420              	.L18:
+ 421 00c6 00BF     		.align	2
+ 422              	.L17:
+ 423 00c8 00000000 		.word	i2cm
+ 424              		.cfi_endproc
+ 425              	.LFE2:
+ 427              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 428              	.LC0:
+ 429 0000 494E4132 		.ascii	"INA231_CFG: %X\000"
+ 429      33315F43 
+ 429      46473A20 
+ 429      255800
+ 430              	.LC1:
+ 431 000f 494E4132 		.ascii	"INA231_CALIB: %X\000"
+ 431      33315F43 
+ 431      414C4942 
+ 431      3A202558 
+ 431      00
+ 432              		.text
+ 433              	.Letext0:
+ 434              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 435              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 436              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 437              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 438              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cm.h"
+ 439              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/ina231.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 ina231.c
+     /tmp/ccGyotHu.s:23     .text.ina231_config:00000000 $t
+     /tmp/ccGyotHu.s:28     .text.ina231_config:00000000 ina231_config
+     /tmp/ccGyotHu.s:229    .text.ina231_config:000000f0 $d
+     /tmp/ccGyotHu.s:244    .text.ina231_get_info:00000000 $t
+     /tmp/ccGyotHu.s:249    .text.ina231_get_info:00000000 ina231_get_info
+     /tmp/ccGyotHu.s:423    .text.ina231_get_info:000000c8 $d
+                     .debug_frame:00000010 $d
+     /tmp/ccGyotHu.s:243    .text.ina231_config:0000011c $t
+
+UNDEFINED SYMBOLS
+__aeabi_i2d
+__aeabi_dmul
+__aeabi_ddiv
+__aeabi_d2uiz
+i2cm
+slogf

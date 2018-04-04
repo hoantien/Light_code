@@ -1,0 +1,412 @@
+ARM GAS  /tmp/ccnzoGMZ.s 			page 1
+
+
+   1              	# 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s
+   1              	/******************************************************************************
+   0              	
+   0              	
+   2              	 * Copyright (c) 2016, The LightCo
+   3              	 * All rights reserved.
+   4              	 * Redistribution and use in source and binary forms, with or without
+   5              	 * modification, are strictly prohibited without prior permission
+   6              	 * of The LightCo.
+   7              	 *
+   8              	 * @file    reset_handler.s
+   9              	 * @author  The LightCo
+  10              	 * @version V1.0.0
+  11              	 * @date    Mar-15-2016
+  12              	 * @brief
+  13              	 *
+  14              	 ******************************************************************************/
+  15              		.text
+  16              		.code 32
+  17              	
+  18              		.extern startup_main
+  19              		.global reset_handler
+  20              		.globl enable_irq
+  21              		.globl enable_fiq
+  22              		.globl disable_irq
+  23              		.globl disable_fiq
+  24              		.globl write_64bit_mem
+  25              		.globl read_64bit_mem
+  26              		.globl enable_TCM_RMW
+  27              		.globl disable_TCM_RMW
+  28              	
+  29              	/****************************** reset_handler *************************************/
+  30              	reset_handler:
+  31              	
+  32 0000 00000FE1 		mrs r0, cpsr                /* Disalbe FIQ and IRQ */
+  33 0004 C00080E3 		orr r0, r0, #0x000000C0
+  34 0008 00F029E1 		msr cpsr, r0
+  35 000c 6FF07FF5 		isb
+  36              	
+  37 0010 000020E0 		eor r0, r0, r0
+  38 0014 0010A0E1 		mov r1, r0
+  39 0018 0020A0E1 		mov r2, r0
+  40 001c 0030A0E1 		mov r3, r0
+  41 0020 0040A0E1 		mov r4, r0
+  42 0024 0050A0E1 		mov r5, r0
+  43 0028 0060A0E1 		mov r6, r0
+  44 002c 0070A0E1 		mov r7, r0
+  45 0030 0080A0E1 		mov r8, r0
+  46 0034 0090A0E1 		mov r9, r0
+  47 0038 00A0A0E1 		mov r10, r0
+  48 003c 00B0A0E1 		mov r11, r0
+  49 0040 00C0A0E1 		mov r12, r0
+  50 0044 00D0A0E1 		mov r13, r0
+  51 0048 00E0A0E1 		mov r14, r0
+  52              	
+  53              	stack_init:
+  54              		/* Stack setting */
+ARM GAS  /tmp/ccnzoGMZ.s 			page 2
+
+
+  55 004c 110002F1 		cps  #17  /* FIQ mode */
+  56 0050 14D29FE5 		ldr  sp, =fiq_stack_end
+  57 0054 120002F1 		cps  #18  /* IRQ mode */
+  58 0058 10D29FE5 		ldr  sp, =irq_stack_end
+  59 005c 170002F1 		cps  #23  /* Abort mode */
+  60 0060 0CD29FE5 		ldr  sp, =abt_stack_end
+  61 0064 1B0002F1 		cps  #27  /* Undef mode */
+  62 0068 08D29FE5 		ldr  sp, =und_stack_end
+  63 006c 1F0002F1 		cps  #31  /* System mode */
+  64 0070 04D29FE5 		ldr  sp, =sys_stack_end
+  65 0074 130002F1 		cps  #19  /* SVC mode */
+  66 0078 00D29FE5 		ldr  sp, =svc_stack_end
+  67              	
+  68 007c 010000EB 		bl   cache_init
+  69 0080 FEFFFFEB 		bl   enable_irq
+  70 0084 FEFFFFEA 		b    startup_main
+  71              	
+  72              	/**************************************************************************************************
+  73              	* Function Name : cache_init
+  74              	* Description   : Initialize I1, D1 cache and MPU settings
+  75              	* Arguments     : none
+  76              	* Return Value  : none
+  77              	***************************************************************************************************
+  78              	
+  79              	/**************************************************************************************************
+  80              	* Macro definitions
+  81              	***************************************************************************************************
+  82              	
+  83              	.equ	SCTLR_BR,        0x00020000
+  84              	.equ	SCTLR_M,         0x00000001
+  85              	.equ	SCTLR_I_C,       0x00001004
+  86              	
+  87              	.equ	DRBAR_REGION_0,  0x00000000  			/* Base address = 0000_0000h */
+  88              	.equ	DRACR_REGION_0,  0x00000000  			/* No Access */
+  89              	.equ	DRSR_REGION_0,   0x0000003F  			/* Size 4G, MPU enable */
+  90              	
+  91              	.equ	DRBAR_REGION_1,  0x04000000  			/* Base address = 0400_0000h */
+  92              	.equ	DRACR_REGION_1,  0x00000308  			/* R/W(full), Normal, non-cacheable, non-shareable */
+  93              	.equ	DRSR_REGION_1,   0x0000003D  			/* Size 2G, MPU enable */
+  94              	
+  95              	.equ	DRBAR_REGION_2,  0x02000000  			/* Base address = 0200_0000h */
+  96              	.equ	DRACR_REGION_2,  0x00001300  			/* R/W(full), XN, Device, non-share */
+  97              	.equ	DRSR_REGION_2,   0x00000031  			/* Size 32MB, MPU enable */
+  98              	
+  99              	.equ	DRBAR_REGION_3,  0x00000000  			/* Base address = 0000_0000h */
+ 100              	.equ	DRACR_REGION_3,  0x00000303  			/* R/W(full), Normal, write-back no allocate, non-shareable */
+ 101              	.equ	DRSR_REGION_3,   0x00000031  			/* Size 32MB, MPU enable */
+ 102              	
+ 103              	.equ    DRBAR_REGION_4,  0x02280000  			/* Base address = 0228_0000h */
+ 104              	.equ    DRACR_REGION_4,  0x00000303  			/* R/W(full), Normal, write-back no allocate, non-shareable
+ 105              	.equ    DRSR_REGION_4,   0x00000023  			/* Size 256KB, MPU enable */
+ 106              	
+ 107              	/* BTCM */
+ 108              	.equ    DRBAR_REGION_5,  0x03400000  			/* Base address = 0340_0000h */
+ 109              	.equ    DRACR_REGION_5,  0x00000308  			/* R/W(full), Normal, non-cacheable, non-shareable */
+ 110              	.equ    DRSR_REGION_5,   0x00000021  			/* Size 128KB, MPU enable */
+ 111              	
+ARM GAS  /tmp/ccnzoGMZ.s 			page 3
+
+
+ 112              	/* ATCM */
+ 113              	.equ    DRBAR_REGION_6,  0x03300000  			/* Base address = 0330_0000h */
+ 114              	.equ    DRACR_REGION_6,  0x00000308  			/* R/W(full), Normal, non-cacheable, non-shareable */
+ 115              	.equ    DRSR_REGION_6,   0x0000001F  			/* Size 64KB, MPU enable */
+ 116              	
+ 117              	.equ	DRBAR_REGION_7,  0x02200000  			/* Base address = 0220_0000h */
+ 118              	.equ	DRACR_REGION_7,  0x00000603  			/* R only, Normal, write-back no allocate, non-shareable */
+ 119              	.equ	DRSR_REGION_7,   0x0000001D  			/* Size 32KB, MPU enable */
+ 120              	
+ 121              	/* DDR */
+ 122              	.equ	DRBAR_REGION_8,  _ddr_code_region_  	/* Base address from the linker */
+ 123              	.equ	DRACR_REGION_8,  0x00000303  			/* R/W(full), Normal, write-back no allocate, cacheable, non-s
+ 124              	
+ 125              	cache_init:
+ 126 0088 04E02DE5 		push  {lr}
+ 127              	
+ 128              	cache_invalidate:
+ 129              		/*Invalidate the I1, D1 cache */
+ 130 008c 0000A0E3 		mov  r0, #0
+ 131 0090 150F07EE 		mcr  p15, #0, r0, c7, c5, #0   /*Invalidate all Instruction Caches (Write-value is Ignored) */
+ 132 0094 6FF07FF5 		isb                            /*Ensuring Context-changing */
+ 133 0098 150F0FEE 		mcr  p15, #0, r0, c15, c5, #0  /*Invalidate all Data Caches (Write-value is Ignored) */
+ 134 009c 6FF07FF5 		isb                            /*Ensuring Context-changing */
+ 135              	
+ 136              		/*Adopt default memory map as background map. */
+ 137 00a0 0208A0E3 		ldr  r0, =SCTLR_BR           /*Set SCTLR.BR bit to 1 */
+ 138 00a4 101F11EE 		mrc  p15, 0, r1, c1, c0, 0
+ 139 00a8 001081E1 		orr  r1, r1, r0
+ 140 00ac 4FF07FF5 		dsb
+ 141 00b0 101F01EE 		mcr  p15, 0, r1, c1, c0, 0
+ 142 00b4 6FF07FF5 		isb                         /*Ensuring Context-changing */
+ 143              	
+ 144              		/*Initialize MPU settings (region 0 to 11) */
+ 145              		/*Define region 0 */
+ 146 00b8 0000A0E3 		mov  r0,  #0
+ 147 00bc 0010A0E3 		ldr  r1, =DRBAR_REGION_0
+ 148 00c0 0020A0E3 		ldr  r2, =DRACR_REGION_0
+ 149 00c4 3F30A0E3 		ldr  r3, =DRSR_REGION_0
+ 150 00c8 3A0000EB 		bl  mpu_init
+ 151              	
+ 152              		/*Define region 1 */
+ 153 00cc 0100A0E3 		mov  r0,  #1
+ 154 00d0 0113A0E3 		ldr  r1, =DRBAR_REGION_1
+ 155 00d4 C22FA0E3 		ldr  r2, =DRACR_REGION_1
+ 156 00d8 3D30A0E3 		ldr  r3, =DRSR_REGION_1
+ 157 00dc 350000EB 		bl  mpu_init
+ 158              	
+ 159              		/*Define region 2 */
+ 160 00e0 0200A0E3 		mov  r0,  #2
+ 161 00e4 0214A0E3 		ldr  r1, =DRBAR_REGION_2
+ 162 00e8 132CA0E3 		ldr  r2, =DRACR_REGION_2
+ 163 00ec 3130A0E3 		ldr  r3, =DRSR_REGION_2
+ 164 00f0 300000EB 		bl  mpu_init
+ 165              	
+ 166              		/*Define region 3 */
+ 167 00f4 0300A0E3 		mov  r0,  #3
+ 168 00f8 0010A0E3 		ldr  r1, =DRBAR_REGION_3
+ARM GAS  /tmp/ccnzoGMZ.s 			page 4
+
+
+ 169 00fc 80219FE5 		ldr  r2, =DRACR_REGION_3
+ 170 0100 3130A0E3 		ldr  r3, =DRSR_REGION_3
+ 171 0104 2B0000EB 		bl  mpu_init
+ 172              	
+ 173              		/*Define region 4 */
+ 174 0108 0400A0E3 		mov  r0,  #4
+ 175 010c 8A17A0E3 		ldr  r1, =DRBAR_REGION_4
+ 176 0110 6C219FE5 		ldr  r2, =DRACR_REGION_4
+ 177 0114 2330A0E3 		ldr  r3, =DRSR_REGION_4
+ 178 0118 260000EB 		bl  mpu_init
+ 179              	
+ 180              		/*Define region 5 */
+ 181 011c 0500A0E3 		mov  r0,  #5
+ 182 0120 0D15A0E3 		ldr  r1, =DRBAR_REGION_5
+ 183 0124 C22FA0E3 		ldr  r2, =DRACR_REGION_5
+ 184 0128 2130A0E3 		ldr  r3, =DRSR_REGION_5
+ 185 012c 210000EB 		bl  mpu_init
+ 186              	
+ 187              		/*Define region 6 */
+ 188 0130 0600A0E3 		mov  r0,  #6
+ 189 0134 3316A0E3 		ldr  r1, =DRBAR_REGION_6
+ 190 0138 C22FA0E3 		ldr  r2, =DRACR_REGION_6
+ 191 013c 1F30A0E3 		ldr  r3, =DRSR_REGION_6
+ 192 0140 1C0000EB 		bl  mpu_init
+ 193              	
+ 194              		/*Define region 7 */
+ 195 0144 0700A0E3 		mov  r0,  #7
+ 196 0148 2216A0E3 		ldr  r1, =DRBAR_REGION_7
+ 197 014c 34219FE5 		ldr  r2, =DRACR_REGION_7
+ 198 0150 1D30A0E3 		ldr  r3, =DRSR_REGION_7
+ 199 0154 170000EB 		bl  mpu_init
+ 200              	
+ 201              		/*Define region 8 */
+ 202 0158 0800A0E3 		mov  r0,  #8
+ 203 015c 28119FE5 		ldr  r1, =DRBAR_REGION_8
+ 204 0160 1C219FE5 		ldr  r2, =DRACR_REGION_8
+ 205 0164 0E0000EA 		b    cal_ddr_code_region_size_
+ 206              	cal_ddr_code_region_size_ret:    
+ 207 0168 120000EB 		bl  mpu_init
+ 208              	
+ 209              		/*Enables MPU operation */
+ 210 016c 0100A0E3 		ldr  r0, =SCTLR_M            /*Set SCTLR.M bit to 1 */
+ 211 0170 101F11EE 		mrc  p15, 0, r1, c1, c0, 0
+ 212 0174 001081E1 		orr  r1, r1, r0
+ 213 0178 4FF07FF5 		dsb
+ 214 017c 101F01EE 		mcr  p15, 0, r1, c1, c0, 0
+ 215 0180 6FF07FF5 		isb                         /*Ensuring Context-changing */
+ 216              	
+ 217              		/*Enables I1,D1 cache operation */
+ 218 0184 04019FE5 		ldr  r0, =SCTLR_I_C          /*Set SCTLR.I and C bit to 1 */
+ 219 0188 101F11EE 		mrc  p15, 0, r1, c1, c0, 0
+ 220 018c 001081E1 		orr  r1, r1, r0
+ 221 0190 4FF07FF5 		dsb
+ 222 0194 101F01EE 		mcr  p15, 0, r1, c1, c0, 0
+ 223 0198 6FF07FF5 		isb                         /*Ensuring Context-changing */
+ 224              	
+ 225 019c 04F09DE4 		pop  {pc}
+ARM GAS  /tmp/ccnzoGMZ.s 			page 5
+
+
+ 226 01a0 1EFF2FE1 		bx  lr
+ 227              	
+ 228              	
+ 229              	cal_ddr_code_region_size_:
+ 230 01a4 E8509FE5 		ldr  r5, =_log2_ddr_code_region_size_
+ 231 01a8 015045E2 		sub  r5,#0x01
+ 232 01ac 8550A0E1 		lsl  r5,#0x01
+ 233 01b0 013085E3 		orr  r3,r5,#0x01
+ 234 01b4 EBFFFFEA 		b    cal_ddr_code_region_size_ret
+ 235              	
+ 236              	/**************************************************************************************************
+ 237              	* Function Name : mpu_init
+ 238              	* Description   : Initialize MPU settings
+ 239              	* Arguments     : none
+ 240              	* Return Value  : none
+ 241              	***************************************************************************************************
+ 242              	mpu_init:
+ 243              		/*RGNR(MPU Memory Region Number Register) */
+ 244 01b8 120F06EE 		mcr p15, #0, r0, c6, c2, #0
+ 245 01bc 6FF07FF5 		isb                             /*Ensuring Context-changing */
+ 246              	
+ 247              		/*DRBAR(Data Region Base Address Register) */
+ 248 01c0 111F06EE 		mcr  p15, #0, r1, c6, c1, #0
+ 249 01c4 6FF07FF5 		isb                             /*Ensuring Context-changing */
+ 250              	
+ 251              		/*DRACR(Data Region Access Control Register) */
+ 252 01c8 912F06EE 		mcr p15, #0, r2, c6, c1, #4
+ 253 01cc 6FF07FF5 		isb                             /*Ensuring Context-changing */
+ 254              	
+ 255              		/*DRSR(Data Region Size and Enable Register) */
+ 256 01d0 513F06EE 		mcr p15, #0, r3, c6, c1, #2
+ 257 01d4 6FF07FF5 		isb                             /*Ensuring Context-changing */
+ 258              	
+ 259 01d8 1EFF2FE1 		bx      lr
+ 260              	
+ 261              	
+ 262              	/**************************************************************************************************
+ 263              	* Function Name : set_low_vec
+ 264              	* Description   : Initialize sysytem by loader program
+ 265              	* Arguments     : none
+ 266              	* Return Value  : none
+ 267              	***************************************************************************************************
+ 268              	set_low_vec:
+ 269 01dc 100F11EE 		mrc  p15, 0, r0, c1, c0, 0  /*Set SCTLR.V bit to 1 (low-vector)*/
+ 270 01e0 020AC0E3 		and  r0, r0, #0xFFFFDFFF
+ 271 01e4 100F01EE 		mcr  p15, 0, r0, c1, c0, 0
+ 272 01e8 6FF07FF5 		isb                         /*Ensuring Context-changing*/
+ 273 01ec 1EFF2FE1 		bx  lr
+ 274              	
+ 275              	
+ 276              	enable_irq:
+ 277 01f0 00000FE1 		mrs r0, cpsr
+ 278 01f4 8000C0E3 		and r0, r0, #0xFFFFFF7F
+ 279 01f8 00F029E1 		msr cpsr, r0
+ 280 01fc 1EFF2FE1 		bx  lr
+ 281              	
+ 282              	disable_irq:
+ARM GAS  /tmp/ccnzoGMZ.s 			page 6
+
+
+ 283 0200 00000FE1 		mrs r0, cpsr
+ 284 0204 800080E3 		orr r0, r0, #0x00000080
+ 285 0208 00F029E1 		msr cpsr, r0
+ 286 020c 1EFF2FE1 		bx  lr
+ 287              	
+ 288              	enable_fiq:
+ 289 0210 00000FE1 		mrs r0, cpsr
+ 290 0214 4000C0E3 		and r0, r0, #0xFFFFFFBF
+ 291 0218 00F029E1 		msr cpsr, r0
+ 292 021c 1EFF2FE1 		bx  lr
+ 293              	
+ 294              	disable_fiq:
+ 295 0220 00000FE1 		mrs r0, cpsr
+ 296 0224 400080E3 		orr r0, r0, #0x00000040
+ 297 0228 00F029E1 		msr cpsr, r0
+ 298 022c 1EFF2FE1 		bx  lr
+ 299              	
+ 300              	enable_TCM_RMW:
+ 301 0230 100F1FEE 		mrc  p15, 0, r0, c15, c0, 0
+ 302 0234 030080E3 		orr  r0, r0, #3
+ 303 0238 100F0FEE 		mcr  p15, 0, r0, c15, c0, 0
+ 304 023c 6FF07FF5 		isb
+ 305 0240 1EFF2FE1 		bx  lr
+ 306              	
+ 307              	disable_TCM_RMW:
+ 308 0244 100F1FEE 		mrc  p15, 0, r0, c15, c0, 0
+ 309 0248 0300C0E3 		and  r0, r0, #0xFFFFFFFC
+ 310 024c 100F0FEE 		mcr  p15, 0, r0, c15, c0, 0
+ 311 0250 1EFF2FE1 		bx  lr
+ 312              	
+ 313              	write_64bit_mem:
+ 314 0254 F000C2E1 		strd r0, [r2]
+ 315 0258 4FF07FF5 		dsb
+ 316 025c 1EFF2FE1 		bx  lr
+ 317              	
+ 318              	read_64bit_mem:
+ 319 0260 D000C0E1 		ldrd r0, [r0]
+ 320 0264 4FF07FF5 		dsb
+ 321 0268 1EFF2FE1 		bx  lr
+ 322              	
+ 323 026c 00000000 		.end
+ 323      00000000 
+ 323      00000000 
+ 323      00000000 
+ 323      00000000 
+ARM GAS  /tmp/ccnzoGMZ.s 			page 7
+
+
+DEFINED SYMBOLS
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:30     .text:00000000 reset_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:276    .text:000001f0 enable_irq
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:288    .text:00000210 enable_fiq
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:282    .text:00000200 disable_irq
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:294    .text:00000220 disable_fiq
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:313    .text:00000254 write_64bit_mem
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:318    .text:00000260 read_64bit_mem
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:300    .text:00000230 enable_TCM_RMW
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:307    .text:00000244 disable_TCM_RMW
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:32     .text:00000000 $a
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:53     .text:0000004c stack_init
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:125    .text:00000088 cache_init
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:83     *ABS*:00020000 SCTLR_BR
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:84     *ABS*:00000001 SCTLR_M
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:85     *ABS*:00001004 SCTLR_I_C
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:87     *ABS*:00000000 DRBAR_REGION_0
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:88     *ABS*:00000000 DRACR_REGION_0
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:89     *ABS*:0000003f DRSR_REGION_0
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:91     *ABS*:04000000 DRBAR_REGION_1
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:92     *ABS*:00000308 DRACR_REGION_1
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:93     *ABS*:0000003d DRSR_REGION_1
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:95     *ABS*:02000000 DRBAR_REGION_2
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:96     *ABS*:00001300 DRACR_REGION_2
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:97     *ABS*:00000031 DRSR_REGION_2
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:99     *ABS*:00000000 DRBAR_REGION_3
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:100    *ABS*:00000303 DRACR_REGION_3
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:101    *ABS*:00000031 DRSR_REGION_3
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:103    *ABS*:02280000 DRBAR_REGION_4
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:104    *ABS*:00000303 DRACR_REGION_4
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:105    *ABS*:00000023 DRSR_REGION_4
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:108    *ABS*:03400000 DRBAR_REGION_5
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:109    *ABS*:00000308 DRACR_REGION_5
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:110    *ABS*:00000021 DRSR_REGION_5
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:113    *ABS*:03300000 DRBAR_REGION_6
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:114    *ABS*:00000308 DRACR_REGION_6
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:115    *ABS*:0000001f DRSR_REGION_6
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:117    *ABS*:02200000 DRBAR_REGION_7
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:118    *ABS*:00000603 DRACR_REGION_7
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:119    *ABS*:0000001d DRSR_REGION_7
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:123    *ABS*:00000303 DRACR_REGION_8
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:128    .text:0000008c cache_invalidate
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:242    .text:000001b8 mpu_init
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:229    .text:000001a4 cal_ddr_code_region_size_
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:206    .text:00000168 cal_ddr_code_region_size_ret
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:268    .text:000001dc set_low_vec
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/reset_handler.s:323    .text:0000026c $d
+
+UNDEFINED SYMBOLS
+fiq_stack_end
+irq_stack_end
+abt_stack_end
+und_stack_end
+sys_stack_end
+svc_stack_end
+startup_main
+_ddr_code_region_
+ARM GAS  /tmp/ccnzoGMZ.s 			page 8
+
+
+_log2_ddr_code_region_size_

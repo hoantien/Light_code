@@ -1,0 +1,1031 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"binary_refine_contrast_pass.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._ZN27binary_refine_contrast_pass10initializeERK13contrast_pass,"ax",%progbits
+  19              		.align	1
+  20              		.global	_ZN27binary_refine_contrast_pass10initializeERK13contrast_pass
+  21              		.thumb
+  22              		.thumb_func
+  24              	_ZN27binary_refine_contrast_pass10initializeERK13contrast_pass:
+  25              	.LFB992:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * @file    binary_refine_contrast_pass.cpp
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * @date    Oct-31-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  * @brief   Contrast pass which aggressively refines search interval
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** #include "log.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** #include "binary_refine_contrast_pass.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** #define SLOGF_ID                SLOG_ID_AF
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** binary_refine_contrast_pass::binary_refine_contrast_pass(std::uint16_t tolerance,
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         bool use_metric1) :
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             tolerance_{tolerance},
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             use_metric1_{use_metric1} {
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** void binary_refine_contrast_pass::initialize(const contrast_pass& prev_pass) {
+  27              		.loc 1 27 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32              	.LBB120:
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     // Update measurements
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     const measurement_t* meas = prev_pass.measurements();
+  33              		.loc 1 29 0
+  34 0000 0B68     		ldr	r3, [r1]
+  35              	.LBE120:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     // Update measurements
+  36              		.loc 1 27 0
+  37 0002 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+  38              	.LCFI0:
+  39              		.cfi_def_cfa_offset 24
+  40              		.cfi_offset 4, -24
+  41              		.cfi_offset 5, -20
+  42              		.cfi_offset 6, -16
+  43              		.cfi_offset 7, -12
+  44              		.cfi_offset 8, -8
+  45              		.cfi_offset 14, -4
+  46              	.LBB121:
+  47              		.loc 1 29 0
+  48 0006 5B6B     		ldr	r3, [r3, #52]
+  49              	.LBE121:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     // Update measurements
+  50              		.loc 1 27 0
+  51 0008 0746     		mov	r7, r0
+  52              	.LBB122:
+  53              		.loc 1 29 0
+  54 000a 0846     		mov	r0, r1
+  55              	.LVL1:
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     meas_arr_[0] = meas[0];
+  56              		.loc 1 30 0
+  57 000c 07F11005 		add	r5, r7, #16
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     meas_arr_[0] = meas[0];
+  58              		.loc 1 29 0
+  59 0010 9847     		blx	r3
+  60              	.LVL2:
+  61              		.loc 1 30 0
+  62 0012 0646     		mov	r6, r0
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     meas_arr_[0] = meas[0];
+  63              		.loc 1 29 0
+  64 0014 0446     		mov	r4, r0
+  65              	.LVL3:
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     meas_arr_[1] = meas[1];
+  66              		.loc 1 31 0
+  67 0016 1834     		adds	r4, r4, #24
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     meas_arr_[0] = meas[0];
+  68              		.loc 1 30 0
+  69 0018 0FCE     		ldmia	r6!, {r0, r1, r2, r3}
+  70              	.LVL4:
+  71 001a 0FC5     		stmia	r5!, {r0, r1, r2, r3}
+  72              	.LVL5:
+  73 001c 96E80300 		ldmia	r6, {r0, r1}
+  74 0020 85E80300 		stmia	r5, {r0, r1}
+  75              	.LVL6:
+  76              		.loc 1 31 0
+  77 0024 07F12805 		add	r5, r7, #40
+  78              	.LVL7:
+  79 0028 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+  80 002a 0FC5     		stmia	r5!, {r0, r1, r2, r3}
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     initialize();
+  81              		.loc 1 32 0
+  82 002c 3B68     		ldr	r3, [r7]
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     meas_arr_[1] = meas[1];
+  83              		.loc 1 31 0
+  84 002e 94E80300 		ldmia	r4, {r0, r1}
+  85 0032 85E80300 		stmia	r5, {r0, r1}
+  86              		.loc 1 32 0
+  87 0036 3846     		mov	r0, r7
+  88 0038 DB68     		ldr	r3, [r3, #12]
+  89              	.LBE122:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+  90              		.loc 1 33 0
+  91 003a BDE8F041 		pop	{r4, r5, r6, r7, r8, lr}
+  92              	.LCFI1:
+  93              		.cfi_restore 14
+  94              		.cfi_restore 8
+  95              		.cfi_restore 7
+  96              		.cfi_restore 6
+  97              		.cfi_restore 5
+  98              		.cfi_restore 4
+  99              		.cfi_def_cfa_offset 0
+ 100              	.LVL8:
+ 101              	.LBB123:
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     initialize();
+ 102              		.loc 1 32 0
+ 103 003e 1847     		bx	r3	@ indirect register sibling call
+ 104              	.LVL9:
+ 105              	.LBE123:
+ 106              		.cfi_endproc
+ 107              	.LFE992:
+ 109              		.section	.text._ZNK27binary_refine_contrast_pass7is_doneEv,"ax",%progbits
+ 110              		.align	1
+ 111              		.global	_ZNK27binary_refine_contrast_pass7is_doneEv
+ 112              		.thumb
+ 113              		.thumb_func
+ 115              	_ZNK27binary_refine_contrast_pass7is_doneEv:
+ 116              	.LFB994:
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** void binary_refine_contrast_pass::initialize() {
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     // Compute initial next_pos_
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     if (measurement_t::is_better(use_metric1_, meas_arr_[1], meas_arr_[0]))
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         best_meas_idx_ = 1;
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     else
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         best_meas_idx_ = 0;
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     delta_ = (meas_arr_[1 - best_meas_idx_].pos - meas_arr_[best_meas_idx_].pos + 3) / 4;
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     next_pos_ = meas_arr_[best_meas_idx_].pos + delta_;
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     second_meas_ongoing_ = false;
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     done_ = false;
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     SLOGF(SLOG_INFO, "Starting contrast binary refine pass with interval (%d, %d) and best_idx %d",
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             (int)meas_arr_[0].pos, (int)meas_arr_[1].pos, (int)best_meas_idx_);
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** bool binary_refine_contrast_pass::is_done() const {
+ 117              		.loc 1 49 0
+ 118              		.cfi_startproc
+ 119              		@ args = 0, pretend = 0, frame = 0
+ 120              		@ frame_needed = 0, uses_anonymous_args = 0
+ 121              		@ link register save eliminated.
+ 122              	.LVL10:
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return done_;
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 123              		.loc 1 51 0
+ 124 0000 90F84200 		ldrb	r0, [r0, #66]	@ zero_extendqisi2
+ 125              	.LVL11:
+ 126 0004 7047     		bx	lr
+ 127              		.cfi_endproc
+ 128              	.LFE994:
+ 130              		.section	.text._ZN27binary_refine_contrast_pass8next_posEv,"ax",%progbits
+ 131              		.align	1
+ 132              		.global	_ZN27binary_refine_contrast_pass8next_posEv
+ 133              		.thumb
+ 134              		.thumb_func
+ 136              	_ZN27binary_refine_contrast_pass8next_posEv:
+ 137              	.LFB995:
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** std::int16_t binary_refine_contrast_pass::next_pos() {
+ 138              		.loc 1 53 0
+ 139              		.cfi_startproc
+ 140              		@ args = 0, pretend = 0, frame = 0
+ 141              		@ frame_needed = 0, uses_anonymous_args = 0
+ 142              		@ link register save eliminated.
+ 143              	.LVL12:
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return next_pos_;
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 144              		.loc 1 55 0
+ 145 0000 B0F90A00 		ldrsh	r0, [r0, #10]
+ 146              	.LVL13:
+ 147 0004 7047     		bx	lr
+ 148              		.cfi_endproc
+ 149              	.LFE995:
+ 151              		.section	.text._ZNK27binary_refine_contrast_pass9toleranceEv,"ax",%progbits
+ 152              		.align	1
+ 153              		.global	_ZNK27binary_refine_contrast_pass9toleranceEv
+ 154              		.thumb
+ 155              		.thumb_func
+ 157              	_ZNK27binary_refine_contrast_pass9toleranceEv:
+ 158              	.LFB996:
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** std::uint16_t binary_refine_contrast_pass::tolerance() const {
+ 159              		.loc 1 57 0
+ 160              		.cfi_startproc
+ 161              		@ args = 0, pretend = 0, frame = 0
+ 162              		@ frame_needed = 0, uses_anonymous_args = 0
+ 163              		@ link register save eliminated.
+ 164              	.LVL14:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return tolerance_;
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 165              		.loc 1 59 0
+ 166 0000 8088     		ldrh	r0, [r0, #4]
+ 167              	.LVL15:
+ 168 0002 7047     		bx	lr
+ 169              		.cfi_endproc
+ 170              	.LFE996:
+ 172              		.section	.text._ZNK27binary_refine_contrast_pass11out_min_posEv,"ax",%progbits
+ 173              		.align	1
+ 174              		.global	_ZNK27binary_refine_contrast_pass11out_min_posEv
+ 175              		.thumb
+ 176              		.thumb_func
+ 178              	_ZNK27binary_refine_contrast_pass11out_min_posEv:
+ 179              	.LFB998:
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** void binary_refine_contrast_pass::set_measurement(const measurement_t& meas) {
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     bool is_new_best{measurement_t::is_better(use_metric1_, meas, meas_arr_[best_meas_idx_])};
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     if (!second_meas_ongoing_) {
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         meas_arr_[1 - best_meas_idx_] = meas;
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         if (!is_new_best)
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             done_ = true;
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         else {
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             second_meas_ongoing_ = true;
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             best_meas_idx_ = 1 - best_meas_idx_;
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             next_pos_ = meas_arr_[best_meas_idx_].pos + delta_;
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         }
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     } else {
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         bool is_new_second{!is_new_best && measurement_t::is_better(use_metric1_, meas, meas_arr_[1
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         if (is_new_best || is_new_second) {
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             meas_arr_[1 - best_meas_idx_] = meas_arr_[best_meas_idx_];
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             meas_arr_[best_meas_idx_] = meas;
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             if (is_new_second)
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****                 best_meas_idx_ = 1 - best_meas_idx_;
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         }
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         done_ = true;
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     }
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** std::int16_t binary_refine_contrast_pass::out_min_pos() const {
+ 180              		.loc 1 84 0
+ 181              		.cfi_startproc
+ 182              		@ args = 0, pretend = 0, frame = 0
+ 183              		@ frame_needed = 0, uses_anonymous_args = 0
+ 184              		@ link register save eliminated.
+ 185              	.LVL16:
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     // New start position
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return meas_arr_[0].pos;
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 186              		.loc 1 87 0
+ 187 0000 B0F91000 		ldrsh	r0, [r0, #16]
+ 188              	.LVL17:
+ 189 0004 7047     		bx	lr
+ 190              		.cfi_endproc
+ 191              	.LFE998:
+ 193              		.section	.text._ZNK27binary_refine_contrast_pass11out_max_posEv,"ax",%progbits
+ 194              		.align	1
+ 195              		.global	_ZNK27binary_refine_contrast_pass11out_max_posEv
+ 196              		.thumb
+ 197              		.thumb_func
+ 199              	_ZNK27binary_refine_contrast_pass11out_max_posEv:
+ 200              	.LFB1001:
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** std::int16_t binary_refine_contrast_pass::out_max_pos() const {
+ 201              		.loc 1 89 0
+ 202              		.cfi_startproc
+ 203              		@ args = 0, pretend = 0, frame = 0
+ 204              		@ frame_needed = 0, uses_anonymous_args = 0
+ 205              		@ link register save eliminated.
+ 206              	.LVL18:
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     // New end position
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return meas_arr_[1].pos;
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 207              		.loc 1 92 0
+ 208 0000 B0F92800 		ldrsh	r0, [r0, #40]
+ 209              	.LVL19:
+ 210 0004 7047     		bx	lr
+ 211              		.cfi_endproc
+ 212              	.LFE1001:
+ 214              		.section	.text._ZNK27binary_refine_contrast_pass12out_best_posEv,"ax",%progbits
+ 215              		.align	1
+ 216              		.global	_ZNK27binary_refine_contrast_pass12out_best_posEv
+ 217              		.thumb
+ 218              		.thumb_func
+ 220              	_ZNK27binary_refine_contrast_pass12out_best_posEv:
+ 221              	.LFB1002:
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** std::int16_t binary_refine_contrast_pass::out_best_pos() const {
+ 222              		.loc 1 94 0
+ 223              		.cfi_startproc
+ 224              		@ args = 0, pretend = 0, frame = 0
+ 225              		@ frame_needed = 0, uses_anonymous_args = 0
+ 226              		@ link register save eliminated.
+ 227              	.LVL20:
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return meas_arr_[best_meas_idx_].pos;
+ 228              		.loc 1 95 0
+ 229 0000 1822     		movs	r2, #24
+ 230 0002 90F84030 		ldrb	r3, [r0, #64]	@ zero_extendqisi2
+ 231              	.LVL21:
+ 232 0006 02FB0300 		mla	r0, r2, r3, r0
+ 233              	.LVL22:
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 234              		.loc 1 96 0
+ 235 000a B0F91000 		ldrsh	r0, [r0, #16]
+ 236 000e 7047     		bx	lr
+ 237              		.cfi_endproc
+ 238              	.LFE1002:
+ 240              		.section	.text._ZNK27binary_refine_contrast_pass15out_best_metricEv,"ax",%progbits
+ 241              		.align	1
+ 242              		.global	_ZNK27binary_refine_contrast_pass15out_best_metricEv
+ 243              		.thumb
+ 244              		.thumb_func
+ 246              	_ZNK27binary_refine_contrast_pass15out_best_metricEv:
+ 247              	.LFB1003:
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** std::int64_t binary_refine_contrast_pass::out_best_metric() const {
+ 248              		.loc 1 98 0
+ 249              		.cfi_startproc
+ 250              		@ args = 0, pretend = 0, frame = 0
+ 251              		@ frame_needed = 0, uses_anonymous_args = 0
+ 252              		@ link register save eliminated.
+ 253              	.LVL23:
+ 254 0000 1822     		movs	r2, #24
+ 255 0002 90F84030 		ldrb	r3, [r0, #64]	@ zero_extendqisi2
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return use_metric1_ ? meas_arr_[best_meas_idx_].metric1 : meas_arr_[best_meas_idx_].metric2;
+ 256              		.loc 1 99 0
+ 257 0006 8179     		ldrb	r1, [r0, #6]	@ zero_extendqisi2
+ 258 0008 02FB0303 		mla	r3, r2, r3, r0
+ 259 000c 11B1     		cbz	r1, .L9
+ 260              	.LVL24:
+ 261              		.loc 1 99 0 is_stmt 0 discriminator 1
+ 262 000e D3E90601 		ldrd	r0, [r3, #24]
+ 263              	.LVL25:
+ 264 0012 7047     		bx	lr
+ 265              	.LVL26:
+ 266              	.L9:
+ 267              		.loc 1 99 0 discriminator 2
+ 268 0014 D3E90801 		ldrd	r0, [r3, #32]
+ 269              	.LVL27:
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 270              		.loc 1 100 0 is_stmt 1 discriminator 2
+ 271 0018 7047     		bx	lr
+ 272              		.cfi_endproc
+ 273              	.LFE1003:
+ 275              		.section	.text._ZNK27binary_refine_contrast_pass16num_measurementsEv,"ax",%progbits
+ 276              		.align	1
+ 277              		.global	_ZNK27binary_refine_contrast_pass16num_measurementsEv
+ 278              		.thumb
+ 279              		.thumb_func
+ 281              	_ZNK27binary_refine_contrast_pass16num_measurementsEv:
+ 282              	.LFB1004:
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** std::size_t binary_refine_contrast_pass::num_measurements() const {
+ 283              		.loc 1 102 0
+ 284              		.cfi_startproc
+ 285              		@ args = 0, pretend = 0, frame = 0
+ 286              		@ frame_needed = 0, uses_anonymous_args = 0
+ 287              		@ link register save eliminated.
+ 288              	.LVL28:
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return meas_arr_.size();
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 289              		.loc 1 104 0
+ 290 0000 0220     		movs	r0, #2
+ 291              	.LVL29:
+ 292 0002 7047     		bx	lr
+ 293              		.cfi_endproc
+ 294              	.LFE1004:
+ 296              		.section	.text._ZNK27binary_refine_contrast_pass12measurementsEv,"ax",%progbits
+ 297              		.align	1
+ 298              		.global	_ZNK27binary_refine_contrast_pass12measurementsEv
+ 299              		.thumb
+ 300              		.thumb_func
+ 302              	_ZNK27binary_refine_contrast_pass12measurementsEv:
+ 303              	.LFB1006:
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** auto binary_refine_contrast_pass::measurements() const -> const measurement_t* {
+ 304              		.loc 1 106 0
+ 305              		.cfi_startproc
+ 306              		@ args = 0, pretend = 0, frame = 0
+ 307              		@ frame_needed = 0, uses_anonymous_args = 0
+ 308              		@ link register save eliminated.
+ 309              	.LVL30:
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     return meas_arr_.data();
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 310              		.loc 1 108 0
+ 311 0000 1030     		adds	r0, r0, #16
+ 312              	.LVL31:
+ 313 0002 7047     		bx	lr
+ 314              		.cfi_endproc
+ 315              	.LFE1006:
+ 317              		.section	.text._ZN27binary_refine_contrast_passD2Ev,"axG",%progbits,_ZN27binary_refine_contrast_pa
+ 318              		.align	1
+ 319              		.weak	_ZN27binary_refine_contrast_passD2Ev
+ 320              		.thumb
+ 321              		.thumb_func
+ 323              	_ZN27binary_refine_contrast_passD2Ev:
+ 324              	.LFB1029:
+ 325              		.file 2 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * @file    binary_refine_contrast_pass.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * @date    Oct-31-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  * @brief   Contrast pass which aggressively refines search interval
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** #ifndef __BINARY_REFINE_CONTRAST_PASS_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** #define __BINARY_REFINE_CONTRAST_PASS_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** #include <array>
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** #include "contrast_pass.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** 
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/binary_refine_contrast_pass.h **** class binary_refine_contrast_pass: public contrast_pass {
+ 326              		.loc 2 22 0
+ 327              		.cfi_startproc
+ 328              		@ args = 0, pretend = 0, frame = 0
+ 329              		@ frame_needed = 0, uses_anonymous_args = 0
+ 330              		@ link register save eliminated.
+ 331              	.LVL32:
+ 332              		.loc 2 22 0
+ 333 0000 7047     		bx	lr
+ 334              		.cfi_endproc
+ 335              	.LFE1029:
+ 337              		.weak	_ZN27binary_refine_contrast_passD1Ev
+ 338              		.thumb_set _ZN27binary_refine_contrast_passD1Ev,_ZN27binary_refine_contrast_passD2Ev
+ 339              		.section	.text._ZN27binary_refine_contrast_passD0Ev,"axG",%progbits,_ZN27binary_refine_contrast_pa
+ 340              		.align	1
+ 341              		.weak	_ZN27binary_refine_contrast_passD0Ev
+ 342              		.thumb
+ 343              		.thumb_func
+ 345              	_ZN27binary_refine_contrast_passD0Ev:
+ 346              	.LFB1031:
+ 347              		.loc 2 22 0
+ 348              		.cfi_startproc
+ 349              		@ args = 0, pretend = 0, frame = 0
+ 350              		@ frame_needed = 0, uses_anonymous_args = 0
+ 351              	.LVL33:
+ 352 0000 10B5     		push	{r4, lr}
+ 353              	.LCFI2:
+ 354              		.cfi_def_cfa_offset 8
+ 355              		.cfi_offset 4, -8
+ 356              		.cfi_offset 14, -4
+ 357              		.loc 2 22 0
+ 358 0002 024B     		ldr	r3, .L16
+ 359 0004 0446     		mov	r4, r0
+ 360              	.LVL34:
+ 361 0006 9847     		blx	r3
+ 362              	.LVL35:
+ 363 0008 2046     		mov	r0, r4
+ 364 000a 10BD     		pop	{r4, pc}
+ 365              	.LVL36:
+ 366              	.L17:
+ 367              		.align	2
+ 368              	.L16:
+ 369 000c 00000000 		.word	_ZdlPv
+ 370              		.cfi_endproc
+ 371              	.LFE1031:
+ 373              		.section	.text._ZN27binary_refine_contrast_pass15set_measurementERKN13contrast_pass13measurement_t
+ 374              		.align	1
+ 375              		.global	_ZN27binary_refine_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+ 376              		.thumb
+ 377              		.thumb_func
+ 379              	_ZN27binary_refine_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:
+ 380              	.LFB997:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     bool is_new_best{measurement_t::is_better(use_metric1_, meas, meas_arr_[best_meas_idx_])};
+ 381              		.loc 1 61 0
+ 382              		.cfi_startproc
+ 383              		@ args = 0, pretend = 0, frame = 0
+ 384              		@ frame_needed = 0, uses_anonymous_args = 0
+ 385              	.LVL37:
+ 386 0000 2DE9F04D 		push	{r4, r5, r6, r7, r8, r10, fp, lr}
+ 387              	.LCFI3:
+ 388              		.cfi_def_cfa_offset 32
+ 389              		.cfi_offset 4, -32
+ 390              		.cfi_offset 5, -28
+ 391              		.cfi_offset 6, -24
+ 392              		.cfi_offset 7, -20
+ 393              		.cfi_offset 8, -16
+ 394              		.cfi_offset 10, -12
+ 395              		.cfi_offset 11, -8
+ 396              		.cfi_offset 14, -4
+ 397 0004 1823     		movs	r3, #24
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     bool is_new_best{measurement_t::is_better(use_metric1_, meas, meas_arr_[best_meas_idx_])};
+ 398              		.loc 1 61 0
+ 399 0006 0746     		mov	r7, r0
+ 400 0008 0D46     		mov	r5, r1
+ 401              	.LBB151:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     if (!second_meas_ongoing_) {
+ 402              		.loc 1 62 0
+ 403 000a 97F84080 		ldrb	r8, [r7, #64]	@ zero_extendqisi2
+ 404 000e 8079     		ldrb	r0, [r0, #6]	@ zero_extendqisi2
+ 405              	.LVL38:
+ 406              	.LBB152:
+ 407              	.LBB153:
+ 408              	.LBB154:
+ 409              	.LBB155:
+ 410              		.file 3 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @file    contrast_pass.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @date    Sept-14-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @brief   Interface for one pass of contrast computation
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #ifndef __CONTRAST_PASS_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #define __CONTRAST_PASS_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #ifdef __cplusplus
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #include <cstdint>
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #include <limits>
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** class contrast_pass {
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** public:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****     struct measurement_t {
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int16_t pos;
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int64_t metric1;
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int64_t metric2;
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         static bool is_better(bool use_metric1, const measurement_t& meas1, const measurement_t& me
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****             return use_metric1 ? (meas1.metric1 > meas2.metric1) : (meas1.metric2 > meas2.metric2);
+ 411              		.loc 3 33 0
+ 412 0010 03FB0871 		mla	r1, r3, r8, r7
+ 413              	.LVL39:
+ 414              	.LBE155:
+ 415              	.LBE154:
+ 416 0014 20B1     		cbz	r0, .L19
+ 417              	.LVL40:
+ 418              	.LBB157:
+ 419              	.LBB156:
+ 420 0016 D5E90223 		ldrd	r2, [r5, #8]
+ 421 001a D1E906AB 		ldrd	r10, [r1, #24]
+ 422 001e 03E0     		b	.L29
+ 423              	.LVL41:
+ 424              	.L19:
+ 425              	.LBE156:
+ 426              	.LBE157:
+ 427 0020 D5E90423 		ldrd	r2, [r5, #16]
+ 428 0024 D1E908AB 		ldrd	r10, [r1, #32]
+ 429              	.L29:
+ 430 0028 9245     		cmp	r10, r2
+ 431 002a 7BEB0303 		sbcs	r3, fp, r3
+ 432              	.LBE153:
+ 433              	.LBE152:
+ 434              	.LBB159:
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         meas_arr_[1 - best_meas_idx_] = meas;
+ 435              		.loc 1 63 0
+ 436 002e 97F84130 		ldrb	r3, [r7, #65]	@ zero_extendqisi2
+ 437              	.LBE159:
+ 438              	.LBB167:
+ 439              	.LBB158:
+ 440              		.loc 3 33 0
+ 441 0032 B4BF     		ite	lt
+ 442 0034 4FF0010E 		movlt	lr, #1
+ 443 0038 4FF0000E 		movge	lr, #0
+ 444 003c 1824     		movs	r4, #24
+ 445 003e C8F10106 		rsb	r6, r8, #1
+ 446              	.LBE158:
+ 447              	.LBE167:
+ 448              	.LBB168:
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         meas_arr_[1 - best_meas_idx_] = meas;
+ 449              		.loc 1 63 0
+ 450 0042 FBB9     		cbnz	r3, .L21
+ 451              	.LVL42:
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         if (!is_new_best)
+ 452              		.loc 1 64 0
+ 453 0044 04FB0676 		mla	r6, r4, r6, r7
+ 454 0048 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 455              	.LVL43:
+ 456 004a 1036     		adds	r6, r6, #16
+ 457 004c 0FC6     		stmia	r6!, {r0, r1, r2, r3}
+ 458 004e 95E80300 		ldmia	r5, {r0, r1}
+ 459 0052 86E80300 		stmia	r6, {r0, r1}
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             done_ = true;
+ 460              		.loc 1 65 0
+ 461 0056 BEF1000F 		cmp	lr, #0
+ 462 005a 04D1     		bne	.L22
+ 463              	.LVL44:
+ 464              	.L28:
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         else {
+ 465              		.loc 1 66 0
+ 466 005c 0123     		movs	r3, #1
+ 467 005e 87F84230 		strb	r3, [r7, #66]
+ 468 0062 BDE8F08D 		pop	{r4, r5, r6, r7, r8, r10, fp, pc}
+ 469              	.LVL45:
+ 470              	.L22:
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             best_meas_idx_ = 1 - best_meas_idx_;
+ 471              		.loc 1 68 0
+ 472 0066 0123     		movs	r3, #1
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         }
+ 473              		.loc 1 70 0
+ 474 0068 3A89     		ldrh	r2, [r7, #8]
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             next_pos_ = meas_arr_[best_meas_idx_].pos + delta_;
+ 475              		.loc 1 69 0
+ 476 006a 88EA0308 		eor	r8, r8, r3
+ 477              	.LVL46:
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             best_meas_idx_ = 1 - best_meas_idx_;
+ 478              		.loc 1 68 0
+ 479 006e 87F84130 		strb	r3, [r7, #65]
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         }
+ 480              		.loc 1 70 0
+ 481 0072 04FB0874 		mla	r4, r4, r8, r7
+ 482 0076 238A     		ldrh	r3, [r4, #16]
+ 483 0078 1344     		add	r3, r3, r2
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             next_pos_ = meas_arr_[best_meas_idx_].pos + delta_;
+ 484              		.loc 1 69 0
+ 485 007a 87F84080 		strb	r8, [r7, #64]
+ 486              	.LVL47:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         }
+ 487              		.loc 1 70 0
+ 488 007e 7B81     		strh	r3, [r7, #10]	@ movhi
+ 489 0080 BDE8F08D 		pop	{r4, r5, r6, r7, r8, r10, fp, pc}
+ 490              	.LVL48:
+ 491              	.L21:
+ 492              	.LBB160:
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         if (is_new_best || is_new_second) {
+ 493              		.loc 1 73 0
+ 494 0084 BEF1000F 		cmp	lr, #0
+ 495 0088 2FD1     		bne	.L24
+ 496              	.LVL49:
+ 497              	.LBB161:
+ 498              	.LBB162:
+ 499              	.LBB163:
+ 500              	.LBB164:
+ 501              		.loc 3 33 0 discriminator 1
+ 502 008a 04FB0674 		mla	r4, r4, r6, r7
+ 503              	.LBE164:
+ 504              	.LBE163:
+ 505 008e 20B1     		cbz	r0, .L25
+ 506              	.LVL50:
+ 507              	.LBB166:
+ 508              	.LBB165:
+ 509              		.loc 3 33 0 is_stmt 0
+ 510 0090 D5E90223 		ldrd	r2, [r5, #8]
+ 511 0094 D4E90601 		ldrd	r0, [r4, #24]
+ 512              	.LVL51:
+ 513 0098 03E0     		b	.L30
+ 514              	.LVL52:
+ 515              	.L25:
+ 516              	.LBE165:
+ 517              	.LBE166:
+ 518 009a D5E90423 		ldrd	r2, [r5, #16]
+ 519 009e D4E90801 		ldrd	r0, [r4, #32]
+ 520              	.LVL53:
+ 521              	.L30:
+ 522 00a2 9042     		cmp	r0, r2
+ 523 00a4 71EB0303 		sbcs	r3, r1, r3
+ 524 00a8 B4BF     		ite	lt
+ 525 00aa 0123     		movlt	r3, #1
+ 526 00ac 0023     		movge	r3, #0
+ 527              	.LBE162:
+ 528              	.LBE161:
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         if (is_new_best || is_new_second) {
+ 529              		.loc 1 73 0 is_stmt 1
+ 530 00ae 002B     		cmp	r3, #0
+ 531 00b0 D4D0     		beq	.L28
+ 532              	.LVL54:
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             meas_arr_[best_meas_idx_] = meas;
+ 533              		.loc 1 75 0
+ 534 00b2 1823     		movs	r3, #24
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         }
+ 535              		.loc 1 78 0
+ 536 00b4 88F00104 		eor	r4, r8, #1
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             meas_arr_[best_meas_idx_] = meas;
+ 537              		.loc 1 75 0
+ 538 00b8 03FB067C 		mla	ip, r3, r6, r7
+ 539 00bc 03FB0876 		mla	r6, r3, r8, r7
+ 540 00c0 0CF1100C 		add	ip, ip, #16
+ 541 00c4 1036     		adds	r6, r6, #16
+ 542 00c6 B646     		mov	lr, r6
+ 543 00c8 BEE80F00 		ldmia	lr!, {r0, r1, r2, r3}
+ 544 00cc ACE80F00 		stmia	ip!, {r0, r1, r2, r3}
+ 545 00d0 9EE80300 		ldmia	lr, {r0, r1}
+ 546 00d4 8CE80300 		stmia	ip, {r0, r1}
+ 547              	.LVL55:
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             if (is_new_second)
+ 548              		.loc 1 76 0
+ 549 00d8 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 550              	.LVL56:
+ 551 00da 0FC6     		stmia	r6!, {r0, r1, r2, r3}
+ 552 00dc 95E80300 		ldmia	r5, {r0, r1}
+ 553 00e0 8EE80300 		stmia	lr, {r0, r1}
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         }
+ 554              		.loc 1 78 0
+ 555 00e4 87F84040 		strb	r4, [r7, #64]
+ 556 00e8 B8E7     		b	.L28
+ 557              	.LVL57:
+ 558              	.L24:
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             meas_arr_[best_meas_idx_] = meas;
+ 559              		.loc 1 75 0
+ 560 00ea 04FB0676 		mla	r6, r4, r6, r7
+ 561 00ee 04FB0874 		mla	r4, r4, r8, r7
+ 562 00f2 1036     		adds	r6, r6, #16
+ 563 00f4 1034     		adds	r4, r4, #16
+ 564 00f6 A646     		mov	lr, r4
+ 565 00f8 BEE80F00 		ldmia	lr!, {r0, r1, r2, r3}
+ 566              	.LVL58:
+ 567 00fc 0FC6     		stmia	r6!, {r0, r1, r2, r3}
+ 568 00fe 9EE80300 		ldmia	lr, {r0, r1}
+ 569 0102 86E80300 		stmia	r6, {r0, r1}
+ 570              	.LVL59:
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             if (is_new_second)
+ 571              		.loc 1 76 0
+ 572 0106 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 573              	.LVL60:
+ 574 0108 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 575 010a 95E80300 		ldmia	r5, {r0, r1}
+ 576 010e 8EE80300 		stmia	lr, {r0, r1}
+ 577 0112 A3E7     		b	.L28
+ 578              	.LBE160:
+ 579              	.LBE168:
+ 580              	.LBE151:
+ 581              		.cfi_endproc
+ 582              	.LFE997:
+ 584              		.section	.text._ZN27binary_refine_contrast_pass10initializeEv,"ax",%progbits
+ 585              		.align	1
+ 586              		.global	_ZN27binary_refine_contrast_pass10initializeEv
+ 587              		.thumb
+ 588              		.thumb_func
+ 590              	_ZN27binary_refine_contrast_pass10initializeEv:
+ 591              	.LFB993:
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     // Compute initial next_pos_
+ 592              		.loc 1 35 0
+ 593              		.cfi_startproc
+ 594              		@ args = 0, pretend = 0, frame = 0
+ 595              		@ frame_needed = 0, uses_anonymous_args = 0
+ 596              	.LVL61:
+ 597 0000 37B5     		push	{r0, r1, r2, r4, r5, lr}
+ 598              	.LCFI4:
+ 599              		.cfi_def_cfa_offset 24
+ 600              		.cfi_offset 4, -12
+ 601              		.cfi_offset 5, -8
+ 602              		.cfi_offset 14, -4
+ 603              	.LBB183:
+ 604              	.LBB184:
+ 605              		.loc 3 33 0
+ 606 0002 8379     		ldrb	r3, [r0, #6]	@ zero_extendqisi2
+ 607 0004 23B1     		cbz	r3, .L32
+ 608              	.LVL62:
+ 609              	.LBB185:
+ 610              	.LBB186:
+ 611 0006 D0E90C23 		ldrd	r2, [r0, #48]
+ 612 000a D0E90645 		ldrd	r4, [r0, #24]
+ 613 000e 03E0     		b	.L36
+ 614              	.LVL63:
+ 615              	.L32:
+ 616              	.LBE186:
+ 617              	.LBE185:
+ 618 0010 D0E90E23 		ldrd	r2, [r0, #56]
+ 619 0014 D0E90845 		ldrd	r4, [r0, #32]
+ 620              	.L36:
+ 621 0018 9442     		cmp	r4, r2
+ 622 001a 75EB0303 		sbcs	r3, r5, r3
+ 623 001e B4BF     		ite	lt
+ 624 0020 0123     		movlt	r3, #1
+ 625 0022 0023     		movge	r3, #0
+ 626              	.LBE184:
+ 627              	.LBE183:
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         best_meas_idx_ = 1;
+ 628              		.loc 1 37 0
+ 629 0024 03B1     		cbz	r3, .L34
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     else
+ 630              		.loc 1 38 0
+ 631 0026 0123     		movs	r3, #1
+ 632              	.L34:
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     next_pos_ = meas_arr_[best_meas_idx_].pos + delta_;
+ 633              		.loc 1 41 0
+ 634 0028 1822     		movs	r2, #24
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     delta_ = (meas_arr_[1 - best_meas_idx_].pos - meas_arr_[best_meas_idx_].pos + 3) / 4;
+ 635              		.loc 1 40 0
+ 636 002a 80F84030 		strb	r3, [r0, #64]
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     next_pos_ = meas_arr_[best_meas_idx_].pos + delta_;
+ 637              		.loc 1 41 0
+ 638 002e 90F84040 		ldrb	r4, [r0, #64]	@ zero_extendqisi2
+ 639              	.LVL64:
+ 640 0032 02FB0403 		mla	r3, r2, r4, r0
+ 641 0036 198A     		ldrh	r1, [r3, #16]
+ 642 0038 C4F10103 		rsb	r3, r4, #1
+ 643              	.LVL65:
+ 644 003c 02FB0303 		mla	r3, r2, r3, r0
+ 645              	.LVL66:
+ 646 0040 B3F91020 		ldrsh	r2, [r3, #16]
+ 647 0044 0BB2     		sxth	r3, r1
+ 648 0046 D21A     		subs	r2, r2, r3
+ 649 0048 0332     		adds	r2, r2, #3
+ 650 004a 0423     		movs	r3, #4
+ 651 004c 92FBF3F3 		sdiv	r3, r2, r3
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             (int)meas_arr_[0].pos, (int)meas_arr_[1].pos, (int)best_meas_idx_);
+ 652              		.loc 1 45 0
+ 653 0050 B0F92820 		ldrsh	r2, [r0, #40]
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     next_pos_ = meas_arr_[best_meas_idx_].pos + delta_;
+ 654              		.loc 1 41 0
+ 655 0054 0381     		strh	r3, [r0, #8]	@ movhi
+ 656              	.LVL67:
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     second_meas_ongoing_ = false;
+ 657              		.loc 1 42 0
+ 658 0056 0B44     		add	r3, r3, r1
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 659              		.loc 1 46 0
+ 660 0058 0821     		movs	r1, #8
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     second_meas_ongoing_ = false;
+ 661              		.loc 1 42 0
+ 662 005a 4381     		strh	r3, [r0, #10]	@ movhi
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     done_ = false;
+ 663              		.loc 1 43 0
+ 664 005c 0023     		movs	r3, #0
+ 665 005e 80F84130 		strb	r3, [r0, #65]
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****     SLOGF(SLOG_INFO, "Starting contrast binary refine pass with interval (%d, %d) and best_idx %d",
+ 666              		.loc 1 44 0
+ 667 0062 80F84230 		strb	r3, [r0, #66]
+ 668              	.LVL68:
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****             (int)meas_arr_[0].pos, (int)meas_arr_[1].pos, (int)best_meas_idx_);
+ 669              		.loc 1 45 0
+ 670 0066 B0F91030 		ldrsh	r3, [r0, #16]
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 671              		.loc 1 46 0
+ 672 006a 8DE81400 		stmia	sp, {r2, r4}
+ 673              	.LVL69:
+ 674 006e 2B20     		movs	r0, #43
+ 675              	.LVL70:
+ 676 0070 024A     		ldr	r2, .L37
+ 677 0072 034C     		ldr	r4, .L37+4
+ 678              	.LVL71:
+ 679 0074 A047     		blx	r4
+ 680              	.LVL72:
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+ 681              		.loc 1 47 0
+ 682 0076 03B0     		add	sp, sp, #12
+ 683              	.LCFI5:
+ 684              		.cfi_def_cfa_offset 12
+ 685              		@ sp needed
+ 686 0078 30BD     		pop	{r4, r5, pc}
+ 687              	.L38:
+ 688 007a 00BF     		.align	2
+ 689              	.L37:
+ 690 007c 00000000 		.word	.LC0
+ 691 0080 00000000 		.word	slogf
+ 692              		.cfi_endproc
+ 693              	.LFE993:
+ 695              		.section	.text._ZN27binary_refine_contrast_passC2Etb,"ax",%progbits
+ 696              		.align	1
+ 697              		.global	_ZN27binary_refine_contrast_passC2Etb
+ 698              		.thumb
+ 699              		.thumb_func
+ 701              	_ZN27binary_refine_contrast_passC2Etb:
+ 702              	.LFB990:
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         bool use_metric1) :
+ 703              		.loc 1 21 0
+ 704              		.cfi_startproc
+ 705              		@ args = 0, pretend = 0, frame = 0
+ 706              		@ frame_needed = 0, uses_anonymous_args = 0
+ 707              	.LVL73:
+ 708              	.LBB187:
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 709              		.loc 1 24 0
+ 710 0000 8271     		strb	r2, [r0, #6]
+ 711 0002 0122     		movs	r2, #1
+ 712              	.LVL74:
+ 713              	.LBE187:
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp ****         bool use_metric1) :
+ 714              		.loc 1 21 0
+ 715 0004 10B5     		push	{r4, lr}
+ 716              	.LCFI6:
+ 717              		.cfi_def_cfa_offset 8
+ 718              		.cfi_offset 4, -8
+ 719              		.cfi_offset 14, -4
+ 720              	.LBB188:
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** }
+ 721              		.loc 1 24 0
+ 722 0006 0281     		strh	r2, [r0, #8]	@ movhi
+ 723 0008 0022     		movs	r2, #0
+ 724 000a 054C     		ldr	r4, .L40
+ 725 000c 0460     		str	r4, [r0]
+ 726 000e 8180     		strh	r1, [r0, #4]	@ movhi
+ 727 0010 4281     		strh	r2, [r0, #10]	@ movhi
+ 728 0012 80F84020 		strb	r2, [r0, #64]
+ 729 0016 80F84120 		strb	r2, [r0, #65]
+ 730 001a 80F84220 		strb	r2, [r0, #66]
+ 731              	.LBE188:
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/binary_refine_contrast_pass.cpp **** 
+ 732              		.loc 1 25 0
+ 733 001e 10BD     		pop	{r4, pc}
+ 734              	.L41:
+ 735              		.align	2
+ 736              	.L40:
+ 737 0020 08000000 		.word	.LANCHOR0+8
+ 738              		.cfi_endproc
+ 739              	.LFE990:
+ 741              		.global	_ZN27binary_refine_contrast_passC1Etb
+ 742              		.thumb_set _ZN27binary_refine_contrast_passC1Etb,_ZN27binary_refine_contrast_passC2Etb
+ 743              		.global	_ZTV27binary_refine_contrast_pass
+ 744              		.section	.rodata._ZTV27binary_refine_contrast_pass,"a",%progbits
+ 745              		.align	3
+ 746              		.set	.LANCHOR0,. + 0
+ 749              	_ZTV27binary_refine_contrast_pass:
+ 750 0000 00000000 		.word	0
+ 751 0004 00000000 		.word	0
+ 752 0008 00000000 		.word	_ZN27binary_refine_contrast_passD1Ev
+ 753 000c 00000000 		.word	_ZN27binary_refine_contrast_passD0Ev
+ 754 0010 00000000 		.word	_ZN27binary_refine_contrast_pass10initializeERK13contrast_pass
+ 755 0014 00000000 		.word	_ZN27binary_refine_contrast_pass10initializeEv
+ 756 0018 00000000 		.word	_ZNK27binary_refine_contrast_pass7is_doneEv
+ 757 001c 00000000 		.word	_ZN27binary_refine_contrast_pass8next_posEv
+ 758 0020 00000000 		.word	_ZNK27binary_refine_contrast_pass9toleranceEv
+ 759 0024 00000000 		.word	_ZN27binary_refine_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+ 760 0028 00000000 		.word	_ZNK27binary_refine_contrast_pass11out_min_posEv
+ 761 002c 00000000 		.word	_ZNK27binary_refine_contrast_pass11out_max_posEv
+ 762 0030 00000000 		.word	_ZNK27binary_refine_contrast_pass12out_best_posEv
+ 763 0034 00000000 		.word	_ZNK27binary_refine_contrast_pass15out_best_metricEv
+ 764 0038 00000000 		.word	_ZNK27binary_refine_contrast_pass16num_measurementsEv
+ 765 003c 00000000 		.word	_ZNK27binary_refine_contrast_pass12measurementsEv
+ 766              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 767              	.LC0:
+ 768 0000 53746172 		.ascii	"Starting contrast binary refine pass with interval "
+ 768      74696E67 
+ 768      20636F6E 
+ 768      74726173 
+ 768      74206269 
+ 769 0033 2825642C 		.ascii	"(%d, %d) and best_idx %d\000"
+ 769      20256429 
+ 769      20616E64 
+ 769      20626573 
+ 769      745F6964 
+ 770              		.text
+ 771              	.Letext0:
+ 772              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 773              		.file 5 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 774              		.file 6 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+ 775              		.file 7 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/lock.h"
+ 776              		.file 8 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/_types.h"
+ 777              		.file 9 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/reent.h"
+ 778              		.file 10 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stdarg.
+ 779              		.file 11 "<built-in>"
+ 780              		.file 12 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/except
+ 781              		.file 13 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/arm-none-ea
+ 782              		.file 14 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cwchar"
+ 783              		.file 15 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 784              		.file 16 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/clocale"
+ 785              		.file 17 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/array"
+ 786              		.file 18 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/exception"
+ 787              		.file 19 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/debug/debug
+ 788              		.file 20 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/predef
+ 789              		.file 21 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/ext/new_all
+ 790              		.file 22 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/ext/numeric
+ 791              		.file 23 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/wchar.h"
+ 792              		.file 24 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/move.h
+ 793              		.file 25 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/locale.h"
+ 794              		.file 26 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/stl_pa
+ 795              		.file 27 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/light_system.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 binary_refine_contrast_pass.cpp
+     /tmp/ccABXgTp.s:19     .text._ZN27binary_refine_contrast_pass10initializeERK13contrast_pass:00000000 $t
+     /tmp/ccABXgTp.s:24     .text._ZN27binary_refine_contrast_pass10initializeERK13contrast_pass:00000000 _ZN27binary_refine_contrast_pass10initializeERK13contrast_pass
+     /tmp/ccABXgTp.s:110    .text._ZNK27binary_refine_contrast_pass7is_doneEv:00000000 $t
+     /tmp/ccABXgTp.s:115    .text._ZNK27binary_refine_contrast_pass7is_doneEv:00000000 _ZNK27binary_refine_contrast_pass7is_doneEv
+     /tmp/ccABXgTp.s:131    .text._ZN27binary_refine_contrast_pass8next_posEv:00000000 $t
+     /tmp/ccABXgTp.s:136    .text._ZN27binary_refine_contrast_pass8next_posEv:00000000 _ZN27binary_refine_contrast_pass8next_posEv
+     /tmp/ccABXgTp.s:152    .text._ZNK27binary_refine_contrast_pass9toleranceEv:00000000 $t
+     /tmp/ccABXgTp.s:157    .text._ZNK27binary_refine_contrast_pass9toleranceEv:00000000 _ZNK27binary_refine_contrast_pass9toleranceEv
+     /tmp/ccABXgTp.s:173    .text._ZNK27binary_refine_contrast_pass11out_min_posEv:00000000 $t
+     /tmp/ccABXgTp.s:178    .text._ZNK27binary_refine_contrast_pass11out_min_posEv:00000000 _ZNK27binary_refine_contrast_pass11out_min_posEv
+     /tmp/ccABXgTp.s:194    .text._ZNK27binary_refine_contrast_pass11out_max_posEv:00000000 $t
+     /tmp/ccABXgTp.s:199    .text._ZNK27binary_refine_contrast_pass11out_max_posEv:00000000 _ZNK27binary_refine_contrast_pass11out_max_posEv
+     /tmp/ccABXgTp.s:215    .text._ZNK27binary_refine_contrast_pass12out_best_posEv:00000000 $t
+     /tmp/ccABXgTp.s:220    .text._ZNK27binary_refine_contrast_pass12out_best_posEv:00000000 _ZNK27binary_refine_contrast_pass12out_best_posEv
+     /tmp/ccABXgTp.s:241    .text._ZNK27binary_refine_contrast_pass15out_best_metricEv:00000000 $t
+     /tmp/ccABXgTp.s:246    .text._ZNK27binary_refine_contrast_pass15out_best_metricEv:00000000 _ZNK27binary_refine_contrast_pass15out_best_metricEv
+     /tmp/ccABXgTp.s:276    .text._ZNK27binary_refine_contrast_pass16num_measurementsEv:00000000 $t
+     /tmp/ccABXgTp.s:281    .text._ZNK27binary_refine_contrast_pass16num_measurementsEv:00000000 _ZNK27binary_refine_contrast_pass16num_measurementsEv
+     /tmp/ccABXgTp.s:297    .text._ZNK27binary_refine_contrast_pass12measurementsEv:00000000 $t
+     /tmp/ccABXgTp.s:302    .text._ZNK27binary_refine_contrast_pass12measurementsEv:00000000 _ZNK27binary_refine_contrast_pass12measurementsEv
+     /tmp/ccABXgTp.s:318    .text._ZN27binary_refine_contrast_passD2Ev:00000000 $t
+     /tmp/ccABXgTp.s:323    .text._ZN27binary_refine_contrast_passD2Ev:00000000 _ZN27binary_refine_contrast_passD2Ev
+     /tmp/ccABXgTp.s:323    .text._ZN27binary_refine_contrast_passD2Ev:00000000 _ZN27binary_refine_contrast_passD1Ev
+     /tmp/ccABXgTp.s:340    .text._ZN27binary_refine_contrast_passD0Ev:00000000 $t
+     /tmp/ccABXgTp.s:345    .text._ZN27binary_refine_contrast_passD0Ev:00000000 _ZN27binary_refine_contrast_passD0Ev
+     /tmp/ccABXgTp.s:369    .text._ZN27binary_refine_contrast_passD0Ev:0000000c $d
+     /tmp/ccABXgTp.s:374    .text._ZN27binary_refine_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:00000000 $t
+     /tmp/ccABXgTp.s:379    .text._ZN27binary_refine_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:00000000 _ZN27binary_refine_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+     /tmp/ccABXgTp.s:585    .text._ZN27binary_refine_contrast_pass10initializeEv:00000000 $t
+     /tmp/ccABXgTp.s:590    .text._ZN27binary_refine_contrast_pass10initializeEv:00000000 _ZN27binary_refine_contrast_pass10initializeEv
+     /tmp/ccABXgTp.s:690    .text._ZN27binary_refine_contrast_pass10initializeEv:0000007c $d
+     /tmp/ccABXgTp.s:696    .text._ZN27binary_refine_contrast_passC2Etb:00000000 $t
+     /tmp/ccABXgTp.s:701    .text._ZN27binary_refine_contrast_passC2Etb:00000000 _ZN27binary_refine_contrast_passC2Etb
+     /tmp/ccABXgTp.s:737    .text._ZN27binary_refine_contrast_passC2Etb:00000020 $d
+     /tmp/ccABXgTp.s:701    .text._ZN27binary_refine_contrast_passC2Etb:00000000 _ZN27binary_refine_contrast_passC1Etb
+     /tmp/ccABXgTp.s:749    .rodata._ZTV27binary_refine_contrast_pass:00000000 _ZTV27binary_refine_contrast_pass
+     /tmp/ccABXgTp.s:745    .rodata._ZTV27binary_refine_contrast_pass:00000000 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 _ZN27binary_refine_contrast_passD5Ev
+
+UNDEFINED SYMBOLS
+_ZdlPv
+slogf

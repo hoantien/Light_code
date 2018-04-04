@@ -1,0 +1,185 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"timestamp.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.timestamp_start,"ax",%progbits
+  17              		.align	2
+  18              		.global	timestamp_start
+  20              	timestamp_start:
+  21              	.LFB0:
+  22              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * @file    timestamp.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * @author  The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * @version V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * @date    Mar-21-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * @brief   This file contains expand of the timestamp driver
+  12:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** /* Includes ------------------------------------------------------------------*/
+  15:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** #include "hal_timer.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 
+  17:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** #define TIMESTAMP_TIMER_ID				HAL_TIM_CH1
+  18:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** #define TIMESTAMP_BOARD_CLOCK			50000000
+  19:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** /* Local variable ------------------------------------------------------------*/
+  21:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** static hal_timer_t timer_stamp =
+  22:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** {
+  23:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	.chid             = TIMESTAMP_TIMER_ID,
+  24:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	.period           = 1000,
+  25:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	.callback_handler = NULL
+  26:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** };
+  27:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 
+  28:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** /* Exported functions --------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** /*
+  30:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * timestamp_start(void)
+  31:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * The function starts time stamp driver
+  32:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  */
+  33:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** void timestamp_start(void)
+  34:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** {
+  23              		.loc 1 34 0
+  24              		.cfi_startproc
+  25              		@ args = 0, pretend = 0, frame = 0
+  26              		@ frame_needed = 0, uses_anonymous_args = 0
+  27 0000 10402DE9 		stmfd	sp!, {r4, lr}
+  28              	.LCFI0:
+  29              		.cfi_def_cfa_offset 8
+  30              		.cfi_offset 4, -8
+  31              		.cfi_offset 14, -4
+  35:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	hal_timer_stop(timer_stamp.chid);
+  32              		.loc 1 35 0
+  33 0004 24409FE5 		ldr	r4, .L3
+  34 0008 0000D4E5 		ldrb	r0, [r4]	@ zero_extendqisi2
+  35 000c FEFFFFEB 		bl	hal_timer_stop
+  36              	.LVL0:
+  36:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	hal_timer_init(&timer_stamp);
+  37              		.loc 1 36 0
+  38 0010 0400A0E1 		mov	r0, r4
+  39 0014 FEFFFFEB 		bl	hal_timer_init
+  40              	.LVL1:
+  37:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	hal_timer_set_period(timer_stamp.chid, 0xFFFFFFFF);
+  41              		.loc 1 37 0
+  42 0018 0000D4E5 		ldrb	r0, [r4]	@ zero_extendqisi2
+  43 001c 0010E0E3 		mvn	r1, #0
+  44 0020 FEFFFFEB 		bl	hal_timer_set_period
+  45              	.LVL2:
+  38:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	hal_timer_start(timer_stamp.chid);
+  46              		.loc 1 38 0
+  47 0024 0000D4E5 		ldrb	r0, [r4]	@ zero_extendqisi2
+  39:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** }
+  48              		.loc 1 39 0
+  49 0028 1040BDE8 		ldmfd	sp!, {r4, lr}
+  50              	.LCFI1:
+  51              		.cfi_restore 14
+  52              		.cfi_restore 4
+  53              		.cfi_def_cfa_offset 0
+  38:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	hal_timer_start(timer_stamp.chid);
+  54              		.loc 1 38 0
+  55 002c FEFFFFEA 		b	hal_timer_start
+  56              	.LVL3:
+  57              	.L4:
+  58              		.align	2
+  59              	.L3:
+  60 0030 00000000 		.word	.LANCHOR0
+  61              		.cfi_endproc
+  62              	.LFE0:
+  64              		.section	.text.timestamp_ms,"ax",%progbits
+  65              		.align	2
+  66              		.global	timestamp_ms
+  68              	timestamp_ms:
+  69              	.LFB1:
+  40:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 
+  41:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** /*
+  42:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * timestamp_ms(void)
+  43:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  * The function reads time stamp value from start point
+  44:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c ****  */
+  45:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** unsigned int timestamp_ms(void)
+  46:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** {
+  70              		.loc 1 46 0
+  71              		.cfi_startproc
+  72              		@ args = 0, pretend = 0, frame = 0
+  73              		@ frame_needed = 0, uses_anonymous_args = 0
+  74              	.LVL4:
+  75 0000 08402DE9 		stmfd	sp!, {r3, lr}
+  76              	.LCFI2:
+  77              		.cfi_def_cfa_offset 8
+  78              		.cfi_offset 3, -8
+  79              		.cfi_offset 14, -4
+  47:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	unsigned int start_timestamp = 0xFFFFFFFF;
+  48:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	unsigned int stop_timestamp = hal_timer_read_counter_reg(timer_stamp.chid);
+  80              		.loc 1 48 0
+  81 0004 1C309FE5 		ldr	r3, .L7
+  82 0008 0000D3E5 		ldrb	r0, [r3]	@ zero_extendqisi2
+  83 000c FEFFFFEB 		bl	hal_timer_read_counter_reg
+  84              	.LVL5:
+  49:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	stop_timestamp = start_timestamp - stop_timestamp;
+  50:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	return (unsigned int)(stop_timestamp / (TIMESTAMP_BOARD_CLOCK / 1000));
+  85              		.loc 1 50 0
+  86 0010 14309FE5 		ldr	r3, .L7+4
+  49:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** 	stop_timestamp = start_timestamp - stop_timestamp;
+  87              		.loc 1 49 0
+  88 0014 0000E0E1 		mvn	r0, r0
+  89              	.LVL6:
+  90              		.loc 1 50 0
+  91 0018 2002A0E1 		mov	r0, r0, lsr #4
+  92              	.LVL7:
+  93 001c 900381E0 		umull	r0, r1, r0, r3
+  51:/home/tienluong/workspace/atlantis_fw/platform/common/timestamp.c **** }
+  94              		.loc 1 51 0
+  95 0020 A103A0E1 		mov	r0, r1, lsr #7
+  96 0024 0880BDE8 		ldmfd	sp!, {r3, pc}
+  97              	.L8:
+  98              		.align	2
+  99              	.L7:
+ 100 0028 00000000 		.word	.LANCHOR0
+ 101 002c C55A7C0A 		.word	175921861
+ 102              		.cfi_endproc
+ 103              	.LFE1:
+ 105              		.section	.data.timer_stamp,"aw",%progbits
+ 106              		.align	2
+ 107              		.set	.LANCHOR0,. + 0
+ 110              	timer_stamp:
+ 111 0000 00       		.byte	0
+ 112 0001 000000   		.space	3
+ 113 0004 E8030000 		.word	1000
+ 114 0008 00000000 		.word	0
+ 115 000c 00000000 		.space	4
+ 116              		.text
+ 117              	.Letext0:
+ 118              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 119              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 120              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_timer.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 timestamp.c
+     /tmp/cciSrPFr.s:17     .text.timestamp_start:00000000 $a
+     /tmp/cciSrPFr.s:20     .text.timestamp_start:00000000 timestamp_start
+     /tmp/cciSrPFr.s:60     .text.timestamp_start:00000030 $d
+     /tmp/cciSrPFr.s:65     .text.timestamp_ms:00000000 $a
+     /tmp/cciSrPFr.s:68     .text.timestamp_ms:00000000 timestamp_ms
+     /tmp/cciSrPFr.s:100    .text.timestamp_ms:00000028 $d
+     /tmp/cciSrPFr.s:106    .data.timer_stamp:00000000 $d
+     /tmp/cciSrPFr.s:110    .data.timer_stamp:00000000 timer_stamp
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+hal_timer_stop
+hal_timer_init
+hal_timer_set_period
+hal_timer_start
+hal_timer_read_counter_reg

@@ -1,0 +1,967 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"rtc.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.get_opt,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	get_opt:
+  24              	.LFB5:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @file    rtc.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @author  The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @version V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @date    Mar-07-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @brief   This file contains expand of rtc driver
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /* Includes ------------------------------------------------------------------*/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** #include "os.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** #include "timer.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** #include "rtc.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /* Privited variables --------------------------------------------------------*/
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** volatile rtc_t rtc_system;
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /* Privited functions --------------------------------------------------------*/
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** static unsigned long rtc_second_diff(
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t st_day,
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t st_month,
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t st_year,
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_day,
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_month,
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_year,
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_hour,
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_min,
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_sec);
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** static unsigned long rtc_parse(char *time, char *date);
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** static char *get_opt(char *cp, char **pNext, char bc);
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /* Exported functions --------------------------------------------------------*/
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /**
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @brief rtc_init
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * The function will be initialiazation RTC system time
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @param
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @return None
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  */
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** void rtc_init(void)
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** {
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	/* Unused source build time. */
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char date[] = "Jan 01 2016";
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char time[] = "00:00:00";
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_system.raw  = rtc_parse(time, date);
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_system.milisec = 0;
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /**
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @brief rtc_set_time
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  */
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** void rtc_set_time(rtc_t time)
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** {
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_system.raw = time.raw;
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /**
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * @brief rtc_get_time
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  */
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** rtc_t rtc_get_time(void)
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** {
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_t time;
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	time.raw = rtc_system.raw;
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	time.milisec = rtc_system.milisec;
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	return time;
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /**
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****   * @brief rtc_second_diff
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****   * Calculate number of days differece between past and current.
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****   * @param
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****   * @retval
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****   */
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** static unsigned long rtc_second_diff(
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t st_day,
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t st_month,
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t st_year,
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_day,
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_month,
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_year,
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_hour,
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_min,
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t fs_sec)
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** {
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	unsigned long _tmp = 0, s_day = 0, non_leap_year = 0, leap_year = 0;
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	int i;
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	_tmp = fs_year - st_year;
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	if(_tmp > 0)
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		_tmp -= 2;
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		non_leap_year += 2;
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		if(fs_year%4 == 0)
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		{
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			leap_year = _tmp/4;
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		}
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		else
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		{
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			leap_year = _tmp/4 + 1;
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		}
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		non_leap_year += _tmp - leap_year;
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	for(i = 0; i < non_leap_year; i++)
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		s_day += 365;
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	for(i = 0; i < leap_year; i++)
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		s_day += 366;
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	/* Calculate leap year */
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	for(i = 1; i < fs_month; i++)
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		switch(i)
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		{
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			case 1:case 3:case 5:case 7:case 8:case 10:case 12:
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				s_day += 31;
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			case 4:case 6:case 9:case 11:
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				s_day += 30;
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			case 2:
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				s_day += (fs_year%4) ? 28 : 29;
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			default:
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		}
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	s_day += fs_day - 1;
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	return((s_day*24*3600) + (fs_hour*3600) + (fs_min*60) + fs_sec);
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** /*
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  * get_opt
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c ****  */
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** static char *get_opt(char *cp, char **pNext, char bc)
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** {
+  26              		.loc 1 143 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+  31 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 20
+  34              		.cfi_offset 4, -20
+  35              		.cfi_offset 5, -16
+  36              		.cfi_offset 6, -12
+  37              		.cfi_offset 7, -8
+  38              		.cfi_offset 14, -4
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char *sp, lfn = 0, sep_ch = bc;
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	if (cp == NULL)
+  39              		.loc 1 146 0
+  40 0002 10B1     		cbz	r0, .L2
+  41 0004 1546     		mov	r5, r2
+  42              		.loc 1 146 0 is_stmt 0 discriminator 1
+  43 0006 0024     		movs	r4, #0
+  44 0008 08E0     		b	.L3
+  45              	.L2:
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{ /* Skip NULL pointers*/
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		*pNext = cp;
+  46              		.loc 1 148 0 is_stmt 1
+  47 000a 0860     		str	r0, [r1]
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		return cp;
+  48              		.loc 1 149 0
+  49 000c F0BD     		pop	{r4, r5, r6, r7, pc}
+  50              	.LVL1:
+  51              	.L34:
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	for ( ; *cp == bc || *cp == '\"'; cp++)
+  52              		.loc 1 152 0 discriminator 2
+  53 000e 222B     		cmp	r3, #34
+  54 0010 0CD1     		bne	.L33
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		/* Skip blanks and starting  " */
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		if (*cp == '\"')
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		{
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			sep_ch = '\"';
+  55              		.loc 1 157 0
+  56 0012 1D46     		mov	r5, r3
+  57              	.LVL2:
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			lfn = 1;
+  58              		.loc 1 158 0
+  59 0014 0124     		movs	r4, #1
+  60              	.LVL3:
+  61              	.L5:
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		}
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		*cp = 0;
+  62              		.loc 1 160 0
+  63 0016 0023     		movs	r3, #0
+  64 0018 00F8013B 		strb	r3, [r0], #1
+  65              	.LVL4:
+  66              	.L3:
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+  67              		.loc 1 152 0 discriminator 1
+  68 001c 0378     		ldrb	r3, [r0]	@ zero_extendqisi2
+  69 001e 9342     		cmp	r3, r2
+  70 0020 F5D1     		bne	.L34
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 			lfn = 1;
+  71              		.loc 1 157 0
+  72 0022 222A     		cmp	r2, #34
+  73 0024 04BF     		itt	eq
+  74 0026 2225     		moveq	r5, #34
+  75              	.LVL5:
+  76 0028 0124     		moveq	r4, #1
+  77              	.LVL6:
+  78 002a F4E7     		b	.L5
+  79              	.LVL7:
+  80              	.L33:
+  81 002c 0746     		mov	r7, r0
+  82              	.LVL8:
+  83              	.L7:
+  84 002e 3B46     		mov	r3, r7
+  85              	.LVL9:
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 163:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	for (sp = cp; *sp != '\r' && *sp != '\n'; sp++)
+  86              		.loc 1 163 0 discriminator 1
+  87 0030 17F8016B 		ldrb	r6, [r7], #1	@ zero_extendqisi2
+  88 0034 0D2E     		cmp	r6, #13
+  89 0036 01D1     		bne	.L35
+  90              	.L11:
+  91 0038 1A46     		mov	r2, r3
+  92              	.LVL10:
+  93 003a 0DE0     		b	.L10
+  94              	.LVL11:
+  95              	.L35:
+  96              		.loc 1 163 0 is_stmt 0 discriminator 3
+  97 003c 0A2E     		cmp	r6, #10
+  98 003e FBD0     		beq	.L11
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 165:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		if (lfn && *sp == '\"')	break;
+  99              		.loc 1 165 0 is_stmt 1
+ 100 0040 14B1     		cbz	r4, .L8
+ 101              		.loc 1 165 0 is_stmt 0 discriminator 1
+ 102 0042 222E     		cmp	r6, #34
+ 103              	.L31:
+ 104 0044 F3D1     		bne	.L7
+ 105 0046 F7E7     		b	.L11
+ 106              	.L8:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		if (!lfn && *sp == bc)	break;
+ 107              		.loc 1 166 0 is_stmt 1 discriminator 1
+ 108 0048 9642     		cmp	r6, r2
+ 109 004a FBE7     		b	.L31
+ 110              	.LVL12:
+ 111              	.L38:
+ 167:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	for ( ; *sp == sep_ch || *sp == '\r' || *sp == '\n'; sp++)
+ 112              		.loc 1 169 0 discriminator 2
+ 113 004c 0D2E     		cmp	r6, #13
+ 114 004e 0CD1     		bne	.L36
+ 115              	.L15:
+ 170:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		*sp = 0;
+ 116              		.loc 1 171 0
+ 117 0050 0026     		movs	r6, #0
+ 118 0052 02F8016B 		strb	r6, [r2], #1
+ 119              	.LVL13:
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		if (lfn && *sp == sep_ch) { sp++; break; }
+ 120              		.loc 1 172 0
+ 121 0056 24B9     		cbnz	r4, .L37
+ 122              	.L10:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 123              		.loc 1 169 0 discriminator 1
+ 124 0058 1678     		ldrb	r6, [r2]	@ zero_extendqisi2
+ 125 005a AE42     		cmp	r6, r5
+ 126 005c 1346     		mov	r3, r2
+ 127              	.LVL14:
+ 128 005e F5D1     		bne	.L38
+ 129 0060 F6E7     		b	.L15
+ 130              	.LVL15:
+ 131              	.L37:
+ 132              		.loc 1 172 0 discriminator 1
+ 133 0062 002D     		cmp	r5, #0
+ 134 0064 F8D1     		bne	.L10
+ 135              		.loc 1 172 0 is_stmt 0
+ 136 0066 0133     		adds	r3, r3, #1
+ 137              	.LVL16:
+ 138 0068 01E0     		b	.L14
+ 139              	.LVL17:
+ 140              	.L36:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 141              		.loc 1 169 0 is_stmt 1 discriminator 3
+ 142 006a 0A2E     		cmp	r6, #10
+ 143 006c F0D0     		beq	.L15
+ 144              	.LVL18:
+ 145              	.L14:
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 174:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	*pNext = (*sp) ? sp : NULL;/* Next arg */
+ 146              		.loc 1 174 0
+ 147 006e 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 148 0070 002A     		cmp	r2, #0
+ 149 0072 08BF     		it	eq
+ 150 0074 0023     		moveq	r3, #0
+ 151              	.LVL19:
+ 152 0076 0B60     		str	r3, [r1]
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	return cp;
+ 177:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 153              		.loc 1 177 0
+ 154 0078 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 155              		.cfi_endproc
+ 156              	.LFE5:
+ 158              		.section	.text.rtc_init,"ax",%progbits
+ 159              		.align	1
+ 160              		.global	rtc_init
+ 161              		.thumb
+ 162              		.thumb_func
+ 164              	rtc_init:
+ 165              	.LFB1:
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	/* Unused source build time. */
+ 166              		.loc 1 45 0
+ 167              		.cfi_startproc
+ 168              		@ args = 0, pretend = 0, frame = 88
+ 169              		@ frame_needed = 0, uses_anonymous_args = 0
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char time[] = "00:00:00";
+ 170              		.loc 1 47 0
+ 171 0000 544A     		ldr	r2, .L55
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	/* Unused source build time. */
+ 172              		.loc 1 45 0
+ 173 0002 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 174              	.LCFI1:
+ 175              		.cfi_def_cfa_offset 36
+ 176              		.cfi_offset 4, -36
+ 177              		.cfi_offset 5, -32
+ 178              		.cfi_offset 6, -28
+ 179              		.cfi_offset 7, -24
+ 180              		.cfi_offset 8, -20
+ 181              		.cfi_offset 9, -16
+ 182              		.cfi_offset 10, -12
+ 183              		.cfi_offset 11, -8
+ 184              		.cfi_offset 14, -4
+ 185 0006 97B0     		sub	sp, sp, #92
+ 186              	.LCFI2:
+ 187              		.cfi_def_cfa_offset 128
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char time[] = "00:00:00";
+ 188              		.loc 1 47 0
+ 189 0008 07AB     		add	r3, sp, #28
+ 190 000a 1068     		ldr	r0, [r2]	@ unaligned
+ 191              	.LBB6:
+ 192              	.LBB7:
+ 178:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** static unsigned long rtc_parse(char *time, char *date)
+ 180:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** {
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t day	= 0;
+ 182:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t month	= 0;
+ 183:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t year	= 0;
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t hour	= 0;
+ 185:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t min	= 0;
+ 186:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	uint16_t sec	= 0;
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	unsigned long ret = 0;
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char *mS[12] =
+ 193              		.loc 1 188 0
+ 194 000c 0AAC     		add	r4, sp, #40
+ 195              	.LBE7:
+ 196              	.LBE6:
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char time[] = "00:00:00";
+ 197              		.loc 1 47 0
+ 198 000e 5168     		ldr	r1, [r2, #4]	@ unaligned
+ 199              	.LBB19:
+ 200              	.LBB14:
+ 189:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+ 190:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	"Jul", "Aug", "Sep", "Oct", "Nov", "Dec"};
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char *str, *next;
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	/* Get TIME */
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(time, &next, ':');
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	hour = atoi(str);
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, ':');
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	min = atoi(str);
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, 0);
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	sec = atoi(str);
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 200:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	/* Get DATE */
+ 201:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(date, &next, ' ');
+ 201              		.loc 1 201 0
+ 202 0010 0027     		movs	r7, #0
+ 203              	.LBE14:
+ 204              	.LBE19:
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char time[] = "00:00:00";
+ 205              		.loc 1 47 0
+ 206 0012 03C3     		stmia	r3!, {r0, r1}
+ 207 0014 9068     		ldr	r0, [r2, #8]	@ unaligned
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 208              		.loc 1 48 0
+ 209 0016 504A     		ldr	r2, .L55+4
+ 210              	.LBB20:
+ 211              	.LBB15:
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+ 212              		.loc 1 188 0
+ 213 0018 504D     		ldr	r5, .L55+8
+ 214              	.LBE15:
+ 215              	.LBE20:
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	char time[] = "00:00:00";
+ 216              		.loc 1 47 0
+ 217 001a 1860     		str	r0, [r3]	@ unaligned
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 218              		.loc 1 48 0
+ 219 001c 04AB     		add	r3, sp, #16
+ 220 001e 1068     		ldr	r0, [r2]	@ unaligned
+ 221 0020 5168     		ldr	r1, [r2, #4]	@ unaligned
+ 222 0022 127A     		ldrb	r2, [r2, #8]	@ zero_extendqisi2
+ 223 0024 03C3     		stmia	r3!, {r0, r1}
+ 224 0026 1A70     		strb	r2, [r3]
+ 225              	.LVL20:
+ 226              	.LBB21:
+ 227              	.LBB16:
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+ 228              		.loc 1 188 0
+ 229 0028 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 230              	.LVL21:
+ 231 002a 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 232 002c 0FCD     		ldmia	r5!, {r0, r1, r2, r3}
+ 233 002e 0FC4     		stmia	r4!, {r0, r1, r2, r3}
+ 234 0030 95E80F00 		ldmia	r5, {r0, r1, r2, r3}
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	hour = atoi(str);
+ 235              		.loc 1 193 0
+ 236 0034 DFF83481 		ldr	r8, .L55+24
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{"Jan", "Feb", "Mar", "Apr", "May", "Jun",
+ 237              		.loc 1 188 0
+ 238 0038 84E80F00 		stmia	r4, {r0, r1, r2, r3}
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	hour = atoi(str);
+ 239              		.loc 1 193 0
+ 240 003c 03A9     		add	r1, sp, #12
+ 241 003e 3A22     		movs	r2, #58
+ 242 0040 04A8     		add	r0, sp, #16
+ 243              	.LVL22:
+ 244 0042 C047     		blx	r8
+ 245              	.LVL23:
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, ':');
+ 246              		.loc 1 194 0
+ 247 0044 DFF82891 		ldr	r9, .L55+28
+ 248 0048 C847     		blx	r9
+ 249              	.LVL24:
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	min = atoi(str);
+ 250              		.loc 1 195 0
+ 251 004a 03A9     		add	r1, sp, #12
+ 252 004c 3A22     		movs	r2, #58
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, ':');
+ 253              		.loc 1 194 0
+ 254 004e 0446     		mov	r4, r0
+ 255              	.LVL25:
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	min = atoi(str);
+ 256              		.loc 1 195 0
+ 257 0050 0398     		ldr	r0, [sp, #12]
+ 258 0052 C047     		blx	r8
+ 259              	.LVL26:
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, 0);
+ 260              		.loc 1 196 0
+ 261 0054 C847     		blx	r9
+ 262              	.LVL27:
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	sec = atoi(str);
+ 263              		.loc 1 197 0
+ 264 0056 03A9     		add	r1, sp, #12
+ 265 0058 0022     		movs	r2, #0
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, 0);
+ 266              		.loc 1 196 0
+ 267 005a 0646     		mov	r6, r0
+ 268              	.LVL28:
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	sec = atoi(str);
+ 269              		.loc 1 197 0
+ 270 005c 0398     		ldr	r0, [sp, #12]
+ 271 005e C047     		blx	r8
+ 272              	.LVL29:
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 273              		.loc 1 198 0
+ 274 0060 C847     		blx	r9
+ 275              	.LVL30:
+ 276              		.loc 1 201 0
+ 277 0062 2022     		movs	r2, #32
+ 278 0064 03A9     		add	r1, sp, #12
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 279              		.loc 1 198 0
+ 280 0066 0546     		mov	r5, r0
+ 281              	.LVL31:
+ 282              		.loc 1 201 0
+ 283 0068 07A8     		add	r0, sp, #28
+ 284              	.LVL32:
+ 285 006a C047     		blx	r8
+ 286              	.LVL33:
+ 287 006c 0DF1280C 		add	ip, sp, #40
+ 288 0070 0246     		mov	r2, r0
+ 289              	.LVL34:
+ 290              	.L40:
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	while (strcmp(str, mS[month]) && month < 12)
+ 291              		.loc 1 202 0
+ 292 0072 5CF82710 		ldr	r1, [ip, r7, lsl #2]
+ 293 0076 1046     		mov	r0, r2
+ 294 0078 394B     		ldr	r3, .L55+12
+ 295 007a 1FFA87FA 		uxth	r10, r7
+ 296              	.LVL35:
+ 297 007e 0192     		str	r2, [sp, #4]
+ 298 0080 0137     		adds	r7, r7, #1
+ 299 0082 CDF800C0 		str	ip, [sp]
+ 300 0086 9847     		blx	r3
+ 301              	.LVL36:
+ 302 0088 DDF800C0 		ldr	ip, [sp]
+ 303 008c 019A     		ldr	r2, [sp, #4]
+ 304 008e 8346     		mov	fp, r0
+ 305 0090 0028     		cmp	r0, #0
+ 306 0092 EED1     		bne	.L40
+ 307              	.LVL37:
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 204:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		month++;
+ 205:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 206:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, ' ');
+ 308              		.loc 1 206 0
+ 309 0094 03A9     		add	r1, sp, #12
+ 310 0096 2022     		movs	r2, #32
+ 311              	.LVL38:
+ 312 0098 0398     		ldr	r0, [sp, #12]
+ 313 009a C047     		blx	r8
+ 314              	.LVL39:
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	day = atoi(str);
+ 315              		.loc 1 207 0
+ 316 009c C847     		blx	r9
+ 317              	.LVL40:
+ 208:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	str = get_opt(next, &next, 0);
+ 318              		.loc 1 208 0
+ 319 009e 03A9     		add	r1, sp, #12
+ 320 00a0 5A46     		mov	r2, fp
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	day = atoi(str);
+ 321              		.loc 1 207 0
+ 322 00a2 0746     		mov	r7, r0
+ 323              	.LVL41:
+ 324              		.loc 1 208 0
+ 325 00a4 0398     		ldr	r0, [sp, #12]
+ 326 00a6 C047     		blx	r8
+ 327              	.LVL42:
+ 209:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	year = atoi(str);
+ 328              		.loc 1 209 0
+ 329 00a8 C847     		blx	r9
+ 330              	.LVL43:
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	ret = rtc_second_diff(1, 1, 1970, day, month + 1, year, hour, min, sec);
+ 331              		.loc 1 210 0
+ 332 00aa 0AF1010E 		add	lr, r10, #1
+ 333 00ae 1FFA8EFE 		uxth	lr, lr
+ 209:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	year = atoi(str);
+ 334              		.loc 1 209 0
+ 335 00b2 80B2     		uxth	r0, r0
+ 336              	.LVL44:
+ 337              	.LBB8:
+ 338              	.LBB9:
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	if(_tmp > 0)
+ 339              		.loc 1 93 0
+ 340 00b4 A0F2B273 		subw	r3, r0, #1970
+ 341              	.LVL45:
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 342              		.loc 1 94 0
+ 343 00b8 4BB1     		cbz	r3, .L51
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		non_leap_year += 2;
+ 344              		.loc 1 96 0
+ 345 00ba A0F2B472 		subw	r2, r0, #1972
+ 346              	.LVL46:
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		{
+ 347              		.loc 1 98 0
+ 348 00be 10F0030F 		tst	r0, #3
+ 349 00c2 4FEA9202 		lsr	r2, r2, #2
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		}
+ 350              		.loc 1 104 0
+ 351 00c6 18BF     		it	ne
+ 352 00c8 0132     		addne	r2, r2, #1
+ 353              	.LVL47:
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	}
+ 354              		.loc 1 106 0
+ 355 00ca 991A     		subs	r1, r3, r2
+ 356              	.LVL48:
+ 357 00cc 01E0     		b	.L41
+ 358              	.LVL49:
+ 359              	.L51:
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	int i;
+ 360              		.loc 1 90 0
+ 361 00ce 1A46     		mov	r2, r3
+ 362 00d0 1946     		mov	r1, r3
+ 363              	.LVL50:
+ 364              	.L41:
+ 365 00d2 4FF4B773 		mov	r3, #366
+ 366 00d6 5A43     		muls	r2, r3, r2
+ 367              	.LVL51:
+ 368 00d8 40F26D13 		movw	r3, #365
+ 369 00dc 03FB0123 		mla	r3, r3, r1, r2
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 370              		.loc 1 128 0
+ 371 00e0 0121     		movs	r1, #1
+ 372              	.LVL52:
+ 373              	.L44:
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 374              		.loc 1 117 0
+ 375 00e2 7145     		cmp	r1, lr
+ 376 00e4 1DDA     		bge	.L54
+ 377 00e6 0122     		movs	r2, #1
+ 378 00e8 01F1FF3C 		add	ip, r1, #-1
+ 379 00ec 02FA0CF2 		lsl	r2, r2, ip
+ 380 00f0 40F6D52C 		movw	ip, #2773
+ 381 00f4 02EA0C0C 		and	ip, r2, ip
+ 382 00f8 BCF1000F 		cmp	ip, #0
+ 383 00fc 0CD1     		bne	.L45
+ 384 00fe 12F4A56F 		tst	r2, #1320
+ 385 0102 0BD1     		bne	.L46
+ 386 0104 12F0020F 		tst	r2, #2
+ 387 0108 09D0     		beq	.L48
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 388              		.loc 1 128 0
+ 389 010a 10F0030F 		tst	r0, #3
+ 390 010e 14BF     		ite	ne
+ 391 0110 1C22     		movne	r2, #28
+ 392 0112 1D22     		moveq	r2, #29
+ 393 0114 1344     		add	r3, r3, r2
+ 394              	.LVL53:
+ 395 0116 02E0     		b	.L48
+ 396              	.L45:
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 397              		.loc 1 122 0
+ 398 0118 1F33     		adds	r3, r3, #31
+ 399              	.LVL54:
+ 400 011a 00E0     		b	.L48
+ 401              	.L46:
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 				break;
+ 402              		.loc 1 125 0
+ 403 011c 1E33     		adds	r3, r3, #30
+ 404              	.LVL55:
+ 405              	.L48:
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	{
+ 406              		.loc 1 117 0
+ 407 011e 0131     		adds	r1, r1, #1
+ 408              	.LVL56:
+ 409 0120 DFE7     		b	.L44
+ 410              	.L54:
+ 411              	.LVL57:
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 412              		.loc 1 136 0
+ 413 0122 3C21     		movs	r1, #60
+ 414              	.LVL58:
+ 415 0124 B6B2     		uxth	r6, r6
+ 416 0126 A2B2     		uxth	r2, r4
+ 417 0128 4E43     		muls	r6, r1, r6
+ 418              	.LVL59:
+ 419 012a 4FF46164 		mov	r4, #3600
+ 420              	.LVL60:
+ 421              	.LBE9:
+ 422              	.LBE8:
+ 423              	.LBE16:
+ 424              	.LBE21:
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 425              		.loc 1 51 0
+ 426 012e 0020     		movs	r0, #0
+ 427              	.LVL61:
+ 428 0130 04FB0264 		mla	r4, r4, r2, r6
+ 429 0134 BAB2     		uxth	r2, r7
+ 430              	.LVL62:
+ 431 0136 013A     		subs	r2, r2, #1
+ 432              	.LBB22:
+ 433              	.LBB17:
+ 434              	.LBB12:
+ 435              	.LBB10:
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	return((s_day*24*3600) + (fs_hour*3600) + (fs_min*60) + fs_sec);
+ 436              		.loc 1 135 0
+ 437 0138 1A44     		add	r2, r2, r3
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 438              		.loc 1 136 0
+ 439 013a 0A4B     		ldr	r3, .L55+16
+ 440              	.LVL63:
+ 441              	.LBE10:
+ 442              	.LBE12:
+ 443              	.LBE17:
+ 444              	.LBE22:
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 445              		.loc 1 51 0
+ 446 013c 0021     		movs	r1, #0
+ 447 013e 14FA85F4 		uxtah	r4, r4, r5
+ 448              	.LBB23:
+ 449              	.LBB18:
+ 450              	.LBB13:
+ 451              	.LBB11:
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 452              		.loc 1 136 0
+ 453 0142 03FB0243 		mla	r3, r3, r2, r4
+ 454              	.LBE11:
+ 455              	.LBE13:
+ 456              	.LBE18:
+ 457              	.LBE23:
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_system.milisec = 0;
+ 458              		.loc 1 50 0
+ 459 0146 084A     		ldr	r2, .L55+20
+ 460 0148 1360     		str	r3, [r2]
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 461              		.loc 1 51 0
+ 462 014a C2E90201 		strd	r0, [r2, #8]
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 463              		.loc 1 52 0
+ 464 014e 17B0     		add	sp, sp, #92
+ 465              	.LCFI3:
+ 466              		.cfi_def_cfa_offset 36
+ 467              		@ sp needed
+ 468 0150 BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 469              	.LVL64:
+ 470              	.L56:
+ 471              		.align	2
+ 472              	.L55:
+ 473 0154 00000000 		.word	.LC13
+ 474 0158 0C000000 		.word	.LC14
+ 475 015c 00000000 		.word	.LANCHOR0
+ 476 0160 00000000 		.word	strcmp
+ 477 0164 80510100 		.word	86400
+ 478 0168 00000000 		.word	.LANCHOR1
+ 479 016c 00000000 		.word	get_opt
+ 480 0170 00000000 		.word	atoi
+ 481              		.cfi_endproc
+ 482              	.LFE1:
+ 484              		.section	.text.rtc_set_time,"ax",%progbits
+ 485              		.align	1
+ 486              		.global	rtc_set_time
+ 487              		.thumb
+ 488              		.thumb_func
+ 490              	rtc_set_time:
+ 491              	.LFB2:
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_system.raw = time.raw;
+ 492              		.loc 1 58 0
+ 493              		.cfi_startproc
+ 494              		@ args = 0, pretend = 0, frame = 16
+ 495              		@ frame_needed = 0, uses_anonymous_args = 0
+ 496 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 497              	.LCFI4:
+ 498              		.cfi_def_cfa_offset 24
+ 499              		.cfi_offset 14, -4
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_system.raw = time.raw;
+ 500              		.loc 1 58 0
+ 501 0002 0DF1100E 		add	lr, sp, #16
+ 502 0006 0EE90F00 		stmdb	lr, {r0, r1, r2, r3}
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 503              		.loc 1 59 0
+ 504 000a 034B     		ldr	r3, .L58
+ 505 000c 009A     		ldr	r2, [sp]
+ 506 000e 1A60     		str	r2, [r3]
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 507              		.loc 1 60 0
+ 508 0010 05B0     		add	sp, sp, #20
+ 509              	.LCFI5:
+ 510              		.cfi_def_cfa_offset 4
+ 511              		@ sp needed
+ 512 0012 5DF804FB 		ldr	pc, [sp], #4
+ 513              	.L59:
+ 514 0016 00BF     		.align	2
+ 515              	.L58:
+ 516 0018 00000000 		.word	.LANCHOR1
+ 517              		.cfi_endproc
+ 518              	.LFE2:
+ 520              		.section	.text.rtc_get_time,"ax",%progbits
+ 521              		.align	1
+ 522              		.global	rtc_get_time
+ 523              		.thumb
+ 524              		.thumb_func
+ 526              	rtc_get_time:
+ 527              	.LFB3:
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_t time;
+ 528              		.loc 1 66 0
+ 529              		.cfi_startproc
+ 530              		@ args = 0, pretend = 0, frame = 0
+ 531              		@ frame_needed = 0, uses_anonymous_args = 0
+ 532              	.LVL65:
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	time.milisec = rtc_system.milisec;
+ 533              		.loc 1 68 0
+ 534 0000 044A     		ldr	r2, .L61
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	rtc_t time;
+ 535              		.loc 1 66 0
+ 536 0002 30B5     		push	{r4, r5, lr}
+ 537              	.LCFI6:
+ 538              		.cfi_def_cfa_offset 12
+ 539              		.cfi_offset 4, -12
+ 540              		.cfi_offset 5, -8
+ 541              		.cfi_offset 14, -4
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	time.milisec = rtc_system.milisec;
+ 542              		.loc 1 68 0
+ 543 0004 1168     		ldr	r1, [r2]
+ 544              	.LVL66:
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	return time;
+ 545              		.loc 1 69 0
+ 546 0006 D2E90245 		ldrd	r4, [r2, #8]
+ 547              	.LVL67:
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 548              		.loc 1 70 0
+ 549 000a 0160     		str	r1, [r0]
+ 550 000c C0E90245 		strd	r4, [r0, #8]
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 551              		.loc 1 71 0
+ 552 0010 30BD     		pop	{r4, r5, pc}
+ 553              	.LVL68:
+ 554              	.L62:
+ 555 0012 00BF     		.align	2
+ 556              	.L61:
+ 557 0014 00000000 		.word	.LANCHOR1
+ 558              		.cfi_endproc
+ 559              	.LFE3:
+ 561              		.global	__aeabi_uldivmod
+ 562              		.section	.text.rtc_timer_update_ms,"ax",%progbits
+ 563              		.align	1
+ 564              		.global	rtc_timer_update_ms
+ 565              		.thumb
+ 566              		.thumb_func
+ 568              	rtc_timer_update_ms:
+ 569              	.LFB7:
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 212:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	return ret;
+ 213:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** }
+ 214:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 
+ 215:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** void rtc_timer_update_ms(void)
+ 216:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** {
+ 570              		.loc 1 216 0
+ 571              		.cfi_startproc
+ 572              		@ args = 0, pretend = 0, frame = 0
+ 573              		@ frame_needed = 0, uses_anonymous_args = 0
+ 574 0000 38B5     		push	{r3, r4, r5, lr}
+ 575              	.LCFI7:
+ 576              		.cfi_def_cfa_offset 16
+ 577              		.cfi_offset 3, -16
+ 578              		.cfi_offset 4, -12
+ 579              		.cfi_offset 5, -8
+ 580              		.cfi_offset 14, -4
+ 217:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 	if((++rtc_system.milisec % 1000) == 0)
+ 581              		.loc 1 217 0
+ 582 0002 094C     		ldr	r4, .L65
+ 583 0004 4FF47A72 		mov	r2, #1000
+ 584 0008 0023     		movs	r3, #0
+ 585 000a 084D     		ldr	r5, .L65+4
+ 586 000c D4E90201 		ldrd	r0, [r4, #8]
+ 587 0010 0130     		adds	r0, r0, #1
+ 588 0012 41F10001 		adc	r1, r1, #0
+ 589 0016 C4E90201 		strd	r0, [r4, #8]
+ 590 001a A847     		blx	r5
+ 591              	.LVL69:
+ 592 001c 1343     		orrs	r3, r2, r3
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/rtc.c **** 		rtc_system.raw++;
+ 593              		.loc 1 218 0
+ 594 001e 02BF     		ittt	eq
+ 595 0020 2368     		ldreq	r3, [r4]
+ 596 0022 0133     		addeq	r3, r3, #1
+ 597 0024 2360     		streq	r3, [r4]
+ 598 0026 38BD     		pop	{r3, r4, r5, pc}
+ 599              	.L66:
+ 600              		.align	2
+ 601              	.L65:
+ 602 0028 00000000 		.word	.LANCHOR1
+ 603 002c 00000000 		.word	__aeabi_uldivmod
+ 604              		.cfi_endproc
+ 605              	.LFE7:
+ 607              		.global	rtc_system
+ 608              		.section	.rodata
+ 609              		.align	2
+ 610              		.set	.LANCHOR0,. + 0
+ 611              	.LC15:
+ 612 0000 15000000 		.word	.LC0
+ 613 0004 19000000 		.word	.LC1
+ 614 0008 1D000000 		.word	.LC2
+ 615 000c 21000000 		.word	.LC3
+ 616 0010 25000000 		.word	.LC4
+ 617 0014 29000000 		.word	.LC5
+ 618 0018 2D000000 		.word	.LC6
+ 619 001c 31000000 		.word	.LC7
+ 620 0020 35000000 		.word	.LC8
+ 621 0024 39000000 		.word	.LC9
+ 622 0028 3D000000 		.word	.LC10
+ 623 002c 41000000 		.word	.LC11
+ 624              		.section	.bss.rtc_system,"aw",%nobits
+ 625              		.align	3
+ 626              		.set	.LANCHOR1,. + 0
+ 629              	rtc_system:
+ 630 0000 00000000 		.space	16
+ 630      00000000 
+ 630      00000000 
+ 630      00000000 
+ 631              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 632              	.LC13:
+ 633 0000 4A616E20 		.ascii	"Jan 01 2016\000"
+ 633      30312032 
+ 633      30313600 
+ 634              	.LC14:
+ 635 000c 30303A30 		.ascii	"00:00:00\000"
+ 635      303A3030 
+ 635      00
+ 636              	.LC0:
+ 637 0015 4A616E00 		.ascii	"Jan\000"
+ 638              	.LC1:
+ 639 0019 46656200 		.ascii	"Feb\000"
+ 640              	.LC2:
+ 641 001d 4D617200 		.ascii	"Mar\000"
+ 642              	.LC3:
+ 643 0021 41707200 		.ascii	"Apr\000"
+ 644              	.LC4:
+ 645 0025 4D617900 		.ascii	"May\000"
+ 646              	.LC5:
+ 647 0029 4A756E00 		.ascii	"Jun\000"
+ 648              	.LC6:
+ 649 002d 4A756C00 		.ascii	"Jul\000"
+ 650              	.LC7:
+ 651 0031 41756700 		.ascii	"Aug\000"
+ 652              	.LC8:
+ 653 0035 53657000 		.ascii	"Sep\000"
+ 654              	.LC9:
+ 655 0039 4F637400 		.ascii	"Oct\000"
+ 656              	.LC10:
+ 657 003d 4E6F7600 		.ascii	"Nov\000"
+ 658              	.LC11:
+ 659 0041 44656300 		.ascii	"Dec\000"
+ 660              		.text
+ 661              	.Letext0:
+ 662              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 663              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 664              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/types.h"
+ 665              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 666              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/rtc.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 rtc.c
+     /tmp/ccgxh0tu.s:19     .text.get_opt:00000000 $t
+     /tmp/ccgxh0tu.s:23     .text.get_opt:00000000 get_opt
+     /tmp/ccgxh0tu.s:159    .text.rtc_init:00000000 $t
+     /tmp/ccgxh0tu.s:164    .text.rtc_init:00000000 rtc_init
+     /tmp/ccgxh0tu.s:473    .text.rtc_init:00000154 $d
+     /tmp/ccgxh0tu.s:485    .text.rtc_set_time:00000000 $t
+     /tmp/ccgxh0tu.s:490    .text.rtc_set_time:00000000 rtc_set_time
+     /tmp/ccgxh0tu.s:516    .text.rtc_set_time:00000018 $d
+     /tmp/ccgxh0tu.s:521    .text.rtc_get_time:00000000 $t
+     /tmp/ccgxh0tu.s:526    .text.rtc_get_time:00000000 rtc_get_time
+     /tmp/ccgxh0tu.s:557    .text.rtc_get_time:00000014 $d
+     /tmp/ccgxh0tu.s:563    .text.rtc_timer_update_ms:00000000 $t
+     /tmp/ccgxh0tu.s:568    .text.rtc_timer_update_ms:00000000 rtc_timer_update_ms
+     /tmp/ccgxh0tu.s:602    .text.rtc_timer_update_ms:00000028 $d
+     /tmp/ccgxh0tu.s:629    .bss.rtc_system:00000000 rtc_system
+     /tmp/ccgxh0tu.s:609    .rodata:00000000 $d
+     /tmp/ccgxh0tu.s:625    .bss.rtc_system:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+strcmp
+atoi
+__aeabi_uldivmod

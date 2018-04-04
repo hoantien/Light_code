@@ -1,0 +1,1410 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"hal_gpio.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.EXTI_IRQHandler,"ax",%progbits
+  17              		.align	2
+  19              	EXTI_IRQHandler:
+  20              	.LFB8:
+  21              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @file    hal_gpio.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @author  The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @version V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @date    Feb-17-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @brief   This file contains expand of hal_gpio
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #include "std_type.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #include "hal_gpio.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #include "cortex_r4.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #include "assert.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #include "hal_vic.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Private define ------------------------------------------------------------*/
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* GPIO handle */
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO							((hal_gpio_reg_t *)GPIO_BASE)
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Definition of bits in Configuration Register 1 */
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO_CFG1_BOTHEDGE_MASK			0x00200000
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO_CFG1_INTERRUPT_MASK		0x00001000
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO_CFG1_NUMPORTS_MASK			0x0000000C
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Definition of bits in Configuration Register 2 */
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO_CFG2_PWIDTHA_MASK			0x0000001F
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO_CFG2_PWIDTHB_MASK			0x000003E0
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO_CFG2_PWIDTHC_MASK			0x00007C00
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define GPIO_CFG2_PWIDTHD_MASK			0x000F8000
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Used for asserting GPIO Pin */
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define IS_GPIO_PORT_PIN(PORT, PIN)		(((GPIO_PORTC > PORT) && \
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 											((GPIO_PIN_0 <= PIN) && \
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 											(GPIO_PIN_10 > PIN))) || \
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 										((GPIO_PORTC == PORT) && \
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 											(GPIO_PIN_0 <= PIN) && \
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 											(GPIO_PIN_MAX_IDX > PIN)))
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Used for asserting GPIO Direction */
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define IS_GPIO_DIR(DIR)				((GPIO_DIR_IN == DIR) || \
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 										(GPIO_DIR_OUT == DIR))
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Used for asserting external interrupt type */
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** #define IS_EXTI_TYPE(TYPE)				((GPIO_EXTI_FALLING_EDGE == TYPE) || \
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 										(GPIO_EXTI_RISING_EDGE == TYPE))
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Private typedef -----------------------------------------------------------*/
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @brief hal_gpio_reg_t
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  *
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * GPIO registers
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** typedef struct
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DRA;			/* Port A data register */
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DDRA;			/* Port A data direction register */
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t CTLA;			/* Port A data source register */
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DRB;			/* Port B data register */
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DDRB;			/* Port B data direction register */
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t CTLB;			/* Port B data source register */
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DRC;			/* Port C data register */
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DDRC;			/* Port C data direction register */
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t CTLC;			/* Port C data source register */
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DRD;			/* Port D data register */
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DDRD;			/* Port D data direction register */
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t CTLD;			/* Port D data source register */
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t INTEN;		/* Port A interrupt enable register */
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t INTMASK;		/* Port A interrupt mask register */
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t INTTYPLEVL;	/* Port A interrupt level register */
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t INTPOL;		/* Port A interrupt polarity register */
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t INTSTAT;		/* Port A interrupt status register */
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t RAWINTSTAT;	/* Port A raw interrupt status register */
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t DEBOUNCE;		/* Port A debounce enable register */
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__O  uint32_t EOI;			/* Port A clear interrupt register */
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t EXTA;			/* Port A external port register */
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t EXTB;			/* Port B external port register */
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t EXTC;			/* Port C external port register */
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t EXTD;			/* Port D external port register */
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t LSSYNC;		/* Port A synchronization enable register*/
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t IDCODE;		/* ID code register */
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t INTBOTHEDGE;	/* Interrupt both edge type register */
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t VERIDCODE;	/* Component version register */
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t CFG2;			/* Configuration register 2 */
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__I  uint32_t CFG1;			/* Configuration register 1 */
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** } hal_gpio_reg_t;
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @brief exti_config_t
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  *
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * External interrupt configuration
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** typedef struct exti_config
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	void		(*irq_handler)(void);
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	uint8_t		enabled;
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** } exti_config_t;
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Private variables -------------------------------------------------------- */
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* External interrupt handlers */
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** static exti_config_t exti_configs[GPIO_PIN_MAX_IDX] =
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI0 */
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI1 */
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI2 */
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI3 */
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI4 */
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI5 */
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI6 */
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{.irq_handler = NULL, .enabled = FALSE},	/* EXTI7 */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** };
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Private function prototypes -----------------------------------------------*/
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** static void EXTI_IRQHandler(void);
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /* Exported functions --------------------------------------------------------*/
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * hal_gpio_init
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Initialize independent GPIO channel
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** void hal_gpio_init(hal_gpio_t *gpio)
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	__IO uint32_t	*dir_reg;
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Assert parameters */
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(NULL_PTR != gpio);
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Get pointer to the direction register of the corresponding port */
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if (GPIO_PORTA == gpio->port)
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRA);
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if (GPIO_PORTB == gpio->port)
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRB);
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if (GPIO_PORTC == gpio->port)
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRC);
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRD);
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Set direction */
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if(GPIO_DIR_IN == gpio->direction)
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		*dir_reg &= (~(0x01 << gpio->pin));
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		*dir_reg |= (gpio->direction << gpio->pin);
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * hal_gpio_set_low
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Set low logic level on a GPIO pin
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** void hal_gpio_set_low(hal_gpio_t *gpio)
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Assert parameters */
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(NULL_PTR != gpio);
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if(GPIO_PORTA == gpio->port)
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRA &= (~(0x01 << gpio->pin));
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTB == gpio->port)
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB &= (~(0x01 << gpio->pin));
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTC == gpio->port)
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRC &= (~(0x01 << gpio->pin));
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRD &= (~(0x01 << gpio->pin));
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * hal_gpio_set_high
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Set high logic level on a GPIO pin
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** void hal_gpio_set_high(hal_gpio_t *gpio)
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Assert parameters */
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(NULL_PTR != gpio);
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if(GPIO_PORTA == gpio->port)
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRA |= (0x01 << gpio->pin);
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTB == gpio->port)
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB |= (0x01 << gpio->pin);
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTC == gpio->port)
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRC |= (0x01 << gpio->pin);
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRD |= (0x01 << gpio->pin);
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * hal_gpio_toggle
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Toggle logic level on a GPIO pin
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** void hal_gpio_toggle(hal_gpio_t *gpio)
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Assert parameters */
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(NULL_PTR != gpio);
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if(GPIO_PORTA == gpio->port)
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRA ^= (0x01 << gpio->pin);
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTB == gpio->port)
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB ^= (0x01 << gpio->pin);
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTC == gpio->port)
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRC ^= (0x01 << gpio->pin);
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRD ^= (0x01 << gpio->pin);
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * hal_gpio_read_input
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Read state on a GPIO pin
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** hal_gpio_level_t hal_gpio_read(hal_gpio_t *gpio)
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t		*gpio_reg = GPIO;
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_level_t	state;
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Assert parameters */
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(NULL_PTR != gpio);
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if(GPIO_PORTA == gpio->port)
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if (GPIO_DIR_IN == gpio->direction)
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTA >> gpio->pin) & 0x01;
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->DRA >> gpio->pin) & 0x01;
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTB == gpio->port)
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if (GPIO_DIR_IN == gpio->direction)
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTB >> gpio->pin) & 0x01;
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->DRB >> gpio->pin) & 0x01;
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTC == gpio->port)
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if (GPIO_DIR_IN == gpio->direction)
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTC >> gpio->pin) & 0x01;
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->DRC >> gpio->pin) & 0x01;
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if (GPIO_DIR_IN == gpio->direction)
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTD >> gpio->pin) & 0x01;
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->DRD >> gpio->pin) & 0x01;
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	return state;
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @brief hal_gpio_enable_exti
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Enable external interrupt on a pin of PORTA
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** void hal_gpio_enable_exti(hal_gpio_exti_t *exti)
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	uint32_t		pin_mask;
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Assert parameters */
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(NULL_PTR != exti);
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(GPIO_PORTA, exti->pin));
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_EXTI_TYPE(exti->int_type));
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Get pin mask */
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	pin_mask = 1 << exti->pin;
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Set external interrupt type */
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if (GPIO_EXTI_FALLING_EDGE == exti->int_type)
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		/* Select edge-sensitive */
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->INTTYPLEVL |= pin_mask;
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		/* Select active-low polarity */
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->INTPOL &= (~pin_mask);
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_EXTI_RISING_EDGE */
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		/* Select edge-sensitive */
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->INTTYPLEVL |= pin_mask;
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		/* Select active-high polarity */
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->INTPOL |= pin_mask;
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Synchronize with pclk_intr */
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	gpio_reg->LSSYNC |= pin_mask;
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Set interrupt handler */
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	exti_configs[exti->pin].irq_handler = exti->irq_handler;
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	exti_configs[exti->pin].enabled = TRUE;
+ 309:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Register interrupt handler */
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	vic_register_irq(GPIO_IRQn, EXTI_IRQHandler);
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Enable external interrupt */
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	gpio_reg->INTEN |= pin_mask;
+ 313:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 314:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 316:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @brief hal_gpio_disable_exti
+ 317:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * Disable external interrupt on a pin of PORTA
+ 318:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 319:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** void hal_gpio_disable_exti(hal_gpio_exti_t *exti)
+ 320:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 322:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	uint8_t			i;
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 324:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Assert parameters */
+ 325:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(NULL_PTR != exti);
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(GPIO_PORTA, exti->pin));
+ 327:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Disable external interrupt */
+ 329:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	gpio_reg->INTEN &= (~(0x01 << exti->pin));
+ 330:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Clear interrupt handler */
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	exti_configs[exti->pin].irq_handler = NULL_PTR;
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	exti_configs[exti->pin].enabled = FALSE;
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Unregister interrupt handler */
+ 334:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	for (i = 0; i < GPIO_PIN_MAX_IDX; i++)
+ 335:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if (TRUE == exti_configs[i].enabled)
+ 336:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			break;
+ 337:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if (GPIO_PIN_MAX_IDX == i)
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		vic_unregister_irq(GPIO_IRQn);
+ 339:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 341:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** /*
+ 342:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * @brief EXTI_IRQHandler
+ 343:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  * External interrupt internal handler
+ 344:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c ****  */
+ 345:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** static void EXTI_IRQHandler(void)
+ 346:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** {
+  22              		.loc 1 346 0
+  23              		.cfi_startproc
+  24              		@ args = 0, pretend = 0, frame = 0
+  25              		@ frame_needed = 0, uses_anonymous_args = 0
+  26              		@ link register save eliminated.
+  27              	.LVL0:
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	int				interrupt_pin = GPIO_PIN_MAX_IDX;
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	int				i;
+ 350:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 351:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Get the interrupt source */
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	for(i = 0; i < GPIO_PIN_MAX_IDX; i++)
+  28              		.loc 1 352 0
+  29 0000 0030A0E3 		mov	r3, #0
+  30              	.LVL1:
+  31              	.L5:
+ 353:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 354:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if(0x01 == ((gpio_reg->INTSTAT >> i) & 0x01))
+  32              		.loc 1 354 0
+  33 0004 40209FE5 		ldr	r2, .L9
+  34 0008 401092E5 		ldr	r1, [r2, #64]
+  35 000c 3113A0E1 		mov	r1, r1, lsr r3
+  36 0010 010011E3 		tst	r1, #1
+  37 0014 0800000A 		beq	.L2
+  38              	.LVL2:
+ 355:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		{
+ 356:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			interrupt_pin = i;
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			break;
+ 358:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		}
+ 359:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 361:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Check again if the interrupt source is valid */
+ 362:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	if(GPIO_PIN_MAX_IDX > interrupt_pin)
+ 363:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 364:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		/* Clear interrupt pending */
+ 365:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->EOI |= (0x01 << interrupt_pin);
+  39              		.loc 1 365 0
+  40 0018 4C1092E5 		ldr	r1, [r2, #76]
+  41 001c 0100A0E3 		mov	r0, #1
+  42 0020 101381E1 		orr	r1, r1, r0, asl r3
+  43 0024 4C1082E5 		str	r1, [r2, #76]
+ 366:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 367:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if(NULL_PTR != exti_configs[interrupt_pin].irq_handler)
+  44              		.loc 1 367 0
+  45 0028 20209FE5 		ldr	r2, .L9+4
+  46 002c 833192E7 		ldr	r3, [r2, r3, asl #3]
+  47              	.LVL3:
+  48 0030 000053E3 		cmp	r3, #0
+  49 0034 1EFF2F01 		bxeq	lr
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		{
+ 369:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			/* Call back function to upper module */
+ 370:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			exti_configs[interrupt_pin].irq_handler();
+  50              		.loc 1 370 0
+  51 0038 13FF2FE1 		bx	r3	@ indirect register sibling call
+  52              	.LVL4:
+  53              	.L2:
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+  54              		.loc 1 352 0 discriminator 2
+  55 003c 013083E2 		add	r3, r3, #1
+  56              	.LVL5:
+  57 0040 100053E3 		cmp	r3, #16
+  58 0044 EEFFFF1A 		bne	.L5
+  59 0048 1EFF2FE1 		bx	lr
+  60              	.L10:
+  61              		.align	2
+  62              	.L9:
+  63 004c 00F00202 		.word	33746944
+  64 0050 00000000 		.word	.LANCHOR0
+  65              		.cfi_endproc
+  66              	.LFE8:
+  68              		.section	.text.hal_gpio_init,"ax",%progbits
+  69              		.align	2
+  70              		.global	hal_gpio_init
+  72              	hal_gpio_init:
+  73              	.LFB1:
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+  74              		.loc 1 131 0
+  75              		.cfi_startproc
+  76              		@ args = 0, pretend = 0, frame = 0
+  77              		@ frame_needed = 0, uses_anonymous_args = 0
+  78              	.LVL6:
+  79 0000 10402DE9 		stmfd	sp!, {r4, lr}
+  80              	.LCFI0:
+  81              		.cfi_def_cfa_offset 8
+  82              		.cfi_offset 4, -8
+  83              		.cfi_offset 14, -4
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+  84              		.loc 1 136 0
+  85 0004 004050E2 		subs	r4, r0, #0
+  86 0008 0200001A 		bne	.L12
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+  87              		.loc 1 136 0 is_stmt 0 discriminator 1
+  88 000c A8009FE5 		ldr	r0, .L26
+  89              	.LVL7:
+  90 0010 8810A0E3 		mov	r1, #136
+  91 0014 FEFFFFEB 		bl	assert_failed
+  92              	.LVL8:
+  93              	.L12:
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+  94              		.loc 1 137 0 is_stmt 1
+  95 0018 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+  96 001c 010053E3 		cmp	r3, #1
+  97 0020 0200008A 		bhi	.L13
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+  98              		.loc 1 137 0 is_stmt 0 discriminator 2
+  99 0024 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 100 0028 090053E3 		cmp	r3, #9
+ 101 002c 030000EA 		b	.L24
+ 102              	.L13:
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 103              		.loc 1 137 0 discriminator 3
+ 104 0030 020053E3 		cmp	r3, #2
+ 105 0034 0200001A 		bne	.L14
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 106              		.loc 1 137 0 discriminator 5
+ 107 0038 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 108 003c 0F0053E3 		cmp	r3, #15
+ 109              	.L24:
+ 110 0040 0200009A 		bls	.L15
+ 111              	.L14:
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 112              		.loc 1 137 0 discriminator 6
+ 113 0044 70009FE5 		ldr	r0, .L26
+ 114 0048 8910A0E3 		mov	r1, #137
+ 115 004c FEFFFFEB 		bl	assert_failed
+ 116              	.LVL9:
+ 117              	.L15:
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 118              		.loc 1 138 0 is_stmt 1
+ 119 0050 0230D4E5 		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+ 120 0054 010053E3 		cmp	r3, #1
+ 121 0058 0200009A 		bls	.L16
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 122              		.loc 1 138 0 is_stmt 0 discriminator 1
+ 123 005c 58009FE5 		ldr	r0, .L26
+ 124 0060 8A10A0E3 		mov	r1, #138
+ 125 0064 FEFFFFEB 		bl	assert_failed
+ 126              	.LVL10:
+ 127              	.L16:
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRA);
+ 128              		.loc 1 141 0 is_stmt 1
+ 129 0068 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+ 130 006c 000053E3 		cmp	r3, #0
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if (GPIO_PORTB == gpio->port)
+ 131              		.loc 1 142 0
+ 132 0070 48309F05 		ldreq	r3, .L26+4
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRA);
+ 133              		.loc 1 141 0
+ 134 0074 0700000A 		beq	.L18
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRB);
+ 135              		.loc 1 143 0
+ 136 0078 010053E3 		cmp	r3, #1
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if (GPIO_PORTC == gpio->port)
+ 137              		.loc 1 144 0
+ 138 007c 40309F05 		ldreq	r3, .L26+8
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		dir_reg = &(gpio_reg->DDRB);
+ 139              		.loc 1 143 0
+ 140 0080 0400000A 		beq	.L18
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else
+ 141              		.loc 1 146 0
+ 142 0084 020053E3 		cmp	r3, #2
+ 143 0088 38109FE5 		ldr	r1, .L26+12
+ 144 008c 38209FE5 		ldr	r2, .L26+16
+ 145 0090 0130A001 		moveq	r3, r1
+ 146 0094 0230A011 		movne	r3, r2
+ 147              	.L18:
+ 148              	.LVL11:
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		*dir_reg &= (~(0x01 << gpio->pin));
+ 149              		.loc 1 151 0
+ 150 0098 0220D4E5 		ldrb	r2, [r4, #2]	@ zero_extendqisi2
+ 151 009c 000052E3 		cmp	r2, #0
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else
+ 152              		.loc 1 152 0
+ 153 00a0 001093E5 		ldr	r1, [r3]
+ 154 00a4 0120A003 		moveq	r2, #1
+ 155 00a8 0100D4E5 		ldrb	r0, [r4, #1]	@ zero_extendqisi2
+ 156 00ac 1220C101 		biceq	r2, r1, r2, asl r0
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 157              		.loc 1 154 0
+ 158 00b0 12208111 		orrne	r2, r1, r2, asl r0
+ 159 00b4 002083E5 		str	r2, [r3]
+ 160 00b8 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 161              	.L27:
+ 162              		.align	2
+ 163              	.L26:
+ 164 00bc 00000000 		.word	.LANCHOR1
+ 165 00c0 04F00202 		.word	33746948
+ 166 00c4 10F00202 		.word	33746960
+ 167 00c8 1CF00202 		.word	33746972
+ 168 00cc 28F00202 		.word	33746984
+ 169              		.cfi_endproc
+ 170              	.LFE1:
+ 172              		.section	.text.hal_gpio_set_low,"ax",%progbits
+ 173              		.align	2
+ 174              		.global	hal_gpio_set_low
+ 176              	hal_gpio_set_low:
+ 177              	.LFB2:
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 178              		.loc 1 162 0
+ 179              		.cfi_startproc
+ 180              		@ args = 0, pretend = 0, frame = 0
+ 181              		@ frame_needed = 0, uses_anonymous_args = 0
+ 182              	.LVL12:
+ 183 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 184              	.LCFI1:
+ 185              		.cfi_def_cfa_offset 8
+ 186              		.cfi_offset 4, -8
+ 187              		.cfi_offset 14, -4
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 188              		.loc 1 166 0
+ 189 0004 004050E2 		subs	r4, r0, #0
+ 190 0008 0200001A 		bne	.L29
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 191              		.loc 1 166 0 is_stmt 0 discriminator 1
+ 192 000c B4009FE5 		ldr	r0, .L43
+ 193              	.LVL13:
+ 194 0010 A610A0E3 		mov	r1, #166
+ 195 0014 FEFFFFEB 		bl	assert_failed
+ 196              	.LVL14:
+ 197              	.L29:
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 198              		.loc 1 167 0 is_stmt 1
+ 199 0018 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+ 200 001c 010053E3 		cmp	r3, #1
+ 201 0020 0200008A 		bhi	.L30
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 202              		.loc 1 167 0 is_stmt 0 discriminator 2
+ 203 0024 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 204 0028 090053E3 		cmp	r3, #9
+ 205 002c 030000EA 		b	.L42
+ 206              	.L30:
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 207              		.loc 1 167 0 discriminator 3
+ 208 0030 020053E3 		cmp	r3, #2
+ 209 0034 0200001A 		bne	.L31
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 210              		.loc 1 167 0 discriminator 5
+ 211 0038 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 212 003c 0F0053E3 		cmp	r3, #15
+ 213              	.L42:
+ 214 0040 0200009A 		bls	.L32
+ 215              	.L31:
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 216              		.loc 1 167 0 discriminator 6
+ 217 0044 7C009FE5 		ldr	r0, .L43
+ 218 0048 A710A0E3 		mov	r1, #167
+ 219 004c FEFFFFEB 		bl	assert_failed
+ 220              	.LVL15:
+ 221              	.L32:
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 222              		.loc 1 168 0 is_stmt 1
+ 223 0050 0230D4E5 		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+ 224 0054 010053E3 		cmp	r3, #1
+ 225 0058 0200000A 		beq	.L33
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 226              		.loc 1 168 0 is_stmt 0 discriminator 1
+ 227 005c 64009FE5 		ldr	r0, .L43
+ 228 0060 A810A0E3 		mov	r1, #168
+ 229 0064 FEFFFFEB 		bl	assert_failed
+ 230              	.LVL16:
+ 231              	.L33:
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRA &= (~(0x01 << gpio->pin));
+ 232              		.loc 1 170 0 is_stmt 1
+ 233 0068 0010D4E5 		ldrb	r1, [r4]	@ zero_extendqisi2
+ 234 006c 000051E3 		cmp	r1, #0
+ 235 0070 0120D4E5 		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+ 236 0074 50309FE5 		ldr	r3, .L43+4
+ 237 0078 0400001A 		bne	.L34
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTB == gpio->port)
+ 238              		.loc 1 171 0
+ 239 007c 001093E5 		ldr	r1, [r3]
+ 240 0080 0100A0E3 		mov	r0, #1
+ 241 0084 1022C1E1 		bic	r2, r1, r0, asl r2
+ 242 0088 002083E5 		str	r2, [r3]
+ 243 008c 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 244              	.L34:
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB &= (~(0x01 << gpio->pin));
+ 245              		.loc 1 172 0
+ 246 0090 010051E3 		cmp	r1, #1
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTC == gpio->port)
+ 247              		.loc 1 173 0
+ 248 0094 0C009305 		ldreq	r0, [r3, #12]
+ 249 0098 1122C001 		biceq	r2, r0, r1, asl r2
+ 250 009c 0C208305 		streq	r2, [r3, #12]
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB &= (~(0x01 << gpio->pin));
+ 251              		.loc 1 172 0
+ 252 00a0 1080BD08 		ldmeqfd	sp!, {r4, pc}
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRC &= (~(0x01 << gpio->pin));
+ 253              		.loc 1 174 0
+ 254 00a4 020051E3 		cmp	r1, #2
+ 255 00a8 0100A0E3 		mov	r0, #1
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 256              		.loc 1 175 0
+ 257 00ac 18109305 		ldreq	r1, [r3, #24]
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 258              		.loc 1 177 0
+ 259 00b0 24109315 		ldrne	r1, [r3, #36]
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 260              		.loc 1 175 0
+ 261 00b4 1022C101 		biceq	r2, r1, r0, asl r2
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 262              		.loc 1 177 0
+ 263 00b8 1022C111 		bicne	r2, r1, r0, asl r2
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 264              		.loc 1 175 0
+ 265 00bc 18208305 		streq	r2, [r3, #24]
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 266              		.loc 1 177 0
+ 267 00c0 24208315 		strne	r2, [r3, #36]
+ 268 00c4 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 269              	.L44:
+ 270              		.align	2
+ 271              	.L43:
+ 272 00c8 00000000 		.word	.LANCHOR2
+ 273 00cc 00F00202 		.word	33746944
+ 274              		.cfi_endproc
+ 275              	.LFE2:
+ 277              		.section	.text.hal_gpio_set_high,"ax",%progbits
+ 278              		.align	2
+ 279              		.global	hal_gpio_set_high
+ 281              	hal_gpio_set_high:
+ 282              	.LFB3:
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 283              		.loc 1 185 0
+ 284              		.cfi_startproc
+ 285              		@ args = 0, pretend = 0, frame = 0
+ 286              		@ frame_needed = 0, uses_anonymous_args = 0
+ 287              	.LVL17:
+ 288 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 289              	.LCFI2:
+ 290              		.cfi_def_cfa_offset 8
+ 291              		.cfi_offset 4, -8
+ 292              		.cfi_offset 14, -4
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 293              		.loc 1 189 0
+ 294 0004 004050E2 		subs	r4, r0, #0
+ 295 0008 0200001A 		bne	.L46
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 296              		.loc 1 189 0 is_stmt 0 discriminator 1
+ 297 000c B4009FE5 		ldr	r0, .L60
+ 298              	.LVL18:
+ 299 0010 BD10A0E3 		mov	r1, #189
+ 300 0014 FEFFFFEB 		bl	assert_failed
+ 301              	.LVL19:
+ 302              	.L46:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 303              		.loc 1 190 0 is_stmt 1
+ 304 0018 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+ 305 001c 010053E3 		cmp	r3, #1
+ 306 0020 0200008A 		bhi	.L47
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 307              		.loc 1 190 0 is_stmt 0 discriminator 2
+ 308 0024 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 309 0028 090053E3 		cmp	r3, #9
+ 310 002c 030000EA 		b	.L59
+ 311              	.L47:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 312              		.loc 1 190 0 discriminator 3
+ 313 0030 020053E3 		cmp	r3, #2
+ 314 0034 0200001A 		bne	.L48
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 315              		.loc 1 190 0 discriminator 5
+ 316 0038 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 317 003c 0F0053E3 		cmp	r3, #15
+ 318              	.L59:
+ 319 0040 0200009A 		bls	.L49
+ 320              	.L48:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 321              		.loc 1 190 0 discriminator 6
+ 322 0044 7C009FE5 		ldr	r0, .L60
+ 323 0048 BE10A0E3 		mov	r1, #190
+ 324 004c FEFFFFEB 		bl	assert_failed
+ 325              	.LVL20:
+ 326              	.L49:
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 327              		.loc 1 191 0 is_stmt 1
+ 328 0050 0230D4E5 		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+ 329 0054 010053E3 		cmp	r3, #1
+ 330 0058 0200000A 		beq	.L50
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 331              		.loc 1 191 0 is_stmt 0 discriminator 1
+ 332 005c 64009FE5 		ldr	r0, .L60
+ 333 0060 BF10A0E3 		mov	r1, #191
+ 334 0064 FEFFFFEB 		bl	assert_failed
+ 335              	.LVL21:
+ 336              	.L50:
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRA |= (0x01 << gpio->pin);
+ 337              		.loc 1 193 0 is_stmt 1
+ 338 0068 0010D4E5 		ldrb	r1, [r4]	@ zero_extendqisi2
+ 339 006c 000051E3 		cmp	r1, #0
+ 340 0070 0120D4E5 		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+ 341 0074 50309FE5 		ldr	r3, .L60+4
+ 342 0078 0400001A 		bne	.L51
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTB == gpio->port)
+ 343              		.loc 1 194 0
+ 344 007c 001093E5 		ldr	r1, [r3]
+ 345 0080 0100A0E3 		mov	r0, #1
+ 346 0084 102281E1 		orr	r2, r1, r0, asl r2
+ 347 0088 002083E5 		str	r2, [r3]
+ 348 008c 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 349              	.L51:
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB |= (0x01 << gpio->pin);
+ 350              		.loc 1 195 0
+ 351 0090 010051E3 		cmp	r1, #1
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTC == gpio->port)
+ 352              		.loc 1 196 0
+ 353 0094 0C009305 		ldreq	r0, [r3, #12]
+ 354 0098 11228001 		orreq	r2, r0, r1, asl r2
+ 355 009c 0C208305 		streq	r2, [r3, #12]
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB |= (0x01 << gpio->pin);
+ 356              		.loc 1 195 0
+ 357 00a0 1080BD08 		ldmeqfd	sp!, {r4, pc}
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRC |= (0x01 << gpio->pin);
+ 358              		.loc 1 197 0
+ 359 00a4 020051E3 		cmp	r1, #2
+ 360 00a8 0100A0E3 		mov	r0, #1
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 361              		.loc 1 198 0
+ 362 00ac 18109305 		ldreq	r1, [r3, #24]
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 363              		.loc 1 200 0
+ 364 00b0 24109315 		ldrne	r1, [r3, #36]
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 365              		.loc 1 198 0
+ 366 00b4 10228101 		orreq	r2, r1, r0, asl r2
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 367              		.loc 1 200 0
+ 368 00b8 10228111 		orrne	r2, r1, r0, asl r2
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 369              		.loc 1 198 0
+ 370 00bc 18208305 		streq	r2, [r3, #24]
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 371              		.loc 1 200 0
+ 372 00c0 24208315 		strne	r2, [r3, #36]
+ 373 00c4 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 374              	.L61:
+ 375              		.align	2
+ 376              	.L60:
+ 377 00c8 00000000 		.word	.LANCHOR3
+ 378 00cc 00F00202 		.word	33746944
+ 379              		.cfi_endproc
+ 380              	.LFE3:
+ 382              		.section	.text.hal_gpio_toggle,"ax",%progbits
+ 383              		.align	2
+ 384              		.global	hal_gpio_toggle
+ 386              	hal_gpio_toggle:
+ 387              	.LFB4:
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 388              		.loc 1 208 0
+ 389              		.cfi_startproc
+ 390              		@ args = 0, pretend = 0, frame = 0
+ 391              		@ frame_needed = 0, uses_anonymous_args = 0
+ 392              	.LVL22:
+ 393 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 394              	.LCFI3:
+ 395              		.cfi_def_cfa_offset 8
+ 396              		.cfi_offset 4, -8
+ 397              		.cfi_offset 14, -4
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 398              		.loc 1 212 0
+ 399 0004 004050E2 		subs	r4, r0, #0
+ 400 0008 0200001A 		bne	.L63
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 401              		.loc 1 212 0 is_stmt 0 discriminator 1
+ 402 000c B4009FE5 		ldr	r0, .L77
+ 403              	.LVL23:
+ 404 0010 D410A0E3 		mov	r1, #212
+ 405 0014 FEFFFFEB 		bl	assert_failed
+ 406              	.LVL24:
+ 407              	.L63:
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 408              		.loc 1 213 0 is_stmt 1
+ 409 0018 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+ 410 001c 010053E3 		cmp	r3, #1
+ 411 0020 0200008A 		bhi	.L64
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 412              		.loc 1 213 0 is_stmt 0 discriminator 2
+ 413 0024 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 414 0028 090053E3 		cmp	r3, #9
+ 415 002c 030000EA 		b	.L76
+ 416              	.L64:
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 417              		.loc 1 213 0 discriminator 3
+ 418 0030 020053E3 		cmp	r3, #2
+ 419 0034 0200001A 		bne	.L65
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 420              		.loc 1 213 0 discriminator 5
+ 421 0038 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 422 003c 0F0053E3 		cmp	r3, #15
+ 423              	.L76:
+ 424 0040 0200009A 		bls	.L66
+ 425              	.L65:
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(GPIO_DIR_OUT == gpio->direction);
+ 426              		.loc 1 213 0 discriminator 6
+ 427 0044 7C009FE5 		ldr	r0, .L77
+ 428 0048 D510A0E3 		mov	r1, #213
+ 429 004c FEFFFFEB 		bl	assert_failed
+ 430              	.LVL25:
+ 431              	.L66:
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 432              		.loc 1 214 0 is_stmt 1
+ 433 0050 0230D4E5 		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+ 434 0054 010053E3 		cmp	r3, #1
+ 435 0058 0200000A 		beq	.L67
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 436              		.loc 1 214 0 is_stmt 0 discriminator 1
+ 437 005c 64009FE5 		ldr	r0, .L77
+ 438 0060 D610A0E3 		mov	r1, #214
+ 439 0064 FEFFFFEB 		bl	assert_failed
+ 440              	.LVL26:
+ 441              	.L67:
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRA ^= (0x01 << gpio->pin);
+ 442              		.loc 1 216 0 is_stmt 1
+ 443 0068 0010D4E5 		ldrb	r1, [r4]	@ zero_extendqisi2
+ 444 006c 000051E3 		cmp	r1, #0
+ 445 0070 0120D4E5 		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+ 446 0074 50309FE5 		ldr	r3, .L77+4
+ 447 0078 0400001A 		bne	.L68
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTB == gpio->port)
+ 448              		.loc 1 217 0
+ 449 007c 001093E5 		ldr	r1, [r3]
+ 450 0080 0100A0E3 		mov	r0, #1
+ 451 0084 102221E0 		eor	r2, r1, r0, asl r2
+ 452 0088 002083E5 		str	r2, [r3]
+ 453 008c 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 454              	.L68:
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB ^= (0x01 << gpio->pin);
+ 455              		.loc 1 218 0
+ 456 0090 010051E3 		cmp	r1, #1
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else if(GPIO_PORTC == gpio->port)
+ 457              		.loc 1 219 0
+ 458 0094 0C009305 		ldreq	r0, [r3, #12]
+ 459 0098 11222000 		eoreq	r2, r0, r1, asl r2
+ 460 009c 0C208305 		streq	r2, [r3, #12]
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRB ^= (0x01 << gpio->pin);
+ 461              		.loc 1 218 0
+ 462 00a0 1080BD08 		ldmeqfd	sp!, {r4, pc}
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		gpio_reg->DRC ^= (0x01 << gpio->pin);
+ 463              		.loc 1 220 0
+ 464 00a4 020051E3 		cmp	r1, #2
+ 465 00a8 0100A0E3 		mov	r0, #1
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 466              		.loc 1 221 0
+ 467 00ac 18109305 		ldreq	r1, [r3, #24]
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 468              		.loc 1 223 0
+ 469 00b0 24109315 		ldrne	r1, [r3, #36]
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 470              		.loc 1 221 0
+ 471 00b4 10222100 		eoreq	r2, r1, r0, asl r2
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 472              		.loc 1 223 0
+ 473 00b8 10222110 		eorne	r2, r1, r0, asl r2
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	else /* GPIO_PORTD */
+ 474              		.loc 1 221 0
+ 475 00bc 18208305 		streq	r2, [r3, #24]
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 476              		.loc 1 223 0
+ 477 00c0 24208315 		strne	r2, [r3, #36]
+ 478 00c4 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 479              	.L78:
+ 480              		.align	2
+ 481              	.L77:
+ 482 00c8 00000000 		.word	.LANCHOR4
+ 483 00cc 00F00202 		.word	33746944
+ 484              		.cfi_endproc
+ 485              	.LFE4:
+ 487              		.section	.text.hal_gpio_read,"ax",%progbits
+ 488              		.align	2
+ 489              		.global	hal_gpio_read
+ 491              	hal_gpio_read:
+ 492              	.LFB5:
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t		*gpio_reg = GPIO;
+ 493              		.loc 1 231 0
+ 494              		.cfi_startproc
+ 495              		@ args = 0, pretend = 0, frame = 0
+ 496              		@ frame_needed = 0, uses_anonymous_args = 0
+ 497              	.LVL27:
+ 498 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 499              	.LCFI4:
+ 500              		.cfi_def_cfa_offset 8
+ 501              		.cfi_offset 4, -8
+ 502              		.cfi_offset 14, -4
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 503              		.loc 1 236 0
+ 504 0004 004050E2 		subs	r4, r0, #0
+ 505 0008 0200001A 		bne	.L80
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(gpio->port, gpio->pin));
+ 506              		.loc 1 236 0 is_stmt 0 discriminator 1
+ 507 000c C4009FE5 		ldr	r0, .L96
+ 508              	.LVL28:
+ 509 0010 EC10A0E3 		mov	r1, #236
+ 510 0014 FEFFFFEB 		bl	assert_failed
+ 511              	.LVL29:
+ 512              	.L80:
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 513              		.loc 1 237 0 is_stmt 1
+ 514 0018 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+ 515 001c 010053E3 		cmp	r3, #1
+ 516 0020 0200008A 		bhi	.L81
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 517              		.loc 1 237 0 is_stmt 0 discriminator 2
+ 518 0024 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 519 0028 090053E3 		cmp	r3, #9
+ 520 002c 030000EA 		b	.L94
+ 521              	.L81:
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 522              		.loc 1 237 0 discriminator 3
+ 523 0030 020053E3 		cmp	r3, #2
+ 524 0034 0200001A 		bne	.L82
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 525              		.loc 1 237 0 discriminator 5
+ 526 0038 0130D4E5 		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 527 003c 0F0053E3 		cmp	r3, #15
+ 528              	.L94:
+ 529 0040 0200009A 		bls	.L83
+ 530              	.L82:
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_DIR(gpio->direction));
+ 531              		.loc 1 237 0 discriminator 6
+ 532 0044 8C009FE5 		ldr	r0, .L96
+ 533 0048 ED10A0E3 		mov	r1, #237
+ 534 004c FEFFFFEB 		bl	assert_failed
+ 535              	.LVL30:
+ 536              	.L83:
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 537              		.loc 1 238 0 is_stmt 1
+ 538 0050 0230D4E5 		ldrb	r3, [r4, #2]	@ zero_extendqisi2
+ 539 0054 010053E3 		cmp	r3, #1
+ 540 0058 0200009A 		bls	.L84
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 541              		.loc 1 238 0 is_stmt 0 discriminator 1
+ 542 005c 74009FE5 		ldr	r0, .L96
+ 543 0060 EE10A0E3 		mov	r1, #238
+ 544 0064 FEFFFFEB 		bl	assert_failed
+ 545              	.LVL31:
+ 546              	.L84:
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 547              		.loc 1 240 0 is_stmt 1
+ 548 0068 0010D4E5 		ldrb	r1, [r4]	@ zero_extendqisi2
+ 549 006c 000051E3 		cmp	r1, #0
+ 550 0070 0100D4E5 		ldrb	r0, [r4, #1]	@ zero_extendqisi2
+ 551 0074 0220D4E5 		ldrb	r2, [r4, #2]	@ zero_extendqisi2
+ 552 0078 5C309FE5 		ldr	r3, .L96+4
+ 553 007c 0300001A 		bne	.L85
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTA >> gpio->pin) & 0x01;
+ 554              		.loc 1 242 0
+ 555 0080 000052E3 		cmp	r2, #0
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 556              		.loc 1 243 0
+ 557 0084 50309305 		ldreq	r3, [r3, #80]
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 558              		.loc 1 245 0
+ 559 0088 00309315 		ldrne	r3, [r3]
+ 560 008c 0E0000EA 		b	.L95
+ 561              	.L85:
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 562              		.loc 1 247 0
+ 563 0090 010051E3 		cmp	r1, #1
+ 564 0094 0300001A 		bne	.L88
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTB >> gpio->pin) & 0x01;
+ 565              		.loc 1 249 0
+ 566 0098 000052E3 		cmp	r2, #0
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 567              		.loc 1 250 0
+ 568 009c 54309305 		ldreq	r3, [r3, #84]
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 569              		.loc 1 252 0
+ 570 00a0 0C309315 		ldrne	r3, [r3, #12]
+ 571 00a4 080000EA 		b	.L95
+ 572              	.L88:
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 573              		.loc 1 254 0
+ 574 00a8 020051E3 		cmp	r1, #2
+ 575 00ac 0300001A 		bne	.L90
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTC >> gpio->pin) & 0x01;
+ 576              		.loc 1 256 0
+ 577 00b0 000052E3 		cmp	r2, #0
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 578              		.loc 1 257 0
+ 579 00b4 58309305 		ldreq	r3, [r3, #88]
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 580              		.loc 1 259 0
+ 581 00b8 18309315 		ldrne	r3, [r3, #24]
+ 582 00bc 020000EA 		b	.L95
+ 583              	.L90:
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			state = (gpio_reg->EXTD >> gpio->pin) & 0x01;
+ 584              		.loc 1 263 0
+ 585 00c0 000052E3 		cmp	r2, #0
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		else
+ 586              		.loc 1 264 0
+ 587 00c4 5C309305 		ldreq	r3, [r3, #92]
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 588              		.loc 1 266 0
+ 589 00c8 24309315 		ldrne	r3, [r3, #36]
+ 590              	.L95:
+ 591 00cc 3300A0E1 		mov	r0, r3, lsr r0
+ 592 00d0 010000E2 		and	r0, r0, #1
+ 593              	.LVL32:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 594              		.loc 1 270 0
+ 595 00d4 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 596              	.L97:
+ 597              		.align	2
+ 598              	.L96:
+ 599 00d8 00000000 		.word	.LANCHOR5
+ 600 00dc 00F00202 		.word	33746944
+ 601              		.cfi_endproc
+ 602              	.LFE5:
+ 604              		.section	.text.hal_gpio_enable_exti,"ax",%progbits
+ 605              		.align	2
+ 606              		.global	hal_gpio_enable_exti
+ 608              	hal_gpio_enable_exti:
+ 609              	.LFB6:
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 610              		.loc 1 277 0
+ 611              		.cfi_startproc
+ 612              		@ args = 0, pretend = 0, frame = 0
+ 613              		@ frame_needed = 0, uses_anonymous_args = 0
+ 614              	.LVL33:
+ 615 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 616              	.LCFI5:
+ 617              		.cfi_def_cfa_offset 16
+ 618              		.cfi_offset 4, -16
+ 619              		.cfi_offset 5, -12
+ 620              		.cfi_offset 6, -8
+ 621              		.cfi_offset 14, -4
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(GPIO_PORTA, exti->pin));
+ 622              		.loc 1 282 0
+ 623 0004 005050E2 		subs	r5, r0, #0
+ 624 0008 0200001A 		bne	.L99
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(GPIO_PORTA, exti->pin));
+ 625              		.loc 1 282 0 is_stmt 0 discriminator 1
+ 626 000c AC009FE5 		ldr	r0, .L106
+ 627              	.LVL34:
+ 628 0010 1A1100E3 		movw	r1, #282
+ 629 0014 FEFFFFEB 		bl	assert_failed
+ 630              	.LVL35:
+ 631              	.L99:
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_EXTI_TYPE(exti->int_type));
+ 632              		.loc 1 283 0 is_stmt 1
+ 633 0018 0030D5E5 		ldrb	r3, [r5]	@ zero_extendqisi2
+ 634 001c 090053E3 		cmp	r3, #9
+ 635 0020 0200009A 		bls	.L100
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_EXTI_TYPE(exti->int_type));
+ 636              		.loc 1 283 0 is_stmt 0 discriminator 1
+ 637 0024 94009FE5 		ldr	r0, .L106
+ 638 0028 1B1100E3 		movw	r1, #283
+ 639 002c FEFFFFEB 		bl	assert_failed
+ 640              	.LVL36:
+ 641              	.L100:
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 642              		.loc 1 284 0 is_stmt 1
+ 643 0030 0130D5E5 		ldrb	r3, [r5, #1]	@ zero_extendqisi2
+ 644 0034 010053E3 		cmp	r3, #1
+ 645 0038 0200009A 		bls	.L101
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 646              		.loc 1 284 0 is_stmt 0 discriminator 1
+ 647 003c 7C009FE5 		ldr	r0, .L106
+ 648 0040 471FA0E3 		mov	r1, #284
+ 649 0044 FEFFFFEB 		bl	assert_failed
+ 650              	.LVL37:
+ 651              	.L101:
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	{
+ 652              		.loc 1 290 0 is_stmt 1
+ 653 0048 0130D5E5 		ldrb	r3, [r5, #1]	@ zero_extendqisi2
+ 654 004c 000053E3 		cmp	r3, #0
+ 655 0050 6C309FE5 		ldr	r3, .L106+4
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 656              		.loc 1 287 0
+ 657 0054 0140A0E3 		mov	r4, #1
+ 658 0058 0020D5E5 		ldrb	r2, [r5]	@ zero_extendqisi2
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Set interrupt handler */
+ 659              		.loc 1 305 0
+ 660 005c 60609FE5 		ldr	r6, .L106+4
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 661              		.loc 1 287 0
+ 662 0060 1442A0E1 		mov	r4, r4, asl r2
+ 663              	.LVL38:
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		/* Select active-low polarity */
+ 664              		.loc 1 293 0
+ 665 0064 381093E5 		ldr	r1, [r3, #56]
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Enable external interrupt */
+ 666              		.loc 1 310 0
+ 667 0068 3000A0E3 		mov	r0, #48
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		/* Select active-low polarity */
+ 668              		.loc 1 293 0
+ 669 006c 011084E1 		orr	r1, r4, r1
+ 670 0070 381083E5 		str	r1, [r3, #56]
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 671              		.loc 1 295 0
+ 672 0074 3C1093E5 		ldr	r1, [r3, #60]
+ 673 0078 0410C101 		biceq	r1, r1, r4
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	}
+ 674              		.loc 1 302 0
+ 675 007c 01108411 		orrne	r1, r4, r1
+ 676 0080 3C1083E5 		str	r1, [r3, #60]
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Set interrupt handler */
+ 677              		.loc 1 305 0
+ 678 0084 603096E5 		ldr	r3, [r6, #96]
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	exti_configs[exti->pin].enabled = TRUE;
+ 679              		.loc 1 307 0
+ 680 0088 041095E5 		ldr	r1, [r5, #4]
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Set interrupt handler */
+ 681              		.loc 1 305 0
+ 682 008c 033084E1 		orr	r3, r4, r3
+ 683 0090 603086E5 		str	r3, [r6, #96]
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	exti_configs[exti->pin].enabled = TRUE;
+ 684              		.loc 1 307 0
+ 685 0094 2C309FE5 		ldr	r3, .L106+8
+ 686 0098 821183E7 		str	r1, [r3, r2, asl #3]
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Register interrupt handler */
+ 687              		.loc 1 308 0
+ 688 009c 823183E0 		add	r3, r3, r2, asl #3
+ 689 00a0 0120A0E3 		mov	r2, #1
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Enable external interrupt */
+ 690              		.loc 1 310 0
+ 691 00a4 20109FE5 		ldr	r1, .L106+12
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Register interrupt handler */
+ 692              		.loc 1 308 0
+ 693 00a8 0420C3E5 		strb	r2, [r3, #4]
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Enable external interrupt */
+ 694              		.loc 1 310 0
+ 695 00ac FEFFFFEB 		bl	vic_register_irq
+ 696              	.LVL39:
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 697              		.loc 1 312 0
+ 698 00b0 303096E5 		ldr	r3, [r6, #48]
+ 699 00b4 034084E1 		orr	r4, r4, r3
+ 700              	.LVL40:
+ 701 00b8 304086E5 		str	r4, [r6, #48]
+ 702 00bc 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 703              	.L107:
+ 704              		.align	2
+ 705              	.L106:
+ 706 00c0 00000000 		.word	.LANCHOR6
+ 707 00c4 00F00202 		.word	33746944
+ 708 00c8 00000000 		.word	.LANCHOR0
+ 709 00cc 00000000 		.word	EXTI_IRQHandler
+ 710              		.cfi_endproc
+ 711              	.LFE6:
+ 713              		.section	.text.hal_gpio_disable_exti,"ax",%progbits
+ 714              		.align	2
+ 715              		.global	hal_gpio_disable_exti
+ 717              	hal_gpio_disable_exti:
+ 718              	.LFB7:
+ 320:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	hal_gpio_reg_t	*gpio_reg = GPIO;
+ 719              		.loc 1 320 0
+ 720              		.cfi_startproc
+ 721              		@ args = 0, pretend = 0, frame = 0
+ 722              		@ frame_needed = 0, uses_anonymous_args = 0
+ 723              	.LVL41:
+ 724 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 725              	.LCFI6:
+ 726              		.cfi_def_cfa_offset 8
+ 727              		.cfi_offset 4, -8
+ 728              		.cfi_offset 14, -4
+ 325:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(GPIO_PORTA, exti->pin));
+ 729              		.loc 1 325 0
+ 730 0004 004050E2 		subs	r4, r0, #0
+ 731 0008 0200001A 		bne	.L109
+ 325:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	assert_param(IS_GPIO_PORT_PIN(GPIO_PORTA, exti->pin));
+ 732              		.loc 1 325 0 is_stmt 0 discriminator 1
+ 733 000c 70009FE5 		ldr	r0, .L116
+ 734              	.LVL42:
+ 735 0010 451100E3 		movw	r1, #325
+ 736 0014 FEFFFFEB 		bl	assert_failed
+ 737              	.LVL43:
+ 738              	.L109:
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 739              		.loc 1 326 0 is_stmt 1
+ 740 0018 0030D4E5 		ldrb	r3, [r4]	@ zero_extendqisi2
+ 741 001c 090053E3 		cmp	r3, #9
+ 742 0020 0200009A 		bls	.L110
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 743              		.loc 1 326 0 is_stmt 0 discriminator 1
+ 744 0024 58009FE5 		ldr	r0, .L116
+ 745 0028 461100E3 		movw	r1, #326
+ 746 002c FEFFFFEB 		bl	assert_failed
+ 747              	.LVL44:
+ 748              	.L110:
+ 329:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Clear interrupt handler */
+ 749              		.loc 1 329 0 is_stmt 1
+ 750 0030 50209FE5 		ldr	r2, .L116+4
+ 751 0034 0100A0E3 		mov	r0, #1
+ 752 0038 0010D4E5 		ldrb	r1, [r4]	@ zero_extendqisi2
+ 753 003c 303092E5 		ldr	r3, [r2, #48]
+ 754 0040 1031C3E1 		bic	r3, r3, r0, asl r1
+ 755 0044 303082E5 		str	r3, [r2, #48]
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	exti_configs[exti->pin].enabled = FALSE;
+ 756              		.loc 1 331 0
+ 757 0048 0030A0E3 		mov	r3, #0
+ 758 004c 38209FE5 		ldr	r2, .L116+8
+ 759 0050 813182E7 		str	r3, [r2, r1, asl #3]
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 	/* Unregister interrupt handler */
+ 760              		.loc 1 332 0
+ 761 0054 811182E0 		add	r1, r2, r1, asl #3
+ 762 0058 0430C1E5 		strb	r3, [r1, #4]
+ 763              	.LVL45:
+ 764              	.L112:
+ 765 005c 031082E0 		add	r1, r2, r3
+ 335:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 			break;
+ 766              		.loc 1 335 0
+ 767 0060 0410D1E5 		ldrb	r1, [r1, #4]	@ zero_extendqisi2
+ 768 0064 010051E3 		cmp	r1, #1
+ 769 0068 1080BD08 		ldmeqfd	sp!, {r4, pc}
+ 770 006c 083083E2 		add	r3, r3, #8
+ 334:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 		if (TRUE == exti_configs[i].enabled)
+ 771              		.loc 1 334 0 discriminator 2
+ 772 0070 800053E3 		cmp	r3, #128
+ 773 0074 F8FFFF1A 		bne	.L112
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 774              		.loc 1 338 0
+ 775 0078 3000A0E3 		mov	r0, #48
+ 339:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** 
+ 776              		.loc 1 339 0
+ 777 007c 1040BDE8 		ldmfd	sp!, {r4, lr}
+ 778              	.LCFI7:
+ 779              		.cfi_restore 14
+ 780              		.cfi_restore 4
+ 781              		.cfi_def_cfa_offset 0
+ 782              	.LVL46:
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_gpio.c **** }
+ 783              		.loc 1 338 0
+ 784 0080 FEFFFFEA 		b	vic_unregister_irq
+ 785              	.LVL47:
+ 786              	.L117:
+ 787              		.align	2
+ 788              	.L116:
+ 789 0084 00000000 		.word	.LANCHOR7
+ 790 0088 00F00202 		.word	33746944
+ 791 008c 00000000 		.word	.LANCHOR0
+ 792              		.cfi_endproc
+ 793              	.LFE7:
+ 795              		.section	.rodata.__FUNCTION__.6351,"a",%progbits
+ 796              		.set	.LANCHOR1,. + 0
+ 799              	__FUNCTION__.6351:
+ 800 0000 68616C5F 		.ascii	"hal_gpio_init\000"
+ 800      6770696F 
+ 800      5F696E69 
+ 800      7400
+ 801              		.section	.rodata.__FUNCTION__.6361,"a",%progbits
+ 802              		.set	.LANCHOR3,. + 0
+ 805              	__FUNCTION__.6361:
+ 806 0000 68616C5F 		.ascii	"hal_gpio_set_high\000"
+ 806      6770696F 
+ 806      5F736574 
+ 806      5F686967 
+ 806      6800
+ 807              		.section	.rodata.__FUNCTION__.6356,"a",%progbits
+ 808              		.set	.LANCHOR2,. + 0
+ 811              	__FUNCTION__.6356:
+ 812 0000 68616C5F 		.ascii	"hal_gpio_set_low\000"
+ 812      6770696F 
+ 812      5F736574 
+ 812      5F6C6F77 
+ 812      00
+ 813              		.section	.rodata.__FUNCTION__.6366,"a",%progbits
+ 814              		.set	.LANCHOR4,. + 0
+ 817              	__FUNCTION__.6366:
+ 818 0000 68616C5F 		.ascii	"hal_gpio_toggle\000"
+ 818      6770696F 
+ 818      5F746F67 
+ 818      676C6500 
+ 819              		.section	.rodata.__FUNCTION__.6372,"a",%progbits
+ 820              		.set	.LANCHOR5,. + 0
+ 823              	__FUNCTION__.6372:
+ 824 0000 68616C5F 		.ascii	"hal_gpio_read\000"
+ 824      6770696F 
+ 824      5F726561 
+ 824      6400
+ 825              		.section	.bss.exti_configs,"aw",%nobits
+ 826              		.align	2
+ 827              		.set	.LANCHOR0,. + 0
+ 830              	exti_configs:
+ 831 0000 00000000 		.space	128
+ 831      00000000 
+ 831      00000000 
+ 831      00000000 
+ 831      00000000 
+ 832              		.section	.rodata.__FUNCTION__.6378,"a",%progbits
+ 833              		.set	.LANCHOR6,. + 0
+ 836              	__FUNCTION__.6378:
+ 837 0000 68616C5F 		.ascii	"hal_gpio_enable_exti\000"
+ 837      6770696F 
+ 837      5F656E61 
+ 837      626C655F 
+ 837      65787469 
+ 838              		.section	.rodata.__FUNCTION__.6384,"a",%progbits
+ 839              		.set	.LANCHOR7,. + 0
+ 842              	__FUNCTION__.6384:
+ 843 0000 68616C5F 		.ascii	"hal_gpio_disable_exti\000"
+ 843      6770696F 
+ 843      5F646973 
+ 843      61626C65 
+ 843      5F657874 
+ 844              		.text
+ 845              	.Letext0:
+ 846              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 847              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 848              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_gpio.h"
+ 849              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 850              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+ 851              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/common/assert.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_gpio.c
+     /tmp/cckDWaAZ.s:17     .text.EXTI_IRQHandler:00000000 $a
+     /tmp/cckDWaAZ.s:19     .text.EXTI_IRQHandler:00000000 EXTI_IRQHandler
+     /tmp/cckDWaAZ.s:63     .text.EXTI_IRQHandler:0000004c $d
+     /tmp/cckDWaAZ.s:69     .text.hal_gpio_init:00000000 $a
+     /tmp/cckDWaAZ.s:72     .text.hal_gpio_init:00000000 hal_gpio_init
+     /tmp/cckDWaAZ.s:164    .text.hal_gpio_init:000000bc $d
+     /tmp/cckDWaAZ.s:173    .text.hal_gpio_set_low:00000000 $a
+     /tmp/cckDWaAZ.s:176    .text.hal_gpio_set_low:00000000 hal_gpio_set_low
+     /tmp/cckDWaAZ.s:272    .text.hal_gpio_set_low:000000c8 $d
+     /tmp/cckDWaAZ.s:278    .text.hal_gpio_set_high:00000000 $a
+     /tmp/cckDWaAZ.s:281    .text.hal_gpio_set_high:00000000 hal_gpio_set_high
+     /tmp/cckDWaAZ.s:377    .text.hal_gpio_set_high:000000c8 $d
+     /tmp/cckDWaAZ.s:383    .text.hal_gpio_toggle:00000000 $a
+     /tmp/cckDWaAZ.s:386    .text.hal_gpio_toggle:00000000 hal_gpio_toggle
+     /tmp/cckDWaAZ.s:482    .text.hal_gpio_toggle:000000c8 $d
+     /tmp/cckDWaAZ.s:488    .text.hal_gpio_read:00000000 $a
+     /tmp/cckDWaAZ.s:491    .text.hal_gpio_read:00000000 hal_gpio_read
+     /tmp/cckDWaAZ.s:599    .text.hal_gpio_read:000000d8 $d
+     /tmp/cckDWaAZ.s:605    .text.hal_gpio_enable_exti:00000000 $a
+     /tmp/cckDWaAZ.s:608    .text.hal_gpio_enable_exti:00000000 hal_gpio_enable_exti
+     /tmp/cckDWaAZ.s:706    .text.hal_gpio_enable_exti:000000c0 $d
+     /tmp/cckDWaAZ.s:714    .text.hal_gpio_disable_exti:00000000 $a
+     /tmp/cckDWaAZ.s:717    .text.hal_gpio_disable_exti:00000000 hal_gpio_disable_exti
+     /tmp/cckDWaAZ.s:789    .text.hal_gpio_disable_exti:00000084 $d
+     /tmp/cckDWaAZ.s:799    .rodata.__FUNCTION__.6351:00000000 __FUNCTION__.6351
+     /tmp/cckDWaAZ.s:805    .rodata.__FUNCTION__.6361:00000000 __FUNCTION__.6361
+     /tmp/cckDWaAZ.s:811    .rodata.__FUNCTION__.6356:00000000 __FUNCTION__.6356
+     /tmp/cckDWaAZ.s:817    .rodata.__FUNCTION__.6366:00000000 __FUNCTION__.6366
+     /tmp/cckDWaAZ.s:823    .rodata.__FUNCTION__.6372:00000000 __FUNCTION__.6372
+     /tmp/cckDWaAZ.s:826    .bss.exti_configs:00000000 $d
+     /tmp/cckDWaAZ.s:830    .bss.exti_configs:00000000 exti_configs
+     /tmp/cckDWaAZ.s:836    .rodata.__FUNCTION__.6378:00000000 __FUNCTION__.6378
+     /tmp/cckDWaAZ.s:842    .rodata.__FUNCTION__.6384:00000000 __FUNCTION__.6384
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed
+vic_register_irq
+vic_unregister_irq

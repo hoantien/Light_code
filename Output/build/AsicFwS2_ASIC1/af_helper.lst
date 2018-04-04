@@ -1,0 +1,2922 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"af_helper.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.rx_cb,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	rx_cb:
+  24              	.LFB3:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * @file    af_helper.c
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * @author  The LightCo
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * @version V1.0.0
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * @date    Jul-13-2016
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  * @brief   This file contain the real implementation for each UCID handler.
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  *
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****  ******************************************************************************/
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #include "af_helper.h"
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #define READ_BACK(ADDR)		(*(uint32_t *)((uint32_t)(ADDR)))
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #define SLOGF_ID						SLOG_ID_AF_CTRL
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** SemaphoreHandle_t move_frame_done_sem_;
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int mipi_rx_convert_in_halfword(uint16_t width, mipi2axi_data_type_t data_type,
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 								mipi2axi_stream_mode_t mode)
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int num_of_halfword;
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int bits_per_pixel;
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	switch(data_type)
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		case MIPI2AXI_RAW10:
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			bits_per_pixel = 10;
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			break;
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		case MIPI2AXI_RAW12:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			bits_per_pixel = 12;
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			break;
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		case MIPI2AXI_RAW14:
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			bits_per_pixel = 14;
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			break;
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		case MIPI2AXI_RAW8:
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		default:
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			bits_per_pixel = 8;
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			break;
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(mode == MIPI2AXI_SNAPSHOT_MODE)
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* 10bits per pixel would be packed in 16 bytes */
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		num_of_halfword = (width * bits_per_pixel) / 8;
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* If it is not exactly multiple of 16 then do +1 to it */
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if((num_of_halfword % 16) != 0)
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			num_of_halfword = (num_of_halfword / 16) + 1;
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			num_of_halfword = (num_of_halfword / 16);
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* num_of_halfword should be num_of_pixels*2/16
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		 * because 1 pixel occupies 2 bytes */
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		num_of_halfword = (width * 2) / 16;
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return num_of_halfword;
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static void frame_captured_cb(void)
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	BaseType_t higher_pri_task_woken = pdFALSE;
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	xSemaphoreGiveFromISR(move_frame_done_sem_, &higher_pri_task_woken);
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	portEND_SWITCHING_ISR(higher_pri_task_woken);
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static void rx_cb(uint8_t iidx, uint32_t signal_irq,
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 										uint32_t error, void *user_data)
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+  26              		.loc 1 77 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 8
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(signal_irq & R1_VC0_FRAME_END)
+  31              		.loc 1 78 0
+  32 0000 CB00     		lsls	r3, r1, #3
+  33              	.LVL1:
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(signal_irq & R1_VC0_FRAME_END)
+  34              		.loc 1 77 0
+  35 0002 07B5     		push	{r0, r1, r2, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 16
+  38              		.cfi_offset 14, -4
+  39              		.loc 1 78 0
+  40 0004 13D5     		bpl	.L1
+  41              	.LVL2:
+  42              	.LBB9:
+  43              	.LBB10:
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		unsigned int error_val = READ_MIPI2AXI_REG(iidx, INT2_ST_REG);
+  44              		.loc 1 80 0
+  45 0006 0003     		lsls	r0, r0, #12
+  46              	.LVL3:
+  47 0008 0A4B     		ldr	r3, .L15
+  48 000a C158     		ldr	r1, [r0, r3]
+  49              	.LVL4:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(error_val)
+  50              		.loc 1 81 0
+  51 000c 11B1     		cbz	r1, .L3
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			printf("\r\nMIPI Error: %x \r\n", error_val);
+  52              		.loc 1 82 0
+  53 000e 0A48     		ldr	r0, .L15+4
+  54 0010 0A4B     		ldr	r3, .L15+8
+  55 0012 9847     		blx	r3
+  56              	.LVL5:
+  57              	.L3:
+  58              	.LBB11:
+  59              	.LBB12:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	xSemaphoreGiveFromISR(move_frame_done_sem_, &higher_pri_task_woken);
+  60              		.loc 1 70 0
+  61 0014 02A9     		add	r1, sp, #8
+  62 0016 0023     		movs	r3, #0
+  63 0018 41F8043D 		str	r3, [r1, #-4]!
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	portEND_SWITCHING_ISR(higher_pri_task_woken);
+  64              		.loc 1 71 0
+  65 001c 084B     		ldr	r3, .L15+12
+  66 001e 1868     		ldr	r0, [r3]
+  67 0020 084B     		ldr	r3, .L15+16
+  68 0022 9847     		blx	r3
+  69              	.LVL6:
+  70              	.LBB13:
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+  71              		.loc 1 72 0
+  72 0024 019B     		ldr	r3, [sp, #4]
+  73 0026 13B1     		cbz	r3, .L1
+  74 0028 0122     		movs	r2, #1
+  75 002a 074B     		ldr	r3, .L15+20
+  76 002c 1A60     		str	r2, [r3]
+  77              	.LVL7:
+  78              	.L1:
+  79              	.LBE13:
+  80              	.LBE12:
+  81              	.LBE11:
+  82              	.LBE10:
+  83              	.LBE9:
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		frame_captured_cb();
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+  84              		.loc 1 86 0
+  85 002e 03B0     		add	sp, sp, #12
+  86              	.LCFI1:
+  87              		.cfi_def_cfa_offset 4
+  88              		@ sp needed
+  89 0030 5DF804FB 		ldr	pc, [sp], #4
+  90              	.L16:
+  91              		.align	2
+  92              	.L15:
+  93 0034 48700202 		.word	33714248
+  94 0038 00000000 		.word	.LC0
+  95 003c 00000000 		.word	printf
+  96 0040 00000000 		.word	.LANCHOR0
+  97 0044 00000000 		.word	xQueueGiveFromISR
+  98 0048 00000000 		.word	ulPortYieldRequired
+  99              		.cfi_endproc
+ 100              	.LFE3:
+ 102              		.section	.text.setup_mipi_rx_roi_snapshot,"ax",%progbits
+ 103              		.align	1
+ 104              		.global	setup_mipi_rx_roi_snapshot
+ 105              		.thumb
+ 106              		.thumb_func
+ 108              	setup_mipi_rx_roi_snapshot:
+ 109              	.LFB4:
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** void setup_mipi_rx_roi_snapshot(uint8_t port_idx, uint16_t width,
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 								uint16_t height,
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 								uint32_t address, mipi2axi_callback af_cb,
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 								void* cb_user_data)
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 110              		.loc 1 93 0
+ 111              		.cfi_startproc
+ 112              		@ args = 8, pretend = 0, frame = 24
+ 113              		@ frame_needed = 0, uses_anonymous_args = 0
+ 114              	.LVL8:
+ 115 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 116              	.LCFI2:
+ 117              		.cfi_def_cfa_offset 28
+ 118              		.cfi_offset 4, -28
+ 119              		.cfi_offset 5, -24
+ 120              		.cfi_offset 6, -20
+ 121              		.cfi_offset 7, -16
+ 122              		.cfi_offset 8, -12
+ 123              		.cfi_offset 9, -8
+ 124              		.cfi_offset 14, -4
+ 125 0004 8846     		mov	r8, r1
+ 126              	.LBB16:
+ 127              	.LBB17:
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* If it is not exactly multiple of 16 then do +1 to it */
+ 128              		.loc 1 52 0
+ 129 0006 0A25     		movs	r5, #10
+ 130              	.LBE17:
+ 131              	.LBE16:
+ 132              		.loc 1 93 0
+ 133 0008 8BB0     		sub	sp, sp, #44
+ 134              	.LCFI3:
+ 135              		.cfi_def_cfa_offset 72
+ 136              		.loc 1 93 0
+ 137 000a 1C46     		mov	r4, r3
+ 138 000c 1646     		mov	r6, r2
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Initialize MIPI RX DPHY */
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_mipi2axi_init(port_idx);
+ 139              		.loc 1 95 0
+ 140 000e 3B4B     		ldr	r3, .L26
+ 141              	.LVL9:
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Initialize MIPI RX DPHY */
+ 142              		.loc 1 93 0
+ 143 0010 0746     		mov	r7, r0
+ 144              	.LBB20:
+ 145              	.LBB18:
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* If it is not exactly multiple of 16 then do +1 to it */
+ 146              		.loc 1 52 0
+ 147 0012 05FB08F5 		mul	r5, r5, r8
+ 148              	.LBE18:
+ 149              	.LBE20:
+ 150              		.loc 1 95 0
+ 151 0016 9847     		blx	r3
+ 152              	.LVL10:
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Configure stream mode */
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_data_type_t data_type 			= MIPI2AXI_RAW10;
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property_t mipi2axi_property;
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.vc_option				= MIPI2AXI_VC0_CH;
+ 153              		.loc 1 100 0
+ 154 0018 0122     		movs	r2, #1
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.addr.dst_addr			= address;
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.addr.alu_src_addr 	= 0; /* don't care */
+ 155              		.loc 1 102 0
+ 156 001a 0023     		movs	r3, #0
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.addr.dst_addr			= address;
+ 157              		.loc 1 100 0
+ 158 001c 8DF81420 		strb	r2, [sp, #20]
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_type.vc_will_captured = MIPI2AXI_VC0_CH;
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_type.data_type	= data_type;
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_size.height		= height;
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_size.width		= width;
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.stream_mode 			= MIPI2AXI_SNAPSHOT_MODE;
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_mipi2axi_set_stream_property(port_idx, &mipi2axi_property);
+ 159              		.loc 1 108 0
+ 160 0020 3846     		mov	r0, r7
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_type.vc_will_captured = MIPI2AXI_VC0_CH;
+ 161              		.loc 1 103 0
+ 162 0022 8DF82120 		strb	r2, [sp, #33]
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_size.height		= height;
+ 163              		.loc 1 104 0
+ 164 0026 2B22     		movs	r2, #43
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_type.vc_will_captured = MIPI2AXI_VC0_CH;
+ 165              		.loc 1 102 0
+ 166 0028 0693     		str	r3, [sp, #24]
+ 167              		.loc 1 108 0
+ 168 002a 05A9     		add	r1, sp, #20
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_mipi2axi_set_stream_property(port_idx, &mipi2axi_property);
+ 169              		.loc 1 107 0
+ 170 002c 8DF81530 		strb	r3, [sp, #21]
+ 171              		.loc 1 108 0
+ 172 0030 334B     		ldr	r3, .L26+4
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.addr.alu_src_addr 	= 0; /* don't care */
+ 173              		.loc 1 101 0
+ 174 0032 0794     		str	r4, [sp, #28]
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_size.height		= height;
+ 175              		.loc 1 104 0
+ 176 0034 8DF82020 		strb	r2, [sp, #32]
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.img_size.width		= width;
+ 177              		.loc 1 105 0
+ 178 0038 ADF82460 		strh	r6, [sp, #36]	@ movhi
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	mipi2axi_property.stream_mode 			= MIPI2AXI_SNAPSHOT_MODE;
+ 179              		.loc 1 106 0
+ 180 003c ADF82280 		strh	r8, [sp, #34]	@ movhi
+ 181              		.loc 1 108 0
+ 182 0040 9847     		blx	r3
+ 183              	.LVL11:
+ 184              	.LBB21:
+ 185              	.LBB19:
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			num_of_halfword = (num_of_halfword / 16) + 1;
+ 186              		.loc 1 54 0
+ 187 0042 15F0780F 		tst	r5, #120
+ 188 0046 4FEAE515 		asr	r5, r5, #7
+ 189              	.LVL12:
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else
+ 190              		.loc 1 55 0
+ 191 004a 18BF     		it	ne
+ 192 004c 0135     		addne	r5, r5, #1
+ 193              	.LVL13:
+ 194              	.LBE19:
+ 195              	.LBE21:
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Setup the DMA wrap around function as the data received
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	 * will be more than the space available in TCM. */
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Calculate image pixel */
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int img_px = mipi_rx_convert_in_halfword(width, data_type,
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			MIPI2AXI_SNAPSHOT_MODE) * 16;
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Calculate max height base on address: SRAM ATCM BTCM DDR READ IN reset_handler.s*/
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t size = 0;
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t height_max = 0;
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(address < ATCM_BASE)
+ 196              		.loc 1 118 0
+ 197 004e B4F14C7F 		cmp	r4, #53477376
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			MIPI2AXI_SNAPSHOT_MODE) * 16;
+ 198              		.loc 1 113 0
+ 199 0052 4FEA0515 		lsl	r5, r5, #4
+ 200              	.LVL14:
+ 201 0056 DFF8D090 		ldr	r9, .L26+44
+ 202              		.loc 1 118 0
+ 203 005a 03D2     		bcs	.L20
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* SRAM region */
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "SRAM region: %X", address);
+ 204              		.loc 1 121 0
+ 205 005c 2A20     		movs	r0, #42
+ 206 005e 1021     		movs	r1, #16
+ 207 0060 284A     		ldr	r2, .L26+8
+ 208 0062 26E0     		b	.L24
+ 209              	.L20:
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else if(address >= ATCM_BASE && address < (ATCM_BASE + ATCM_SIZE))
+ 210              		.loc 1 123 0
+ 211 0064 A4F14C73 		sub	r3, r4, #53477376
+ 212 0068 B3F5803F 		cmp	r3, #65536
+ 213 006c 09D2     		bcs	.L22
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* ATCM region */
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "ATCM region: %X", address);
+ 214              		.loc 1 126 0
+ 215 006e 2346     		mov	r3, r4
+ 216 0070 2A20     		movs	r0, #42
+ 217 0072 1021     		movs	r1, #16
+ 218 0074 244A     		ldr	r2, .L26+12
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		size = ATCM_BASE + ATCM_SIZE - address;
+ 219              		.loc 1 127 0
+ 220 0076 C4F14C74 		rsb	r4, r4, #53477376
+ 221              	.LVL15:
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		size = ATCM_BASE + ATCM_SIZE - address;
+ 222              		.loc 1 126 0
+ 223 007a C847     		blx	r9
+ 224              	.LVL16:
+ 225              		.loc 1 127 0
+ 226 007c 04F58034 		add	r4, r4, #65536
+ 227              	.LVL17:
+ 228 0080 0FE0     		b	.L25
+ 229              	.LVL18:
+ 230              	.L22:
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		height_max = size / img_px;
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		height = height < height_max ? height : height_max;
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else if(address >= BTCM_BASE && address < (BTCM_BASE + BTCM_SIZE))
+ 231              		.loc 1 131 0
+ 232 0082 A4F15073 		sub	r3, r4, #54525952
+ 233 0086 B3F5003F 		cmp	r3, #131072
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* BTCM region */
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "BTCM region: %X", address);
+ 234              		.loc 1 134 0
+ 235 008a 4FF02A00 		mov	r0, #42
+ 236 008e 4FF01001 		mov	r1, #16
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 237              		.loc 1 131 0
+ 238 0092 0DD2     		bcs	.L23
+ 239              		.loc 1 134 0
+ 240 0094 2346     		mov	r3, r4
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		size = BTCM_BASE + BTCM_SIZE - address;
+ 241              		.loc 1 135 0
+ 242 0096 C4F15074 		rsb	r4, r4, #54525952
+ 243              	.LVL19:
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		size = BTCM_BASE + BTCM_SIZE - address;
+ 244              		.loc 1 134 0
+ 245 009a 1C4A     		ldr	r2, .L26+16
+ 246              		.loc 1 135 0
+ 247 009c 04F50034 		add	r4, r4, #131072
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		size = BTCM_BASE + BTCM_SIZE - address;
+ 248              		.loc 1 134 0
+ 249 00a0 C847     		blx	r9
+ 250              	.LVL20:
+ 251              	.L25:
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		height_max = size / img_px;
+ 252              		.loc 1 136 0
+ 253 00a2 B4FBF5F3 		udiv	r3, r4, r5
+ 254              	.LVL21:
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		height = height < height_max ? height : height_max;
+ 255              		.loc 1 137 0
+ 256 00a6 9E42     		cmp	r6, r3
+ 257 00a8 28BF     		it	cs
+ 258 00aa 1E46     		movcs	r6, r3
+ 259 00ac B6B2     		uxth	r6, r6
+ 260              	.LVL22:
+ 261 00ae 04E0     		b	.L21
+ 262              	.LVL23:
+ 263              	.L23:
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* DDR region */
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "DDR region: %X", address);
+ 264              		.loc 1 142 0
+ 265 00b0 174A     		ldr	r2, .L26+20
+ 266              	.L24:
+ 267 00b2 2346     		mov	r3, r4
+ 268 00b4 C847     		blx	r9
+ 269              	.LVL24:
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(address < ATCM_BASE)
+ 270              		.loc 1 117 0
+ 271 00b6 0023     		movs	r3, #0
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t height_max = 0;
+ 272              		.loc 1 116 0
+ 273 00b8 1C46     		mov	r4, r3
+ 274              	.LVL25:
+ 275              	.L21:
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG,
+ 276              		.loc 1 144 0
+ 277 00ba 8DE80801 		stmia	sp, {r3, r8}
+ 278 00be 2A20     		movs	r0, #42
+ 279 00c0 0394     		str	r4, [sp, #12]
+ 280 00c2 3346     		mov	r3, r6
+ 281              	.LVL26:
+ 282 00c4 0295     		str	r5, [sp, #8]
+ 283 00c6 1021     		movs	r1, #16
+ 284 00c8 124A     		ldr	r2, .L26+24
+ 285 00ca C847     		blx	r9
+ 286              	.LVL27:
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			"height: %d max: %d, width: %d, image pixel: %d, size: %d", height,
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			height_max, width, img_px, size);
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Configure wrap */
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_mipi2axi_wrap_cfg(port_idx, MIPI2AXI_VC0_CH, height, ENABLE);
+ 287              		.loc 1 148 0
+ 288 00cc 0121     		movs	r1, #1
+ 289 00ce 3846     		mov	r0, r7
+ 290 00d0 3246     		mov	r2, r6
+ 291 00d2 0B46     		mov	r3, r1
+ 292 00d4 104C     		ldr	r4, .L26+28
+ 293              	.LVL28:
+ 294 00d6 A047     		blx	r4
+ 295              	.LVL29:
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Configure interrupt */
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_mipi2axi_irq_mask(
+ 296              		.loc 1 151 0
+ 297 00d8 3846     		mov	r0, r7
+ 298 00da 3021     		movs	r1, #48
+ 299 00dc 4FF08852 		mov	r2, #285212672
+ 300 00e0 0123     		movs	r3, #1
+ 301 00e2 0E4C     		ldr	r4, .L26+32
+ 302 00e4 A047     		blx	r4
+ 303              	.LVL30:
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			port_idx,
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			MIPI2AXI_SIGNAL_MASK_INTR,
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			R1_VC0_FRAME_END | R1_VC0_FRAME_START,
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			ENABLE);
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_mipi2axi_irq_enable(port_idx, af_cb, cb_user_data);
+ 304              		.loc 1 156 0
+ 305 00e6 3846     		mov	r0, r7
+ 306 00e8 1299     		ldr	r1, [sp, #72]
+ 307 00ea 139A     		ldr	r2, [sp, #76]
+ 308 00ec 0C4B     		ldr	r3, .L26+36
+ 309 00ee 9847     		blx	r3
+ 310              	.LVL31:
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Start MIPI 2 AXI */
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_mipi2axi_start(port_idx);
+ 311              		.loc 1 159 0
+ 312 00f0 3846     		mov	r0, r7
+ 313 00f2 0C4B     		ldr	r3, .L26+40
+ 314 00f4 9847     		blx	r3
+ 315              	.LVL32:
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 316              		.loc 1 160 0
+ 317 00f6 0BB0     		add	sp, sp, #44
+ 318              	.LCFI4:
+ 319              		.cfi_def_cfa_offset 28
+ 320              		@ sp needed
+ 321 00f8 BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 322              	.LVL33:
+ 323              	.L27:
+ 324              		.align	2
+ 325              	.L26:
+ 326 00fc 00000000 		.word	hal_mipi2axi_init
+ 327 0100 00000000 		.word	hal_mipi2axi_set_stream_property
+ 328 0104 14000000 		.word	.LC1
+ 329 0108 24000000 		.word	.LC2
+ 330 010c 34000000 		.word	.LC3
+ 331 0110 44000000 		.word	.LC4
+ 332 0114 53000000 		.word	.LC5
+ 333 0118 00000000 		.word	hal_mipi2axi_wrap_cfg
+ 334 011c 00000000 		.word	hal_mipi2axi_irq_mask
+ 335 0120 00000000 		.word	hal_mipi2axi_irq_enable
+ 336 0124 00000000 		.word	hal_mipi2axi_start
+ 337 0128 00000000 		.word	slogf
+ 338              		.cfi_endproc
+ 339              	.LFE4:
+ 341              		.section	.text.setup_roi_mipi,"ax",%progbits
+ 342              		.align	1
+ 343              		.global	setup_roi_mipi
+ 344              		.thumb
+ 345              		.thumb_func
+ 347              	setup_roi_mipi:
+ 348              	.LFB5:
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** int setup_roi_mipi(cam_typedef_t *pcam, uint16_t x_position,
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		uint16_t y_position, uint16_t x_width, uint16_t y_width, uint16_t scale,
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		uint32_t destination, uint8_t mipi_rx_chid,  mipi2axi_callback af_cb, void* cb_user_data)
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 349              		.loc 1 165 0
+ 350              		.cfi_startproc
+ 351              		@ args = 24, pretend = 0, frame = 0
+ 352              		@ frame_needed = 0, uses_anonymous_args = 0
+ 353              	.LVL34:
+ 354 0000 2DE9F347 		push	{r0, r1, r4, r5, r6, r7, r8, r9, r10, lr}
+ 355              	.LCFI5:
+ 356              		.cfi_def_cfa_offset 40
+ 357              		.cfi_offset 4, -32
+ 358              		.cfi_offset 5, -28
+ 359              		.cfi_offset 6, -24
+ 360              		.cfi_offset 7, -20
+ 361              		.cfi_offset 8, -16
+ 362              		.cfi_offset 9, -12
+ 363              		.cfi_offset 10, -8
+ 364              		.cfi_offset 14, -4
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Get CAM port index number on EVB board */
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint8_t preview_ins = pcam->info.ch - 1;
+ 365              		.loc 1 167 0
+ 366 0004 90F82840 		ldrb	r4, [r0, #40]	@ zero_extendqisi2
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Get CAM port index number on EVB board */
+ 367              		.loc 1 165 0
+ 368 0008 9DF83450 		ldrb	r5, [sp, #52]	@ zero_extendqisi2
+ 369              		.loc 1 167 0
+ 370 000c C4F30304 		ubfx	r4, r4, #0, #4
+ 371 0010 013C     		subs	r4, r4, #1
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Get CAM port index number on EVB board */
+ 372              		.loc 1 165 0
+ 373 0012 0746     		mov	r7, r0
+ 374 0014 8A46     		mov	r10, r1
+ 375              		.loc 1 167 0
+ 376 0016 E4B2     		uxtb	r4, r4
+ 377              	.LVL35:
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(preview_ins == mipi_rx_chid)
+ 378              		.loc 1 169 0
+ 379 0018 AC42     		cmp	r4, r5
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Get CAM port index number on EVB board */
+ 380              		.loc 1 165 0
+ 381 001a 9146     		mov	r9, r2
+ 382 001c 9846     		mov	r8, r3
+ 383 001e 254E     		ldr	r6, .L32
+ 384              		.loc 1 169 0
+ 385 0020 19D1     		bne	.L29
+ 386              	.LVL36:
+ 387              	.LBB22:
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		uint8_t ret = 0;
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Duplication is not required */
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "Duplication is not required - RX_ID: %d ", preview_ins);
+ 388              		.loc 1 173 0
+ 389 0022 2346     		mov	r3, r4
+ 390              	.LVL37:
+ 391 0024 2A20     		movs	r0, #42
+ 392              	.LVL38:
+ 393 0026 1021     		movs	r1, #16
+ 394              	.LVL39:
+ 395 0028 234A     		ldr	r2, .L32+4
+ 396              	.LVL40:
+ 397 002a B047     		blx	r6
+ 398              	.LVL41:
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Configure the sensor in ROI mode */
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = img_sensor_cropping(pcam->image, x_position, y_position, x_width, y_width, scale);
+ 399              		.loc 1 175 0
+ 400 002c BDF82830 		ldrh	r3, [sp, #40]
+ 401 0030 0093     		str	r3, [sp]
+ 402 0032 BDF82C30 		ldrh	r3, [sp, #44]
+ 403 0036 0193     		str	r3, [sp, #4]
+ 404 0038 5146     		mov	r1, r10
+ 405 003a 3868     		ldr	r0, [r7]
+ 406 003c 4A46     		mov	r2, r9
+ 407 003e 4346     		mov	r3, r8
+ 408 0040 1E4C     		ldr	r4, .L32+8
+ 409              	.LVL42:
+ 410 0042 A047     		blx	r4
+ 411              	.LVL43:
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(!ret)
+ 412              		.loc 1 177 0
+ 413 0044 10F0FF0F 		tst	r0, #255
+ 414 0048 22D1     		bne	.L30
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_ERROR, "Configure the sensor in ROI mode unsuccessfully");
+ 415              		.loc 1 179 0
+ 416 004a 2A20     		movs	r0, #42
+ 417              	.LVL44:
+ 418 004c 0221     		movs	r1, #2
+ 419 004e 1C4A     		ldr	r2, .L32+12
+ 420 0050 B047     		blx	r6
+ 421              	.LVL45:
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			return 1;
+ 422              		.loc 1 180 0
+ 423 0052 0120     		movs	r0, #1
+ 424 0054 2AE0     		b	.L31
+ 425              	.LVL46:
+ 426              	.L29:
+ 427              	.LBE22:
+ 428              	.LBB23:
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* TODO: Use the duplicate */
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "Duplication is required: %d %d", preview_ins, mipi_rx_chid);
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Write SCU to map this cam with specify mipi_rx_chid parameter */
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		uint32_t cur = READ_BACK(SCU_BASE + 0x1C);
+ 429              		.loc 1 188 0
+ 430 0056 DFF87C90 		ldr	r9, .L32+32
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Write SCU to map this cam with specify mipi_rx_chid parameter */
+ 431              		.loc 1 186 0
+ 432 005a 2346     		mov	r3, r4
+ 433              	.LVL47:
+ 434 005c 2A20     		movs	r0, #42
+ 435              	.LVL48:
+ 436 005e 1021     		movs	r1, #16
+ 437              	.LVL49:
+ 438 0060 184A     		ldr	r2, .L32+16
+ 439              	.LVL50:
+ 440 0062 0095     		str	r5, [sp]
+ 441 0064 B047     		blx	r6
+ 442              	.LVL51:
+ 443              		.loc 1 188 0
+ 444 0066 D9F80080 		ldr	r8, [r9]
+ 445              	.LVL52:
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "SCU current: %x ", cur);
+ 446              		.loc 1 189 0
+ 447 006a 2A20     		movs	r0, #42
+ 448 006c 1021     		movs	r1, #16
+ 449 006e 164A     		ldr	r2, .L32+20
+ 450 0070 4346     		mov	r3, r8
+ 451 0072 B047     		blx	r6
+ 452              	.LVL53:
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Clear 3 bit at mipi_rx_chid position */
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cur &= ~(0x07 << (3*mipi_rx_chid));
+ 453              		.loc 1 191 0
+ 454 0074 0723     		movs	r3, #7
+ 455 0076 05EB4502 		add	r2, r5, r5, lsl #1
+ 456 007a 9340     		lsls	r3, r3, r2
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Set 3 bit at mipi_rx_chid position */
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cur |= (preview_ins << (3*mipi_rx_chid));
+ 457              		.loc 1 193 0
+ 458 007c 9440     		lsls	r4, r4, r2
+ 459              	.LVL54:
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Set 3 bit at mipi_rx_chid position */
+ 460              		.loc 1 191 0
+ 461 007e 28EA0303 		bic	r3, r8, r3
+ 462              	.LVL55:
+ 463              		.loc 1 193 0
+ 464 0082 2343     		orrs	r3, r3, r4
+ 465              	.LVL56:
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Write to SCU reg */
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		*((uint32_t *)(SCU_BASE + 0x1C)) = cur;
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* DEBUG-Read back SCU value*/
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cur = READ_BACK(SCU_BASE + 0x1C);
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "SCU mapped: %x ", cur);
+ 466              		.loc 1 199 0
+ 467 0084 2A20     		movs	r0, #42
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 468              		.loc 1 195 0
+ 469 0086 C9F80030 		str	r3, [r9]
+ 470              		.loc 1 199 0
+ 471 008a 1021     		movs	r1, #16
+ 472 008c 0F4A     		ldr	r2, .L32+24
+ 473 008e B047     		blx	r6
+ 474              	.LVL57:
+ 475              	.L30:
+ 476              	.LBE23:
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     /* Configure the RX in snapshot mode for the given ROI */
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     /* Setup snapshot on mipi_rx_chid
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****      * and set the destination address provided in the API */
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     setup_mipi_rx_roi_snapshot(mipi_rx_chid, pcam->image->x_size, pcam->image->y_size,
+ 477              		.loc 1 205 0
+ 478 0090 3B68     		ldr	r3, [r7]
+ 479 0092 B3F84610 		ldrh	r1, [r3, #70]
+ 480 0096 B3F84820 		ldrh	r2, [r3, #72]
+ 481 009a 0E9B     		ldr	r3, [sp, #56]
+ 482 009c 0093     		str	r3, [sp]
+ 483 009e 2846     		mov	r0, r5
+ 484 00a0 0F9B     		ldr	r3, [sp, #60]
+ 485 00a2 0193     		str	r3, [sp, #4]
+ 486 00a4 0A4C     		ldr	r4, .L32+28
+ 487 00a6 0C9B     		ldr	r3, [sp, #48]
+ 488 00a8 A047     		blx	r4
+ 489              	.LVL58:
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****             destination, af_cb, cb_user_data);
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return 0;
+ 490              		.loc 1 208 0
+ 491 00aa 0020     		movs	r0, #0
+ 492              	.L31:
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 493              		.loc 1 209 0
+ 494 00ac 02B0     		add	sp, sp, #8
+ 495              	.LCFI6:
+ 496              		.cfi_def_cfa_offset 32
+ 497              		@ sp needed
+ 498 00ae BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 499              	.LVL59:
+ 500              	.L33:
+ 501 00b2 00BF     		.align	2
+ 502              	.L32:
+ 503 00b4 00000000 		.word	slogf
+ 504 00b8 8C000000 		.word	.LC6
+ 505 00bc 00000000 		.word	img_sensor_cropping
+ 506 00c0 B5000000 		.word	.LC7
+ 507 00c4 E5000000 		.word	.LC8
+ 508 00c8 04010000 		.word	.LC9
+ 509 00cc 15010000 		.word	.LC10
+ 510 00d0 00000000 		.word	setup_mipi_rx_roi_snapshot
+ 511 00d4 1C000002 		.word	33554460
+ 512              		.cfi_endproc
+ 513              	.LFE5:
+ 515              		.section	.text.get_af_flip_mode,"ax",%progbits
+ 516              		.align	1
+ 517              		.global	get_af_flip_mode
+ 518              		.thumb
+ 519              		.thumb_func
+ 521              	get_af_flip_mode:
+ 522              	.LFB7:
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int sensor_sw_standby(af_setting_t* setting)
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int 			ret 		= 0;
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * cam			= setting->cam;
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_t * 	sensor		= setting->cam->image;
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t 		cam_status	= 0;
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy((uint8_t *)&cam_status, cam->settings->status, sizeof(uint32_t));
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(cam_status & S_MODULE_SW_STANDBY)
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "CAM-%X already in SW standby",
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				cam->info.module);
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = LCC_CMD_SUCCESS;
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		goto error;
+ 226:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if (!(cam_status & S_MODULE_POWER_ON))
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(img_sensor_open(sensor, HW_STANDBY))
+ 231:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 232:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			cam_status = S_MODULE_POWER_ON | S_MODULE_HW_STANDBY;
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			if(cam->info.grp == GRP_A)
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				vcm_init((vcm_t *)cam->optical->lens);
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 236:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			cam->settings->open = CAM_MODULE_CLOSE;
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_ERROR, "CAM-%X changed to SW standby failed",
+ 240:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					cam->info.module);
+ 241:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			/* Update camera status */
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			cam_status = S_ERROR_SENSOR_I2C_DETECT_FAILURE;
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			ret = 0;
+ 244:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Check if switching CAM to HW_STANDBY in previous is
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	 * successfully or failed */
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(cam_status & S_MODULE_POWER_ON)
+ 250:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(img_sensor_open(sensor, SW_STANDBY))
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 253:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			/* Recover the status to un-error state */
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			cam_status = S_MODULE_POWER_ON |
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					S_MODULE_SW_STANDBY | S_MODULE_CLOCK_ON;
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			cam->settings->open = CAM_MODULE_SW_STANDBY;
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_INFO, "%s[%d]: Open CAM-%X was successfully",
+ 259:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			ret = LCC_CMD_SUCCESS;
+ 261:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 262:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else
+ 263:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 264:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			/* Update cache of cam open */
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			cam->settings->open = CAM_MODULE_HW_STANDBY;
+ 266:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			/* We use write in open to send configuration
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			 * to sensor */
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			cam_status = S_MODULE_POWER_ON |
+ 269:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					S_MODULE_HW_STANDBY |
+ 270:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					S_ERROR_SENSOR_I2C_DETECT_FAILURE;
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			ret = 0;
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_ERROR, "%s:[%d] Cannot switch CAM-%X to SW STANDBY",
+ 273:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 275:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 276:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 277:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cam->settings->open = CAM_MODULE_CLOSE;
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cam_status = S_ERROR_SENSOR_I2C_DETECT_FAILURE;
+ 280:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = 0;
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_ERROR, "%s:[%d] Cannot switch CAM-%X to HW STANDBY",
+ 282:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				__FUNCTION__, __LINE__, cam->info.module);
+ 283:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 284:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy(cam->settings->status, &cam_status, sizeof(uint32_t));
+ 285:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 286:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** error:
+ 287:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return ret;
+ 288:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 289:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 290:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** flip_mode_t get_af_flip_mode(flip_mode_af_t flip_mode_af, const img_sensor_t* img_sensor)
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 523              		.loc 1 291 0
+ 524              		.cfi_startproc
+ 525              		@ args = 0, pretend = 0, frame = 0
+ 526              		@ frame_needed = 0, uses_anonymous_args = 0
+ 527              		@ link register save eliminated.
+ 528              	.LVL60:
+ 292:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     flip_mode_t flip_mode;
+ 293:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     switch (flip_mode_af)
+ 529              		.loc 1 293 0
+ 530 0000 10B9     		cbnz	r0, .L38
+ 294:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     {
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     case FLIP_MODE_CAPTURE:
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         flip_mode = img_sensor->flip;
+ 531              		.loc 1 296 0
+ 532 0002 91F84400 		ldrb	r0, [r1, #68]	@ zero_extendqisi2
+ 533              	.LVL61:
+ 297:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         break;
+ 534              		.loc 1 297 0
+ 535 0006 7047     		bx	lr
+ 536              	.LVL62:
+ 537              	.L38:
+ 298:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     default:
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         flip_mode = FLIP_NONE;
+ 538              		.loc 1 299 0
+ 539 0008 0020     		movs	r0, #0
+ 540              	.LVL63:
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         break;
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     }
+ 302:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     return flip_mode;
+ 303:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 541              		.loc 1 303 0
+ 542 000a 7047     		bx	lr
+ 543              		.cfi_endproc
+ 544              	.LFE7:
+ 546              		.global	__aeabi_i2d
+ 547              		.global	__aeabi_dmul
+ 548              		.global	__aeabi_f2uiz
+ 549              		.global	__aeabi_ddiv
+ 550              		.section	.text.trigger_sensor,"ax",%progbits
+ 551              		.align	1
+ 552              		.global	trigger_sensor
+ 553              		.thumb
+ 554              		.thumb_func
+ 556              	trigger_sensor:
+ 557              	.LFB14:
+ 304:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 305:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int sensor_set_resolution(af_setting_t * setting)
+ 306:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 307:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int ret = 0;
+ 308:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * pcam			= setting->cam;
+ 309:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 310:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_t *img = setting->cam->image;
+ 311:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_reg_array_t *reg = NULL;
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(pcam->settings->open == CAM_MODULE_SW_STANDBY)
+ 313:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 314:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		uint32_t x_res, y_res;
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		memcpy((uint8_t *) &x_res, setting->cam_settings.resolution,
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint32_t));
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		memcpy((uint8_t *) &y_res,
+ 318:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				setting->cam_settings.resolution + sizeof(uint32_t),
+ 319:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint32_t));
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #ifndef P2
+ 321:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(x_res == X_13M && y_res == Y_13M)
+ 322:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[0];
+ 323:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_1080P && y_res == Y_1080P)
+ 324:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[1];
+ 325:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_720P && y_res  == Y_720P)
+ 326:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[2];
+ 327:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_3M && y_res == Y_3M)
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[3];
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_4K_UHD && y_res == Y_4K_UHD_CINEMA)
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[4];
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_4K_CINEMA && y_res == Y_4K_UHD_CINEMA)
+ 332:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[5];
+ 333:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #else /* For P2 */
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #ifdef MIPI_SPEED_1500MHZ
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(x_res == X_13M && y_res == Y_13M)
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[4];
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_13M_P2 && y_res == Y_13M)
+ 338:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[0];
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_3M_P2 && y_res == Y_3M_P2)
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[1];
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_4K_UHD && y_res == Y_4K_UHD_CINEMA)
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[2];
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_1080P && y_res == Y_1080P)
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[3];
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #else /* MIPI_SPEED_400MHZ */
+ 346:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(x_res == X_13M && y_res == Y_13M)
+ 347:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[2];
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_13M_P2 && y_res == Y_13M)
+ 349:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[0];
+ 350:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_3M_P2 && y_res == Y_3M_P2)
+ 351:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[1];
+ 352:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #endif /* MIPI_SPEED */
+ 353:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #endif /* P2 */
+ 354:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(reg != NULL)
+ 355:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			ret = img_sensor_send_config(img, reg, 1);
+ 356:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else
+ 357:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_ERROR, "%s:[%d] Invalid resolution params",
+ 358:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__);
+ 359:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(ret)
+ 360:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 361:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			img->default_fll = img_sensor_read_reg(img, FLL_CAM_REG, TWO_BYTES);
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			img->default_llpclk = img_sensor_read_reg(img,
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					LINE_LENGTH_PCLK_CAM_REG, TWO_BYTES);
+ 364:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	        img_sensor_flip_capture(img, get_af_flip_mode(setting->flip_mode, img));
+ 365:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 366:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(light_system->active_ucid == UCID_PREVIEW)
+ 367:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 368:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reconfig_spg_for_previewing_sensor(pcam);
+ 369:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			hal_syncio_trigger();
+ 370:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 371:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 372:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		if(ret)
+ 373:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 374:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_INFO,
+ 375:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					"CAM-%X : Resolution is updated to %d x %d",
+ 376:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					pcam->info.module, x_res, y_res);
+ 377:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 378:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else
+ 379:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 380:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_WARN,
+ 381:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					"CAM-%X : Resolution hasn't been updated to %d x %d",
+ 382:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					pcam->info.module, x_res, y_res);
+ 383:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 384:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 385:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 386:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 387:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_ERROR, "%s:[%d]: CAM-%X was not in SW STANDBY mode",
+ 388:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				__FUNCTION__, __LINE__, pcam->info.module);
+ 389:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 390:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 391:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return ret;
+ 392:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 393:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 394:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int sensor_set_sensitivity(af_setting_t * setting)
+ 395:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 396:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int ret = 0;
+ 397:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * cam			= setting->cam;
+ 398:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_t * 	sensor		= setting->cam->image;
+ 399:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t 		cfg,sensitivity;
+ 400:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 401:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	float *requested_gain = NULL;
+ 402:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	float total_gain, analog_gain;
+ 403:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy((uint8_t *)&sensitivity, setting->cam_settings.sensitivity, sizeof(uint32_t));
+ 404:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	requested_gain = (float *)&(sensitivity);
+ 405:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(requested_gain)
+ 406:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cfg = calculate_gain(&analog_gain, &total_gain, *requested_gain,
+ 408:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 											light_system->active_ucid);
+ 409:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Apply the gain configuration*/
+ 410:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		img_sensor_set_sensitivity(sensor, cfg);
+ 411:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "%s:[%d]: Sensitivity of CAM-%X was updated"
+ 412:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		" total gain to [%.02f]", __FUNCTION__, __LINE__,
+ 413:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cam->info.module, total_gain);
+ 414:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = 1;
+ 415:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 416:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 417:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 418:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_WARN, "%s:[%d]: Sensitivity of CAM-%X"
+ 419:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		" was not updated", __FUNCTION__, __LINE__,
+ 420:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cam->info.module);
+ 421:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = 0;
+ 422:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 423:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return ret;
+ 424:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 425:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 426:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int sensor_set_fps(af_setting_t * setting)
+ 427:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 428:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int ret = LCC_CMD_UNSUCCESS;
+ 429:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * pcam			= setting->cam;
+ 430:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 431:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(pcam->settings->open == CAM_MODULE_SW_STANDBY)
+ 432:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 433:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		uint16_t cam_fps;
+ 434:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		memcpy((uint8_t *) &cam_fps, setting->cam_settings.fps,
+ 435:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint16_t));
+ 436:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Set fps value for camera*/
+ 437:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		img_sensor_set_fps(pcam, cam_fps);
+ 438:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "%s:[%d]: FPS of CAM-%X updated to 0x%02X ",
+ 439:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			__FUNCTION__, __LINE__, pcam->info.module, cam_fps);
+ 440:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = LCC_CMD_SUCCESS;
+ 441:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 442:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 443:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 444:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_ERROR, "%s:[%d]: CAM-%X was not in SW STANDBY mode",
+ 445:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			__FUNCTION__, __LINE__, pcam->info.module);
+ 446:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = LCC_CMD_UNSUCCESS;
+ 447:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 448:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 449:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return ret;
+ 450:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 451:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 452:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int sensor_set_exposure(af_setting_t * setting)
+ 453:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 454:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int ret = LCC_CMD_UNSUCCESS;
+ 455:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * pcam			= setting->cam;
+ 456:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 457:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(pcam->settings->open == CAM_MODULE_SW_STANDBY)
+ 458:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 459:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		uint64_t exposure;
+ 460:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		memcpy((uint8_t *)&exposure, setting->cam_settings.exposure,
+ 461:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint64_t));
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "CAM-%X applying exposure setting: %d",
+ 463:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 							pcam->info.module, exposure);
+ 464:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		img_sensor_set_exposure_time(pcam, exposure);
+ 465:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = LCC_CMD_SUCCESS;
+ 466:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 467:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 468:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 469:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_ERROR, "%s:[%d]: CAM-%X was not in SW STANDBY mode",
+ 470:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			__FUNCTION__, __LINE__, pcam->info.module);
+ 471:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = LCC_CMD_UNSUCCESS;
+ 472:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 473:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 474:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return ret;
+ 475:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 476:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 477:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int img_sensor_reset(img_sensor_t *img_sensor)
+ 478:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 479:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     img_sensor_write_reg(img_sensor, 0x0100, 0x00, ONE_BYTE);
+ 480:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     img_sensor_write_reg(img_sensor, 0x3F3C, 0x0003, TWO_BYTES);
+ 481:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     img_sensor_write_reg(img_sensor, 0x301A, 0x001C, TWO_BYTES);
+ 482:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     img_sensor_write_reg(img_sensor, 0x301A, 0x021C, TWO_BYTES);
+ 483:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 484:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     return 1;
+ 485:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 486:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 487:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** static int img_sensor_capture_stream_off(img_sensor_t *img_sensor, cam_sensor_mode_t mode)
+ 488:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 489:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     if(I2C_MODE == mode)
+ 490:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     {
+ 491:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x3F3C, 0x0002, TWO_BYTES);
+ 492:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x3FE0, 0x0001, TWO_BYTES);
+ 493:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x0100, 0x00, ONE_BYTE);
+ 494:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x3FE0, 0x0000, TWO_BYTES);
+ 495:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     }
+ 496:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     else
+ 497:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     {
+ 498:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x301A, 0x0318, TWO_BYTES);
+ 499:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x3026, 0xFD7F, TWO_BYTES);
+ 500:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x3158, 0x8800, TWO_BYTES);
+ 501:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     }
+ 502:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     return 1;
+ 503:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 504:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 505:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** /* TODO: implement sync IO base on the sensor settings */
+ 506:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** int trigger_sensor(af_setting_t *af_setting)
+ 507:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 558              		.loc 1 507 0
+ 559              		.cfi_startproc
+ 560              		@ args = 0, pretend = 0, frame = 0
+ 561              		@ frame_needed = 0, uses_anonymous_args = 0
+ 562              	.LVL64:
+ 563 0000 2DE9F341 		push	{r0, r1, r4, r5, r6, r7, r8, lr}
+ 564              	.LCFI7:
+ 565              		.cfi_def_cfa_offset 32
+ 566              		.cfi_offset 4, -24
+ 567              		.cfi_offset 5, -20
+ 568              		.cfi_offset 6, -16
+ 569              		.cfi_offset 7, -12
+ 570              		.cfi_offset 8, -8
+ 571              		.cfi_offset 14, -4
+ 508:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int 					ret 	= 0;
+ 509:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * 		cam 	= af_setting->cam;
+ 572              		.loc 1 509 0
+ 573 0004 0468     		ldr	r4, [r0]
+ 574              	.LVL65:
+ 510:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t cit = img_sensor_read_reg(cam->image, CIT_CAM_REG, TWO_BYTES);
+ 575              		.loc 1 510 0
+ 576 0006 40F20221 		movw	r1, #514
+ 577 000a 0222     		movs	r2, #2
+ 578 000c 384D     		ldr	r5, .L40+8
+ 579 000e 2068     		ldr	r0, [r4]
+ 580              	.LVL66:
+ 581 0010 A847     		blx	r5
+ 582              	.LVL67:
+ 511:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t vtpixclk = img_sensor_get_vt_pix_clk_mhz(cam->image);
+ 583              		.loc 1 511 0
+ 584 0012 384B     		ldr	r3, .L40+12
+ 510:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t cit = img_sensor_read_reg(cam->image, CIT_CAM_REG, TWO_BYTES);
+ 585              		.loc 1 510 0
+ 586 0014 0646     		mov	r6, r0
+ 587              	.LVL68:
+ 588              		.loc 1 511 0
+ 589 0016 2068     		ldr	r0, [r4]
+ 590 0018 9847     		blx	r3
+ 591              	.LVL69:
+ 512:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t llpclk = img_sensor_read_reg(cam->image,
+ 592              		.loc 1 512 0
+ 593 001a 0222     		movs	r2, #2
+ 594 001c 40F24231 		movw	r1, #834
+ 511:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t vtpixclk = img_sensor_get_vt_pix_clk_mhz(cam->image);
+ 595              		.loc 1 511 0
+ 596 0020 8046     		mov	r8, r0
+ 597              	.LVL70:
+ 598              		.loc 1 512 0
+ 599 0022 2068     		ldr	r0, [r4]
+ 600              	.LVL71:
+ 601 0024 A847     		blx	r5
+ 602              	.LVL72:
+ 513:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				LINE_LENGTH_PCLK_CAM_REG, TWO_BYTES);
+ 514:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	double it_time = (cit * llpclk * 0.000001) / (2 * vtpixclk);
+ 603              		.loc 1 514 0
+ 604 0026 344D     		ldr	r5, .L40+16
+ 605 0028 7043     		muls	r0, r6, r0
+ 606              	.LVL73:
+ 607 002a A847     		blx	r5
+ 608              	.LVL74:
+ 609 002c 334E     		ldr	r6, .L40+20
+ 610              	.LVL75:
+ 611 002e 2EA3     		adr	r3, .L40
+ 612 0030 D3E90023 		ldrd	r2, [r3]
+ 613 0034 B047     		blx	r6
+ 614              	.LVL76:
+ 511:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t llpclk = img_sensor_read_reg(cam->image,
+ 615              		.loc 1 511 0
+ 616 0036 324B     		ldr	r3, .L40+24
+ 617              		.loc 1 514 0
+ 618 0038 0646     		mov	r6, r0
+ 511:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t llpclk = img_sensor_read_reg(cam->image,
+ 619              		.loc 1 511 0
+ 620 003a 4046     		mov	r0, r8
+ 621              		.loc 1 514 0
+ 622 003c 0F46     		mov	r7, r1
+ 511:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t llpclk = img_sensor_read_reg(cam->image,
+ 623              		.loc 1 511 0
+ 624 003e 9847     		blx	r3
+ 625              	.LVL77:
+ 626              		.loc 1 514 0
+ 627 0040 80B2     		uxth	r0, r0
+ 628 0042 4000     		lsls	r0, r0, #1
+ 629 0044 A847     		blx	r5
+ 630              	.LVL78:
+ 631 0046 2F4D     		ldr	r5, .L40+28
+ 632 0048 0246     		mov	r2, r0
+ 633 004a 0B46     		mov	r3, r1
+ 634 004c 3046     		mov	r0, r6
+ 635 004e 3946     		mov	r1, r7
+ 636 0050 A847     		blx	r5
+ 637              	.LVL79:
+ 515:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_capture_syncio_config(cam,1, it_time, SG_TRIG_SW );
+ 638              		.loc 1 515 0
+ 639 0052 0026     		movs	r6, #0
+ 640 0054 2C4D     		ldr	r5, .L40+32
+ 641 0056 0096     		str	r6, [sp]
+ 514:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_capture_syncio_config(cam,1, it_time, SG_TRIG_SW );
+ 642              		.loc 1 514 0
+ 643 0058 0246     		mov	r2, r0
+ 644 005a 0B46     		mov	r3, r1
+ 645              		.loc 1 515 0
+ 646 005c 2046     		mov	r0, r4
+ 647 005e 0121     		movs	r1, #1
+ 648 0060 A847     		blx	r5
+ 649              	.LVL80:
+ 516:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 517:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Stream off cam */
+ 518:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_reset(cam->image);
+ 650              		.loc 1 518 0
+ 651 0062 2768     		ldr	r7, [r4]
+ 652              	.LVL81:
+ 653              	.LBB28:
+ 654              	.LBB29:
+ 479:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     img_sensor_write_reg(img_sensor, 0x3F3C, 0x0003, TWO_BYTES);
+ 655              		.loc 1 479 0
+ 656 0064 294D     		ldr	r5, .L40+36
+ 657 0066 3246     		mov	r2, r6
+ 658 0068 3846     		mov	r0, r7
+ 659 006a 4FF48071 		mov	r1, #256
+ 660 006e 0123     		movs	r3, #1
+ 661 0070 A847     		blx	r5
+ 662              	.LVL82:
+ 480:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     img_sensor_write_reg(img_sensor, 0x301A, 0x001C, TWO_BYTES);
+ 663              		.loc 1 480 0
+ 664 0072 3846     		mov	r0, r7
+ 665 0074 43F63C71 		movw	r1, #16188
+ 666 0078 0322     		movs	r2, #3
+ 667 007a 0223     		movs	r3, #2
+ 668 007c A847     		blx	r5
+ 669              	.LVL83:
+ 481:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     img_sensor_write_reg(img_sensor, 0x301A, 0x021C, TWO_BYTES);
+ 670              		.loc 1 481 0
+ 671 007e 3846     		mov	r0, r7
+ 672 0080 43F21A01 		movw	r1, #12314
+ 673 0084 1C22     		movs	r2, #28
+ 674 0086 0223     		movs	r3, #2
+ 675 0088 A847     		blx	r5
+ 676              	.LVL84:
+ 482:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 677              		.loc 1 482 0
+ 678 008a 3846     		mov	r0, r7
+ 679 008c 43F21A01 		movw	r1, #12314
+ 680 0090 4FF40772 		mov	r2, #540
+ 681 0094 0223     		movs	r3, #2
+ 682 0096 A847     		blx	r5
+ 683              	.LVL85:
+ 684              	.LBE29:
+ 685              	.LBE28:
+ 519:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_capture_stream_off(cam->image,SLAVE_MODE);
+ 686              		.loc 1 519 0
+ 687 0098 2768     		ldr	r7, [r4]
+ 688              	.LVL86:
+ 689              	.LBB30:
+ 690              	.LBB31:
+ 498:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x3026, 0xFD7F, TWO_BYTES);
+ 691              		.loc 1 498 0
+ 692 009a 3846     		mov	r0, r7
+ 693 009c 43F21A01 		movw	r1, #12314
+ 694 00a0 4FF44672 		mov	r2, #792
+ 695 00a4 0223     		movs	r3, #2
+ 696 00a6 A847     		blx	r5
+ 697              	.LVL87:
+ 499:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****         img_sensor_write_reg(img_sensor, 0x3158, 0x8800, TWO_BYTES);
+ 698              		.loc 1 499 0
+ 699 00a8 3846     		mov	r0, r7
+ 700 00aa 43F22601 		movw	r1, #12326
+ 701 00ae 4FF67F52 		movw	r2, #64895
+ 702 00b2 0223     		movs	r3, #2
+ 703 00b4 A847     		blx	r5
+ 704              	.LVL88:
+ 500:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c ****     }
+ 705              		.loc 1 500 0
+ 706 00b6 3846     		mov	r0, r7
+ 707 00b8 43F25811 		movw	r1, #12632
+ 708 00bc 4FF40842 		mov	r2, #34816
+ 709 00c0 0223     		movs	r3, #2
+ 710 00c2 A847     		blx	r5
+ 711              	.LVL89:
+ 712              	.LBE31:
+ 713              	.LBE30:
+ 520:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 521:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Start syncio in HW trigger mode */
+ 522:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "Send trigger");
+ 714              		.loc 1 522 0
+ 715 00c4 124A     		ldr	r2, .L40+40
+ 716 00c6 2A20     		movs	r0, #42
+ 717 00c8 1021     		movs	r1, #16
+ 718 00ca 124B     		ldr	r3, .L40+44
+ 719 00cc 9847     		blx	r3
+ 720              	.LVL90:
+ 523:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_stream_on(cam->image, SLAVE_MODE);
+ 721              		.loc 1 523 0
+ 722 00ce 3146     		mov	r1, r6
+ 723 00d0 2068     		ldr	r0, [r4]
+ 724 00d2 114B     		ldr	r3, .L40+48
+ 725 00d4 9847     		blx	r3
+ 726              	.LVL91:
+ 524:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	hal_syncio_trigger();
+ 727              		.loc 1 524 0
+ 728 00d6 114B     		ldr	r3, .L40+52
+ 729 00d8 9847     		blx	r3
+ 730              	.LVL92:
+ 525:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 526:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return ret;
+ 527:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 731              		.loc 1 527 0
+ 732 00da 3046     		mov	r0, r6
+ 733 00dc 02B0     		add	sp, sp, #8
+ 734              	.LCFI8:
+ 735              		.cfi_def_cfa_offset 24
+ 736              		@ sp needed
+ 737 00de BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 738              	.LVL93:
+ 739              	.L41:
+ 740 00e2 00BFAFF3 		.align	3
+ 740      0080
+ 741              	.L40:
+ 742 00e8 8DEDB5A0 		.word	-1598689907
+ 743 00ec F7C6B03E 		.word	1051772663
+ 744 00f0 00000000 		.word	img_sensor_read_reg
+ 745 00f4 00000000 		.word	img_sensor_get_vt_pix_clk_mhz
+ 746 00f8 00000000 		.word	__aeabi_i2d
+ 747 00fc 00000000 		.word	__aeabi_dmul
+ 748 0100 00000000 		.word	__aeabi_f2uiz
+ 749 0104 00000000 		.word	__aeabi_ddiv
+ 750 0108 00000000 		.word	cam_capture_syncio_config
+ 751 010c 00000000 		.word	img_sensor_write_reg
+ 752 0110 25010000 		.word	.LC11
+ 753 0114 00000000 		.word	slogf
+ 754 0118 00000000 		.word	img_sensor_stream_on
+ 755 011c 00000000 		.word	hal_syncio_trigger
+ 756              		.cfi_endproc
+ 757              	.LFE14:
+ 759              		.global	__aeabi_f2d
+ 760              		.section	.text.af_configure_sensor_stream,"ax",%progbits
+ 761              		.align	1
+ 762              		.global	af_configure_sensor_stream
+ 763              		.thumb
+ 764              		.thumb_func
+ 766              	af_configure_sensor_stream:
+ 767              	.LFB15:
+ 528:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 529:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** int af_configure_sensor_stream(af_setting_t *af_setting, uint8_t is_preview_cam)
+ 530:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 768              		.loc 1 530 0
+ 769              		.cfi_startproc
+ 770              		@ args = 0, pretend = 0, frame = 24
+ 771              		@ frame_needed = 0, uses_anonymous_args = 0
+ 772              	.LVL94:
+ 773 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 774              	.LCFI9:
+ 775              		.cfi_def_cfa_offset 36
+ 776              		.cfi_offset 4, -36
+ 777              		.cfi_offset 5, -32
+ 778              		.cfi_offset 6, -28
+ 779              		.cfi_offset 7, -24
+ 780              		.cfi_offset 8, -20
+ 781              		.cfi_offset 9, -16
+ 782              		.cfi_offset 10, -12
+ 783              		.cfi_offset 11, -8
+ 784              		.cfi_offset 14, -4
+ 785 0004 0E46     		mov	r6, r1
+ 786 0006 8DB0     		sub	sp, sp, #52
+ 787              	.LCFI10:
+ 788              		.cfi_def_cfa_offset 88
+ 531:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int 			ret 		= 0;
+ 532:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * cam			= af_setting->cam;
+ 789              		.loc 1 532 0
+ 790 0008 D0F800A0 		ldr	r10, [r0]
+ 791              	.LVL95:
+ 530:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	int 			ret 		= 0;
+ 792              		.loc 1 530 0
+ 793 000c 0446     		mov	r4, r0
+ 533:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 534:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "Entering %s", __FUNCTION__);
+ 794              		.loc 1 534 0
+ 795 000e 1021     		movs	r1, #16
+ 796              	.LVL96:
+ 797 0010 2A20     		movs	r0, #42
+ 798              	.LVL97:
+ 799 0012 AA4A     		ldr	r2, .L79
+ 800 0014 AA4B     		ldr	r3, .L79+4
+ 801 0016 AB4D     		ldr	r5, .L79+8
+ 802 0018 A847     		blx	r5
+ 803              	.LVL98:
+ 535:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 536:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/*
+ 537:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	 * if preview camera just setup the rx and don't do any thing else
+ 538:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	 * TODO: set up the dma wrap if requested??
+ 539:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	 */
+ 540:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if (is_preview_cam)
+ 541:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 542:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_WARN, "Cannot change the sensor settings");
+ 804              		.loc 1 542 0
+ 805 001a 2A20     		movs	r0, #42
+ 540:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 806              		.loc 1 540 0
+ 807 001c 26B1     		cbz	r6, .L43
+ 808              		.loc 1 542 0
+ 809 001e 0421     		movs	r1, #4
+ 810 0020 A94A     		ldr	r2, .L79+12
+ 531:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * cam			= af_setting->cam;
+ 811              		.loc 1 531 0
+ 812 0022 0024     		movs	r4, #0
+ 813              	.LVL99:
+ 814              		.loc 1 542 0
+ 815 0024 A847     		blx	r5
+ 816              	.LVL100:
+ 817 0026 D1E1     		b	.L44
+ 818              	.LVL101:
+ 819              	.L43:
+ 543:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 544:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* not preview */
+ 545:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	else
+ 546:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 547:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_DEBUG, "AF setting request for CAM-%X",
+ 820              		.loc 1 547 0
+ 821 0028 A84A     		ldr	r2, .L79+16
+ 822 002a 9AF82930 		ldrb	r3, [r10, #41]	@ zero_extendqisi2
+ 823 002e 1021     		movs	r1, #16
+ 824 0030 A847     		blx	r5
+ 825              	.LVL102:
+ 826 0032 2668     		ldr	r6, [r4]
+ 827              	.LVL103:
+ 828              	.LBB45:
+ 829              	.LBB46:
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 830              		.loc 1 220 0
+ 831 0034 0CAF     		add	r7, sp, #48
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 832              		.loc 1 218 0
+ 833 0036 B368     		ldr	r3, [r6, #8]
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t 		cam_status	= 0;
+ 834              		.loc 1 215 0
+ 835 0038 D6F80080 		ldr	r8, [r6]
+ 836              	.LVL104:
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 837              		.loc 1 218 0
+ 838 003c 5868     		ldr	r0, [r3, #4]	@ unaligned
+ 839 003e 0A90     		str	r0, [sp, #40]	@ unaligned
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 840              		.loc 1 220 0
+ 841 0040 57F8083D 		ldr	r3, [r7, #-8]!
+ 842 0044 1A07     		lsls	r2, r3, #28
+ 843 0046 06D5     		bpl	.L45
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				cam->info.module);
+ 844              		.loc 1 222 0
+ 845 0048 2A20     		movs	r0, #42
+ 846 004a 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 847 004e 0821     		movs	r1, #8
+ 848 0050 9F4A     		ldr	r2, .L79+20
+ 849 0052 A847     		blx	r5
+ 850              	.LVL105:
+ 851 0054 55E0     		b	.L46
+ 852              	.LVL106:
+ 853              	.L45:
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 854              		.loc 1 228 0
+ 855 0056 DB07     		lsls	r3, r3, #31
+ 856 0058 1BD4     		bmi	.L48
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 857              		.loc 1 230 0
+ 858 005a 4046     		mov	r0, r8
+ 859 005c 0121     		movs	r1, #1
+ 860 005e 9D4B     		ldr	r3, .L79+24
+ 861 0060 9847     		blx	r3
+ 862              	.LVL107:
+ 863 0062 60B1     		cbz	r0, .L49
+ 232:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			if(cam->info.grp == GRP_A)
+ 864              		.loc 1 232 0
+ 865 0064 0523     		movs	r3, #5
+ 866 0066 0A93     		str	r3, [sp, #40]
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				vcm_init((vcm_t *)cam->optical->lens);
+ 867              		.loc 1 233 0
+ 868 0068 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 869 006c 03F0F003 		and	r3, r3, #240
+ 870 0070 A02B     		cmp	r3, #160
+ 871 0072 0ED1     		bne	.L48
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 872              		.loc 1 234 0
+ 873 0074 7368     		ldr	r3, [r6, #4]
+ 874 0076 1868     		ldr	r0, [r3]
+ 875 0078 974B     		ldr	r3, .L79+28
+ 876 007a 9847     		blx	r3
+ 877              	.LVL108:
+ 878 007c 09E0     		b	.L48
+ 879              	.L49:
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_ERROR, "CAM-%X changed to SW standby failed",
+ 880              		.loc 1 238 0
+ 881 007e B368     		ldr	r3, [r6, #8]
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					cam->info.module);
+ 882              		.loc 1 239 0
+ 883 0080 0221     		movs	r1, #2
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			SLOGF(SLOG_ERROR, "CAM-%X changed to SW standby failed",
+ 884              		.loc 1 238 0
+ 885 0082 1870     		strb	r0, [r3]
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					cam->info.module);
+ 886              		.loc 1 239 0
+ 887 0084 2A20     		movs	r0, #42
+ 888 0086 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 889 008a 944A     		ldr	r2, .L79+32
+ 890 008c A847     		blx	r5
+ 891              	.LVL109:
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			ret = 0;
+ 892              		.loc 1 242 0
+ 893 008e 2023     		movs	r3, #32
+ 894 0090 0A93     		str	r3, [sp, #40]
+ 895              	.L48:
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 896              		.loc 1 249 0
+ 897 0092 0A9B     		ldr	r3, [sp, #40]
+ 898 0094 13F00103 		ands	r3, r3, #1
+ 899 0098 21D0     		beq	.L51
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 900              		.loc 1 251 0
+ 901 009a 8E4B     		ldr	r3, .L79+24
+ 902 009c 4046     		mov	r0, r8
+ 903 009e 0221     		movs	r1, #2
+ 904 00a0 9847     		blx	r3
+ 905              	.LVL110:
+ 906 00a2 B368     		ldr	r3, [r6, #8]
+ 907 00a4 68B1     		cbz	r0, .L52
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					S_MODULE_SW_STANDBY | S_MODULE_CLOCK_ON;
+ 908              		.loc 1 254 0
+ 909 00a6 0B22     		movs	r2, #11
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 910              		.loc 1 258 0
+ 911 00a8 2A20     		movs	r0, #42
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					S_MODULE_SW_STANDBY | S_MODULE_CLOCK_ON;
+ 912              		.loc 1 254 0
+ 913 00aa 0A92     		str	r2, [sp, #40]
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 914              		.loc 1 256 0
+ 915 00ac 0222     		movs	r2, #2
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 916              		.loc 1 258 0
+ 917 00ae 0821     		movs	r1, #8
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 918              		.loc 1 256 0
+ 919 00b0 1A70     		strb	r2, [r3]
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 920              		.loc 1 258 0
+ 921 00b2 40F20313 		movw	r3, #259
+ 922 00b6 8A4A     		ldr	r2, .L79+36
+ 923 00b8 0093     		str	r3, [sp]
+ 924 00ba 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 925 00be 0193     		str	r3, [sp, #4]
+ 926 00c0 1AE0     		b	.L77
+ 927              	.L52:
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			/* We use write in open to send configuration
+ 928              		.loc 1 265 0
+ 929 00c2 0122     		movs	r2, #1
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 930              		.loc 1 272 0
+ 931 00c4 2A20     		movs	r0, #42
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			/* We use write in open to send configuration
+ 932              		.loc 1 265 0
+ 933 00c6 1A70     		strb	r2, [r3]
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					S_MODULE_HW_STANDBY |
+ 934              		.loc 1 268 0
+ 935 00c8 2523     		movs	r3, #37
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 936              		.loc 1 272 0
+ 937 00ca 0221     		movs	r1, #2
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					S_MODULE_HW_STANDBY |
+ 938              		.loc 1 268 0
+ 939 00cc 0A93     		str	r3, [sp, #40]
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__, cam->info.module);
+ 940              		.loc 1 272 0
+ 941 00ce 40F21113 		movw	r3, #273
+ 942 00d2 844A     		ldr	r2, .L79+40
+ 943 00d4 0093     		str	r3, [sp]
+ 944 00d6 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 945 00da 0193     		str	r3, [sp, #4]
+ 946 00dc 0CE0     		b	.L77
+ 947              	.L51:
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cam_status = S_ERROR_SENSOR_I2C_DETECT_FAILURE;
+ 948              		.loc 1 278 0
+ 949 00de B268     		ldr	r2, [r6, #8]
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				__FUNCTION__, __LINE__, cam->info.module);
+ 950              		.loc 1 281 0
+ 951 00e0 2A20     		movs	r0, #42
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		cam_status = S_ERROR_SENSOR_I2C_DETECT_FAILURE;
+ 952              		.loc 1 278 0
+ 953 00e2 1370     		strb	r3, [r2]
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = 0;
+ 954              		.loc 1 279 0
+ 955 00e4 2023     		movs	r3, #32
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				__FUNCTION__, __LINE__, cam->info.module);
+ 956              		.loc 1 281 0
+ 957 00e6 804A     		ldr	r2, .L79+44
+ 958 00e8 0221     		movs	r1, #2
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = 0;
+ 959              		.loc 1 279 0
+ 960 00ea 0A93     		str	r3, [sp, #40]
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				__FUNCTION__, __LINE__, cam->info.module);
+ 961              		.loc 1 281 0
+ 962 00ec 4FF48D73 		mov	r3, #282
+ 963 00f0 0093     		str	r3, [sp]
+ 964 00f2 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 965 00f6 0193     		str	r3, [sp, #4]
+ 966              	.L77:
+ 967 00f8 7C4B     		ldr	r3, .L79+48
+ 968 00fa A847     		blx	r5
+ 969              	.LVL111:
+ 284:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 970              		.loc 1 284 0
+ 971 00fc B368     		ldr	r3, [r6, #8]
+ 972 00fe 3868     		ldr	r0, [r7]	@ unaligned
+ 973 0100 5860     		str	r0, [r3, #4]	@ unaligned
+ 974              	.L46:
+ 975              	.LVL112:
+ 976              	.LBE46:
+ 977              	.LBE45:
+ 978              	.LBB47:
+ 979              	.LBB48:
+ 308:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 980              		.loc 1 308 0
+ 981 0102 D4F80090 		ldr	r9, [r4]
+ 982              	.LVL113:
+ 983 0106 DFF834B2 		ldr	fp, .L79+128
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 984              		.loc 1 312 0
+ 985 010a D9F80830 		ldr	r3, [r9, #8]
+ 986 010e 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 987 0110 022B     		cmp	r3, #2
+ 310:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_reg_array_t *reg = NULL;
+ 988              		.loc 1 310 0
+ 989 0112 D9F80080 		ldr	r8, [r9]
+ 990              	.LVL114:
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 991              		.loc 1 312 0
+ 992 0116 38D1     		bne	.L54
+ 993              	.LBB49:
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint32_t));
+ 994              		.loc 1 315 0
+ 995 0118 606A     		ldr	r0, [r4, #36]	@ unaligned
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[4];
+ 996              		.loc 1 335 0
+ 997 011a 41F27003 		movw	r3, #4208
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint32_t));
+ 998              		.loc 1 315 0
+ 999 011e 0990     		str	r0, [sp, #36]	@ unaligned
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[4];
+ 1000              		.loc 1 335 0
+ 1001 0120 099E     		ldr	r6, [sp, #36]
+ 1002              	.LVL115:
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				setting->cam_settings.resolution + sizeof(uint32_t),
+ 1003              		.loc 1 317 0
+ 1004 0122 A06A     		ldr	r0, [r4, #40]	@ unaligned
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[4];
+ 1005              		.loc 1 335 0
+ 1006 0124 9E42     		cmp	r6, r3
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				setting->cam_settings.resolution + sizeof(uint32_t),
+ 1007              		.loc 1 317 0
+ 1008 0126 0A90     		str	r0, [sp, #40]	@ unaligned
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[4];
+ 1009              		.loc 1 335 0
+ 1010 0128 06D1     		bne	.L55
+ 1011 012a 0A9B     		ldr	r3, [sp, #40]
+ 1012 012c B3F5436F 		cmp	r3, #3120
+ 1013 0130 40F04181 		bne	.L57
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_13M_P2 && y_res == Y_13M)
+ 1014              		.loc 1 336 0
+ 1015 0134 6E49     		ldr	r1, .L79+52
+ 1016 0136 05E1     		b	.L56
+ 1017              	.L55:
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[0];
+ 1018              		.loc 1 337 0
+ 1019 0138 B6F5825F 		cmp	r6, #4160
+ 1020 013c 06D1     		bne	.L58
+ 1021 013e 0A9B     		ldr	r3, [sp, #40]
+ 1022 0140 B3F5436F 		cmp	r3, #3120
+ 1023 0144 40F03781 		bne	.L57
+ 338:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_3M_P2 && y_res == Y_3M_P2)
+ 1024              		.loc 1 338 0
+ 1025 0148 6A49     		ldr	r1, .L79+56
+ 1026 014a FBE0     		b	.L56
+ 1027              	.L58:
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[1];
+ 1028              		.loc 1 339 0
+ 1029 014c B6F5006F 		cmp	r6, #2048
+ 1030 0150 06D1     		bne	.L59
+ 1031 0152 0A9B     		ldr	r3, [sp, #40]
+ 1032 0154 B3F5C06F 		cmp	r3, #1536
+ 1033 0158 40F02D81 		bne	.L57
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_4K_UHD && y_res == Y_4K_UHD_CINEMA)
+ 1034              		.loc 1 340 0
+ 1035 015c 6649     		ldr	r1, .L79+60
+ 1036 015e F1E0     		b	.L56
+ 1037              	.L59:
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[2];
+ 1038              		.loc 1 341 0
+ 1039 0160 B6F5706F 		cmp	r6, #3840
+ 1040 0164 06D1     		bne	.L60
+ 1041 0166 0A9B     		ldr	r3, [sp, #40]
+ 1042 0168 B3F5076F 		cmp	r3, #2160
+ 1043 016c 40F02381 		bne	.L57
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else if(x_res == X_1080P && y_res == Y_1080P)
+ 1044              		.loc 1 342 0
+ 1045 0170 6249     		ldr	r1, .L79+64
+ 1046 0172 E7E0     		b	.L56
+ 1047              	.L60:
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			reg = &resolution_testing_reg_array[3];
+ 1048              		.loc 1 343 0
+ 1049 0174 B6F5F06F 		cmp	r6, #1920
+ 1050 0178 40F01D81 		bne	.L57
+ 1051 017c 0A9B     		ldr	r3, [sp, #40]
+ 1052 017e B3F5876F 		cmp	r3, #1080
+ 1053 0182 40F01881 		bne	.L57
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #else /* MIPI_SPEED_400MHZ */
+ 1054              		.loc 1 344 0
+ 1055 0186 5E49     		ldr	r1, .L79+68
+ 1056 0188 DCE0     		b	.L56
+ 1057              	.LVL116:
+ 1058              	.L54:
+ 1059              	.LBE49:
+ 387:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				__FUNCTION__, __LINE__, pcam->info.module);
+ 1060              		.loc 1 387 0
+ 1061 018a 4FF4C273 		mov	r3, #388
+ 1062 018e 5D4A     		ldr	r2, .L79+72
+ 1063 0190 2A20     		movs	r0, #42
+ 1064 0192 0093     		str	r3, [sp]
+ 1065 0194 99F82930 		ldrb	r3, [r9, #41]	@ zero_extendqisi2
+ 1066 0198 0193     		str	r3, [sp, #4]
+ 1067 019a 0221     		movs	r1, #2
+ 1068 019c 5A4B     		ldr	r3, .L79+76
+ 1069              	.LVL117:
+ 1070              	.L78:
+ 1071 019e A847     		blx	r5
+ 1072              	.LVL118:
+ 1073              	.LBE48:
+ 1074              	.LBE47:
+ 1075              	.LBB52:
+ 1076              	.LBB53:
+ 397:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_t * 	sensor		= setting->cam->image;
+ 1077              		.loc 1 397 0
+ 1078 01a0 2346     		mov	r3, r4
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 											light_system->active_ucid);
+ 1079              		.loc 1 407 0
+ 1080 01a2 DFF89CC1 		ldr	ip, .L79+132
+ 1081 01a6 09A9     		add	r1, sp, #36
+ 397:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	img_sensor_t * 	sensor		= setting->cam->image;
+ 1082              		.loc 1 397 0
+ 1083 01a8 53F82C6B 		ldr	r6, [r3], #44
+ 1084              	.LVL119:
+ 403:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	requested_gain = (float *)&(sensitivity);
+ 1085              		.loc 1 403 0
+ 1086 01ac 1868     		ldr	r0, [r3]	@ unaligned
+ 1087 01ae 0890     		str	r0, [sp, #32]	@ unaligned
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 											light_system->active_ucid);
+ 1088              		.loc 1 407 0
+ 1089 01b0 3846     		mov	r0, r7
+ 1090 01b2 089A     		ldr	r2, [sp, #32]	@ float
+ 408:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Apply the gain configuration*/
+ 1091              		.loc 1 408 0
+ 1092 01b4 DBF80030 		ldr	r3, [fp]
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 											light_system->active_ucid);
+ 1093              		.loc 1 407 0
+ 1094 01b8 93F86E30 		ldrb	r3, [r3, #110]	@ zero_extendqisi2
+ 398:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t 		cfg,sensitivity;
+ 1095              		.loc 1 398 0
+ 1096 01bc D6F80080 		ldr	r8, [r6]
+ 1097              	.LVL120:
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 											light_system->active_ucid);
+ 1098              		.loc 1 407 0
+ 1099 01c0 E047     		blx	ip
+ 1100              	.LVL121:
+ 410:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "%s:[%d]: Sensitivity of CAM-%X was updated"
+ 1101              		.loc 1 410 0
+ 1102 01c2 524B     		ldr	r3, .L79+80
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 											light_system->active_ucid);
+ 1103              		.loc 1 407 0
+ 1104 01c4 0146     		mov	r1, r0
+ 1105              	.LVL122:
+ 410:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "%s:[%d]: Sensitivity of CAM-%X was updated"
+ 1106              		.loc 1 410 0
+ 1107 01c6 4046     		mov	r0, r8
+ 1108 01c8 9847     		blx	r3
+ 1109              	.LVL123:
+ 411:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		" total gain to [%.02f]", __FUNCTION__, __LINE__,
+ 1110              		.loc 1 411 0
+ 1111 01ca 40F29D13 		movw	r3, #413
+ 1112 01ce 0998     		ldr	r0, [sp, #36]	@ float
+ 1113 01d0 0093     		str	r3, [sp]
+ 1114 01d2 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 1115 01d6 0193     		str	r3, [sp, #4]
+ 1116 01d8 4D4B     		ldr	r3, .L79+84
+ 1117 01da 9847     		blx	r3
+ 1118              	.LVL124:
+ 1119 01dc 4D4B     		ldr	r3, .L79+88
+ 1120 01de 4E4A     		ldr	r2, .L79+92
+ 1121 01e0 DFF8E080 		ldr	r8, .L79+8
+ 1122              	.LVL125:
+ 1123 01e4 CDE90201 		strd	r0, [sp, #8]
+ 1124 01e8 2A20     		movs	r0, #42
+ 1125 01ea 0821     		movs	r1, #8
+ 1126 01ec A847     		blx	r5
+ 1127              	.LVL126:
+ 1128              	.LBE53:
+ 1129              	.LBE52:
+ 1130              	.LBB54:
+ 1131              	.LBB55:
+ 429:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 1132              		.loc 1 429 0
+ 1133 01ee 2668     		ldr	r6, [r4]
+ 1134              	.LVL127:
+ 431:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 1135              		.loc 1 431 0
+ 1136 01f0 B368     		ldr	r3, [r6, #8]
+ 1137 01f2 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1138 01f4 022B     		cmp	r3, #2
+ 1139 01f6 16D1     		bne	.L65
+ 1140              	.LBB56:
+ 434:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint16_t));
+ 1141              		.loc 1 434 0
+ 1142 01f8 238E     		ldrh	r3, [r4, #48]	@ unaligned
+ 437:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "%s:[%d]: FPS of CAM-%X updated to 0x%02X ",
+ 1143              		.loc 1 437 0
+ 1144 01fa 3046     		mov	r0, r6
+ 434:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint16_t));
+ 1145              		.loc 1 434 0
+ 1146 01fc ADF82830 		strh	r3, [sp, #40]	@ unaligned
+ 437:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "%s:[%d]: FPS of CAM-%X updated to 0x%02X ",
+ 1147              		.loc 1 437 0
+ 1148 0200 BDF82890 		ldrh	r9, [sp, #40]
+ 1149              	.LVL128:
+ 1150 0204 454B     		ldr	r3, .L79+96
+ 1151 0206 4946     		mov	r1, r9
+ 1152 0208 9847     		blx	r3
+ 1153              	.LVL129:
+ 438:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			__FUNCTION__, __LINE__, pcam->info.module, cam_fps);
+ 1154              		.loc 1 438 0
+ 1155 020a 40F2B713 		movw	r3, #439
+ 1156 020e 2A20     		movs	r0, #42
+ 1157 0210 0093     		str	r3, [sp]
+ 1158 0212 0821     		movs	r1, #8
+ 1159 0214 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 1160 0218 414A     		ldr	r2, .L79+100
+ 1161 021a 0193     		str	r3, [sp, #4]
+ 1162 021c CDF80890 		str	r9, [sp, #8]
+ 1163 0220 404B     		ldr	r3, .L79+104
+ 1164 0222 C047     		blx	r8
+ 1165              	.LVL130:
+ 1166 0224 0AE0     		b	.L66
+ 1167              	.LVL131:
+ 1168              	.L65:
+ 1169              	.LBE56:
+ 444:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			__FUNCTION__, __LINE__, pcam->info.module);
+ 1170              		.loc 1 444 0
+ 1171 0226 40F2BD13 		movw	r3, #445
+ 1172 022a 2A20     		movs	r0, #42
+ 1173 022c 0221     		movs	r1, #2
+ 1174 022e 0093     		str	r3, [sp]
+ 1175 0230 96F82930 		ldrb	r3, [r6, #41]	@ zero_extendqisi2
+ 1176 0234 334A     		ldr	r2, .L79+72
+ 1177 0236 0193     		str	r3, [sp, #4]
+ 1178 0238 3A4B     		ldr	r3, .L79+104
+ 1179 023a C047     		blx	r8
+ 1180              	.LVL132:
+ 1181              	.L66:
+ 1182              	.LBE55:
+ 1183              	.LBE54:
+ 1184              	.LBB57:
+ 1185              	.LBB58:
+ 455:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 1186              		.loc 1 455 0
+ 1187 023c D4F80080 		ldr	r8, [r4]
+ 1188              	.LVL133:
+ 457:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 1189              		.loc 1 457 0
+ 1190 0240 D8F80830 		ldr	r3, [r8, #8]
+ 1191 0244 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 1192 0246 022B     		cmp	r3, #2
+ 1193 0248 14D1     		bne	.L67
+ 1194              	.LBB59:
+ 460:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint64_t));
+ 1195              		.loc 1 460 0
+ 1196 024a 2346     		mov	r3, r4
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 							pcam->info.module, exposure);
+ 1197              		.loc 1 462 0
+ 1198 024c 364A     		ldr	r2, .L79+108
+ 460:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				sizeof(uint64_t));
+ 1199              		.loc 1 460 0
+ 1200 024e 53F81C0F 		ldr	r0, [r3, #28]!	@ unaligned
+ 1201 0252 5968     		ldr	r1, [r3, #4]	@ unaligned
+ 1202 0254 03C7     		stmia	r7!, {r0, r1}
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 							pcam->info.module, exposure);
+ 1203              		.loc 1 462 0
+ 1204 0256 2A20     		movs	r0, #42
+ 1205 0258 DDE90A67 		ldrd	r6, [sp, #40]
+ 1206              	.LVL134:
+ 1207 025c 98F82930 		ldrb	r3, [r8, #41]	@ zero_extendqisi2
+ 1208 0260 1021     		movs	r1, #16
+ 1209 0262 CDE90067 		strd	r6, [sp]
+ 1210 0266 A847     		blx	r5
+ 1211              	.LVL135:
+ 464:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = LCC_CMD_SUCCESS;
+ 1212              		.loc 1 464 0
+ 1213 0268 4046     		mov	r0, r8
+ 1214 026a 3246     		mov	r2, r6
+ 1215 026c 3B46     		mov	r3, r7
+ 1216 026e 2F49     		ldr	r1, .L79+112
+ 1217 0270 8847     		blx	r1
+ 1218              	.LVL136:
+ 1219 0272 0AE0     		b	.L68
+ 1220              	.LVL137:
+ 1221              	.L67:
+ 1222              	.LBE59:
+ 469:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			__FUNCTION__, __LINE__, pcam->info.module);
+ 1223              		.loc 1 469 0
+ 1224 0274 4FF4EB73 		mov	r3, #470
+ 1225 0278 2A20     		movs	r0, #42
+ 1226 027a 0093     		str	r3, [sp]
+ 1227 027c 0221     		movs	r1, #2
+ 1228 027e 98F82930 		ldrb	r3, [r8, #41]	@ zero_extendqisi2
+ 1229 0282 204A     		ldr	r2, .L79+72
+ 1230 0284 0193     		str	r3, [sp, #4]
+ 1231 0286 2A4B     		ldr	r3, .L79+116
+ 1232 0288 A847     		blx	r5
+ 1233              	.LVL138:
+ 1234              	.L68:
+ 1235              	.LBE58:
+ 1236              	.LBE57:
+ 548:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					cam->info.module);
+ 549:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 550:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Put sensor in sw standby */
+ 551:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		sensor_sw_standby(af_setting);
+ 552:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 553:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Setup resolution */
+ 554:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		sensor_set_resolution(af_setting);
+ 555:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 556:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Setup sensitivity */
+ 557:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		sensor_set_sensitivity(af_setting);
+ 558:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 559:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Setup fps */
+ 560:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		sensor_set_fps(af_setting);
+ 561:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 562:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Set up exposure */
+ 563:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		sensor_set_exposure(af_setting);
+ 564:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 565:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		img_sensor_config_mode(cam->image, SLAVE_MODE);
+ 1237              		.loc 1 565 0
+ 1238 028a 0021     		movs	r1, #0
+ 1239 028c 294B     		ldr	r3, .L79+120
+ 1240 028e DAF80000 		ldr	r0, [r10]
+ 1241 0292 9847     		blx	r3
+ 1242              	.LVL139:
+ 566:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Set up the sensor roi and the RX receiver */
+ 567:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		ret = setup_roi_mipi(cam, af_setting->x_position,
+ 1243              		.loc 1 567 0
+ 1244 0294 A089     		ldrh	r0, [r4, #12]
+ 1245 0296 E188     		ldrh	r1, [r4, #6]
+ 1246 0298 2289     		ldrh	r2, [r4, #8]
+ 1247 029a 6389     		ldrh	r3, [r4, #10]
+ 1248 029c 0090     		str	r0, [sp]
+ 1249 029e E089     		ldrh	r0, [r4, #14]
+ 1250 02a0 0190     		str	r0, [sp, #4]
+ 1251 02a2 2069     		ldr	r0, [r4, #16]
+ 1252 02a4 0290     		str	r0, [sp, #8]
+ 1253 02a6 2079     		ldrb	r0, [r4, #4]	@ zero_extendqisi2
+ 1254 02a8 0390     		str	r0, [sp, #12]
+ 1255 02aa 6069     		ldr	r0, [r4, #20]
+ 1256 02ac 0490     		str	r0, [sp, #16]
+ 1257 02ae A069     		ldr	r0, [r4, #24]
+ 1258 02b0 0590     		str	r0, [sp, #20]
+ 1259 02b2 5046     		mov	r0, r10
+ 1260 02b4 204C     		ldr	r4, .L79+124
+ 1261              	.LVL140:
+ 1262 02b6 A047     		blx	r4
+ 1263              	.LVL141:
+ 1264 02b8 0446     		mov	r4, r0
+ 1265              	.LVL142:
+ 1266 02ba 87E0     		b	.L44
+ 1267              	.L80:
+ 1268              		.align	2
+ 1269              	.L79:
+ 1270 02bc 32010000 		.word	.LC12
+ 1271 02c0 00000000 		.word	.LANCHOR1
+ 1272 02c4 00000000 		.word	slogf
+ 1273 02c8 3E010000 		.word	.LC13
+ 1274 02cc 60010000 		.word	.LC14
+ 1275 02d0 7E010000 		.word	.LC15
+ 1276 02d4 00000000 		.word	img_sensor_open
+ 1277 02d8 00000000 		.word	vcm_init
+ 1278 02dc 9B010000 		.word	.LC16
+ 1279 02e0 BF010000 		.word	.LC17
+ 1280 02e4 E4010000 		.word	.LC18
+ 1281 02e8 0F020000 		.word	.LC19
+ 1282 02ec 00000000 		.word	.LANCHOR2
+ 1283 02f0 30000000 		.word	resolution_testing_reg_array+48
+ 1284 02f4 00000000 		.word	resolution_testing_reg_array
+ 1285 02f8 0C000000 		.word	resolution_testing_reg_array+12
+ 1286 02fc 18000000 		.word	resolution_testing_reg_array+24
+ 1287 0300 24000000 		.word	resolution_testing_reg_array+36
+ 1288 0304 97020000 		.word	.LC22
+ 1289 0308 00000000 		.word	.LANCHOR3
+ 1290 030c 00000000 		.word	img_sensor_set_sensitivity
+ 1291 0310 00000000 		.word	__aeabi_f2d
+ 1292 0314 00000000 		.word	.LANCHOR4
+ 1293 0318 C2020000 		.word	.LC23
+ 1294 031c 00000000 		.word	img_sensor_set_fps
+ 1295 0320 03030000 		.word	.LC24
+ 1296 0324 00000000 		.word	.LANCHOR5
+ 1297 0328 2D030000 		.word	.LC25
+ 1298 032c 00000000 		.word	img_sensor_set_exposure_time
+ 1299 0330 00000000 		.word	.LANCHOR6
+ 1300 0334 00000000 		.word	img_sensor_config_mode
+ 1301 0338 00000000 		.word	setup_roi_mipi
+ 1302 033c 00000000 		.word	light_system
+ 1303 0340 00000000 		.word	calculate_gain
+ 1304              	.LVL143:
+ 1305              	.L56:
+ 1306              	.LBB60:
+ 1307              	.LBB51:
+ 1308              	.LBB50:
+ 355:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		else
+ 1309              		.loc 1 355 0
+ 1310 0344 4046     		mov	r0, r8
+ 1311 0346 0122     		movs	r2, #1
+ 1312 0348 254B     		ldr	r3, .L81
+ 1313 034a 9847     		blx	r3
+ 1314              	.LVL144:
+ 359:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 1315              		.loc 1 359 0
+ 1316 034c 0690     		str	r0, [sp, #24]
+ 1317 034e C8B1     		cbz	r0, .L70
+ 361:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			img->default_llpclk = img_sensor_read_reg(img,
+ 1318              		.loc 1 361 0
+ 1319 0350 244B     		ldr	r3, .L81+4
+ 1320 0352 4FF45071 		mov	r1, #832
+ 1321 0356 0222     		movs	r2, #2
+ 1322 0358 4046     		mov	r0, r8
+ 1323              	.LVL145:
+ 1324 035a 0793     		str	r3, [sp, #28]
+ 1325 035c 9847     		blx	r3
+ 1326              	.LVL146:
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					LINE_LENGTH_PCLK_CAM_REG, TWO_BYTES);
+ 1327              		.loc 1 362 0
+ 1328 035e 40F24231 		movw	r1, #834
+ 1329 0362 0222     		movs	r2, #2
+ 1330 0364 079B     		ldr	r3, [sp, #28]
+ 361:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			img->default_llpclk = img_sensor_read_reg(img,
+ 1331              		.loc 1 361 0
+ 1332 0366 A8F83000 		strh	r0, [r8, #48]	@ movhi
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					LINE_LENGTH_PCLK_CAM_REG, TWO_BYTES);
+ 1333              		.loc 1 362 0
+ 1334 036a 4046     		mov	r0, r8
+ 1335 036c 9847     		blx	r3
+ 1336              	.LVL147:
+ 364:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 1337              		.loc 1 364 0
+ 1338 036e 4146     		mov	r1, r8
+ 1339 0370 1D4B     		ldr	r3, .L81+8
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					LINE_LENGTH_PCLK_CAM_REG, TWO_BYTES);
+ 1340              		.loc 1 362 0
+ 1341 0372 A8F83200 		strh	r0, [r8, #50]	@ movhi
+ 364:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 1342              		.loc 1 364 0
+ 1343 0376 94F83200 		ldrb	r0, [r4, #50]	@ zero_extendqisi2
+ 1344 037a 9847     		blx	r3
+ 1345              	.LVL148:
+ 1346 037c 1B4B     		ldr	r3, .L81+12
+ 1347 037e 0146     		mov	r1, r0
+ 1348 0380 4046     		mov	r0, r8
+ 1349 0382 9847     		blx	r3
+ 1350              	.LVL149:
+ 1351              	.L70:
+ 366:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 1352              		.loc 1 366 0
+ 1353 0384 DBF80030 		ldr	r3, [fp]
+ 1354 0388 B3F86E30 		ldrh	r3, [r3, #110]
+ 1355 038c 032B     		cmp	r3, #3
+ 1356 038e 04D1     		bne	.L61
+ 368:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			hal_syncio_trigger();
+ 1357              		.loc 1 368 0
+ 1358 0390 174B     		ldr	r3, .L81+16
+ 1359 0392 4846     		mov	r0, r9
+ 1360 0394 9847     		blx	r3
+ 1361              	.LVL150:
+ 369:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		}
+ 1362              		.loc 1 369 0
+ 1363 0396 174B     		ldr	r3, .L81+20
+ 1364 0398 9847     		blx	r3
+ 1365              	.LVL151:
+ 1366              	.L61:
+ 372:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 1367              		.loc 1 372 0
+ 1368 039a 0699     		ldr	r1, [sp, #24]
+ 1369 039c 99F82930 		ldrb	r3, [r9, #41]	@ zero_extendqisi2
+ 1370 03a0 0A9A     		ldr	r2, [sp, #40]
+ 374:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					"CAM-%X : Resolution is updated to %d x %d",
+ 1371              		.loc 1 374 0
+ 1372 03a2 2A20     		movs	r0, #42
+ 1373 03a4 0096     		str	r6, [sp]
+ 1374 03a6 0192     		str	r2, [sp, #4]
+ 372:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		{
+ 1375              		.loc 1 372 0
+ 1376 03a8 11B1     		cbz	r1, .L62
+ 374:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					"CAM-%X : Resolution is updated to %d x %d",
+ 1377              		.loc 1 374 0
+ 1378 03aa 0821     		movs	r1, #8
+ 1379 03ac 124A     		ldr	r2, .L81+24
+ 1380 03ae F6E6     		b	.L78
+ 1381              	.L62:
+ 380:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					"CAM-%X : Resolution hasn't been updated to %d x %d",
+ 1382              		.loc 1 380 0
+ 1383 03b0 0421     		movs	r1, #4
+ 1384 03b2 124A     		ldr	r2, .L81+28
+ 1385 03b4 F3E6     		b	.L78
+ 1386              	.LVL152:
+ 1387              	.L57:
+ 357:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 					__FUNCTION__, __LINE__);
+ 1388              		.loc 1 357 0
+ 1389 03b6 4FF4B373 		mov	r3, #358
+ 1390 03ba 2A20     		movs	r0, #42
+ 1391 03bc 0093     		str	r3, [sp]
+ 1392 03be 0221     		movs	r1, #2
+ 1393 03c0 0F4B     		ldr	r3, .L81+32
+ 1394 03c2 104A     		ldr	r2, .L81+36
+ 1395 03c4 A847     		blx	r5
+ 1396              	.LVL153:
+ 1397              	.LBE50:
+ 307:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	cam_typedef_t * pcam			= setting->cam;
+ 1398              		.loc 1 307 0
+ 1399 03c6 0023     		movs	r3, #0
+ 1400 03c8 0693     		str	r3, [sp, #24]
+ 1401 03ca DBE7     		b	.L70
+ 1402              	.LVL154:
+ 1403              	.L44:
+ 1404              	.LBE51:
+ 1405              	.LBE60:
+ 568:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				af_setting->y_position, af_setting->x_width, af_setting->y_width,
+ 569:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				af_setting->scale, af_setting->destination, af_setting->mipi_rx_chid, af_setting->af_cb,
+ 570:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 				af_setting->cb_user_data);
+ 571:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 572:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 573:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "Exiting %s", __FUNCTION__);
+ 1406              		.loc 1 573 0
+ 1407 03cc 2A20     		movs	r0, #42
+ 1408 03ce 1021     		movs	r1, #16
+ 1409 03d0 0D4A     		ldr	r2, .L81+40
+ 1410 03d2 0E4B     		ldr	r3, .L81+44
+ 1411 03d4 A847     		blx	r5
+ 1412              	.LVL155:
+ 574:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 575:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	return ret;
+ 576:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 1413              		.loc 1 576 0
+ 1414 03d6 2046     		mov	r0, r4
+ 1415 03d8 0DB0     		add	sp, sp, #52
+ 1416              	.LCFI11:
+ 1417              		.cfi_def_cfa_offset 36
+ 1418              		@ sp needed
+ 1419 03da BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 1420              	.LVL156:
+ 1421              	.L82:
+ 1422 03de 00BF     		.align	2
+ 1423              	.L81:
+ 1424 03e0 00000000 		.word	img_sensor_send_config
+ 1425 03e4 00000000 		.word	img_sensor_read_reg
+ 1426 03e8 00000000 		.word	get_af_flip_mode
+ 1427 03ec 00000000 		.word	img_sensor_flip_capture
+ 1428 03f0 00000000 		.word	reconfig_spg_for_previewing_sensor
+ 1429 03f4 00000000 		.word	hal_syncio_trigger
+ 1430 03f8 3A020000 		.word	.LC20
+ 1431 03fc 64020000 		.word	.LC21
+ 1432 0400 00000000 		.word	.LANCHOR3
+ 1433 0404 5D030000 		.word	.LC27
+ 1434 0408 52030000 		.word	.LC26
+ 1435 040c 00000000 		.word	.LANCHOR1
+ 1436              		.cfi_endproc
+ 1437              	.LFE15:
+ 1439              		.section	.text.af_test,"ax",%progbits
+ 1440              		.align	1
+ 1441              		.global	af_test
+ 1442              		.thumb
+ 1443              		.thumb_func
+ 1445              	af_test:
+ 1446              	.LFB16:
+ 577:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 578:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** void af_test(cam_typedef_t *pcam)
+ 579:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** {
+ 1447              		.loc 1 579 0
+ 1448              		.cfi_startproc
+ 1449              		@ args = 0, pretend = 0, frame = 72
+ 1450              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1451              	.LVL157:
+ 1452 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 1453              	.LCFI12:
+ 1454              		.cfi_def_cfa_offset 32
+ 1455              		.cfi_offset 4, -32
+ 1456              		.cfi_offset 5, -28
+ 1457              		.cfi_offset 6, -24
+ 1458              		.cfi_offset 7, -20
+ 1459              		.cfi_offset 8, -16
+ 1460              		.cfi_offset 9, -12
+ 1461              		.cfi_offset 10, -8
+ 1462              		.cfi_offset 14, -4
+ 580:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(!pcam) return;
+ 1463              		.loc 1 580 0
+ 1464 0004 0446     		mov	r4, r0
+ 579:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	if(!pcam) return;
+ 1465              		.loc 1 579 0
+ 1466 0006 96B0     		sub	sp, sp, #88
+ 1467              	.LCFI13:
+ 1468              		.cfi_def_cfa_offset 120
+ 1469              		.loc 1 580 0
+ 1470 0008 0028     		cmp	r0, #0
+ 1471 000a 00F0AF80 		beq	.L83
+ 581:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 582:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_INFO, "Entering %s", __FUNCTION__);
+ 1472              		.loc 1 582 0
+ 1473 000e 2A20     		movs	r0, #42
+ 1474              	.LVL158:
+ 1475 0010 0821     		movs	r1, #8
+ 1476 0012 5B4A     		ldr	r2, .L93+8
+ 1477 0014 5B4B     		ldr	r3, .L93+12
+ 1478 0016 5C4D     		ldr	r5, .L93+16
+ 1479 0018 A847     		blx	r5
+ 1480              	.LVL159:
+ 583:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 584:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t left_x = pcam->cam_common_data.roi_rectangle.left_x;
+ 1481              		.loc 1 584 0
+ 1482 001a B4F80C90 		ldrh	r9, [r4, #12]
+ 1483              	.LVL160:
+ 585:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t top_y = pcam->cam_common_data.roi_rectangle.top_y;
+ 1484              		.loc 1 585 0
+ 1485 001e B4F80E80 		ldrh	r8, [r4, #14]
+ 1486              	.LVL161:
+ 586:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t width = pcam->cam_common_data.roi_rectangle.width;
+ 1487              		.loc 1 586 0
+ 1488 0022 278A     		ldrh	r7, [r4, #16]
+ 1489              	.LVL162:
+ 587:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t height = pcam->cam_common_data.roi_rectangle.height;
+ 1490              		.loc 1 587 0
+ 1491 0024 668A     		ldrh	r6, [r4, #18]
+ 1492              	.LVL163:
+ 588:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "ROI: (%d, %d) - w: (%d, %d)", (int)left_x, (int)top_y, (int)width, (int)height)
+ 1493              		.loc 1 588 0
+ 1494 0026 594A     		ldr	r2, .L93+20
+ 1495 0028 4B46     		mov	r3, r9
+ 1496 002a 2A20     		movs	r0, #42
+ 1497 002c CDF80080 		str	r8, [sp]
+ 1498 0030 1021     		movs	r1, #16
+ 1499 0032 0197     		str	r7, [sp, #4]
+ 1500 0034 0296     		str	r6, [sp, #8]
+ 1501 0036 A847     		blx	r5
+ 1502              	.LVL164:
+ 589:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 590:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Config af_setting_t */
+ 591:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting_t af_setting;
+ 592:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.cam = pcam;
+ 593:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.cam_settings =
+ 594:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			*(pcam->image->settings[light_system->active_ucid]);
+ 1503              		.loc 1 594 0
+ 1504 0038 554A     		ldr	r2, .L93+24
+ 1505 003a 2368     		ldr	r3, [r4]
+ 592:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.cam_settings =
+ 1506              		.loc 1 592 0
+ 1507 003c 0994     		str	r4, [sp, #36]
+ 1508              		.loc 1 594 0
+ 1509 003e 1268     		ldr	r2, [r2]
+ 1510 0040 B2F86E20 		ldrh	r2, [r2, #110]
+ 593:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			*(pcam->image->settings[light_system->active_ucid]);
+ 1511              		.loc 1 593 0
+ 1512 0044 03EB8203 		add	r3, r3, r2, lsl #2
+ 1513 0048 10AA     		add	r2, sp, #64
+ 1514 004a 9646     		mov	lr, r2
+ 1515 004c 5B68     		ldr	r3, [r3, #4]
+ 1516 004e 03F1100A 		add	r10, r3, #16
+ 1517              	.L85:
+ 1518 0052 1868     		ldr	r0, [r3]	@ unaligned
+ 1519 0054 0833     		adds	r3, r3, #8
+ 1520 0056 53F8041C 		ldr	r1, [r3, #-4]	@ unaligned
+ 1521 005a 9446     		mov	ip, r2
+ 1522 005c 5345     		cmp	r3, r10
+ 1523 005e ACE80300 		stmia	ip!, {r0, r1}
+ 1524 0062 6246     		mov	r2, ip
+ 1525 0064 F5D1     		bne	.L85
+ 1526 0066 1868     		ldr	r0, [r3]	@ unaligned
+ 595:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.destination = BTCM_BASE;
+ 596:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.mipi_rx_chid = (pcam->info.ch - 1) % 6; /*Set mipi_rx_chid=cam_rx_id*/
+ 1527              		.loc 1 596 0
+ 1528 0068 0621     		movs	r1, #6
+ 593:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			*(pcam->image->settings[light_system->active_ucid]);
+ 1529              		.loc 1 593 0
+ 1530 006a CCF80000 		str	r0, [ip]	@ unaligned
+ 1531 006e 9B88     		ldrh	r3, [r3, #4]	@ unaligned
+ 1532 0070 ACF80430 		strh	r3, [ip, #4]	@ unaligned
+ 595:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.destination = BTCM_BASE;
+ 1533              		.loc 1 595 0
+ 1534 0074 4FF05073 		mov	r3, #54525952
+ 597:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 598:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.x_position = left_x;
+ 599:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.y_position = top_y;
+ 600:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.x_width = width;
+ 1535              		.loc 1 600 0
+ 1536 0078 ADF82E70 		strh	r7, [sp, #46]	@ movhi
+ 601:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.y_width = height;
+ 602:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 603:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.af_cb = rx_cb;
+ 604:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.cb_user_data = NULL;
+ 1537              		.loc 1 604 0
+ 1538 007c 0027     		movs	r7, #0
+ 1539              	.LVL165:
+ 595:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.mipi_rx_chid = (pcam->info.ch - 1) % 6; /*Set mipi_rx_chid=cam_rx_id*/
+ 1540              		.loc 1 595 0
+ 1541 007e 0D93     		str	r3, [sp, #52]
+ 596:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 1542              		.loc 1 596 0
+ 1543 0080 94F82830 		ldrb	r3, [r4, #40]	@ zero_extendqisi2
+ 1544 0084 03F00F03 		and	r3, r3, #15
+ 1545 0088 013B     		subs	r3, r3, #1
+ 601:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.y_width = height;
+ 1546              		.loc 1 601 0
+ 1547 008a ADF83060 		strh	r6, [sp, #48]	@ movhi
+ 596:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 1548              		.loc 1 596 0
+ 1549 008e 93FBF1F2 		sdiv	r2, r3, r1
+ 1550              		.loc 1 604 0
+ 1551 0092 0F97     		str	r7, [sp, #60]
+ 605:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.flip_mode = FLIP_MODE_CAPTURE;
+ 1552              		.loc 1 605 0
+ 1553 0094 8DF85670 		strb	r7, [sp, #86]
+ 1554              	.LVL166:
+ 598:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.y_position = top_y;
+ 1555              		.loc 1 598 0
+ 1556 0098 ADF82A90 		strh	r9, [sp, #42]	@ movhi
+ 599:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.x_width = width;
+ 1557              		.loc 1 599 0
+ 1558 009c ADF82C80 		strh	r8, [sp, #44]	@ movhi
+ 606:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 607:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Set exposure */
+ 608:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint64_t exposure = 30000000;
+ 609:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy(af_setting.cam_settings.exposure, (uint8_t *) &exposure,
+ 610:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint64_t));
+ 611:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Set FPS */
+ 612:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t cam_fps = 30;
+ 613:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy(af_setting.cam_settings.fps, (uint8_t *) &cam_fps, sizeof(uint16_t));
+ 614:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Set resolution */
+ 615:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t x_res = X_13M;
+ 616:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t y_res = Y_13M;
+ 617:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy(af_setting.cam_settings.resolution, (uint8_t *) &x_res,
+ 618:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint32_t));
+ 619:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy(af_setting.cam_settings.resolution + sizeof(uint32_t),
+ 620:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			(uint8_t *) &y_res, sizeof(uint32_t));
+ 621:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Set sensitivity */
+ 622:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	float total_gain = 1.5;
+ 623:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	memcpy(af_setting.cam_settings.sensitivity, (uint8_t *) &total_gain,
+ 624:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint32_t));
+ 625:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 626:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	move_frame_done_sem_ = xSemaphoreCreateBinary();
+ 1559              		.loc 1 626 0
+ 1560 00a0 3C4E     		ldr	r6, .L93+28
+ 1561              	.LVL167:
+ 596:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 1562              		.loc 1 596 0
+ 1563 00a2 01FB1233 		mls	r3, r1, r2, r3
+ 609:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint64_t));
+ 1564              		.loc 1 609 0
+ 1565 00a6 34A1     		adr	r1, .L93
+ 1566 00a8 D1E90001 		ldrd	r0, [r1]
+ 1567              		.loc 1 626 0
+ 1568 00ac 0322     		movs	r2, #3
+ 596:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 1569              		.loc 1 596 0
+ 1570 00ae 8DF82830 		strb	r3, [sp, #40]
+ 603:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_setting.cb_user_data = NULL;
+ 1571              		.loc 1 603 0
+ 1572 00b2 394B     		ldr	r3, .L93+32
+ 1573 00b4 0E93     		str	r3, [sp, #56]
+ 609:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint64_t));
+ 1574              		.loc 1 609 0
+ 1575 00b6 16AB     		add	r3, sp, #88
+ 1576 00b8 63E91001 		strd	r0, [r3, #-64]!
+ 1577 00bc 93E80300 		ldmia	r3, {r0, r1}
+ 613:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Set resolution */
+ 1578              		.loc 1 613 0
+ 1579 00c0 1E23     		movs	r3, #30
+ 609:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint64_t));
+ 1580              		.loc 1 609 0
+ 1581 00c2 8EE80300 		stmia	lr, {r0, r1}
+ 1582              	.LVL168:
+ 1583              		.loc 1 626 0
+ 1584 00c6 3946     		mov	r1, r7
+ 613:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Set resolution */
+ 1585              		.loc 1 613 0
+ 1586 00c8 ADF81630 		strh	r3, [sp, #22]	@ movhi
+ 1587              		.loc 1 626 0
+ 1588 00cc 0120     		movs	r0, #1
+ 613:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Set resolution */
+ 1589              		.loc 1 613 0
+ 1590 00ce ADF85430 		strh	r3, [sp, #84]	@ movhi
+ 1591              	.LVL169:
+ 617:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint32_t));
+ 1592              		.loc 1 617 0
+ 1593 00d2 41F27003 		movw	r3, #4208
+ 1594 00d6 1293     		str	r3, [sp, #72]
+ 619:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			(uint8_t *) &y_res, sizeof(uint32_t));
+ 1595              		.loc 1 619 0
+ 1596 00d8 4FF44363 		mov	r3, #3120
+ 1597 00dc 1393     		str	r3, [sp, #76]
+ 1598              	.LVL170:
+ 623:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 			sizeof(uint32_t));
+ 1599              		.loc 1 623 0
+ 1600 00de 4FF07F53 		mov	r3, #1069547520
+ 1601 00e2 0493     		str	r3, [sp, #16]	@ float
+ 1602 00e4 4FF07F53 		mov	r3, #1069547520
+ 1603 00e8 1493     		str	r3, [sp, #80]
+ 1604              		.loc 1 626 0
+ 1605 00ea 2C4B     		ldr	r3, .L93+36
+ 1606 00ec 9847     		blx	r3
+ 1607              	.LVL171:
+ 627:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Config the exposure, sensitivity and cam standby for non preview cams */
+ 628:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	af_configure_sensor_stream(&af_setting, 0);
+ 1608              		.loc 1 628 0
+ 1609 00ee 3946     		mov	r1, r7
+ 1610 00f0 2B4B     		ldr	r3, .L93+40
+ 629:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 630:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Read the sensor register to check if exposure, sensitivity and FLL are correct. */
+ 631:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Read exposure */
+ 632:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #if(LOG_VERBOSE == STD_ON)
+ 633:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t cit = img_sensor_read_reg(pcam->image, CIT_CAM_REG, TWO_BYTES);
+ 1611              		.loc 1 633 0
+ 1612 00f2 2C4F     		ldr	r7, .L93+44
+ 626:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Config the exposure, sensitivity and cam standby for non preview cams */
+ 1613              		.loc 1 626 0
+ 1614 00f4 3060     		str	r0, [r6]
+ 628:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 1615              		.loc 1 628 0
+ 1616 00f6 09A8     		add	r0, sp, #36
+ 1617 00f8 9847     		blx	r3
+ 1618              	.LVL172:
+ 1619              		.loc 1 633 0
+ 1620 00fa 2068     		ldr	r0, [r4]
+ 1621 00fc 40F20221 		movw	r1, #514
+ 1622 0100 0222     		movs	r2, #2
+ 1623 0102 B847     		blx	r7
+ 1624              	.LVL173:
+ 634:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "CIT: 0x%x", cit);
+ 1625              		.loc 1 634 0
+ 1626 0104 1021     		movs	r1, #16
+ 1627 0106 284A     		ldr	r2, .L93+48
+ 633:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "CIT: 0x%x", cit);
+ 1628              		.loc 1 633 0
+ 1629 0108 0346     		mov	r3, r0
+ 1630              	.LVL174:
+ 1631              		.loc 1 634 0
+ 1632 010a 2A20     		movs	r0, #42
+ 1633 010c A847     		blx	r5
+ 1634              	.LVL175:
+ 635:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Read sensitivity */
+ 636:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint16_t sensitivity = img_sensor_read_reg(pcam->image,
+ 1635              		.loc 1 636 0
+ 1636 010e 2068     		ldr	r0, [r4]
+ 1637 0110 43F25E01 		movw	r1, #12382
+ 1638 0114 0222     		movs	r2, #2
+ 1639 0116 B847     		blx	r7
+ 1640              	.LVL176:
+ 637:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	CAM_REG_SENSITIVITY, TWO_BYTES);
+ 638:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "Sensitivity: 0x%x", sensitivity);
+ 1641              		.loc 1 638 0
+ 1642 0118 1021     		movs	r1, #16
+ 1643 011a 244A     		ldr	r2, .L93+52
+ 636:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	CAM_REG_SENSITIVITY, TWO_BYTES);
+ 1644              		.loc 1 636 0
+ 1645 011c 0346     		mov	r3, r0
+ 1646              	.LVL177:
+ 1647              		.loc 1 638 0
+ 1648 011e 2A20     		movs	r0, #42
+ 1649 0120 A847     		blx	r5
+ 1650              	.LVL178:
+ 639:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	/* Read FLL */
+ 640:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	uint32_t cur_fll = img_sensor_read_reg(pcam->image, FLL_CAM_REG, TWO_BYTES);
+ 1651              		.loc 1 640 0
+ 1652 0122 2068     		ldr	r0, [r4]
+ 1653 0124 4FF45071 		mov	r1, #832
+ 1654 0128 0222     		movs	r2, #2
+ 1655 012a B847     		blx	r7
+ 1656              	.LVL179:
+ 641:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "frame line length: 0x%x", cur_fll);
+ 1657              		.loc 1 641 0
+ 1658 012c 1021     		movs	r1, #16
+ 1659 012e 204A     		ldr	r2, .L93+56
+ 1660 0130 0524     		movs	r4, #5
+ 1661              	.LVL180:
+ 640:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_DEBUG, "frame line length: 0x%x", cur_fll);
+ 1662              		.loc 1 640 0
+ 1663 0132 0346     		mov	r3, r0
+ 1664              	.LVL181:
+ 1665              		.loc 1 641 0
+ 1666 0134 2A20     		movs	r0, #42
+ 1667 0136 A847     		blx	r5
+ 1668              	.LVL182:
+ 1669              	.L86:
+ 1670              	.LBB61:
+ 642:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** #endif
+ 643:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 
+ 644:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	for(int j = 0; j < 5; j++)
+ 645:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 646:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		/* Trigger sensor */
+ 647:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		trigger_sensor(&af_setting);
+ 1671              		.loc 1 647 0 discriminator 3
+ 1672 0138 1E4B     		ldr	r3, .L93+60
+ 1673 013a 09A8     		add	r0, sp, #36
+ 1674 013c 9847     		blx	r3
+ 1675              	.LVL183:
+ 648:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		// Wait for capture done
+ 649:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		xSemaphoreTake(move_frame_done_sem_, portMAX_DELAY); //frame_capture_timeout_ms() * portTICK_PERI
+ 1676              		.loc 1 649 0 discriminator 3
+ 1677 013e 0021     		movs	r1, #0
+ 1678 0140 0B46     		mov	r3, r1
+ 1679 0142 4FF0FF32 		mov	r2, #-1
+ 1680 0146 3068     		ldr	r0, [r6]
+ 1681 0148 1B4F     		ldr	r7, .L93+64
+ 1682 014a B847     		blx	r7
+ 1683              	.LVL184:
+ 650:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 		SLOGF(SLOG_INFO, "Frame capture done");
+ 1684              		.loc 1 650 0 discriminator 3
+ 1685 014c 2A20     		movs	r0, #42
+ 1686 014e 0821     		movs	r1, #8
+ 1687 0150 1A4A     		ldr	r2, .L93+68
+ 1688 0152 A847     		blx	r5
+ 1689              	.LVL185:
+ 644:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	{
+ 1690              		.loc 1 644 0 discriminator 3
+ 1691 0154 013C     		subs	r4, r4, #1
+ 1692              	.LVL186:
+ 1693 0156 EFD1     		bne	.L86
+ 1694              	.LBE61:
+ 651:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	}
+ 652:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	vSemaphoreDelete(move_frame_done_sem_);
+ 1695              		.loc 1 652 0
+ 1696 0158 0E4B     		ldr	r3, .L93+28
+ 653:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_INFO, "Exiting %s", __FUNCTION__);
+ 1697              		.loc 1 653 0
+ 1698 015a 0B4C     		ldr	r4, .L93+16
+ 1699              	.LVL187:
+ 652:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** 	SLOGF(SLOG_INFO, "Exiting %s", __FUNCTION__);
+ 1700              		.loc 1 652 0
+ 1701 015c 1868     		ldr	r0, [r3]
+ 1702 015e 184B     		ldr	r3, .L93+72
+ 1703 0160 9847     		blx	r3
+ 1704              	.LVL188:
+ 1705              		.loc 1 653 0
+ 1706 0162 2A20     		movs	r0, #42
+ 1707 0164 0821     		movs	r1, #8
+ 1708 0166 174A     		ldr	r2, .L93+76
+ 1709 0168 064B     		ldr	r3, .L93+12
+ 1710 016a A047     		blx	r4
+ 1711              	.LVL189:
+ 1712              	.L83:
+ 654:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/af_helper.c **** }
+ 1713              		.loc 1 654 0
+ 1714 016c 16B0     		add	sp, sp, #88
+ 1715              	.LCFI14:
+ 1716              		.cfi_def_cfa_offset 32
+ 1717              		@ sp needed
+ 1718 016e BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 1719              	.L94:
+ 1720 0172 00BFAFF3 		.align	3
+ 1720      0080
+ 1721              	.L93:
+ 1722 0178 80C3C901 		.word	30000000
+ 1723 017c 00000000 		.word	0
+ 1724 0180 32010000 		.word	.LC12
+ 1725 0184 00000000 		.word	.LANCHOR7
+ 1726 0188 00000000 		.word	slogf
+ 1727 018c 7F030000 		.word	.LC28
+ 1728 0190 00000000 		.word	light_system
+ 1729 0194 00000000 		.word	.LANCHOR0
+ 1730 0198 00000000 		.word	rx_cb
+ 1731 019c 00000000 		.word	xQueueGenericCreate
+ 1732 01a0 00000000 		.word	af_configure_sensor_stream
+ 1733 01a4 00000000 		.word	img_sensor_read_reg
+ 1734 01a8 9B030000 		.word	.LC29
+ 1735 01ac A5030000 		.word	.LC30
+ 1736 01b0 B7030000 		.word	.LC31
+ 1737 01b4 00000000 		.word	trigger_sensor
+ 1738 01b8 00000000 		.word	xQueueGenericReceive
+ 1739 01bc CF030000 		.word	.LC32
+ 1740 01c0 00000000 		.word	vQueueDelete
+ 1741 01c4 52030000 		.word	.LC26
+ 1742              		.cfi_endproc
+ 1743              	.LFE16:
+ 1745              		.global	move_frame_done_sem_
+ 1746              		.section	.rodata.__FUNCTION__.9348,"a",%progbits
+ 1747              		.set	.LANCHOR4,. + 0
+ 1750              	__FUNCTION__.9348:
+ 1751 0000 73656E73 		.ascii	"sensor_set_sensitivity\000"
+ 1751      6F725F73 
+ 1751      65745F73 
+ 1751      656E7369 
+ 1751      74697669 
+ 1752              		.section	.rodata.__FUNCTION__.9355,"a",%progbits
+ 1753              		.set	.LANCHOR5,. + 0
+ 1756              	__FUNCTION__.9355:
+ 1757 0000 73656E73 		.ascii	"sensor_set_fps\000"
+ 1757      6F725F73 
+ 1757      65745F66 
+ 1757      707300
+ 1758              		.section	.rodata.__FUNCTION__.9362,"a",%progbits
+ 1759              		.set	.LANCHOR6,. + 0
+ 1762              	__FUNCTION__.9362:
+ 1763 0000 73656E73 		.ascii	"sensor_set_exposure\000"
+ 1763      6F725F73 
+ 1763      65745F65 
+ 1763      78706F73 
+ 1763      75726500 
+ 1764              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 1765              	.LC0:
+ 1766 0000 0D0A4D49 		.ascii	"\015\012MIPI Error: %x \015\012\000"
+ 1766      50492045 
+ 1766      72726F72 
+ 1766      3A202578 
+ 1766      200D0A00 
+ 1767              	.LC1:
+ 1768 0014 5352414D 		.ascii	"SRAM region: %X\000"
+ 1768      20726567 
+ 1768      696F6E3A 
+ 1768      20255800 
+ 1769              	.LC2:
+ 1770 0024 4154434D 		.ascii	"ATCM region: %X\000"
+ 1770      20726567 
+ 1770      696F6E3A 
+ 1770      20255800 
+ 1771              	.LC3:
+ 1772 0034 4254434D 		.ascii	"BTCM region: %X\000"
+ 1772      20726567 
+ 1772      696F6E3A 
+ 1772      20255800 
+ 1773              	.LC4:
+ 1774 0044 44445220 		.ascii	"DDR region: %X\000"
+ 1774      72656769 
+ 1774      6F6E3A20 
+ 1774      255800
+ 1775              	.LC5:
+ 1776 0053 68656967 		.ascii	"height: %d max: %d, width: %d, image pixel: %d, siz"
+ 1776      68743A20 
+ 1776      2564206D 
+ 1776      61783A20 
+ 1776      25642C20 
+ 1777 0086 653A2025 		.ascii	"e: %d\000"
+ 1777      6400
+ 1778              	.LC6:
+ 1779 008c 4475706C 		.ascii	"Duplication is not required - RX_ID: %d \000"
+ 1779      69636174 
+ 1779      696F6E20 
+ 1779      6973206E 
+ 1779      6F742072 
+ 1780              	.LC7:
+ 1781 00b5 436F6E66 		.ascii	"Configure the sensor in ROI mode unsuccessfully\000"
+ 1781      69677572 
+ 1781      65207468 
+ 1781      65207365 
+ 1781      6E736F72 
+ 1782              	.LC8:
+ 1783 00e5 4475706C 		.ascii	"Duplication is required: %d %d\000"
+ 1783      69636174 
+ 1783      696F6E20 
+ 1783      69732072 
+ 1783      65717569 
+ 1784              	.LC9:
+ 1785 0104 53435520 		.ascii	"SCU current: %x \000"
+ 1785      63757272 
+ 1785      656E743A 
+ 1785      20257820 
+ 1785      00
+ 1786              	.LC10:
+ 1787 0115 53435520 		.ascii	"SCU mapped: %x \000"
+ 1787      6D617070 
+ 1787      65643A20 
+ 1787      25782000 
+ 1788              	.LC11:
+ 1789 0125 53656E64 		.ascii	"Send trigger\000"
+ 1789      20747269 
+ 1789      67676572 
+ 1789      00
+ 1790              	.LC12:
+ 1791 0132 456E7465 		.ascii	"Entering %s\000"
+ 1791      72696E67 
+ 1791      20257300 
+ 1792              	.LC13:
+ 1793 013e 43616E6E 		.ascii	"Cannot change the sensor settings\000"
+ 1793      6F742063 
+ 1793      68616E67 
+ 1793      65207468 
+ 1793      65207365 
+ 1794              	.LC14:
+ 1795 0160 41462073 		.ascii	"AF setting request for CAM-%X\000"
+ 1795      65747469 
+ 1795      6E672072 
+ 1795      65717565 
+ 1795      73742066 
+ 1796              	.LC15:
+ 1797 017e 43414D2D 		.ascii	"CAM-%X already in SW standby\000"
+ 1797      25582061 
+ 1797      6C726561 
+ 1797      64792069 
+ 1797      6E205357 
+ 1798              	.LC16:
+ 1799 019b 43414D2D 		.ascii	"CAM-%X changed to SW standby failed\000"
+ 1799      25582063 
+ 1799      68616E67 
+ 1799      65642074 
+ 1799      6F205357 
+ 1800              	.LC17:
+ 1801 01bf 25735B25 		.ascii	"%s[%d]: Open CAM-%X was successfully\000"
+ 1801      645D3A20 
+ 1801      4F70656E 
+ 1801      2043414D 
+ 1801      2D255820 
+ 1802              	.LC18:
+ 1803 01e4 25733A5B 		.ascii	"%s:[%d] Cannot switch CAM-%X to SW STANDBY\000"
+ 1803      25645D20 
+ 1803      43616E6E 
+ 1803      6F742073 
+ 1803      77697463 
+ 1804              	.LC19:
+ 1805 020f 25733A5B 		.ascii	"%s:[%d] Cannot switch CAM-%X to HW STANDBY\000"
+ 1805      25645D20 
+ 1805      43616E6E 
+ 1805      6F742073 
+ 1805      77697463 
+ 1806              	.LC20:
+ 1807 023a 43414D2D 		.ascii	"CAM-%X : Resolution is updated to %d x %d\000"
+ 1807      2558203A 
+ 1807      20526573 
+ 1807      6F6C7574 
+ 1807      696F6E20 
+ 1808              	.LC21:
+ 1809 0264 43414D2D 		.ascii	"CAM-%X : Resolution hasn't been updated to %d x %d\000"
+ 1809      2558203A 
+ 1809      20526573 
+ 1809      6F6C7574 
+ 1809      696F6E20 
+ 1810              	.LC22:
+ 1811 0297 25733A5B 		.ascii	"%s:[%d]: CAM-%X was not in SW STANDBY mode\000"
+ 1811      25645D3A 
+ 1811      2043414D 
+ 1811      2D255820 
+ 1811      77617320 
+ 1812              	.LC23:
+ 1813 02c2 25733A5B 		.ascii	"%s:[%d]: Sensitivity of CAM-%X was updated total ga"
+ 1813      25645D3A 
+ 1813      2053656E 
+ 1813      73697469 
+ 1813      76697479 
+ 1814 02f5 696E2074 		.ascii	"in to [%.02f]\000"
+ 1814      6F205B25 
+ 1814      2E303266 
+ 1814      5D00
+ 1815              	.LC24:
+ 1816 0303 25733A5B 		.ascii	"%s:[%d]: FPS of CAM-%X updated to 0x%02X \000"
+ 1816      25645D3A 
+ 1816      20465053 
+ 1816      206F6620 
+ 1816      43414D2D 
+ 1817              	.LC25:
+ 1818 032d 43414D2D 		.ascii	"CAM-%X applying exposure setting: %d\000"
+ 1818      25582061 
+ 1818      70706C79 
+ 1818      696E6720 
+ 1818      6578706F 
+ 1819              	.LC26:
+ 1820 0352 45786974 		.ascii	"Exiting %s\000"
+ 1820      696E6720 
+ 1820      257300
+ 1821              	.LC27:
+ 1822 035d 25733A5B 		.ascii	"%s:[%d] Invalid resolution params\000"
+ 1822      25645D20 
+ 1822      496E7661 
+ 1822      6C696420 
+ 1822      7265736F 
+ 1823              	.LC28:
+ 1824 037f 524F493A 		.ascii	"ROI: (%d, %d) - w: (%d, %d)\000"
+ 1824      20282564 
+ 1824      2C202564 
+ 1824      29202D20 
+ 1824      773A2028 
+ 1825              	.LC29:
+ 1826 039b 4349543A 		.ascii	"CIT: 0x%x\000"
+ 1826      20307825 
+ 1826      7800
+ 1827              	.LC30:
+ 1828 03a5 53656E73 		.ascii	"Sensitivity: 0x%x\000"
+ 1828      69746976 
+ 1828      6974793A 
+ 1828      20307825 
+ 1828      7800
+ 1829              	.LC31:
+ 1830 03b7 6672616D 		.ascii	"frame line length: 0x%x\000"
+ 1830      65206C69 
+ 1830      6E65206C 
+ 1830      656E6774 
+ 1830      683A2030 
+ 1831              	.LC32:
+ 1832 03cf 4672616D 		.ascii	"Frame capture done\000"
+ 1832      65206361 
+ 1832      70747572 
+ 1832      6520646F 
+ 1832      6E6500
+ 1833              		.section	.rodata.__FUNCTION__.9318,"a",%progbits
+ 1834              		.set	.LANCHOR2,. + 0
+ 1837              	__FUNCTION__.9318:
+ 1838 0000 73656E73 		.ascii	"sensor_sw_standby\000"
+ 1838      6F725F73 
+ 1838      775F7374 
+ 1838      616E6462 
+ 1838      7900
+ 1839              		.section	.rodata.__FUNCTION__.9385,"a",%progbits
+ 1840              		.set	.LANCHOR1,. + 0
+ 1843              	__FUNCTION__.9385:
+ 1844 0000 61665F63 		.ascii	"af_configure_sensor_stream\000"
+ 1844      6F6E6669 
+ 1844      67757265 
+ 1844      5F73656E 
+ 1844      736F725F 
+ 1845              		.section	.rodata.__FUNCTION__.9389,"a",%progbits
+ 1846              		.set	.LANCHOR7,. + 0
+ 1849              	__FUNCTION__.9389:
+ 1850 0000 61665F74 		.ascii	"af_test\000"
+ 1850      65737400 
+ 1851              		.section	.bss.move_frame_done_sem_,"aw",%nobits
+ 1852              		.align	2
+ 1853              		.set	.LANCHOR0,. + 0
+ 1856              	move_frame_done_sem_:
+ 1857 0000 00000000 		.space	4
+ 1858              		.section	.rodata.__FUNCTION__.9336,"a",%progbits
+ 1859              		.set	.LANCHOR3,. + 0
+ 1862              	__FUNCTION__.9336:
+ 1863 0000 73656E73 		.ascii	"sensor_set_resolution\000"
+ 1863      6F725F73 
+ 1863      65745F72 
+ 1863      65736F6C 
+ 1863      7574696F 
+ 1864              		.text
+ 1865              	.Letext0:
+ 1866              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1867              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1868              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 1869              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 1870              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 1871              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/event_groups.h"
+ 1872              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/ar1335.h"
+ 1873              		.file 9 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_mipi2axi.h"
+ 1874              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_syncio.h"
+ 1875              		.file 11 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 1876              		.file 12 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 1877              		.file 13 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/tof.h"
+ 1878              		.file 14 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/gyro.h"
+ 1879              		.file 15 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 1880              		.file 16 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/lcc_cmd.h"
+ 1881              		.file 17 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/vcm.h"
+ 1882              		.file 18 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/optical.h"
+ 1883              		.file 19 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/pwr_ctrl.h"
+ 1884              		.file 20 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/eeprom.h"
+ 1885              		.file 21 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/task_af_ctrl.h"
+ 1886              		.file 22 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/light_system.h"
+ 1887              		.file 23 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/task_cam_ctrl.h"
+ 1888              		.file 24 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/af_helper.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 af_helper.c
+     /tmp/ccgrM3op.s:19     .text.rx_cb:00000000 $t
+     /tmp/ccgrM3op.s:23     .text.rx_cb:00000000 rx_cb
+     /tmp/ccgrM3op.s:93     .text.rx_cb:00000034 $d
+     /tmp/ccgrM3op.s:103    .text.setup_mipi_rx_roi_snapshot:00000000 $t
+     /tmp/ccgrM3op.s:108    .text.setup_mipi_rx_roi_snapshot:00000000 setup_mipi_rx_roi_snapshot
+     /tmp/ccgrM3op.s:326    .text.setup_mipi_rx_roi_snapshot:000000fc $d
+     /tmp/ccgrM3op.s:342    .text.setup_roi_mipi:00000000 $t
+     /tmp/ccgrM3op.s:347    .text.setup_roi_mipi:00000000 setup_roi_mipi
+     /tmp/ccgrM3op.s:503    .text.setup_roi_mipi:000000b4 $d
+     /tmp/ccgrM3op.s:516    .text.get_af_flip_mode:00000000 $t
+     /tmp/ccgrM3op.s:521    .text.get_af_flip_mode:00000000 get_af_flip_mode
+     /tmp/ccgrM3op.s:551    .text.trigger_sensor:00000000 $t
+     /tmp/ccgrM3op.s:556    .text.trigger_sensor:00000000 trigger_sensor
+     /tmp/ccgrM3op.s:742    .text.trigger_sensor:000000e8 $d
+     /tmp/ccgrM3op.s:761    .text.af_configure_sensor_stream:00000000 $t
+     /tmp/ccgrM3op.s:766    .text.af_configure_sensor_stream:00000000 af_configure_sensor_stream
+     /tmp/ccgrM3op.s:1270   .text.af_configure_sensor_stream:000002bc $d
+     /tmp/ccgrM3op.s:1310   .text.af_configure_sensor_stream:00000344 $t
+     /tmp/ccgrM3op.s:1424   .text.af_configure_sensor_stream:000003e0 $d
+     /tmp/ccgrM3op.s:1440   .text.af_test:00000000 $t
+     /tmp/ccgrM3op.s:1445   .text.af_test:00000000 af_test
+     /tmp/ccgrM3op.s:1722   .text.af_test:00000178 $d
+     /tmp/ccgrM3op.s:1856   .bss.move_frame_done_sem_:00000000 move_frame_done_sem_
+     /tmp/ccgrM3op.s:1750   .rodata.__FUNCTION__.9348:00000000 __FUNCTION__.9348
+     /tmp/ccgrM3op.s:1756   .rodata.__FUNCTION__.9355:00000000 __FUNCTION__.9355
+     /tmp/ccgrM3op.s:1762   .rodata.__FUNCTION__.9362:00000000 __FUNCTION__.9362
+     /tmp/ccgrM3op.s:1837   .rodata.__FUNCTION__.9318:00000000 __FUNCTION__.9318
+     /tmp/ccgrM3op.s:1843   .rodata.__FUNCTION__.9385:00000000 __FUNCTION__.9385
+     /tmp/ccgrM3op.s:1849   .rodata.__FUNCTION__.9389:00000000 __FUNCTION__.9389
+     /tmp/ccgrM3op.s:1852   .bss.move_frame_done_sem_:00000000 $d
+     /tmp/ccgrM3op.s:1862   .rodata.__FUNCTION__.9336:00000000 __FUNCTION__.9336
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+printf
+xQueueGiveFromISR
+ulPortYieldRequired
+hal_mipi2axi_init
+hal_mipi2axi_set_stream_property
+hal_mipi2axi_wrap_cfg
+hal_mipi2axi_irq_mask
+hal_mipi2axi_irq_enable
+hal_mipi2axi_start
+slogf
+img_sensor_cropping
+__aeabi_i2d
+__aeabi_dmul
+__aeabi_f2uiz
+__aeabi_ddiv
+img_sensor_read_reg
+img_sensor_get_vt_pix_clk_mhz
+cam_capture_syncio_config
+img_sensor_write_reg
+img_sensor_stream_on
+hal_syncio_trigger
+__aeabi_f2d
+img_sensor_open
+vcm_init
+resolution_testing_reg_array
+img_sensor_set_sensitivity
+img_sensor_set_fps
+img_sensor_set_exposure_time
+img_sensor_config_mode
+light_system
+calculate_gain
+img_sensor_send_config
+img_sensor_flip_capture
+reconfig_spg_for_previewing_sensor
+xQueueGenericCreate
+xQueueGenericReceive
+vQueueDelete

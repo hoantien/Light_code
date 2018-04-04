@@ -1,0 +1,216 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"assert.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.assert_failed,"ax",%progbits
+  19              		.align	1
+  20              		.global	assert_failed
+  21              		.thumb
+  22              		.thumb_func
+  24              	assert_failed:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/common/assert.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * @file    assert.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * @date    June-26-2015
+  12:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  * @brief   This file contains:
+  13:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  *              + The assert function is used for validate param of APIs
+  14:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  *
+  15:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****  ******************************************************************************/
+  16:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** /* Includes ------------------------------------------------------------------*/
+  17:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** #include <std_type.h>
+  18:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** #include "assert.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** /* Exported define -----------------------------------------------------------*/
+  21:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** /* Exported functions --------------------------------------------------------*/
+  22:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** #ifdef _USE_FULL_ASSERT
+  23:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** /**
+  24:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @brief  Reports the name of the source file and the source line number
+  25:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   *   where the assert_param error has occurred.
+  26:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @param  file: pointer to the source file name
+  27:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @param  line: assert_param error line source number
+  28:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @retval None
+  29:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   */
+  30:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** void assert_failed(uint8_t *func, uint32_t line)
+  31:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** {
+  27              		.loc 1 31 0
+  28              		.cfi_startproc
+  29              		@ Volatile: function does not return.
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  33 0000 08B5     		push	{r3, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 8
+  36              		.cfi_offset 3, -8
+  37              		.cfi_offset 14, -4
+  38              		.loc 1 31 0
+  39 0002 0A46     		mov	r2, r1
+  40 0004 0346     		mov	r3, r0
+  32:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	/* User can add his own implementation to report the file name and
+  33:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	line number,
+  34:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	ex: printf("Wrong parameters value: file %s on line %d\n\r", file, line)
+  35:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	*/
+  36:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	/* Disable interrupt */
+  37:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	__asm volatile ("CPSID i\n"
+  41              		.loc 1 37 0
+  42              	@ 37 "/home/tienluong/workspace/atlantis_fw/platform/common/assert.c" 1
+  43 0006 72B6     		CPSID i
+  44 0008 BFF34F8F 	DSB
+  45 000c BFF36F8F 	ISB
+  46              	@ 0 "" 2
+  38:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 					"DSB\n"
+  39:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 					"ISB");
+  40:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	/* Assert */
+  41:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	printf("[%s: %d] %s !\r\n", func, (unsigned int)line, __FUNCTION__);
+  47              		.loc 1 41 0
+  48              		.thumb
+  49 0010 0248     		ldr	r0, .L4
+  50              	.LVL1:
+  51 0012 1946     		mov	r1, r3
+  52              	.LVL2:
+  53 0014 024C     		ldr	r4, .L4+4
+  54 0016 034B     		ldr	r3, .L4+8
+  55              	.LVL3:
+  56 0018 A047     		blx	r4
+  57              	.LVL4:
+  58              	.L2:
+  42:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	/* Infinite loop */
+  43:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	while (1);
+  59              		.loc 1 43 0 discriminator 1
+  60 001a FEE7     		b	.L2
+  61              	.L5:
+  62              		.align	2
+  63              	.L4:
+  64 001c 00000000 		.word	.LC0
+  65 0020 00000000 		.word	printf
+  66 0024 00000000 		.word	.LANCHOR0
+  67              		.cfi_endproc
+  68              	.LFE1:
+  70              		.section	.text.malloc_failed,"ax",%progbits
+  71              		.align	1
+  72              		.global	malloc_failed
+  73              		.thumb
+  74              		.thumb_func
+  76              	malloc_failed:
+  77              	.LFB2:
+  44:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** }
+  45:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 
+  46:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** /**
+  47:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @brief  Reports the name of the source file and the source line number
+  48:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   *   where the assert_malloc error has occurred.
+  49:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @param  file: pointer to the source file name
+  50:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @param  line: assert_param error line source number
+  51:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   * @retval None
+  52:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c ****   */
+  53:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** void *malloc_failed(uint8_t *func, uint32_t line)
+  54:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** {
+  78              		.loc 1 54 0
+  79              		.cfi_startproc
+  80              		@ Volatile: function does not return.
+  81              		@ args = 0, pretend = 0, frame = 0
+  82              		@ frame_needed = 0, uses_anonymous_args = 0
+  83              	.LVL5:
+  84 0000 08B5     		push	{r3, lr}
+  85              	.LCFI1:
+  86              		.cfi_def_cfa_offset 8
+  87              		.cfi_offset 3, -8
+  88              		.cfi_offset 14, -4
+  89              		.loc 1 54 0
+  90 0002 0A46     		mov	r2, r1
+  91 0004 0346     		mov	r3, r0
+  55:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	/* Disable interrupt */
+  56:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	__asm volatile ("CPSID i\n"
+  92              		.loc 1 56 0
+  93              	@ 56 "/home/tienluong/workspace/atlantis_fw/platform/common/assert.c" 1
+  94 0006 72B6     		CPSID i
+  95 0008 BFF34F8F 	DSB
+  96 000c BFF36F8F 	ISB
+  97              	@ 0 "" 2
+  57:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 					"DSB\n"
+  58:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 					"ISB");
+  59:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	/* Assert */
+  60:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	printf("[%s: %d] %s !\r\n", func, (unsigned int)line, __FUNCTION__);
+  98              		.loc 1 60 0
+  99              		.thumb
+ 100 0010 0248     		ldr	r0, .L8
+ 101              	.LVL6:
+ 102 0012 1946     		mov	r1, r3
+ 103              	.LVL7:
+ 104 0014 024C     		ldr	r4, .L8+4
+ 105 0016 034B     		ldr	r3, .L8+8
+ 106              	.LVL8:
+ 107 0018 A047     		blx	r4
+ 108              	.LVL9:
+ 109              	.L7:
+  61:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	/* Infinite loop */
+  62:/home/tienluong/workspace/atlantis_fw/platform/common/assert.c **** 	while (1);
+ 110              		.loc 1 62 0 discriminator 1
+ 111 001a FEE7     		b	.L7
+ 112              	.L9:
+ 113              		.align	2
+ 114              	.L8:
+ 115 001c 00000000 		.word	.LC0
+ 116 0020 00000000 		.word	printf
+ 117 0024 00000000 		.word	.LANCHOR1
+ 118              		.cfi_endproc
+ 119              	.LFE2:
+ 121              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 122              	.LC0:
+ 123 0000 5B25733A 		.ascii	"[%s: %d] %s !\015\012\000"
+ 123      2025645D 
+ 123      20257320 
+ 123      210D0A00 
+ 124              		.section	.rodata.__FUNCTION__.6177,"a",%progbits
+ 125              		.set	.LANCHOR0,. + 0
+ 128              	__FUNCTION__.6177:
+ 129 0000 61737365 		.ascii	"assert_failed\000"
+ 129      72745F66 
+ 129      61696C65 
+ 129      6400
+ 130              		.section	.rodata.__FUNCTION__.6183,"a",%progbits
+ 131              		.set	.LANCHOR1,. + 0
+ 134              	__FUNCTION__.6183:
+ 135 0000 6D616C6C 		.ascii	"malloc_failed\000"
+ 135      6F635F66 
+ 135      61696C65 
+ 135      6400
+ 136              		.text
+ 137              	.Letext0:
+ 138              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 139              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 assert.c
+     /tmp/ccS8OPRE.s:19     .text.assert_failed:00000000 $t
+     /tmp/ccS8OPRE.s:24     .text.assert_failed:00000000 assert_failed
+     /tmp/ccS8OPRE.s:64     .text.assert_failed:0000001c $d
+     /tmp/ccS8OPRE.s:71     .text.malloc_failed:00000000 $t
+     /tmp/ccS8OPRE.s:76     .text.malloc_failed:00000000 malloc_failed
+     /tmp/ccS8OPRE.s:115    .text.malloc_failed:0000001c $d
+     /tmp/ccS8OPRE.s:128    .rodata.__FUNCTION__.6177:00000000 __FUNCTION__.6177
+     /tmp/ccS8OPRE.s:134    .rodata.__FUNCTION__.6183:00000000 __FUNCTION__.6183
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+printf

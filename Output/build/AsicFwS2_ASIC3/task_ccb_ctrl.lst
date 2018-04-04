@@ -1,0 +1,640 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"task_ccb_ctrl.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	__popcountsi2
+  19              		.section	.text.task_ccb_ctrl,"ax",%progbits
+  20              		.align	1
+  21              		.global	task_ccb_ctrl
+  22              		.thumb
+  23              		.thumb_func
+  25              	task_ccb_ctrl:
+  26              	.LFB1:
+  27              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * @file    light_system.c
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * @date    Juk-16-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * @brief   This file contains expand for Light system object
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "std_type.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "assert.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "log.h"
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "os.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "board_config.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "lcc_system.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "lcc_cmd.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "task_ccb_ctrl.h"
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "task_cam_ctrl.h"
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "light_system.h"
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "img_sensor.h"
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "usecase.h"
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "tof.h"
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "gyro.h"
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "timer.h"
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #include "ina231.h"
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Private define-------------------------------------------------------------*/
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #define SLOGF_ID						SLOG_ID_CCB_CTRL
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Private typedef -----------------------------------------------------------*/
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Private macro -------------------------------------------------------------*/
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Private variables----------------------------------------------------------*/
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Exported Global variables--------------------------------------------------*/
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Private function-----------------------------------------------------------*/
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /* Exported functions --------------------------------------------------------*/
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #if (ASIC_NUM == ASIC1)
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #ifdef USING_GYRO_FUNC
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** static void gyro_timer_handler(gyro_info_t *gyro_info)
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** {
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	gyro_info->count++;
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	if(gyro_info->count == gyro_info->sample_num)
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		gyro_info->flag = GYRO_FLAG_DONE;
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	xEventGroupSetBitsFromISR(light_system->event, CCB_EVENT_GYRO, NULL);
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** }
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif /* USING_GYRO_FUNC */
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** static void flash_timer_handler(lm3644_info_t *flash_info)
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** {
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	flash_info->flag = FLASH_FLAG_DONE;
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	xEventGroupSetBitsFromISR(light_system->event, CCB_EVENT_FLASH, NULL);
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** }
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif /* (ASIC_NUM == ASIC1) */
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** /*
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  * task_cam_ctrl
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  *
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****  */
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** void task_ccb_ctrl(void *vParameter)
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** {
+  28              		.loc 1 66 0
+  29              		.cfi_startproc
+  30              		@ args = 0, pretend = 0, frame = 24
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32              	.LVL0:
+  33 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+  34              	.LCFI0:
+  35              		.cfi_def_cfa_offset 36
+  36              		.cfi_offset 4, -36
+  37              		.cfi_offset 5, -32
+  38              		.cfi_offset 6, -28
+  39              		.cfi_offset 7, -24
+  40              		.cfi_offset 8, -20
+  41              		.cfi_offset 9, -16
+  42              		.cfi_offset 10, -12
+  43              		.cfi_offset 11, -8
+  44              		.cfi_offset 14, -4
+  45 0004 0646     		mov	r6, r0
+  46              	.LVL1:
+  47 0006 89B0     		sub	sp, sp, #36
+  48              	.LCFI1:
+  49              		.cfi_def_cfa_offset 72
+  50              	.LVL2:
+  51              	.L2:
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	task_handle_t *hdl = (task_handle_t *)(vParameter);
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	EventBits_t event;
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	uint16_t cmd_tid = 0;
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	uint8_t exit = 0;
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	uint8_t cam_idx;
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	uint32_t m_bitmask;
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	uint8_t  m_number;
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	uint32_t cam_status;
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	cam_typedef_t *pcam;
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #if (ASIC_NUM == ASIC1)
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	int ret;
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	struct ltimer_t *flash_timer = NULL;
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	lm3644_info_t *Flash_info = &light_system->flash_dev;
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #ifdef USING_TOF_FUNC
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	VL53L0X_Dev_t *ToF_Dev = &light_system->ToF_dev;
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #ifdef USING_GYRO_FUNC
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	gyro_info_t *gyro_dev = &light_system->gyro_dev;
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif /* USING_GYRO_FUNC */
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	ina231_info_t ina231[3] = {
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		{
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.addr = 0x80 >> 1,
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.current_unit = CURRENT_LSB_1mA,
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.rsense = 8
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		},
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		{
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.addr = 0x8A >> 1,
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.current_unit = CURRENT_LSB_1mA,
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.rsense = 8
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		},
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		{
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.addr = 0x82 >> 1,
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.current_unit = CURRENT_LSB_1mA,
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			.rsense = 8
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		}
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	};
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif /* (ASIC_NUM == ASIC1) */
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	/* Start initialize #task_cam_ctrl is dependency to #lcccmd */
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	while (!exit)
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	{
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		/* #lcccmd done for slogf */
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		if(TASK_READY == task_handler[task_query_tid("lcccmd")].state)
+  52              		.loc 1 109 0
+  53 0008 554B     		ldr	r3, .L17
+  54 000a 5648     		ldr	r0, .L17+4
+  55 000c 9847     		blx	r3
+  56              	.LVL3:
+  57 000e 0C23     		movs	r3, #12
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			exit = 1;
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		vTaskDelay(1);
+  58              		.loc 1 111 0
+  59 0010 554D     		ldr	r5, .L17+8
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			exit = 1;
+  60              		.loc 1 109 0
+  61 0012 5843     		muls	r0, r3, r0
+  62 0014 554B     		ldr	r3, .L17+12
+  63 0016 1C5C     		ldrb	r4, [r3, r0]	@ zero_extendqisi2
+  64              	.LVL4:
+  65              		.loc 1 111 0
+  66 0018 0120     		movs	r0, #1
+  67 001a A847     		blx	r5
+  68              	.LVL5:
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	{
+  69              		.loc 1 106 0
+  70 001c 012C     		cmp	r4, #1
+  71 001e F3D1     		bne	.L2
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	}
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	/* Task start */
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	taskENTER_CRITICAL();
+  72              		.loc 1 115 0
+  73 0020 534B     		ldr	r3, .L17+16
+  74 0022 9847     		blx	r3
+  75              	.LVL6:
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	log_msg("Start %s\r\n", __FUNCTION__);
+  76              		.loc 1 116 0
+  77 0024 5349     		ldr	r1, .L17+20
+  78 0026 5448     		ldr	r0, .L17+24
+  79 0028 544B     		ldr	r3, .L17+28
+  80 002a 9847     		blx	r3
+  81              	.LVL7:
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	taskEXIT_CRITICAL();
+  82              		.loc 1 117 0
+  83 002c 544B     		ldr	r3, .L17+32
+  84 002e 9847     		blx	r3
+  85              	.LVL8:
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #if (ASIC_NUM == ASIC1)
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	pzt_voltage_config(PZT_POT_1, PZT1_VOLTAGE_DEFAULT_VALUE, 0);
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	pzt_voltage_config(PZT_POT_2, PZT2_VOLTAGE_DEFAULT_VALUE, 0);
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	if(LM3644_OK == flash_light_init(HAL_I2C_MASTER, Flash_info))
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		SLOGF(SLOG_INFO, "Flash LED Init OK");
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	else
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		SLOGF(SLOG_ERROR, "Flash LED Init Failed");
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #ifdef USING_TOF_FUNC
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	uint8_t Status;
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	ToF_Dev->I2cDevAddr = CAM_TOF_ADDRESS;
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	Status = Init_ToF_Device(ToF_Dev);
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #ifdef USING_GYRO_FUNC
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	struct ltimer_t *gyro_timer = NULL;
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	light_system->gyro_dev.i2c_addr = CAM_GYRO_ADDRESS;
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	gyro_init(HAL_I2C_MASTER, &light_system->gyro_dev);
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	for (int i = 0; i < sizeof(ina231)/sizeof(ina231_info_t); i++)
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	{
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		SLOGF(SLOG_INFO, "INA231 [%d]", i);
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		ret = ina231_config(I2C_CH10, &ina231[i]);
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		vTaskDelay(1);
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		if (ret != INA231_OK)
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			SLOGF(SLOG_ERROR, "Error [%x]\n", ret);
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	}
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	/* Init to using temp sensor */
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	temp_sensor_init();
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****     log_msg("PZT Voltage 12 V \r\n");
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #else /* (ASIC_NUM == ASIC1) */
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c ****     vTaskDelay(5);
+  86              		.loc 1 151 0
+  87 0030 0520     		movs	r0, #5
+  88 0032 A847     		blx	r5
+  89              	.LVL9:
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** #endif
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	hdl->state = TASK_READY;
+  90              		.loc 1 153 0
+  91 0034 3470     		strb	r4, [r6]
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	/* Attempt to create the event group. */
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	light_system->event = xEventGroupCreate();
+  92              		.loc 1 155 0
+  93 0036 534E     		ldr	r6, .L17+36
+  94              	.LVL10:
+  95 0038 534B     		ldr	r3, .L17+40
+  96 003a 3468     		ldr	r4, [r6]
+  97              	.LVL11:
+  98 003c 9847     		blx	r3
+  99              	.LVL12:
+ 100 003e A063     		str	r0, [r4, #56]
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	assert_param(light_system->event);
+ 101              		.loc 1 156 0
+ 102 0040 18B9     		cbnz	r0, .L4
+ 103              		.loc 1 156 0 is_stmt 0 discriminator 1
+ 104 0042 4C48     		ldr	r0, .L17+20
+ 105 0044 9C21     		movs	r1, #156
+ 106 0046 514B     		ldr	r3, .L17+44
+ 107 0048 9847     		blx	r3
+ 108              	.LVL13:
+ 109              	.L4:
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	while (1)
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 	{
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		/* Waiting for any event to be set within the event group.
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		Clear the bits before exiting. */
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		event = xEventGroupWaitBits(light_system->event,
+ 110              		.loc 1 162 0 is_stmt 1
+ 111 004a 3468     		ldr	r4, [r6]
+ 112 004c 4FF0FF33 		mov	r3, #-1
+ 113 0050 7F21     		movs	r1, #127
+ 114 0052 0093     		str	r3, [sp]
+ 115 0054 0122     		movs	r2, #1
+ 116 0056 0023     		movs	r3, #0
+ 117 0058 A06B     		ldr	r0, [r4, #56]
+ 118 005a 4D4D     		ldr	r5, .L17+48
+ 119 005c A847     		blx	r5
+ 120              	.LVL14:
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 									CCB_EVENT_ALLS,
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 									pdTRUE, pdFALSE, portMAX_DELAY);
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		cmd_tid = light_system->cur_tid;
+ 121              		.loc 1 165 0
+ 122 005e A38C     		ldrh	r3, [r4, #36]
+ 123 0060 0493     		str	r3, [sp, #16]
+ 124              	.LVL15:
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		/* Every UCID should be unique at the system runtime
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		 * No more than 1 UCID is active
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		 */
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		/* The DEBUG UCID */
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		if (event & CCB_EVENT_STREAM_UCID_DEBUG)
+ 125              		.loc 1 170 0
+ 126 0062 4107     		lsls	r1, r0, #29
+ 127 0064 F1D5     		bpl	.L4
+ 128              	.LVL16:
+ 129              	.LBB2:
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 		{
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			uint16_t cmd_status = LCC_CMD_PENDING;
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			m_bitmask = light_system->m_filter;
+ 130              		.loc 1 173 0
+ 131 0066 A769     		ldr	r7, [r4, #24]
+ 132              	.LVL17:
+ 133              	.LBB3:
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			m_number = __builtin_popcount(m_bitmask);
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			for(uint8_t i = 0; i < m_number; i++)
+ 134              		.loc 1 175 0
+ 135 0068 4FF00009 		mov	r9, #0
+ 136              	.LBE3:
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			m_number = __builtin_popcount(m_bitmask);
+ 137              		.loc 1 174 0
+ 138 006c 494B     		ldr	r3, .L17+52
+ 139              	.LVL18:
+ 140 006e 3846     		mov	r0, r7
+ 141              	.LVL19:
+ 142 0070 9847     		blx	r3
+ 143              	.LVL20:
+ 144 0072 C3B2     		uxtb	r3, r0
+ 145 0074 0393     		str	r3, [sp, #12]
+ 146              	.LVL21:
+ 147              	.L5:
+ 148              	.LBB4:
+ 149              		.loc 1 175 0 discriminator 1
+ 150 0076 039A     		ldr	r2, [sp, #12]
+ 151 0078 5FFA89F3 		uxtb	r3, r9
+ 152 007c 9342     		cmp	r3, r2
+ 153 007e E4D2     		bcs	.L4
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 			{
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				cam_idx = __builtin_ctz(m_bitmask);
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				m_bitmask &= ~(1 << cam_idx);
+ 154              		.loc 1 178 0
+ 155 0080 4FF00108 		mov	r8, #1
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				m_bitmask &= ~(1 << cam_idx);
+ 156              		.loc 1 177 0
+ 157 0084 97FAA7F5 		rbit	r5, r7
+ 158 0088 B5FA85F5 		clz	r5, r5
+ 159              	.LVL22:
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				if(NULL != (pcam = idx_to_object(cam_idx)))
+ 160              		.loc 1 179 0
+ 161 008c 2846     		mov	r0, r5
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				if(NULL != (pcam = idx_to_object(cam_idx)))
+ 162              		.loc 1 178 0
+ 163 008e 08FA05F3 		lsl	r3, r8, r5
+ 164 0092 27EA0307 		bic	r7, r7, r3
+ 165              	.LVL23:
+ 166              		.loc 1 179 0
+ 167 0096 404B     		ldr	r3, .L17+56
+ 168 0098 9847     		blx	r3
+ 169              	.LVL24:
+ 170 009a 0446     		mov	r4, r0
+ 171 009c 0028     		cmp	r0, #0
+ 172 009e 4DD0     		beq	.L6
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				{
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					xSemaphoreTake(pcam->semaphore, portMAX_DELAY);
+ 173              		.loc 1 181 0
+ 174 00a0 0021     		movs	r1, #0
+ 175 00a2 0B46     		mov	r3, r1
+ 176 00a4 4FF0FF32 		mov	r2, #-1
+ 177 00a8 006B     		ldr	r0, [r0, #48]
+ 178              	.LVL25:
+ 179 00aa DFF808B1 		ldr	fp, .L17+84
+ 180 00ae D847     		blx	fp
+ 181              	.LVL26:
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					memcpy((uint8_t *)&cam_status, pcam->settings->status,
+ 182              		.loc 1 182 0
+ 183 00b0 A368     		ldr	r3, [r4, #8]
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						sizeof(uint32_t));
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					xSemaphoreGive(pcam->semaphore);
+ 184              		.loc 1 184 0
+ 185 00b2 0021     		movs	r1, #0
+ 186 00b4 0A46     		mov	r2, r1
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					memcpy((uint8_t *)&cam_status, pcam->settings->status,
+ 187              		.loc 1 182 0
+ 188 00b6 5868     		ldr	r0, [r3, #4]	@ unaligned
+ 189              		.loc 1 184 0
+ 190 00b8 0B46     		mov	r3, r1
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					memcpy((uint8_t *)&cam_status, pcam->settings->status,
+ 191              		.loc 1 182 0
+ 192 00ba 0790     		str	r0, [sp, #28]	@ unaligned
+ 193              		.loc 1 184 0
+ 194 00bc DFF8F8A0 		ldr	r10, .L17+88
+ 195 00c0 206B     		ldr	r0, [r4, #48]
+ 196 00c2 D047     		blx	r10
+ 197              	.LVL27:
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					if(cam_status & S_MODULE_SW_STANDBY)
+ 198              		.loc 1 185 0
+ 199 00c4 079B     		ldr	r3, [sp, #28]
+ 200 00c6 13F0080C 		ands	ip, r3, #8
+ 201 00ca 26D0     		beq	.L7
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					{
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						if(cam_status & S_MODULE_STREAM_ON)
+ 202              		.loc 1 187 0
+ 203 00cc DA06     		lsls	r2, r3, #27
+ 204 00ce 17D5     		bpl	.L8
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						{
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							img_sensor_stream_on(pcam->image, I2C_MODE);
+ 205              		.loc 1 189 0
+ 206 00d0 4146     		mov	r1, r8
+ 207 00d2 2068     		ldr	r0, [r4]
+ 208 00d4 314A     		ldr	r2, .L17+60
+ 209 00d6 0593     		str	r3, [sp, #20]
+ 210 00d8 9047     		blx	r2
+ 211              	.LVL28:
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							cam_status |= S_MODULE_STREAM_ON;
+ 212              		.loc 1 190 0
+ 213 00da 059B     		ldr	r3, [sp, #20]
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							xSemaphoreTake(pcam->semaphore, portMAX_DELAY);
+ 214              		.loc 1 191 0
+ 215 00dc 0021     		movs	r1, #0
+ 216 00de 206B     		ldr	r0, [r4, #48]
+ 217 00e0 4FF0FF32 		mov	r2, #-1
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							cam_status |= S_MODULE_STREAM_ON;
+ 218              		.loc 1 190 0
+ 219 00e4 43F01003 		orr	r3, r3, #16
+ 220 00e8 0793     		str	r3, [sp, #28]
+ 221              		.loc 1 191 0
+ 222 00ea 0B46     		mov	r3, r1
+ 223 00ec D847     		blx	fp
+ 224              	.LVL29:
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							memcpy(pcam->settings->status,
+ 225              		.loc 1 192 0
+ 226 00ee A368     		ldr	r3, [r4, #8]
+ 227 00f0 0798     		ldr	r0, [sp, #28]	@ unaligned
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 								(uint8_t *)&cam_status, sizeof(uint32_t));
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							xSemaphoreGive(pcam->semaphore);
+ 228              		.loc 1 194 0
+ 229 00f2 0021     		movs	r1, #0
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							memcpy(pcam->settings->status,
+ 230              		.loc 1 192 0
+ 231 00f4 5860     		str	r0, [r3, #4]	@ unaligned
+ 232              		.loc 1 194 0
+ 233 00f6 0A46     		mov	r2, r1
+ 234 00f8 206B     		ldr	r0, [r4, #48]
+ 235 00fa 0B46     		mov	r3, r1
+ 236 00fc D047     		blx	r10
+ 237              	.LVL30:
+ 238 00fe 0AE0     		b	.L15
+ 239              	.L8:
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						}
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						else
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							SLOGF(SLOG_WARN, "%s:[%d] The CAM-%X is already"
+ 240              		.loc 1 197 0
+ 241 0100 C723     		movs	r3, #199
+ 242 0102 2920     		movs	r0, #41
+ 243 0104 0093     		str	r3, [sp]
+ 244 0106 0421     		movs	r1, #4
+ 245 0108 94F82930 		ldrb	r3, [r4, #41]	@ zero_extendqisi2
+ 246 010c 244A     		ldr	r2, .L17+64
+ 247 010e 0193     		str	r3, [sp, #4]
+ 248 0110 244C     		ldr	r4, .L17+68
+ 249              	.LVL31:
+ 250 0112 184B     		ldr	r3, .L17+20
+ 251 0114 A047     		blx	r4
+ 252              	.LVL32:
+ 253              	.L15:
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 								" stream ON", __FUNCTION__, __LINE__,
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 								pcam->info.module);
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						cmd_status = LCC_CMD_SUCCESS;
+ 254              		.loc 1 200 0
+ 255 0116 4146     		mov	r1, r8
+ 256 0118 1AE0     		b	.L9
+ 257              	.LVL33:
+ 258              	.L7:
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					}
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					else
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					{
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						cmd_status = LCC_CMD_UNSUCCESS;
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						SLOGF(SLOG_WARN, "%s:[%d] The CAM-%X is not in SW"
+ 259              		.loc 1 205 0
+ 260 011a CF23     		movs	r3, #207
+ 261 011c 0421     		movs	r1, #4
+ 262 011e 0093     		str	r3, [sp]
+ 263 0120 2920     		movs	r0, #41
+ 264 0122 94F82930 		ldrb	r3, [r4, #41]	@ zero_extendqisi2
+ 265 0126 204A     		ldr	r2, .L17+72
+ 266 0128 0193     		str	r3, [sp, #4]
+ 267 012a 1E4C     		ldr	r4, .L17+68
+ 268              	.LVL34:
+ 269 012c 114B     		ldr	r3, .L17+20
+ 270 012e CDF814C0 		str	ip, [sp, #20]
+ 271              	.LVL35:
+ 272 0132 A047     		blx	r4
+ 273              	.LVL36:
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						SLOGF(SLOG_WARN, "%s:[%d] The CAM-%X is not in SW"
+ 274              		.loc 1 204 0
+ 275 0134 DDF814C0 		ldr	ip, [sp, #20]
+ 276 0138 6146     		mov	r1, ip
+ 277 013a 09E0     		b	.L9
+ 278              	.LVL37:
+ 279              	.L6:
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							" Standby", __FUNCTION__, __LINE__,
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 							pcam->info.module);
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					}
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				}
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				else
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				{
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					cmd_status = LCC_CMD_ERROR_MODULE_FAULT;
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					SLOGF(SLOG_ERROR, "%s:[%d] Can't found cam module idx %d",
+ 280              		.loc 1 213 0
+ 281 013c D623     		movs	r3, #214
+ 282 013e 0221     		movs	r1, #2
+ 283 0140 8DE82800 		stmia	sp, {r3, r5}
+ 284 0144 2920     		movs	r0, #41
+ 285              	.LVL38:
+ 286 0146 194A     		ldr	r2, .L17+76
+ 287 0148 0A4B     		ldr	r3, .L17+20
+ 288 014a 164C     		ldr	r4, .L17+68
+ 289              	.LVL39:
+ 290 014c A047     		blx	r4
+ 291              	.LVL40:
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 					SLOGF(SLOG_ERROR, "%s:[%d] Can't found cam module idx %d",
+ 292              		.loc 1 212 0
+ 293 014e 2021     		movs	r1, #32
+ 294              	.LVL41:
+ 295              	.L9:
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 						__FUNCTION__, __LINE__, cam_idx);
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				}
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/task_ccb_ctrl.c **** 				lcc_cmd_log_update_status(cmd_tid,
+ 296              		.loc 1 216 0 discriminator 2
+ 297 0150 0498     		ldr	r0, [sp, #16]
+ 298 0152 2A46     		mov	r2, r5
+ 299 0154 164B     		ldr	r3, .L17+80
+ 300 0156 09F10109 		add	r9, r9, #1
+ 301              	.LVL42:
+ 302 015a 9847     		blx	r3
+ 303              	.LVL43:
+ 304 015c 8BE7     		b	.L5
+ 305              	.L18:
+ 306 015e 00BF     		.align	2
+ 307              	.L17:
+ 308 0160 00000000 		.word	task_query_tid
+ 309 0164 00000000 		.word	.LC0
+ 310 0168 00000000 		.word	vTaskDelay
+ 311 016c 00000000 		.word	task_handler
+ 312 0170 00000000 		.word	vPortEnterCritical
+ 313 0174 00000000 		.word	.LANCHOR0
+ 314 0178 07000000 		.word	.LC1
+ 315 017c 00000000 		.word	log_msg
+ 316 0180 00000000 		.word	vPortExitCritical
+ 317 0184 00000000 		.word	light_system
+ 318 0188 00000000 		.word	xEventGroupCreate
+ 319 018c 00000000 		.word	assert_failed
+ 320 0190 00000000 		.word	xEventGroupWaitBits
+ 321 0194 00000000 		.word	__popcountsi2
+ 322 0198 00000000 		.word	idx_to_object
+ 323 019c 00000000 		.word	img_sensor_stream_on
+ 324 01a0 12000000 		.word	.LC2
+ 325 01a4 00000000 		.word	slogf
+ 326 01a8 3A000000 		.word	.LC3
+ 327 01ac 62000000 		.word	.LC4
+ 328 01b0 00000000 		.word	lcc_cmd_log_update_status
+ 329 01b4 00000000 		.word	xQueueGenericReceive
+ 330 01b8 00000000 		.word	xQueueGenericSend
+ 331              	.LBE4:
+ 332              	.LBE2:
+ 333              		.cfi_endproc
+ 334              	.LFE1:
+ 336              		.section	.rodata.__FUNCTION__.9125,"a",%progbits
+ 337              		.set	.LANCHOR0,. + 0
+ 340              	__FUNCTION__.9125:
+ 341 0000 7461736B 		.ascii	"task_ccb_ctrl\000"
+ 341      5F636362 
+ 341      5F637472 
+ 341      6C00
+ 342              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 343              	.LC0:
+ 344 0000 6C636363 		.ascii	"lcccmd\000"
+ 344      6D6400
+ 345              	.LC1:
+ 346 0007 53746172 		.ascii	"Start %s\015\012\000"
+ 346      74202573 
+ 346      0D0A00
+ 347              	.LC2:
+ 348 0012 25733A5B 		.ascii	"%s:[%d] The CAM-%X is already stream ON\000"
+ 348      25645D20 
+ 348      54686520 
+ 348      43414D2D 
+ 348      25582069 
+ 349              	.LC3:
+ 350 003a 25733A5B 		.ascii	"%s:[%d] The CAM-%X is not in SW Standby\000"
+ 350      25645D20 
+ 350      54686520 
+ 350      43414D2D 
+ 350      25582069 
+ 351              	.LC4:
+ 352 0062 25733A5B 		.ascii	"%s:[%d] Can't found cam module idx %d\000"
+ 352      25645D20 
+ 352      43616E27 
+ 352      7420666F 
+ 352      756E6420 
+ 353              		.text
+ 354              	.Letext0:
+ 355              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 356              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 357              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 358              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/task.h"
+ 359              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 360              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 361              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/event_groups.h"
+ 362              		.file 9 "/home/tienluong/workspace/atlantis_fw/platform/common/os.h"
+ 363              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_syncio.h"
+ 364              		.file 11 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 365              		.file 12 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 366              		.file 13 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 367              		.file 14 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/lcc_cmd.h"
+ 368              		.file 15 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/optical.h"
+ 369              		.file 16 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/pwr_ctrl.h"
+ 370              		.file 17 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/eeprom.h"
+ 371              		.file 18 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/task_af_ctrl.h"
+ 372              		.file 19 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/light_system.h"
+ 373              		.file 20 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/task_cam_ctrl.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 task_ccb_ctrl.c
+     /tmp/cc4zbhKu.s:20     .text.task_ccb_ctrl:00000000 $t
+     /tmp/cc4zbhKu.s:25     .text.task_ccb_ctrl:00000000 task_ccb_ctrl
+     /tmp/cc4zbhKu.s:308    .text.task_ccb_ctrl:00000160 $d
+     /tmp/cc4zbhKu.s:340    .rodata.__FUNCTION__.9125:00000000 __FUNCTION__.9125
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__popcountsi2
+task_query_tid
+vTaskDelay
+task_handler
+vPortEnterCritical
+log_msg
+vPortExitCritical
+light_system
+xEventGroupCreate
+assert_failed
+xEventGroupWaitBits
+idx_to_object
+img_sensor_stream_on
+slogf
+lcc_cmd_log_update_status
+xQueueGenericReceive
+xQueueGenericSend

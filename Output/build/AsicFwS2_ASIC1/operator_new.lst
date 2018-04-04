@@ -1,0 +1,343 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"operator_new.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._ZdlPv,"ax",%progbits
+  19              		.align	1
+  20              		.global	_ZdlPv
+  21              		.thumb
+  22              		.thumb_func
+  24              	_ZdlPv:
+  25              	.LFB46:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** #include <cstdlib>
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** #include <cstdint>
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** #include "os.h"
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** #include "cortex_r4.h"
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** #include "operator_new.h"
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** #include "gen_heap.h"
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** #include "ddr_heap.h"
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** namespace {
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     heap_attribute_t* heap_attribute[] = {
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****             &default_heap_attribute,
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****             &ddr_heap_attribute
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     };
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** void* operator new(std::size_t size) {
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     return operator new(size, Heap::DEFAULT);
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** void operator delete(void* p) {
+  27              		.loc 1 20 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32              	.LBB2:
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     Heap heap = Heap::DEFAULT;
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     if (reinterpret_cast<std::uint32_t>(p) >= DDR_BASE)
+  33              		.loc 1 22 0
+  34 0000 B0F1806F 		cmp	r0, #67108864
+  35 0004 34BF     		ite	cc
+  36 0006 0022     		movcc	r2, #0
+  37 0008 0122     		movcs	r2, #1
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****         heap = Heap::DDR;
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     gen_vPortFree(heap_attribute[static_cast<std::size_t>(heap)], p);
+  38              		.loc 1 24 0
+  39 000a 054B     		ldr	r3, .L2
+  40              	.LBE2:
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     Heap heap = Heap::DEFAULT;
+  41              		.loc 1 20 0
+  42 000c 0146     		mov	r1, r0
+  43 000e 10B5     		push	{r4, lr}
+  44              	.LCFI0:
+  45              		.cfi_def_cfa_offset 8
+  46              		.cfi_offset 4, -8
+  47              		.cfi_offset 14, -4
+  48              	.LBB3:
+  49              		.loc 1 24 0
+  50 0010 53F82200 		ldr	r0, [r3, r2, lsl #2]
+  51              	.LVL1:
+  52 0014 1823     		movs	r3, #24
+  53 0016 034A     		ldr	r2, .L2+4
+  54 0018 034C     		ldr	r4, .L2+8
+  55 001a A047     		blx	r4
+  56              	.LVL2:
+  57 001c 10BD     		pop	{r4, pc}
+  58              	.L3:
+  59 001e 00BF     		.align	2
+  60              	.L2:
+  61 0020 00000000 		.word	.LANCHOR0
+  62 0024 00000000 		.word	.LANCHOR1
+  63 0028 00000000 		.word	gen_vPortFree1
+  64              	.LBE3:
+  65              		.cfi_endproc
+  66              	.LFE46:
+  68              		.section	.text._ZdaPv,"ax",%progbits
+  69              		.align	1
+  70              		.global	_ZdaPv
+  71              		.thumb
+  72              		.thumb_func
+  74              	_ZdaPv:
+  75              	.LFB48:
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** void* operator new[](std::size_t size) {
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     return operator new(size, Heap::DEFAULT);
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** void operator delete[](void* p) {
+  76              		.loc 1 31 0
+  77              		.cfi_startproc
+  78              		@ args = 0, pretend = 0, frame = 0
+  79              		@ frame_needed = 0, uses_anonymous_args = 0
+  80              	.LVL3:
+  81 0000 08B5     		push	{r3, lr}
+  82              	.LCFI1:
+  83              		.cfi_def_cfa_offset 8
+  84              		.cfi_offset 3, -8
+  85              		.cfi_offset 14, -4
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     operator delete(p);
+  86              		.loc 1 32 0
+  87 0002 014B     		ldr	r3, .L5
+  88 0004 9847     		blx	r3
+  89              	.LVL4:
+  90 0006 08BD     		pop	{r3, pc}
+  91              	.L6:
+  92              		.align	2
+  93              	.L5:
+  94 0008 00000000 		.word	_ZdlPv
+  95              		.cfi_endproc
+  96              	.LFE48:
+  98              		.section	.text._Znwj4Heap,"ax",%progbits
+  99              		.align	1
+ 100              		.global	_Znwj4Heap
+ 101              		.thumb
+ 102              		.thumb_func
+ 104              	_Znwj4Heap:
+ 105              	.LFB49:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** void* operator new(std::size_t size, Heap heap) {
+ 106              		.loc 1 35 0
+ 107              		.cfi_startproc
+ 108              		@ args = 0, pretend = 0, frame = 0
+ 109              		@ frame_needed = 0, uses_anonymous_args = 0
+ 110              	.LVL5:
+ 111              	.LBB4:
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     return gen_pvPortMalloc(heap_attribute[static_cast<std::size_t>(heap)], size);
+ 112              		.loc 1 36 0
+ 113 0000 054A     		ldr	r2, .L8
+ 114              	.LBE4:
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     return gen_pvPortMalloc(heap_attribute[static_cast<std::size_t>(heap)], size);
+ 115              		.loc 1 35 0
+ 116 0002 0346     		mov	r3, r0
+ 117 0004 10B5     		push	{r4, lr}
+ 118              	.LCFI2:
+ 119              		.cfi_def_cfa_offset 8
+ 120              		.cfi_offset 4, -8
+ 121              		.cfi_offset 14, -4
+ 122              	.LBB5:
+ 123              		.loc 1 36 0
+ 124 0006 52F82100 		ldr	r0, [r2, r1, lsl #2]
+ 125              	.LVL6:
+ 126 000a 1946     		mov	r1, r3
+ 127              	.LVL7:
+ 128 000c 034A     		ldr	r2, .L8+4
+ 129 000e 2423     		movs	r3, #36
+ 130              	.LVL8:
+ 131 0010 034C     		ldr	r4, .L8+8
+ 132 0012 A047     		blx	r4
+ 133              	.LVL9:
+ 134              	.LBE5:
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+ 135              		.loc 1 37 0
+ 136 0014 10BD     		pop	{r4, pc}
+ 137              	.L9:
+ 138 0016 00BF     		.align	2
+ 139              	.L8:
+ 140 0018 00000000 		.word	.LANCHOR0
+ 141 001c 00000000 		.word	.LANCHOR2
+ 142 0020 00000000 		.word	gen_pvPortMalloc1
+ 143              		.cfi_endproc
+ 144              	.LFE49:
+ 146              		.section	.text._Znwj,"ax",%progbits
+ 147              		.align	1
+ 148              		.global	_Znwj
+ 149              		.thumb
+ 150              		.thumb_func
+ 152              	_Znwj:
+ 153              	.LFB45:
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     return operator new(size, Heap::DEFAULT);
+ 154              		.loc 1 16 0
+ 155              		.cfi_startproc
+ 156              		@ args = 0, pretend = 0, frame = 0
+ 157              		@ frame_needed = 0, uses_anonymous_args = 0
+ 158              	.LVL10:
+ 159 0000 08B5     		push	{r3, lr}
+ 160              	.LCFI3:
+ 161              		.cfi_def_cfa_offset 8
+ 162              		.cfi_offset 3, -8
+ 163              		.cfi_offset 14, -4
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+ 164              		.loc 1 17 0
+ 165 0002 0021     		movs	r1, #0
+ 166 0004 014B     		ldr	r3, .L11
+ 167 0006 9847     		blx	r3
+ 168              	.LVL11:
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+ 169              		.loc 1 18 0
+ 170 0008 08BD     		pop	{r3, pc}
+ 171              	.L12:
+ 172 000a 00BF     		.align	2
+ 173              	.L11:
+ 174 000c 00000000 		.word	_Znwj4Heap
+ 175              		.cfi_endproc
+ 176              	.LFE45:
+ 178              		.section	.text._Znaj,"ax",%progbits
+ 179              		.align	1
+ 180              		.global	_Znaj
+ 181              		.thumb
+ 182              		.thumb_func
+ 184              	_Znaj:
+ 185              	.LFB47:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     return operator new(size, Heap::DEFAULT);
+ 186              		.loc 1 27 0
+ 187              		.cfi_startproc
+ 188              		@ args = 0, pretend = 0, frame = 0
+ 189              		@ frame_needed = 0, uses_anonymous_args = 0
+ 190              	.LVL12:
+ 191 0000 08B5     		push	{r3, lr}
+ 192              	.LCFI4:
+ 193              		.cfi_def_cfa_offset 8
+ 194              		.cfi_offset 3, -8
+ 195              		.cfi_offset 14, -4
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+ 196              		.loc 1 28 0
+ 197 0002 0021     		movs	r1, #0
+ 198 0004 014B     		ldr	r3, .L14
+ 199 0006 9847     		blx	r3
+ 200              	.LVL13:
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+ 201              		.loc 1 29 0
+ 202 0008 08BD     		pop	{r3, pc}
+ 203              	.L15:
+ 204 000a 00BF     		.align	2
+ 205              	.L14:
+ 206 000c 00000000 		.word	_Znwj4Heap
+ 207              		.cfi_endproc
+ 208              	.LFE47:
+ 210              		.section	.text._Znaj4Heap,"ax",%progbits
+ 211              		.align	1
+ 212              		.global	_Znaj4Heap
+ 213              		.thumb
+ 214              		.thumb_func
+ 216              	_Znaj4Heap:
+ 217              	.LFB50:
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** 
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** void* operator new[](std::size_t size, Heap heap) {
+ 218              		.loc 1 39 0
+ 219              		.cfi_startproc
+ 220              		@ args = 0, pretend = 0, frame = 0
+ 221              		@ frame_needed = 0, uses_anonymous_args = 0
+ 222              	.LVL14:
+ 223 0000 08B5     		push	{r3, lr}
+ 224              	.LCFI5:
+ 225              		.cfi_def_cfa_offset 8
+ 226              		.cfi_offset 3, -8
+ 227              		.cfi_offset 14, -4
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp ****     return operator new(size, heap);
+ 228              		.loc 1 40 0
+ 229 0002 014B     		ldr	r3, .L17
+ 230 0004 9847     		blx	r3
+ 231              	.LVL15:
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/operator_new.cpp **** }
+ 232              		.loc 1 41 0
+ 233 0006 08BD     		pop	{r3, pc}
+ 234              	.L18:
+ 235              		.align	2
+ 236              	.L17:
+ 237 0008 00000000 		.word	_Znwj4Heap
+ 238              		.cfi_endproc
+ 239              	.LFE50:
+ 241              		.section	.rodata._ZN12_GLOBAL__N_114heap_attributeE,"a",%progbits
+ 242              		.align	2
+ 243              		.set	.LANCHOR0,. + 0
+ 246              	_ZN12_GLOBAL__N_114heap_attributeE:
+ 247 0000 00000000 		.word	default_heap_attribute
+ 248 0004 00000000 		.word	ddr_heap_attribute
+ 249              		.section	.rodata._ZZdlPvE12__FUNCTION__,"a",%progbits
+ 250              		.set	.LANCHOR1,. + 0
+ 253              	_ZZdlPvE12__FUNCTION__:
+ 254 0000 6F706572 		.ascii	"operator delete\000"
+ 254      61746F72 
+ 254      2064656C 
+ 254      65746500 
+ 255              		.section	.rodata._ZZnwj4HeapE12__FUNCTION__,"a",%progbits
+ 256              		.set	.LANCHOR2,. + 0
+ 259              	_ZZnwj4HeapE12__FUNCTION__:
+ 260 0000 6F706572 		.ascii	"operator new\000"
+ 260      61746F72 
+ 260      206E6577 
+ 260      00
+ 261              		.text
+ 262              	.Letext0:
+ 263              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+ 264              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 265              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdlib.h"
+ 266              		.file 5 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdlib"
+ 267              		.file 6 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 268              		.file 7 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/excepti
+ 269              		.file 8 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/arm-none-eab
+ 270              		.file 9 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 271              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacr
+ 272              		.file 11 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/gen_heap.h"
+ 273              		.file 12 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/ddr_heap.h"
+ 274              		.file 13 "<built-in>"
+ 275              		.file 14 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/operator_new.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 operator_new.cpp
+     /tmp/ccDqqfhU.s:19     .text._ZdlPv:00000000 $t
+     /tmp/ccDqqfhU.s:24     .text._ZdlPv:00000000 _ZdlPv
+     /tmp/ccDqqfhU.s:61     .text._ZdlPv:00000020 $d
+     /tmp/ccDqqfhU.s:69     .text._ZdaPv:00000000 $t
+     /tmp/ccDqqfhU.s:74     .text._ZdaPv:00000000 _ZdaPv
+     /tmp/ccDqqfhU.s:94     .text._ZdaPv:00000008 $d
+     /tmp/ccDqqfhU.s:99     .text._Znwj4Heap:00000000 $t
+     /tmp/ccDqqfhU.s:104    .text._Znwj4Heap:00000000 _Znwj4Heap
+     /tmp/ccDqqfhU.s:140    .text._Znwj4Heap:00000018 $d
+     /tmp/ccDqqfhU.s:147    .text._Znwj:00000000 $t
+     /tmp/ccDqqfhU.s:152    .text._Znwj:00000000 _Znwj
+     /tmp/ccDqqfhU.s:174    .text._Znwj:0000000c $d
+     /tmp/ccDqqfhU.s:179    .text._Znaj:00000000 $t
+     /tmp/ccDqqfhU.s:184    .text._Znaj:00000000 _Znaj
+     /tmp/ccDqqfhU.s:206    .text._Znaj:0000000c $d
+     /tmp/ccDqqfhU.s:211    .text._Znaj4Heap:00000000 $t
+     /tmp/ccDqqfhU.s:216    .text._Znaj4Heap:00000000 _Znaj4Heap
+     /tmp/ccDqqfhU.s:237    .text._Znaj4Heap:00000008 $d
+     /tmp/ccDqqfhU.s:242    .rodata._ZN12_GLOBAL__N_114heap_attributeE:00000000 $d
+     /tmp/ccDqqfhU.s:246    .rodata._ZN12_GLOBAL__N_114heap_attributeE:00000000 _ZN12_GLOBAL__N_114heap_attributeE
+     /tmp/ccDqqfhU.s:253    .rodata._ZZdlPvE12__FUNCTION__:00000000 _ZZdlPvE12__FUNCTION__
+     /tmp/ccDqqfhU.s:259    .rodata._ZZnwj4HeapE12__FUNCTION__:00000000 _ZZnwj4HeapE12__FUNCTION__
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+gen_vPortFree1
+gen_pvPortMalloc1
+default_heap_attribute
+ddr_heap_attribute

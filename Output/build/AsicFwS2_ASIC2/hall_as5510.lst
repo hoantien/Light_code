@@ -1,0 +1,666 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"hall_as5510.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.as5510_read_register,"ax",%progbits
+  19              		.align	1
+  20              		.global	as5510_read_register
+  21              		.thumb
+  22              		.thumb_func
+  24              	as5510_read_register:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @file    hall_sensor.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @date    Jun-27-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @brief   This file contains hall sensor source code
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #include "assert.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #include "stdbool.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #include "stddef.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #include "hall.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #include "i2cm.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /* Private define ------------------------------------------------------------*/
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define HALL_MAX_RETRIES				3
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_ADDR						0x57
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define IS_AS5510_SENSITIVITY(SENS)		(SENS < 4)
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_OUTPUT_REG				0x00
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_CONFIG_REG				0x02
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_SENSE_REG				0x0B
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_OUTPUT_OCF_MASK			0x0800
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_OUTPUT_PARITY_MASK		0x0400
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_OUTPUT_POSITION_MASK		0x03FF
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_CONFIG_SPEED_MASK		0x04
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** #define AS5510_NUM_SENSITIVITIES		4
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /* Private typedef -----------------------------------------------------------*/
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /* Private function prototype ------------------------------------------------*/
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** static hall_return_t write_register(i2c_t i2c_chid,
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 											uint8_t reg_addr, uint8_t reg_val);
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** static bool check_parity_error(uint16_t value, uint8_t parity_bit);
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /* Private variable ----------------------------------------------------------*/
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /* Exported function ---------------------------------------------------------*/
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /**
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @brief hall_read_register
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * The function reads register value from independent AS5510 hall sensor
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  */
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** hall_return_t as5510_read_register(i2c_t i2c_chid,
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 							uint8_t reg_addr, uint8_t reg_len, uint8_t *reg_val)
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** {
+  27              		.loc 1 57 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 37B5     		push	{r0, r1, r2, r4, r5, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 24
+  35              		.cfi_offset 4, -12
+  36              		.cfi_offset 5, -8
+  37              		.cfi_offset 14, -4
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	i2cm_error_t i2cm_ret = i2cm.read(i2c_chid,
+  38              		.loc 1 58 0
+  39 0002 094C     		ldr	r4, .L4
+  40 0004 012A     		cmp	r2, #1
+  41 0006 0D46     		mov	r5, r1
+  42 0008 4FF05702 		mov	r2, #87
+  43              	.LVL1:
+  44 000c 18BF     		it	ne
+  45 000e 0221     		movne	r1, #2
+  46              	.LVL2:
+  47 0010 E468     		ldr	r4, [r4, #12]
+  48 0012 08BF     		it	eq
+  49 0014 0021     		moveq	r1, #0
+  50 0016 0093     		str	r3, [sp]
+  51 0018 2B46     		mov	r3, r5
+  52              	.LVL3:
+  53 001a A047     		blx	r4
+  54              	.LVL4:
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 								(reg_len == 1) ? BYTE_ADDR8 : WORD_ADDR8,
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 								AS5510_ADDR, reg_addr, reg_val);
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	return (i2cm_ret == I2CM_ERROR_BUSY) ? HALL_TIMED_OUT : HALL_OK;
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+  55              		.loc 1 62 0
+  56 001c A0F18003 		sub	r3, r0, #128
+  57 0020 5842     		rsbs	r0, r3, #0
+  58              	.LVL5:
+  59 0022 5841     		adcs	r0, r0, r3
+  60 0024 03B0     		add	sp, sp, #12
+  61              	.LCFI1:
+  62              		.cfi_def_cfa_offset 12
+  63              		@ sp needed
+  64 0026 30BD     		pop	{r4, r5, pc}
+  65              	.L5:
+  66              		.align	2
+  67              	.L4:
+  68 0028 00000000 		.word	i2cm
+  69              		.cfi_endproc
+  70              	.LFE1:
+  72              		.section	.text.as5510_read_position,"ax",%progbits
+  73              		.align	1
+  74              		.global	as5510_read_position
+  75              		.thumb
+  76              		.thumb_func
+  78              	as5510_read_position:
+  79              	.LFB4:
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /**
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @brief as5510_init
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * The function initializes independent AS5510 hall sensor
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  */
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** hall_return_t as5510_init(i2c_t i2c_chid, bool polarity_reversal)
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** {
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	/* set polarity */
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	return write_register(i2c_chid, AS5510_CONFIG_REG,
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 					AS5510_CONFIG_SPEED_MASK | (polarity_reversal << 1));
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /**
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @brief as5510_set_sensitivity
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * The function set sensitivity of independent AS5510 hall sensor
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  */
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** hall_return_t as5510_set_sensitivity(i2c_t i2c_chid, uint8_t sensitivity)
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** {
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	if (!(IS_AS5510_SENSITIVITY(sensitivity)))
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		return HALL_INVALID_SENSITIVITY;
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	else
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	{
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		/* set sensitivity */
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		return write_register(i2c_chid, AS5510_SENSE_REG, sensitivity);
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	}
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /**
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @brief as5510_read_position
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * The function read position from independent AS5510 hall sensor
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  */
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** hall_return_t as5510_read_position(i2c_t i2c_chid, uint16_t *position)
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** {
+  80              		.loc 1 95 0
+  81              		.cfi_startproc
+  82              		@ args = 0, pretend = 0, frame = 8
+  83              		@ frame_needed = 0, uses_anonymous_args = 0
+  84              	.LVL6:
+  85 0000 F7B5     		push	{r0, r1, r2, r4, r5, r6, r7, lr}
+  86              	.LCFI2:
+  87              		.cfi_def_cfa_offset 32
+  88              		.cfi_offset 4, -20
+  89              		.cfi_offset 5, -16
+  90              		.cfi_offset 6, -12
+  91              		.cfi_offset 7, -8
+  92              		.cfi_offset 14, -4
+  93              		.loc 1 95 0
+  94 0002 0646     		mov	r6, r0
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	hall_return_t	ret;
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	uint16_t	output_value;
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	uint8_t		regs_val[2];
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	uint8_t		parity_bit;
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	uint8_t		offset_comp_status;
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	uint8_t		read_count = 0; /* number of attempts made */
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	/* assert parameters */
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	assert_param(position != NULL);
+  95              		.loc 1 104 0
+  96 0004 0D46     		mov	r5, r1
+  97 0006 19B9     		cbnz	r1, .L7
+  98              		.loc 1 104 0 is_stmt 0 discriminator 1
+  99 0008 1648     		ldr	r0, .L20
+ 100              	.LVL7:
+ 101 000a 6821     		movs	r1, #104
+ 102              	.LVL8:
+ 103 000c 164B     		ldr	r3, .L20+4
+ 104 000e 9847     		blx	r3
+ 105              	.LVL9:
+ 106              	.L7:
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	hall_return_t	ret;
+ 107              		.loc 1 95 0 is_stmt 1
+ 108 0010 0024     		movs	r4, #0
+ 109              	.LVL10:
+ 110              	.L13:
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	/* try to read position many times if the received value is incorrect */
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	do
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	{
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		/* read output registers */
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		ret = as5510_read_register(i2c_chid, AS5510_OUTPUT_REG, 2, regs_val);
+ 111              		.loc 1 110 0
+ 112 0012 3046     		mov	r0, r6
+ 113 0014 0021     		movs	r1, #0
+ 114 0016 0222     		movs	r2, #2
+ 115 0018 01AB     		add	r3, sp, #4
+ 116 001a 144F     		ldr	r7, .L20+8
+ 117 001c B847     		blx	r7
+ 118              	.LVL11:
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		if (ret == HALL_OK)
+ 119              		.loc 1 111 0
+ 120 001e D0B9     		cbnz	r0, .L8
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		{
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			/* update read count */
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			read_count++;
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			/* get output value */
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			output_value = (regs_val[1] << 8) | regs_val[0];
+ 121              		.loc 1 117 0
+ 122 0020 9DF80520 		ldrb	r2, [sp, #5]	@ zero_extendqisi2
+ 123 0024 9DF80430 		ldrb	r3, [sp, #4]	@ zero_extendqisi2
+ 124 0028 43EA0223 		orr	r3, r3, r2, lsl #8
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 125              		.loc 1 114 0
+ 126 002c 0134     		adds	r4, r4, #1
+ 127              	.LVL12:
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			/* get offset compensation loop status */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			offset_comp_status =
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 							(output_value & AS5510_OUTPUT_OCF_MASK) >> 11;
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			/* get parity bit */
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			parity_bit = (output_value & AS5510_OUTPUT_PARITY_MASK) >> 10;
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			/* get position */
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			*position = (output_value & AS5510_OUTPUT_POSITION_MASK);
+ 128              		.loc 1 124 0
+ 129 002e C3F30902 		ubfx	r2, r3, #0, #10
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			/* check whether the received value is incorrect */
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			if ((offset_comp_status == 0) ||
+ 130              		.loc 1 126 0
+ 131 0032 1905     		lsls	r1, r3, #20
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 132              		.loc 1 114 0
+ 133 0034 E4B2     		uxtb	r4, r4
+ 134              	.LVL13:
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			/* check whether the received value is incorrect */
+ 135              		.loc 1 124 0
+ 136 0036 2A80     		strh	r2, [r5]	@ movhi
+ 137              		.loc 1 126 0
+ 138 0038 0FD5     		bpl	.L9
+ 139 003a 0746     		mov	r7, r0
+ 140              	.L10:
+ 141 003c F9B2     		uxtb	r1, r7
+ 142              	.LVL14:
+ 143 003e 0137     		adds	r7, r7, #1
+ 144              	.LBB4:
+ 145              	.LBB5:
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 				(check_parity_error(*position, parity_bit) == TRUE))
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 				ret = HALL_INCORRECT_VALUE;
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		}
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	} while ((ret == HALL_INCORRECT_VALUE) &&
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			(read_count < HALL_MAX_RETRIES + 1));
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	return ret;
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /**
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * @brief as5510_scan_sensitivities
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * The function reads position values
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  * 		corresponding to the configurable sensitivities of AS5510 hall sensor
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c ****  */
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** hall_return_t as5510_scan_sensitivities(i2c_t i2c_chid, uint16_t *position_data)
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** {
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	hall_return_t	ret = HALL_OK;
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	uint8_t				i;
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	/* assert parameters */
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	assert_param(position_data != NULL);
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	for (i = 0; (i < AS5510_NUM_SENSITIVITIES) && (ret == HALL_OK); i++)
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	{
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		ret = as5510_set_sensitivity(i2c_chid, i);
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		ret |= as5510_read_position(i2c_chid, position_data + i);
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	}
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	return ret;
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** /* Private function --------------------------------------------------------- */
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** static hall_return_t write_register(i2c_t i2c_chid,
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 											uint8_t reg_addr, uint8_t reg_val)
+ 163:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** {
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	i2cm_error_t i2cm_ret = i2cm.write(i2c_chid, BYTE_ADDR8,
+ 165:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 										AS5510_ADDR, reg_addr, &reg_val);
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	return (i2cm_ret == I2CM_ERROR_BUSY) ? HALL_TIMED_OUT : HALL_OK;
+ 167:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** static bool check_parity_error(uint16_t value, uint8_t parity_bit)
+ 170:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** {
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	uint8_t num_bit1 = 0;
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	while (value != 0)
+ 146              		.loc 1 173 0
+ 147 0040 12B1     		cbz	r2, .L19
+ 148              	.LVL15:
+ 174:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	{
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		num_bit1++;
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		value &= (value - 1);
+ 149              		.loc 1 176 0
+ 150 0042 511E     		subs	r1, r2, #1
+ 151 0044 0A40     		ands	r2, r2, r1
+ 152              	.LVL16:
+ 153 0046 F9E7     		b	.L10
+ 154              	.LVL17:
+ 155              	.L19:
+ 156              	.LBE5:
+ 157              	.LBE4:
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 				(check_parity_error(*position, parity_bit) == TRUE))
+ 158              		.loc 1 126 0
+ 159 0048 C3F38023 		ubfx	r3, r3, #10, #1
+ 160              	.LVL18:
+ 161 004c 01F00102 		and	r2, r1, #1
+ 162              	.LVL19:
+ 163 0050 9342     		cmp	r3, r2
+ 164 0052 02D1     		bne	.L9
+ 165 0054 04E0     		b	.L12
+ 166              	.LVL20:
+ 167              	.L8:
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 168              		.loc 1 132 0
+ 169 0056 0328     		cmp	r0, #3
+ 170 0058 02D1     		bne	.L12
+ 171              	.L9:
+ 172              	.LVL21:
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 			(read_count < HALL_MAX_RETRIES + 1));
+ 173              		.loc 1 131 0
+ 174 005a 032C     		cmp	r4, #3
+ 175 005c D9D9     		bls	.L13
+ 176 005e 0320     		movs	r0, #3
+ 177              	.L12:
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 178              		.loc 1 135 0
+ 179 0060 03B0     		add	sp, sp, #12
+ 180              	.LCFI3:
+ 181              		.cfi_def_cfa_offset 20
+ 182              		@ sp needed
+ 183 0062 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 184              	.LVL22:
+ 185              	.L21:
+ 186              		.align	2
+ 187              	.L20:
+ 188 0064 00000000 		.word	.LANCHOR0
+ 189 0068 00000000 		.word	assert_failed
+ 190 006c 00000000 		.word	as5510_read_register
+ 191              		.cfi_endproc
+ 192              	.LFE4:
+ 194              		.section	.text.as5510_set_sensitivity,"ax",%progbits
+ 195              		.align	1
+ 196              		.global	as5510_set_sensitivity
+ 197              		.thumb
+ 198              		.thumb_func
+ 200              	as5510_set_sensitivity:
+ 201              	.LFB3:
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	if (!(IS_AS5510_SENSITIVITY(sensitivity)))
+ 202              		.loc 1 80 0
+ 203              		.cfi_startproc
+ 204              		@ args = 0, pretend = 0, frame = 8
+ 205              		@ frame_needed = 0, uses_anonymous_args = 0
+ 206              	.LVL23:
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		return HALL_INVALID_SENSITIVITY;
+ 207              		.loc 1 81 0
+ 208 0000 0329     		cmp	r1, #3
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	if (!(IS_AS5510_SENSITIVITY(sensitivity)))
+ 209              		.loc 1 80 0
+ 210 0002 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 211              	.LCFI4:
+ 212              		.cfi_def_cfa_offset 24
+ 213              		.cfi_offset 4, -8
+ 214              		.cfi_offset 14, -4
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		return HALL_INVALID_SENSITIVITY;
+ 215              		.loc 1 81 0
+ 216 0004 0ED8     		bhi	.L24
+ 217              	.LVL24:
+ 218 0006 04AB     		add	r3, sp, #16
+ 219              	.LBB10:
+ 220              	.LBB11:
+ 221              	.LBB12:
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 										AS5510_ADDR, reg_addr, &reg_val);
+ 222              		.loc 1 164 0
+ 223 0008 5722     		movs	r2, #87
+ 224 000a 03F8011D 		strb	r1, [r3, #-1]!
+ 225              	.LVL25:
+ 226 000e 0021     		movs	r1, #0
+ 227              	.LVL26:
+ 228 0010 0093     		str	r3, [sp]
+ 229 0012 064B     		ldr	r3, .L25
+ 230              	.LVL27:
+ 231 0014 1C69     		ldr	r4, [r3, #16]
+ 232 0016 0B23     		movs	r3, #11
+ 233 0018 A047     		blx	r4
+ 234              	.LVL28:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+ 235              		.loc 1 166 0
+ 236 001a A0F18003 		sub	r3, r0, #128
+ 237 001e 5842     		rsbs	r0, r3, #0
+ 238              	.LVL29:
+ 239 0020 5841     		adcs	r0, r0, r3
+ 240 0022 00E0     		b	.L23
+ 241              	.LVL30:
+ 242              	.L24:
+ 243              	.LBE12:
+ 244              	.LBE11:
+ 245              	.LBE10:
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	else
+ 246              		.loc 1 82 0
+ 247 0024 0220     		movs	r0, #2
+ 248              	.LVL31:
+ 249              	.L23:
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 250              		.loc 1 88 0
+ 251 0026 04B0     		add	sp, sp, #16
+ 252              	.LCFI5:
+ 253              		.cfi_def_cfa_offset 8
+ 254              		@ sp needed
+ 255 0028 10BD     		pop	{r4, pc}
+ 256              	.L26:
+ 257 002a 00BF     		.align	2
+ 258              	.L25:
+ 259 002c 00000000 		.word	i2cm
+ 260              		.cfi_endproc
+ 261              	.LFE3:
+ 263              		.section	.text.as5510_scan_sensitivities,"ax",%progbits
+ 264              		.align	1
+ 265              		.global	as5510_scan_sensitivities
+ 266              		.thumb
+ 267              		.thumb_func
+ 269              	as5510_scan_sensitivities:
+ 270              	.LFB5:
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	hall_return_t	ret = HALL_OK;
+ 271              		.loc 1 143 0
+ 272              		.cfi_startproc
+ 273              		@ args = 0, pretend = 0, frame = 0
+ 274              		@ frame_needed = 0, uses_anonymous_args = 0
+ 275              	.LVL32:
+ 276 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 277              	.LCFI6:
+ 278              		.cfi_def_cfa_offset 24
+ 279              		.cfi_offset 3, -24
+ 280              		.cfi_offset 4, -20
+ 281              		.cfi_offset 5, -16
+ 282              		.cfi_offset 6, -12
+ 283              		.cfi_offset 7, -8
+ 284              		.cfi_offset 14, -4
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	hall_return_t	ret = HALL_OK;
+ 285              		.loc 1 143 0
+ 286 0002 0646     		mov	r6, r0
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 287              		.loc 1 148 0
+ 288 0004 0F46     		mov	r7, r1
+ 289 0006 19B9     		cbnz	r1, .L28
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 290              		.loc 1 148 0 is_stmt 0 discriminator 1
+ 291 0008 0B48     		ldr	r0, .L35
+ 292              	.LVL33:
+ 293 000a 9421     		movs	r1, #148
+ 294              	.LVL34:
+ 295 000c 0B4B     		ldr	r3, .L35+4
+ 296 000e 9847     		blx	r3
+ 297              	.LVL35:
+ 298              	.L28:
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	hall_return_t	ret = HALL_OK;
+ 299              		.loc 1 143 0 is_stmt 1 discriminator 1
+ 300 0010 0025     		movs	r5, #0
+ 301              	.LVL36:
+ 302              	.L30:
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		ret |= as5510_read_position(i2c_chid, position_data + i);
+ 303              		.loc 1 152 0 discriminator 4
+ 304 0012 E9B2     		uxtb	r1, r5
+ 305 0014 0A4B     		ldr	r3, .L35+8
+ 306 0016 3046     		mov	r0, r6
+ 307 0018 9847     		blx	r3
+ 308              	.LVL37:
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	}
+ 309              		.loc 1 153 0 discriminator 4
+ 310 001a 07EB4501 		add	r1, r7, r5, lsl #1
+ 311 001e 094B     		ldr	r3, .L35+12
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 		ret |= as5510_read_position(i2c_chid, position_data + i);
+ 312              		.loc 1 152 0 discriminator 4
+ 313 0020 0446     		mov	r4, r0
+ 314              	.LVL38:
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	}
+ 315              		.loc 1 153 0 discriminator 4
+ 316 0022 3046     		mov	r0, r6
+ 317 0024 9847     		blx	r3
+ 318              	.LVL39:
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	{
+ 319              		.loc 1 150 0 discriminator 4
+ 320 0026 032D     		cmp	r5, #3
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	}
+ 321              		.loc 1 153 0 discriminator 4
+ 322 0028 40EA0400 		orr	r0, r0, r4
+ 323 002c C0B2     		uxtb	r0, r0
+ 324              	.LVL40:
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	{
+ 325              		.loc 1 150 0 discriminator 4
+ 326 002e 02D0     		beq	.L34
+ 327 0030 0135     		adds	r5, r5, #1
+ 328              	.LVL41:
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	{
+ 329              		.loc 1 150 0 is_stmt 0 discriminator 3
+ 330 0032 0028     		cmp	r0, #0
+ 331 0034 EDD0     		beq	.L30
+ 332              	.L34:
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 333              		.loc 1 157 0 is_stmt 1
+ 334 0036 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 335              	.LVL42:
+ 336              	.L36:
+ 337              		.align	2
+ 338              	.L35:
+ 339 0038 00000000 		.word	.LANCHOR1
+ 340 003c 00000000 		.word	assert_failed
+ 341 0040 00000000 		.word	as5510_set_sensitivity
+ 342 0044 00000000 		.word	as5510_read_position
+ 343              		.cfi_endproc
+ 344              	.LFE5:
+ 346              		.section	.text.as5510_init,"ax",%progbits
+ 347              		.align	1
+ 348              		.global	as5510_init
+ 349              		.thumb
+ 350              		.thumb_func
+ 352              	as5510_init:
+ 353              	.LFB2:
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 	/* set polarity */
+ 354              		.loc 1 69 0
+ 355              		.cfi_startproc
+ 356              		@ args = 0, pretend = 0, frame = 8
+ 357              		@ frame_needed = 0, uses_anonymous_args = 0
+ 358              	.LVL43:
+ 359 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 360              	.LCFI7:
+ 361              		.cfi_def_cfa_offset 24
+ 362              		.cfi_offset 4, -8
+ 363              		.cfi_offset 14, -4
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** }
+ 364              		.loc 1 72 0
+ 365 0002 4900     		lsls	r1, r1, #1
+ 366              	.LVL44:
+ 367 0004 04AB     		add	r3, sp, #16
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 					AS5510_CONFIG_SPEED_MASK | (polarity_reversal << 1));
+ 368              		.loc 1 71 0
+ 369 0006 41F00401 		orr	r1, r1, #4
+ 370              	.LBB15:
+ 371              	.LBB16:
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 										AS5510_ADDR, reg_addr, &reg_val);
+ 372              		.loc 1 164 0
+ 373 000a 5722     		movs	r2, #87
+ 374 000c 03F8011D 		strb	r1, [r3, #-1]!
+ 375              	.LVL45:
+ 376 0010 0021     		movs	r1, #0
+ 377 0012 0093     		str	r3, [sp]
+ 378 0014 044B     		ldr	r3, .L38
+ 379 0016 1C69     		ldr	r4, [r3, #16]
+ 380 0018 0223     		movs	r3, #2
+ 381 001a A047     		blx	r4
+ 382              	.LVL46:
+ 383              	.LBE16:
+ 384              	.LBE15:
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/hall_as5510.c **** 
+ 385              		.loc 1 73 0
+ 386 001c A0F18003 		sub	r3, r0, #128
+ 387 0020 5842     		rsbs	r0, r3, #0
+ 388              	.LVL47:
+ 389 0022 5841     		adcs	r0, r0, r3
+ 390 0024 04B0     		add	sp, sp, #16
+ 391              	.LCFI8:
+ 392              		.cfi_def_cfa_offset 8
+ 393              		@ sp needed
+ 394 0026 10BD     		pop	{r4, pc}
+ 395              	.LVL48:
+ 396              	.L39:
+ 397              		.align	2
+ 398              	.L38:
+ 399 0028 00000000 		.word	i2cm
+ 400              		.cfi_endproc
+ 401              	.LFE2:
+ 403              		.global	as5510
+ 404              		.section	.rodata.__FUNCTION__.7302,"a",%progbits
+ 405              		.set	.LANCHOR0,. + 0
+ 408              	__FUNCTION__.7302:
+ 409 0000 61733535 		.ascii	"as5510_read_position\000"
+ 409      31305F72 
+ 409      6561645F 
+ 409      706F7369 
+ 409      74696F6E 
+ 410              		.section	.rodata.__FUNCTION__.7311,"a",%progbits
+ 411              		.set	.LANCHOR1,. + 0
+ 414              	__FUNCTION__.7311:
+ 415 0000 61733535 		.ascii	"as5510_scan_sensitivities\000"
+ 415      31305F73 
+ 415      63616E5F 
+ 415      73656E73 
+ 415      69746976 
+ 416              		.section	.data.as5510,"aw",%progbits
+ 417              		.align	2
+ 420              	as5510:
+ 421 0000 04       		.byte	4
+ 422 0001 00       		.space	1
+ 423 0002 FF03     		.short	1023
+ 424 0004 00000000 		.word	as5510_init
+ 425 0008 00000000 		.word	as5510_set_sensitivity
+ 426 000c 00000000 		.word	as5510_read_position
+ 427 0010 00000000 		.word	as5510_scan_sensitivities
+ 428 0014 00000000 		.word	as5510_read_register
+ 429              		.text
+ 430              	.Letext0:
+ 431              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 432              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 433              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 434              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 435              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 436              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cm.h"
+ 437              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/hall.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hall_as5510.c
+     /tmp/ccvpGG9O.s:19     .text.as5510_read_register:00000000 $t
+     /tmp/ccvpGG9O.s:24     .text.as5510_read_register:00000000 as5510_read_register
+     /tmp/ccvpGG9O.s:68     .text.as5510_read_register:00000028 $d
+     /tmp/ccvpGG9O.s:73     .text.as5510_read_position:00000000 $t
+     /tmp/ccvpGG9O.s:78     .text.as5510_read_position:00000000 as5510_read_position
+     /tmp/ccvpGG9O.s:188    .text.as5510_read_position:00000064 $d
+     /tmp/ccvpGG9O.s:195    .text.as5510_set_sensitivity:00000000 $t
+     /tmp/ccvpGG9O.s:200    .text.as5510_set_sensitivity:00000000 as5510_set_sensitivity
+     /tmp/ccvpGG9O.s:259    .text.as5510_set_sensitivity:0000002c $d
+     /tmp/ccvpGG9O.s:264    .text.as5510_scan_sensitivities:00000000 $t
+     /tmp/ccvpGG9O.s:269    .text.as5510_scan_sensitivities:00000000 as5510_scan_sensitivities
+     /tmp/ccvpGG9O.s:339    .text.as5510_scan_sensitivities:00000038 $d
+     /tmp/ccvpGG9O.s:347    .text.as5510_init:00000000 $t
+     /tmp/ccvpGG9O.s:352    .text.as5510_init:00000000 as5510_init
+     /tmp/ccvpGG9O.s:399    .text.as5510_init:00000028 $d
+     /tmp/ccvpGG9O.s:420    .data.as5510:00000000 as5510
+     /tmp/ccvpGG9O.s:408    .rodata.__FUNCTION__.7302:00000000 __FUNCTION__.7302
+     /tmp/ccvpGG9O.s:414    .rodata.__FUNCTION__.7311:00000000 __FUNCTION__.7311
+     /tmp/ccvpGG9O.s:417    .data.as5510:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+i2cm
+assert_failed

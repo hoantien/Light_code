@@ -1,0 +1,393 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"temperature.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.temp_sensor_raw_data_init,"ax",%progbits
+  19              		.align	1
+  20              		.global	temp_sensor_raw_data_init
+  21              		.thumb
+  22              		.thumb_func
+  24              	temp_sensor_raw_data_init:
+  25              	.LFB2:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * @file    temperature.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * @date    April-1-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * @brief   This file contains expand for temperature sensor driver
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #include "std_type.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #include "board_config.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #include "os.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #include "log.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #include "i2cm.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #include "temperature.h"
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* Privated define------------------------------------------------------------*/
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #define SLOGF_ID					SLOG_ID_LIGHT_SYSTEM
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #define TMP112_INIT_VALUE			0x60A0
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #define TMP112_REG_TEMP_ADDR		0x00
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** #define TMP112_REG_CONFIG_ADDR		0x01
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* Privated variables --------------------------------------------------------*/
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* Privated functions --------------------------------------------------------*/
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* Exported functions --------------------------------------------------------*/
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* I2C initialization for temperature TMP211 sensor */
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** void temp_sensor_init(void)
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** {
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	i2cm.init(HAL_I2C_TEMP);
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	if(TEMP_OK ==temp_sensor_raw_data_init(TMP112_INIT_VALUE))
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	{
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		SLOGF(SLOG_INFO, "Init device temperature done!!!");
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	}
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	else
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	{
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		SLOGF(SLOG_ERROR, "Init device temperature fail!!!");
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	}
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** }
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* temp_sensor_raw_data_init */
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** int temp_sensor_raw_data_init(uint16_t mode)
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** {
+  27              		.loc 1 48 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 8
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 24
+  35              		.cfi_offset 4, -8
+  36              		.cfi_offset 14, -4
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	uint8_t tx_data[2];
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	int ret = TEMP_FAILED;
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	tx_data[0] = (mode >> 8) & 0x00FF;
+  37              		.loc 1 51 0
+  38 0002 030A     		lsrs	r3, r0, #8
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	tx_data[1] = mode & 0x00FF;
+  39              		.loc 1 52 0
+  40 0004 8DF80D00 		strb	r0, [sp, #13]
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	if(I2CM_ERROR_TRANSMITTED == i2cm.write(HAL_I2C_TEMP, WORD_ADDR8,
+  41              		.loc 1 54 0
+  42 0008 0221     		movs	r1, #2
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	tx_data[1] = mode & 0x00FF;
+  43              		.loc 1 51 0
+  44 000a 8DF80C30 		strb	r3, [sp, #12]
+  45              		.loc 1 54 0
+  46 000e 03AB     		add	r3, sp, #12
+  47 0010 4822     		movs	r2, #72
+  48 0012 0093     		str	r3, [sp]
+  49 0014 1220     		movs	r0, #18
+  50              	.LVL1:
+  51 0016 054B     		ldr	r3, .L4
+  52 0018 1C69     		ldr	r4, [r3, #16]
+  53 001a 0123     		movs	r3, #1
+  54 001c A047     		blx	r4
+  55              	.LVL2:
+  56 001e 0528     		cmp	r0, #5
+  57              	.LVL3:
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	TEMP_SLAVE_ADDR, TMP112_REG_CONFIG_ADDR, &tx_data[0]))
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		ret = TEMP_OK;
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	else
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		ret = TEMP_FAILED;
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	return ret;
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** }
+  58              		.loc 1 61 0
+  59 0020 14BF     		ite	ne
+  60 0022 0320     		movne	r0, #3
+  61 0024 0020     		moveq	r0, #0
+  62 0026 04B0     		add	sp, sp, #16
+  63              	.LCFI1:
+  64              		.cfi_def_cfa_offset 8
+  65              		@ sp needed
+  66 0028 10BD     		pop	{r4, pc}
+  67              	.L5:
+  68 002a 00BF     		.align	2
+  69              	.L4:
+  70 002c 00000000 		.word	i2cm
+  71              		.cfi_endproc
+  72              	.LFE2:
+  74              		.section	.text.temp_sensor_init,"ax",%progbits
+  75              		.align	1
+  76              		.global	temp_sensor_init
+  77              		.thumb
+  78              		.thumb_func
+  80              	temp_sensor_init:
+  81              	.LFB1:
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	i2cm.init(HAL_I2C_TEMP);
+  82              		.loc 1 34 0
+  83              		.cfi_startproc
+  84              		@ args = 0, pretend = 0, frame = 0
+  85              		@ frame_needed = 0, uses_anonymous_args = 0
+  86 0000 08B5     		push	{r3, lr}
+  87              	.LCFI2:
+  88              		.cfi_def_cfa_offset 8
+  89              		.cfi_offset 3, -8
+  90              		.cfi_offset 14, -4
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	if(TEMP_OK ==temp_sensor_raw_data_init(TMP112_INIT_VALUE))
+  91              		.loc 1 35 0
+  92 0002 094B     		ldr	r3, .L11
+  93 0004 1220     		movs	r0, #18
+  94 0006 1B68     		ldr	r3, [r3]
+  95 0008 9847     		blx	r3
+  96              	.LVL4:
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	{
+  97              		.loc 1 36 0
+  98 000a 084B     		ldr	r3, .L11+4
+  99 000c 46F2A000 		movw	r0, #24736
+ 100 0010 9847     		blx	r3
+ 101              	.LVL5:
+ 102 0012 074B     		ldr	r3, .L11+8
+ 103 0014 18B9     		cbnz	r0, .L7
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	}
+ 104              		.loc 1 38 0
+ 105 0016 1E20     		movs	r0, #30
+ 106 0018 0821     		movs	r1, #8
+ 107 001a 064A     		ldr	r2, .L11+12
+ 108 001c 02E0     		b	.L9
+ 109              	.L7:
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	}
+ 110              		.loc 1 42 0
+ 111 001e 064A     		ldr	r2, .L11+16
+ 112 0020 1E20     		movs	r0, #30
+ 113 0022 0221     		movs	r1, #2
+ 114              	.L9:
+ 115 0024 9847     		blx	r3
+ 116              	.LVL6:
+ 117 0026 08BD     		pop	{r3, pc}
+ 118              	.L12:
+ 119              		.align	2
+ 120              	.L11:
+ 121 0028 00000000 		.word	i2cm
+ 122 002c 00000000 		.word	temp_sensor_raw_data_init
+ 123 0030 00000000 		.word	slogf
+ 124 0034 00000000 		.word	.LC0
+ 125 0038 20000000 		.word	.LC1
+ 126              		.cfi_endproc
+ 127              	.LFE1:
+ 129              		.section	.text.temp_sensor_raw_data_get,"ax",%progbits
+ 130              		.align	1
+ 131              		.global	temp_sensor_raw_data_get
+ 132              		.thumb
+ 133              		.thumb_func
+ 135              	temp_sensor_raw_data_get:
+ 136              	.LFB3:
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /* temp_sensor_raw_data_get */
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** int temp_sensor_raw_data_get(uint8_t *data)
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** {
+ 137              		.loc 1 65 0
+ 138              		.cfi_startproc
+ 139              		@ args = 0, pretend = 0, frame = 0
+ 140              		@ frame_needed = 0, uses_anonymous_args = 0
+ 141              	.LVL7:
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	int ret = TEMP_FAILED;
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	if(I2CM_ERROR_TRANSCEIVED == i2cm.read(HAL_I2C_TEMP, WORD_ADDR8,
+ 142              		.loc 1 68 0
+ 143 0000 074B     		ldr	r3, .L16
+ 144 0002 4822     		movs	r2, #72
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	int ret = TEMP_FAILED;
+ 145              		.loc 1 65 0
+ 146 0004 13B5     		push	{r0, r1, r4, lr}
+ 147              	.LCFI3:
+ 148              		.cfi_def_cfa_offset 16
+ 149              		.cfi_offset 4, -8
+ 150              		.cfi_offset 14, -4
+ 151              		.loc 1 68 0
+ 152 0006 0221     		movs	r1, #2
+ 153 0008 0090     		str	r0, [sp]
+ 154 000a 1220     		movs	r0, #18
+ 155              	.LVL8:
+ 156 000c DC68     		ldr	r4, [r3, #12]
+ 157 000e 0023     		movs	r3, #0
+ 158 0010 A047     		blx	r4
+ 159              	.LVL9:
+ 160 0012 0728     		cmp	r0, #7
+ 161              	.LVL10:
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 			TEMP_SLAVE_ADDR, TMP112_REG_TEMP_ADDR, data))
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		ret = TEMP_OK;
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	else
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		ret = TEMP_FAILED;
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	return ret;
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** }
+ 162              		.loc 1 75 0
+ 163 0014 14BF     		ite	ne
+ 164 0016 0320     		movne	r0, #3
+ 165 0018 0020     		moveq	r0, #0
+ 166 001a 02B0     		add	sp, sp, #8
+ 167              	.LCFI4:
+ 168              		.cfi_def_cfa_offset 8
+ 169              		@ sp needed
+ 170 001c 10BD     		pop	{r4, pc}
+ 171              	.L17:
+ 172 001e 00BF     		.align	2
+ 173              	.L16:
+ 174 0020 00000000 		.word	i2cm
+ 175              		.cfi_endproc
+ 176              	.LFE3:
+ 178              		.global	__aeabi_i2f
+ 179              		.global	__aeabi_fmul
+ 180              		.section	.text.temp_sensor_read,"ax",%progbits
+ 181              		.align	1
+ 182              		.global	temp_sensor_read
+ 183              		.thumb
+ 184              		.thumb_func
+ 186              	temp_sensor_read:
+ 187              	.LFB4:
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** /*
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * temp_sensor_read
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  * Read temperature sensor
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c ****  */
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** float temp_sensor_read(void)
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** {
+ 188              		.loc 1 82 0
+ 189              		.cfi_startproc
+ 190              		@ args = 0, pretend = 0, frame = 8
+ 191              		@ frame_needed = 0, uses_anonymous_args = 0
+ 192              	.LVL11:
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	float ret = 0.0;
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	uint8_t data[2] = {0, 0};
+ 193              		.loc 1 84 0
+ 194 0000 0023     		movs	r3, #0
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	float ret = 0.0;
+ 195              		.loc 1 82 0
+ 196 0002 07B5     		push	{r0, r1, r2, lr}
+ 197              	.LCFI5:
+ 198              		.cfi_def_cfa_offset 16
+ 199              		.cfi_offset 14, -4
+ 200              		.loc 1 84 0
+ 201 0004 8DF80430 		strb	r3, [sp, #4]
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	int16_t tmp;
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	if(TEMP_OK == temp_sensor_raw_data_get((uint8_t *)&data[0]))
+ 202              		.loc 1 86 0
+ 203 0008 01A8     		add	r0, sp, #4
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	int16_t tmp;
+ 204              		.loc 1 84 0
+ 205 000a 8DF80530 		strb	r3, [sp, #5]
+ 206              		.loc 1 86 0
+ 207 000e 0B4B     		ldr	r3, .L21
+ 208 0010 9847     		blx	r3
+ 209              	.LVL12:
+ 210 0012 70B9     		cbnz	r0, .L20
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	{
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		/* calculate temperature */
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		tmp = (int16_t)((data[0] << 8) | data[1]);
+ 211              		.loc 1 89 0
+ 212 0014 9DF80530 		ldrb	r3, [sp, #5]	@ zero_extendqisi2
+ 213 0018 9DF80400 		ldrb	r0, [sp, #4]	@ zero_extendqisi2
+ 214 001c 43EA0020 		orr	r0, r3, r0, lsl #8
+ 215              	.LVL13:
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		tmp >>= 4;
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		if(tmp & (1 << 11))
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 			tmp |= 0xF000;
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		ret = ((float)(tmp) * 0.0625);
+ 216              		.loc 1 93 0
+ 217 0020 40F30B10 		sbfx	r0, r0, #4, #12
+ 218              	.LVL14:
+ 219 0024 064B     		ldr	r3, .L21+4
+ 220              	.LVL15:
+ 221 0026 9847     		blx	r3
+ 222              	.LVL16:
+ 223 0028 4FF07651 		mov	r1, #1031798784
+ 224 002c 054B     		ldr	r3, .L21+8
+ 225 002e 9847     		blx	r3
+ 226              	.LVL17:
+ 227 0030 00E0     		b	.L19
+ 228              	.LVL18:
+ 229              	.L20:
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		/*printf("\n\rTMP112: Read temperature successfully: %f\r\n", ret);*/
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	}
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	else
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	{
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		/*printf("\n\rTMP112: Read temperature failed\r\n");*/
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 		ret = 0;
+ 230              		.loc 1 99 0
+ 231 0032 0020     		movs	r0, #0
+ 232              	.LVL19:
+ 233              	.L19:
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	}
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** 	return ret;
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/temperature.c **** }
+ 234              		.loc 1 102 0
+ 235 0034 03B0     		add	sp, sp, #12
+ 236              	.LCFI6:
+ 237              		.cfi_def_cfa_offset 4
+ 238              		@ sp needed
+ 239 0036 5DF804FB 		ldr	pc, [sp], #4
+ 240              	.L22:
+ 241 003a 00BF     		.align	2
+ 242              	.L21:
+ 243 003c 00000000 		.word	temp_sensor_raw_data_get
+ 244 0040 00000000 		.word	__aeabi_i2f
+ 245 0044 00000000 		.word	__aeabi_fmul
+ 246              		.cfi_endproc
+ 247              	.LFE4:
+ 249              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 250              	.LC0:
+ 251 0000 496E6974 		.ascii	"Init device temperature done!!!\000"
+ 251      20646576 
+ 251      69636520 
+ 251      74656D70 
+ 251      65726174 
+ 252              	.LC1:
+ 253 0020 496E6974 		.ascii	"Init device temperature fail!!!\000"
+ 253      20646576 
+ 253      69636520 
+ 253      74656D70 
+ 253      65726174 
+ 254              		.text
+ 255              	.Letext0:
+ 256              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 257              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 258              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 259              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 260              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cm.h"
+ 261              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/temperature.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 temperature.c
+     /tmp/cc0Aejd7.s:19     .text.temp_sensor_raw_data_init:00000000 $t
+     /tmp/cc0Aejd7.s:24     .text.temp_sensor_raw_data_init:00000000 temp_sensor_raw_data_init
+     /tmp/cc0Aejd7.s:70     .text.temp_sensor_raw_data_init:0000002c $d
+     /tmp/cc0Aejd7.s:75     .text.temp_sensor_init:00000000 $t
+     /tmp/cc0Aejd7.s:80     .text.temp_sensor_init:00000000 temp_sensor_init
+     /tmp/cc0Aejd7.s:121    .text.temp_sensor_init:00000028 $d
+     /tmp/cc0Aejd7.s:130    .text.temp_sensor_raw_data_get:00000000 $t
+     /tmp/cc0Aejd7.s:135    .text.temp_sensor_raw_data_get:00000000 temp_sensor_raw_data_get
+     /tmp/cc0Aejd7.s:174    .text.temp_sensor_raw_data_get:00000020 $d
+     /tmp/cc0Aejd7.s:181    .text.temp_sensor_read:00000000 $t
+     /tmp/cc0Aejd7.s:186    .text.temp_sensor_read:00000000 temp_sensor_read
+     /tmp/cc0Aejd7.s:243    .text.temp_sensor_read:0000003c $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+i2cm
+slogf
+__aeabi_i2f
+__aeabi_fmul

@@ -1,0 +1,135 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"startup.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.startup_main,"ax",%progbits
+  17              		.align	2
+  18              		.global	startup_main
+  20              	startup_main:
+  21              	.LFB0:
+  22              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** /******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * @file    startup.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * @date    Mar-09-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  * @brief   This file contains first instructions after receiving control from
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  *          bootup program. Define stack, set sp, and jump to C code in main()
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  *
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c ****  ******************************************************************************/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** extern int main(void);
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** extern unsigned long __etext;
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** extern unsigned long __data_start__;
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** extern unsigned long __data_end__;
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** extern unsigned long __bss_start__;
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** extern unsigned long __bss_end__;
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** void startup_main(void)
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** {
+  23              		.loc 1 27 0
+  24              		.cfi_startproc
+  25              		@ args = 0, pretend = 0, frame = 0
+  26              		@ frame_needed = 0, uses_anonymous_args = 0
+  27              		@ link register save eliminated.
+  28              	.LVL0:
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	unsigned long *pulSrc, *pulDest;
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	/* Copy the data segment initializers from flash to SRAM. */
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	pulSrc = &__etext;
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	pulDest = &__data_start__;
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	if(pulSrc != pulDest)
+  29              		.loc 1 33 0
+  30 0000 44209FE5 		ldr	r2, .L9
+  31 0004 44309FE5 		ldr	r3, .L9+4
+  32 0008 030052E1 		cmp	r2, r3
+  33 000c 04204212 		subne	r2, r2, #4
+  34 0010 0100001A 		bne	.L3
+  35              	.LVL1:
+  36              	.L2:
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	unsigned long *pulSrc, *pulDest;
+  37              		.loc 1 27 0
+  38 0014 38309FE5 		ldr	r3, .L9+8
+  39 0018 050000EA 		b	.L4
+  40              	.L3:
+  41              	.LVL2:
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	{
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 		for(; pulDest < &__data_end__;)
+  42              		.loc 1 35 0
+  43 001c 34109FE5 		ldr	r1, .L9+12
+  44 0020 010053E1 		cmp	r3, r1
+  45 0024 FAFFFF2A 		bcs	.L2
+  46              	.LVL3:
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 			*pulDest++ = *pulSrc++;
+  47              		.loc 1 36 0
+  48 0028 0410B2E5 		ldr	r1, [r2, #4]!
+  49 002c 041083E4 		str	r1, [r3], #4
+  50              	.LVL4:
+  51 0030 F9FFFFEA 		b	.L3
+  52              	.LVL5:
+  53              	.L4:
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	}
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	/* Zero fill the bss segment. */
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	for(pulDest = &__bss_start__; pulDest < &__bss_end__;)
+  54              		.loc 1 40 0 discriminator 1
+  55 0034 20209FE5 		ldr	r2, .L9+16
+  56 0038 020053E1 		cmp	r3, r2
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 		*pulDest++ = 0;
+  57              		.loc 1 41 0
+  58 003c 0020A033 		movcc	r2, #0
+  59 0040 04208334 		strcc	r2, [r3], #4
+  60              	.LVL6:
+  61 0044 FAFFFF3A 		bcc	.L4
+  62              	.LVL7:
+  63              	.L8:
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	/* jump to main function */
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/startup.c **** 	main();
+  64              		.loc 1 43 0
+  65 0048 FEFFFFEA 		b	main
+  66              	.LVL8:
+  67              	.L10:
+  68              		.align	2
+  69              	.L9:
+  70 004c 00000000 		.word	__etext
+  71 0050 00000000 		.word	__data_start__
+  72 0054 00000000 		.word	__bss_start__
+  73 0058 00000000 		.word	__data_end__
+  74 005c 00000000 		.word	__bss_end__
+  75              		.cfi_endproc
+  76              	.LFE0:
+  78              		.text
+  79              	.Letext0:
+DEFINED SYMBOLS
+                            *ABS*:00000000 startup.c
+     /tmp/ccih6LcB.s:17     .text.startup_main:00000000 $a
+     /tmp/ccih6LcB.s:20     .text.startup_main:00000000 startup_main
+     /tmp/ccih6LcB.s:70     .text.startup_main:0000004c $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+main
+__etext
+__data_start__
+__bss_start__
+__data_end__
+__bss_end__

@@ -1,0 +1,856 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"spis.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.spi_slaver_rx_complete,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	spi_slaver_rx_complete:
+  24              	.LFB1:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * @file    spi_slave.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * @author  The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * @version V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * @date    Feb-04-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * @brief   This file contains expand for spi_slave
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /* Includes ------------------------------------------------------------------*/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** #include "os.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** #include "lcc_system.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** #include "spis.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /* Private define------------------------------------------------------------*/
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** #define SLOGF_ID					SLOG_ID_SPI_SLAVE
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /*
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * spi_slave_sm typedef
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  */
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** typedef enum spi_slave_sm
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	SM_IDLE,
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	SM_RX,
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	SM_TX,
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** } spi_slave_sm_t;
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /*
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * spi_slave_buf typedef
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  */
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** typedef struct spi_slave_buf
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	uint8_t *data;
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	uint16_t len;
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** } spi_slave_buf_t;
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /* Privated functions --------------------------------------------------------*/
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /* Interrupt call back function */
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static void spi_slaver_rx_complete(void);
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static void spi_slaver_tx_complete(void);
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /* Privated variable ---------------------------------------------------------*/
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static spi_config_t spi_slv_hw_cfg =
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.channel			= SSI_CH1,
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.data_size			= SPI_SLAVE_SPI_DATASIZE,
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.spi_mode			= SPI_SLAVE_SPI_DATA_MODE,
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.spi_type			= SPI_STD,
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.ssi_mode			= SSI_MOTO_SPI,
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.transfer_mode		= TX_AND_RX,
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.master_clk_freq	= SPI_SLAVE_SPI_CLOCK,
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.master_data_frame	= 0	/* only valid for SPI master */
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** };
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static spi_interrupt_init_t spi_slv_isr_cfg =
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Configure interrupt t */
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.rx_fifo_threshold	= 16 - 1,	/* RX FIFO threshold = 16 (max buff size)*/
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.tx_fifo_threshold	= 1 - 1,	/* TX FIFO threshold = 1 */
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.rx_fifo_full 		= DISABLE,
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.tx_fifo_empty		= DISABLE,
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.rx_fifo_overflow	= DISABLE,
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.rx_fifo_underflow	= DISABLE,
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.tx_fifo_overflow	= DISABLE,
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.multi_master_contention = DISABLE,
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Point to call back function */
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.callback_handler.rx_fifo_full_handler		= spi_slaver_rx_complete,
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.callback_handler.tx_fifo_empty_handler		= spi_slaver_tx_complete,
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.callback_handler.rx_fifo_overflow_handler	= NULL,
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.callback_handler.rx_fifo_underflow_handler	= NULL,
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.callback_handler.tx_fifo_overflow_handler	= NULL,
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	.callback_handler.multi_master_handler		= NULL
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** };
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static spi_slave_sm_t sm = SM_IDLE;
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static void (*rx_clbk)(uint8_t *data, uint16_t len);
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static uint8_t tx_data[SPI_SLAVE_MAX_RX_BUFFER_SIZE] = { 0 };
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static uint8_t tx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static uint8_t rx_data[SPI_SLAVE_MAX_RX_BUFFER_SIZE] = { 0 };
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static uint8_t rx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** xSemaphoreHandle spi_slave_semaphore;
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /* Private functions ---------- ----------------------------------------------*/
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static void spi_slaver_rx_complete(void)
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+  26              		.loc 1 95 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30 0000 70B5     		push	{r4, r5, r6, lr}
+  31              	.LCFI0:
+  32              		.cfi_def_cfa_offset 16
+  33              		.cfi_offset 4, -16
+  34              		.cfi_offset 5, -12
+  35              		.cfi_offset 6, -8
+  36              		.cfi_offset 14, -4
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Clear buffer */
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	memset(rx_data, 0x00, SPI_SLAVE_MAX_RX_BUFFER_SIZE);
+  37              		.loc 1 97 0
+  38 0002 0A4C     		ldr	r4, .L2
+  39 0004 1025     		movs	r5, #16
+  40 0006 2A46     		mov	r2, r5
+  41 0008 2046     		mov	r0, r4
+  42 000a 0021     		movs	r1, #0
+  43 000c 084B     		ldr	r3, .L2+4
+  44 000e 9847     		blx	r3
+  45              	.LVL0:
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	rx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+  46              		.loc 1 98 0
+  47 0010 084E     		ldr	r6, .L2+8
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Read data from FIFO to buffer */
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hal_spi_receive_buf(&spi_slv_hw_cfg, rx_data, rx_len);
+  48              		.loc 1 101 0
+  49 0012 2146     		mov	r1, r4
+  50 0014 2A46     		mov	r2, r5
+  51 0016 084B     		ldr	r3, .L2+12
+  52 0018 0848     		ldr	r0, .L2+16
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	rx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+  53              		.loc 1 98 0
+  54 001a 3570     		strb	r5, [r6]
+  55              		.loc 1 101 0
+  56 001c 9847     		blx	r3
+  57              	.LVL1:
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Call back to update data to upper layer */
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	(*rx_clbk)(rx_data, rx_len);
+  58              		.loc 1 104 0
+  59 001e 084B     		ldr	r3, .L2+20
+  60 0020 2046     		mov	r0, r4
+  61 0022 3178     		ldrb	r1, [r6]	@ zero_extendqisi2
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** }
+  62              		.loc 1 105 0
+  63 0024 BDE87040 		pop	{r4, r5, r6, lr}
+  64              	.LCFI1:
+  65              		.cfi_restore 14
+  66              		.cfi_restore 6
+  67              		.cfi_restore 5
+  68              		.cfi_restore 4
+  69              		.cfi_def_cfa_offset 0
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** }
+  70              		.loc 1 104 0
+  71 0028 1B68     		ldr	r3, [r3]
+  72 002a 1847     		bx	r3	@ indirect register sibling call
+  73              	.LVL2:
+  74              	.L3:
+  75              		.align	2
+  76              	.L2:
+  77 002c 00000000 		.word	.LANCHOR0
+  78 0030 00000000 		.word	memset
+  79 0034 00000000 		.word	.LANCHOR1
+  80 0038 00000000 		.word	hal_spi_receive_buf
+  81 003c 00000000 		.word	.LANCHOR2
+  82 0040 00000000 		.word	.LANCHOR3
+  83              		.cfi_endproc
+  84              	.LFE1:
+  86              		.section	.text.spi_slaver_tx_complete,"ax",%progbits
+  87              		.align	1
+  88              		.thumb
+  89              		.thumb_func
+  91              	spi_slaver_tx_complete:
+  92              	.LFB2:
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** static void spi_slaver_tx_complete(void)
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+  93              		.loc 1 108 0
+  94              		.cfi_startproc
+  95              		@ args = 0, pretend = 0, frame = 8
+  96              		@ frame_needed = 0, uses_anonymous_args = 0
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* If TX FIFO = 0 is transmission completed */
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	if(SPI_SLAVE0->TXFLR == 0)
+  97              		.loc 1 110 0
+  98 0000 0C4B     		ldr	r3, .L11
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* If TX FIFO = 0 is transmission completed */
+  99              		.loc 1 108 0
+ 100 0002 13B5     		push	{r0, r1, r4, lr}
+ 101              	.LCFI2:
+ 102              		.cfi_def_cfa_offset 16
+ 103              		.cfi_offset 4, -8
+ 104              		.cfi_offset 14, -4
+ 105              		.loc 1 110 0
+ 106 0004 1C6A     		ldr	r4, [r3, #32]
+ 107 0006 94B9     		cbnz	r4, .L4
+ 108              	.LBB8:
+ 109              	.LBB9:
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	{
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		/* Disable transmission interrupt */
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		spi_slv_isr_cfg.tx_fifo_empty = DISABLE;
+ 110              		.loc 1 113 0
+ 111 0008 0B49     		ldr	r1, .L11+4
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		hal_spi_interrupt_init(&spi_slv_hw_cfg, &spi_slv_isr_cfg);
+ 112              		.loc 1 114 0
+ 113 000a 0C48     		ldr	r0, .L11+8
+ 114 000c 0C4B     		ldr	r3, .L11+12
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		hal_spi_interrupt_init(&spi_slv_hw_cfg, &spi_slv_isr_cfg);
+ 115              		.loc 1 113 0
+ 116 000e CC71     		strb	r4, [r1, #7]
+ 117              		.loc 1 114 0
+ 118 0010 9847     		blx	r3
+ 119              	.LVL3:
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+ 120              		.loc 1 116 0
+ 121 0012 02A9     		add	r1, sp, #8
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		sm = SM_RX;
+ 122              		.loc 1 117 0
+ 123 0014 0B4B     		ldr	r3, .L11+16
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		sm = SM_RX;
+ 124              		.loc 1 116 0
+ 125 0016 41F8044D 		str	r4, [r1, #-4]!
+ 126              		.loc 1 117 0
+ 127 001a 0124     		movs	r4, #1
+ 128 001c 1C70     		strb	r4, [r3]
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		xSemaphoreGiveFromISR(spi_slave_semaphore, &xHigherPriorityTaskWoken);
+ 129              		.loc 1 118 0
+ 130 001e 0A4B     		ldr	r3, .L11+20
+ 131 0020 1868     		ldr	r0, [r3]
+ 132 0022 0A4B     		ldr	r3, .L11+24
+ 133 0024 9847     		blx	r3
+ 134              	.LVL4:
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		if(xHigherPriorityTaskWoken)
+ 135              		.loc 1 119 0
+ 136 0026 019B     		ldr	r3, [sp, #4]
+ 137 0028 0BB1     		cbz	r3, .L4
+ 138              	.LBB10:
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		{
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+ 139              		.loc 1 121 0
+ 140 002a 094B     		ldr	r3, .L11+28
+ 141 002c 1C60     		str	r4, [r3]
+ 142              	.L4:
+ 143              	.LBE10:
+ 144              	.LBE9:
+ 145              	.LBE8:
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		}
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	}
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** }
+ 146              		.loc 1 124 0
+ 147 002e 02B0     		add	sp, sp, #8
+ 148              	.LCFI3:
+ 149              		.cfi_def_cfa_offset 8
+ 150              		@ sp needed
+ 151 0030 10BD     		pop	{r4, pc}
+ 152              	.L12:
+ 153 0032 00BF     		.align	2
+ 154              	.L11:
+ 155 0034 00D00102 		.word	33673216
+ 156 0038 00000000 		.word	.LANCHOR4
+ 157 003c 00000000 		.word	.LANCHOR2
+ 158 0040 00000000 		.word	hal_spi_interrupt_init
+ 159 0044 00000000 		.word	.LANCHOR5
+ 160 0048 00000000 		.word	.LANCHOR6
+ 161 004c 00000000 		.word	xQueueGiveFromISR
+ 162 0050 00000000 		.word	ulPortYieldRequired
+ 163              		.cfi_endproc
+ 164              	.LFE2:
+ 166              		.section	.text.task_spi_slave,"ax",%progbits
+ 167              		.align	1
+ 168              		.global	task_spi_slave
+ 169              		.thumb
+ 170              		.thumb_func
+ 172              	task_spi_slave:
+ 173              	.LFB3:
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /* Exported functions ------------------------------------------------------- */
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /*
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * task_spi_slave
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  *
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  */
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** void task_spi_slave(void *vParameter)
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+ 174              		.loc 1 132 0
+ 175              		.cfi_startproc
+ 176              		@ args = 0, pretend = 0, frame = 0
+ 177              		@ frame_needed = 0, uses_anonymous_args = 0
+ 178              	.LVL5:
+ 179 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 180              	.LCFI4:
+ 181              		.cfi_def_cfa_offset 24
+ 182              		.cfi_offset 4, -24
+ 183              		.cfi_offset 5, -20
+ 184              		.cfi_offset 6, -16
+ 185              		.cfi_offset 7, -12
+ 186              		.cfi_offset 8, -8
+ 187              		.cfi_offset 14, -4
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	task_handle_t *hdl = (task_handle_t *)(vParameter);
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	uint8_t EXIT = 0;
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/*
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	 * TODO: remove EXIT = 1 line
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	 * when have implemented tasks lcccmd, console, slog
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	 */
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	EXIT = 1;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	while(!EXIT)
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	{
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		if(TASK_READY == task_handler[task_query_tid("lcccmd")].state
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 				&& TASK_READY == task_handler[task_query_tid("console")].state
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 				&& TASK_READY == task_handler[task_query_tid("slog")].state)
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		{
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			/* break out while loop */
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			EXIT = 1;
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		}
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		vTaskDelay(1);
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	}
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Enable SPI receiver interrupt */
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	spi_slv_isr_cfg.rx_fifo_full = ENABLE;
+ 188              		.loc 1 154 0
+ 189 0004 0124     		movs	r4, #1
+ 190 0006 1D4D     		ldr	r5, .L20
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	task_handle_t *hdl = (task_handle_t *)(vParameter);
+ 191              		.loc 1 132 0
+ 192 0008 0646     		mov	r6, r0
+ 193              	.LVL6:
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hal_spi_interrupt_init(&spi_slv_hw_cfg, &spi_slv_isr_cfg);
+ 194              		.loc 1 155 0
+ 195 000a 2946     		mov	r1, r5
+ 196 000c 1C4F     		ldr	r7, .L20+4
+ 197 000e 1D48     		ldr	r0, .L20+8
+ 198              	.LVL7:
+ 199 0010 B846     		mov	r8, r7
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hal_spi_interrupt_init(&spi_slv_hw_cfg, &spi_slv_isr_cfg);
+ 200              		.loc 1 154 0
+ 201 0012 EC70     		strb	r4, [r5, #3]
+ 202              		.loc 1 155 0
+ 203 0014 B847     		blx	r7
+ 204              	.LVL8:
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hal_spi_reset(&spi_slv_hw_cfg);
+ 205              		.loc 1 156 0
+ 206 0016 1B48     		ldr	r0, .L20+8
+ 207 0018 1B4B     		ldr	r3, .L20+12
+ 208 001a 9847     		blx	r3
+ 209              	.LVL9:
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Task ready id */
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hdl->state = TASK_READY;
+ 210              		.loc 1 158 0
+ 211 001c 3470     		strb	r4, [r6]
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Get task id */
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	sm = SM_RX;
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	vSemaphoreCreateBinary(spi_slave_semaphore);
+ 212              		.loc 1 161 0
+ 213 001e 0322     		movs	r2, #3
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	vSemaphoreCreateBinary(spi_slave_semaphore);
+ 214              		.loc 1 160 0
+ 215 0020 1A4E     		ldr	r6, .L20+16
+ 216              	.LVL10:
+ 217              		.loc 1 161 0
+ 218 0022 2046     		mov	r0, r4
+ 219 0024 0021     		movs	r1, #0
+ 220 0026 1A4B     		ldr	r3, .L20+20
+ 221 0028 3746     		mov	r7, r6
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	vSemaphoreCreateBinary(spi_slave_semaphore);
+ 222              		.loc 1 160 0
+ 223 002a 3470     		strb	r4, [r6]
+ 224              		.loc 1 161 0
+ 225 002c 9847     		blx	r3
+ 226              	.LVL11:
+ 227 002e 194A     		ldr	r2, .L20+24
+ 228 0030 1646     		mov	r6, r2
+ 229 0032 1060     		str	r0, [r2]
+ 230 0034 20B1     		cbz	r0, .L14
+ 231              		.loc 1 161 0 is_stmt 0 discriminator 1
+ 232 0036 0021     		movs	r1, #0
+ 233 0038 0A46     		mov	r2, r1
+ 234 003a 0B46     		mov	r3, r1
+ 235 003c 164C     		ldr	r4, .L20+28
+ 236 003e A047     		blx	r4
+ 237              	.LVL12:
+ 238              	.L14:
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	taskENTER_CRITICAL();
+ 239              		.loc 1 162 0 is_stmt 1
+ 240 0040 164B     		ldr	r3, .L20+32
+ 241 0042 9847     		blx	r3
+ 242              	.LVL13:
+ 163:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Log_msg("Start %s\r\n", __FUNCTION__); */
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	taskEXIT_CRITICAL();
+ 243              		.loc 1 164 0
+ 244 0044 164B     		ldr	r3, .L20+36
+ 245 0046 9847     		blx	r3
+ 246              	.LVL14:
+ 247              	.L15:
+ 165:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	while(1)
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	{
+ 167:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		/* Waiting for semaphore to unlock task*/
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		xSemaphoreTake(spi_slave_semaphore, portMAX_DELAY);
+ 248              		.loc 1 168 0
+ 249 0048 0021     		movs	r1, #0
+ 250 004a 0B46     		mov	r3, r1
+ 251 004c 4FF0FF32 		mov	r2, #-1
+ 252 0050 3068     		ldr	r0, [r6]
+ 253 0052 144C     		ldr	r4, .L20+40
+ 254 0054 A047     		blx	r4
+ 255              	.LVL15:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 170:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		/* Transmit data */
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		if(SM_TX == sm)
+ 256              		.loc 1 171 0
+ 257 0056 3B78     		ldrb	r3, [r7]	@ zero_extendqisi2
+ 258 0058 022B     		cmp	r3, #2
+ 259 005a F5D1     		bne	.L15
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		{
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			/* Put data to FIFO */
+ 174:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			if(spi_slv_isr_cfg.tx_fifo_empty == DISABLE)
+ 260              		.loc 1 174 0
+ 261 005c 074C     		ldr	r4, .L20
+ 262 005e EB79     		ldrb	r3, [r5, #7]	@ zero_extendqisi2
+ 263 0060 002B     		cmp	r3, #0
+ 264 0062 F1D1     		bne	.L15
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			{
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 				hal_spi_transmit_buf(&spi_slv_hw_cfg, tx_data,
+ 265              		.loc 1 176 0
+ 266 0064 1049     		ldr	r1, .L20+44
+ 267 0066 114B     		ldr	r3, .L20+48
+ 268 0068 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 269 006a 0648     		ldr	r0, .L20+8
+ 270 006c 104B     		ldr	r3, .L20+52
+ 271 006e 9847     		blx	r3
+ 272              	.LVL16:
+ 177:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 						tx_len);
+ 178:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 				/* Enable transmission interrupt */
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 				spi_slv_isr_cfg.tx_fifo_empty = ENABLE;
+ 273              		.loc 1 179 0
+ 274 0070 0123     		movs	r3, #1
+ 180:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 				hal_spi_interrupt_init(&spi_slv_hw_cfg, &spi_slv_isr_cfg);
+ 275              		.loc 1 180 0
+ 276 0072 0448     		ldr	r0, .L20+8
+ 277 0074 2146     		mov	r1, r4
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 				hal_spi_interrupt_init(&spi_slv_hw_cfg, &spi_slv_isr_cfg);
+ 278              		.loc 1 179 0
+ 279 0076 E371     		strb	r3, [r4, #7]
+ 280              		.loc 1 180 0
+ 281 0078 C047     		blx	r8
+ 282              	.LVL17:
+ 283 007a E5E7     		b	.L15
+ 284              	.L21:
+ 285              		.align	2
+ 286              	.L20:
+ 287 007c 00000000 		.word	.LANCHOR4
+ 288 0080 00000000 		.word	hal_spi_interrupt_init
+ 289 0084 00000000 		.word	.LANCHOR2
+ 290 0088 00000000 		.word	hal_spi_reset
+ 291 008c 00000000 		.word	.LANCHOR5
+ 292 0090 00000000 		.word	xQueueGenericCreate
+ 293 0094 00000000 		.word	.LANCHOR6
+ 294 0098 00000000 		.word	xQueueGenericSend
+ 295 009c 00000000 		.word	vPortEnterCritical
+ 296 00a0 00000000 		.word	vPortExitCritical
+ 297 00a4 00000000 		.word	xQueueGenericReceive
+ 298 00a8 00000000 		.word	.LANCHOR7
+ 299 00ac 00000000 		.word	.LANCHOR8
+ 300 00b0 00000000 		.word	hal_spi_transmit_buf
+ 301              		.cfi_endproc
+ 302              	.LFE3:
+ 304              		.section	.text.spi_slave_init,"ax",%progbits
+ 305              		.align	1
+ 306              		.global	spi_slave_init
+ 307              		.thumb
+ 308              		.thumb_func
+ 310              	spi_slave_init:
+ 311              	.LFB4:
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			}
+ 182:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		}
+ 183:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	}
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** }
+ 185:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /*
+ 186:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * spi slave init
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  *
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  */
+ 189:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** void spi_slave_init(spi_slave_t *spi_slave)
+ 190:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+ 312              		.loc 1 190 0
+ 313              		.cfi_startproc
+ 314              		@ args = 0, pretend = 0, frame = 0
+ 315              		@ frame_needed = 0, uses_anonymous_args = 0
+ 316              	.LVL18:
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Receive call back function */
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	rx_clbk = spi_slave->rx_clbk;
+ 317              		.loc 1 192 0
+ 318 0000 0268     		ldr	r2, [r0]
+ 319 0002 0A4B     		ldr	r3, .L23
+ 190:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Receive call back function */
+ 320              		.loc 1 190 0
+ 321 0004 10B5     		push	{r4, lr}
+ 322              	.LCFI5:
+ 323              		.cfi_def_cfa_offset 8
+ 324              		.cfi_offset 4, -8
+ 325              		.cfi_offset 14, -4
+ 326              		.loc 1 192 0
+ 327 0006 1A60     		str	r2, [r3]
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Configure data buffer */
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	tx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+ 328              		.loc 1 195 0
+ 329 0008 1023     		movs	r3, #16
+ 330 000a 094A     		ldr	r2, .L23+4
+ 331 000c 1370     		strb	r3, [r2]
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	rx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	/* Initialize SPI and Interrupt */
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hal_spi_init(&spi_slv_hw_cfg);
+ 332              		.loc 1 199 0
+ 333 000e 094C     		ldr	r4, .L23+8
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	rx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+ 334              		.loc 1 196 0
+ 335 0010 094A     		ldr	r2, .L23+12
+ 336              		.loc 1 199 0
+ 337 0012 2046     		mov	r0, r4
+ 338              	.LVL19:
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	rx_len = SPI_SLAVE_MAX_RX_BUFFER_SIZE;
+ 339              		.loc 1 196 0
+ 340 0014 1370     		strb	r3, [r2]
+ 341              		.loc 1 199 0
+ 342 0016 094B     		ldr	r3, .L23+16
+ 343 0018 9847     		blx	r3
+ 344              	.LVL20:
+ 200:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hal_spi_interrupt_deinit(&spi_slv_hw_cfg);
+ 345              		.loc 1 200 0
+ 346 001a 2046     		mov	r0, r4
+ 347 001c 084B     		ldr	r3, .L23+20
+ 348 001e 9847     		blx	r3
+ 349              	.LVL21:
+ 201:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	hal_spi_interrupt_init(&spi_slv_hw_cfg, &spi_slv_isr_cfg);
+ 350              		.loc 1 201 0
+ 351 0020 2046     		mov	r0, r4
+ 352 0022 0849     		ldr	r1, .L23+24
+ 353 0024 084B     		ldr	r3, .L23+28
+ 354 0026 9847     		blx	r3
+ 355              	.LVL22:
+ 356 0028 10BD     		pop	{r4, pc}
+ 357              	.L24:
+ 358 002a 00BF     		.align	2
+ 359              	.L23:
+ 360 002c 00000000 		.word	.LANCHOR3
+ 361 0030 00000000 		.word	.LANCHOR8
+ 362 0034 00000000 		.word	.LANCHOR2
+ 363 0038 00000000 		.word	.LANCHOR1
+ 364 003c 00000000 		.word	hal_spi_init
+ 365 0040 00000000 		.word	hal_spi_interrupt_deinit
+ 366 0044 00000000 		.word	.LANCHOR4
+ 367 0048 00000000 		.word	hal_spi_interrupt_init
+ 368              		.cfi_endproc
+ 369              	.LFE4:
+ 371              		.section	.text.spi_slave_tx,"ax",%progbits
+ 372              		.align	1
+ 373              		.global	spi_slave_tx
+ 374              		.thumb
+ 375              		.thumb_func
+ 377              	spi_slave_tx:
+ 378              	.LFB5:
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** }
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 204:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** /**
+ 205:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  * spi_slave_tx
+ 206:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  *
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c ****  */
+ 208:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** void spi_slave_tx(uint8_t *data, uint16_t len, uint8_t tx_en)
+ 209:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+ 379              		.loc 1 209 0
+ 380              		.cfi_startproc
+ 381              		@ args = 0, pretend = 0, frame = 0
+ 382              		@ frame_needed = 0, uses_anonymous_args = 0
+ 383              	.LVL23:
+ 384 0000 38B5     		push	{r3, r4, r5, lr}
+ 385              	.LCFI6:
+ 386              		.cfi_def_cfa_offset 16
+ 387              		.cfi_offset 3, -16
+ 388              		.cfi_offset 4, -12
+ 389              		.cfi_offset 5, -8
+ 390              		.cfi_offset 14, -4
+ 391              		.loc 1 209 0
+ 392 0002 0C46     		mov	r4, r1
+ 393 0004 1546     		mov	r5, r2
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	if(data)
+ 394              		.loc 1 210 0
+ 395 0006 0146     		mov	r1, r0
+ 396              	.LVL24:
+ 397 0008 90B1     		cbz	r0, .L25
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	{
+ 212:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		memcpy(tx_data, data, len);
+ 398              		.loc 1 212 0
+ 399 000a 0A4B     		ldr	r3, .L33
+ 400 000c 2246     		mov	r2, r4
+ 401              	.LVL25:
+ 402 000e 0A48     		ldr	r0, .L33+4
+ 403              	.LVL26:
+ 404 0010 9847     		blx	r3
+ 405              	.LVL27:
+ 213:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		tx_len = len;
+ 406              		.loc 1 213 0
+ 407 0012 0A4B     		ldr	r3, .L33+8
+ 408 0014 1C70     		strb	r4, [r3]
+ 409 0016 0A4B     		ldr	r3, .L33+12
+ 214:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		if(tx_en == FALSE)
+ 410              		.loc 1 214 0
+ 411 0018 0DB9     		cbnz	r5, .L27
+ 215:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		{
+ 216:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			/* Received mode */
+ 217:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			sm = SM_RX;
+ 412              		.loc 1 217 0
+ 413 001a 0122     		movs	r2, #1
+ 414 001c 00E0     		b	.L32
+ 415              	.L27:
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		}
+ 219:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		else
+ 220:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		{
+ 221:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			/* Transmission mode */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 			sm = SM_TX;
+ 416              		.loc 1 222 0
+ 417 001e 0222     		movs	r2, #2
+ 418              	.L32:
+ 419 0020 1A70     		strb	r2, [r3]
+ 223:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		}
+ 224:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 		xSemaphoreGive(spi_slave_semaphore);
+ 420              		.loc 1 224 0
+ 421 0022 0021     		movs	r1, #0
+ 422 0024 074B     		ldr	r3, .L33+16
+ 423 0026 0A46     		mov	r2, r1
+ 424 0028 074C     		ldr	r4, .L33+20
+ 425 002a 1868     		ldr	r0, [r3]
+ 426 002c 0B46     		mov	r3, r1
+ 427 002e A047     		blx	r4
+ 428              	.LVL28:
+ 429              	.L25:
+ 430 0030 38BD     		pop	{r3, r4, r5, pc}
+ 431              	.L34:
+ 432 0032 00BF     		.align	2
+ 433              	.L33:
+ 434 0034 00000000 		.word	memcpy
+ 435 0038 00000000 		.word	.LANCHOR7
+ 436 003c 00000000 		.word	.LANCHOR8
+ 437 0040 00000000 		.word	.LANCHOR5
+ 438 0044 00000000 		.word	.LANCHOR6
+ 439 0048 00000000 		.word	xQueueGenericSend
+ 440              		.cfi_endproc
+ 441              	.LFE5:
+ 443              		.section	.text.spi_slave_release_semaphore,"ax",%progbits
+ 444              		.align	1
+ 445              		.global	spi_slave_release_semaphore
+ 446              		.thumb
+ 447              		.thumb_func
+ 449              	spi_slave_release_semaphore:
+ 450              	.LFB6:
+ 225:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	}
+ 226:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** }
+ 227:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 
+ 228:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** void spi_slave_release_semaphore(void)
+ 229:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** {
+ 451              		.loc 1 229 0
+ 452              		.cfi_startproc
+ 453              		@ args = 0, pretend = 0, frame = 0
+ 454              		@ frame_needed = 0, uses_anonymous_args = 0
+ 230:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	sm = SM_RX;
+ 455              		.loc 1 230 0
+ 456 0000 0122     		movs	r2, #1
+ 457 0002 054B     		ldr	r3, .L36
+ 231:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	xSemaphoreGive(spi_slave_semaphore);
+ 458              		.loc 1 231 0
+ 459 0004 0021     		movs	r1, #0
+ 229:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	sm = SM_RX;
+ 460              		.loc 1 229 0
+ 461 0006 10B5     		push	{r4, lr}
+ 462              	.LCFI7:
+ 463              		.cfi_def_cfa_offset 8
+ 464              		.cfi_offset 4, -8
+ 465              		.cfi_offset 14, -4
+ 230:/home/tienluong/workspace/atlantis_fw/platform/driver/src/spis.c **** 	sm = SM_RX;
+ 466              		.loc 1 230 0
+ 467 0008 1A70     		strb	r2, [r3]
+ 468              		.loc 1 231 0
+ 469 000a 0A46     		mov	r2, r1
+ 470 000c 034B     		ldr	r3, .L36+4
+ 471 000e 044C     		ldr	r4, .L36+8
+ 472 0010 1868     		ldr	r0, [r3]
+ 473 0012 0B46     		mov	r3, r1
+ 474 0014 A047     		blx	r4
+ 475              	.LVL29:
+ 476 0016 10BD     		pop	{r4, pc}
+ 477              	.L37:
+ 478              		.align	2
+ 479              	.L36:
+ 480 0018 00000000 		.word	.LANCHOR5
+ 481 001c 00000000 		.word	.LANCHOR6
+ 482 0020 00000000 		.word	xQueueGenericSend
+ 483              		.cfi_endproc
+ 484              	.LFE6:
+ 486              		.global	spi_slave_semaphore
+ 487              		.section	.bss.sm,"aw",%nobits
+ 488              		.set	.LANCHOR5,. + 0
+ 491              	sm:
+ 492 0000 00       		.space	1
+ 493              		.section	.data.spi_slv_hw_cfg,"aw",%progbits
+ 494              		.align	2
+ 495              		.set	.LANCHOR2,. + 0
+ 498              	spi_slv_hw_cfg:
+ 499 0000 00       		.byte	0
+ 500 0001 01       		.byte	1
+ 501 0002 00       		.byte	0
+ 502 0003 03       		.byte	3
+ 503 0004 08       		.byte	8
+ 504 0005 00       		.byte	0
+ 505 0006 0000     		.short	0
+ 506 0008 40787D01 		.word	25000000
+ 507 000c 00000000 		.space	16
+ 507      00000000 
+ 507      00000000 
+ 507      00000000 
+ 508              		.section	.bss.rx_data,"aw",%nobits
+ 509              		.set	.LANCHOR0,. + 0
+ 512              	rx_data:
+ 513 0000 00000000 		.space	16
+ 513      00000000 
+ 513      00000000 
+ 513      00000000 
+ 514              		.section	.data.tx_len,"aw",%progbits
+ 515              		.set	.LANCHOR8,. + 0
+ 518              	tx_len:
+ 519 0000 10       		.byte	16
+ 520              		.section	.data.spi_slv_isr_cfg,"aw",%progbits
+ 521              		.align	2
+ 522              		.set	.LANCHOR4,. + 0
+ 525              	spi_slv_isr_cfg:
+ 526 0000 00       		.byte	0
+ 527 0001 0F       		.byte	15
+ 528 0002 00       		.byte	0
+ 529 0003 00       		.byte	0
+ 530 0004 00       		.byte	0
+ 531 0005 00       		.byte	0
+ 532 0006 00       		.byte	0
+ 533 0007 00       		.byte	0
+ 534 0008 00000000 		.word	0
+ 535 000c 00000000 		.word	spi_slaver_rx_complete
+ 536 0010 00000000 		.word	0
+ 537 0014 00000000 		.word	0
+ 538 0018 00000000 		.word	0
+ 539 001c 00000000 		.word	spi_slaver_tx_complete
+ 540              		.section	.bss.rx_clbk,"aw",%nobits
+ 541              		.align	2
+ 542              		.set	.LANCHOR3,. + 0
+ 545              	rx_clbk:
+ 546 0000 00000000 		.space	4
+ 547              		.section	.data.rx_len,"aw",%progbits
+ 548              		.set	.LANCHOR1,. + 0
+ 551              	rx_len:
+ 552 0000 10       		.byte	16
+ 553              		.section	.bss.tx_data,"aw",%nobits
+ 554              		.set	.LANCHOR7,. + 0
+ 557              	tx_data:
+ 558 0000 00000000 		.space	16
+ 558      00000000 
+ 558      00000000 
+ 558      00000000 
+ 559              		.section	.bss.spi_slave_semaphore,"aw",%nobits
+ 560              		.align	2
+ 561              		.set	.LANCHOR6,. + 0
+ 564              	spi_slave_semaphore:
+ 565 0000 00000000 		.space	4
+ 566              		.text
+ 567              	.Letext0:
+ 568              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 569              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 570              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 571              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/task.h"
+ 572              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 573              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 574              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/common/os.h"
+ 575              		.file 9 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_dma.h"
+ 576              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_spi.h"
+ 577              		.file 11 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/spis.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 spis.c
+     /tmp/cc6hhsvD.s:19     .text.spi_slaver_rx_complete:00000000 $t
+     /tmp/cc6hhsvD.s:23     .text.spi_slaver_rx_complete:00000000 spi_slaver_rx_complete
+     /tmp/cc6hhsvD.s:77     .text.spi_slaver_rx_complete:0000002c $d
+     /tmp/cc6hhsvD.s:87     .text.spi_slaver_tx_complete:00000000 $t
+     /tmp/cc6hhsvD.s:91     .text.spi_slaver_tx_complete:00000000 spi_slaver_tx_complete
+     /tmp/cc6hhsvD.s:155    .text.spi_slaver_tx_complete:00000034 $d
+     /tmp/cc6hhsvD.s:167    .text.task_spi_slave:00000000 $t
+     /tmp/cc6hhsvD.s:172    .text.task_spi_slave:00000000 task_spi_slave
+     /tmp/cc6hhsvD.s:287    .text.task_spi_slave:0000007c $d
+     /tmp/cc6hhsvD.s:305    .text.spi_slave_init:00000000 $t
+     /tmp/cc6hhsvD.s:310    .text.spi_slave_init:00000000 spi_slave_init
+     /tmp/cc6hhsvD.s:360    .text.spi_slave_init:0000002c $d
+     /tmp/cc6hhsvD.s:372    .text.spi_slave_tx:00000000 $t
+     /tmp/cc6hhsvD.s:377    .text.spi_slave_tx:00000000 spi_slave_tx
+     /tmp/cc6hhsvD.s:434    .text.spi_slave_tx:00000034 $d
+     /tmp/cc6hhsvD.s:444    .text.spi_slave_release_semaphore:00000000 $t
+     /tmp/cc6hhsvD.s:449    .text.spi_slave_release_semaphore:00000000 spi_slave_release_semaphore
+     /tmp/cc6hhsvD.s:480    .text.spi_slave_release_semaphore:00000018 $d
+     /tmp/cc6hhsvD.s:564    .bss.spi_slave_semaphore:00000000 spi_slave_semaphore
+     /tmp/cc6hhsvD.s:491    .bss.sm:00000000 sm
+     /tmp/cc6hhsvD.s:492    .bss.sm:00000000 $d
+     /tmp/cc6hhsvD.s:494    .data.spi_slv_hw_cfg:00000000 $d
+     /tmp/cc6hhsvD.s:498    .data.spi_slv_hw_cfg:00000000 spi_slv_hw_cfg
+     /tmp/cc6hhsvD.s:512    .bss.rx_data:00000000 rx_data
+     /tmp/cc6hhsvD.s:513    .bss.rx_data:00000000 $d
+     /tmp/cc6hhsvD.s:518    .data.tx_len:00000000 tx_len
+     /tmp/cc6hhsvD.s:521    .data.spi_slv_isr_cfg:00000000 $d
+     /tmp/cc6hhsvD.s:525    .data.spi_slv_isr_cfg:00000000 spi_slv_isr_cfg
+     /tmp/cc6hhsvD.s:541    .bss.rx_clbk:00000000 $d
+     /tmp/cc6hhsvD.s:545    .bss.rx_clbk:00000000 rx_clbk
+     /tmp/cc6hhsvD.s:551    .data.rx_len:00000000 rx_len
+     /tmp/cc6hhsvD.s:557    .bss.tx_data:00000000 tx_data
+     /tmp/cc6hhsvD.s:558    .bss.tx_data:00000000 $d
+     /tmp/cc6hhsvD.s:560    .bss.spi_slave_semaphore:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+memset
+hal_spi_receive_buf
+hal_spi_interrupt_init
+xQueueGiveFromISR
+ulPortYieldRequired
+hal_spi_reset
+xQueueGenericCreate
+xQueueGenericSend
+vPortEnterCritical
+vPortExitCritical
+xQueueGenericReceive
+hal_spi_transmit_buf
+hal_spi_init
+hal_spi_interrupt_deinit
+memcpy

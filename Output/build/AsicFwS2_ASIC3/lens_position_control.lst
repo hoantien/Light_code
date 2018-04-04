@@ -1,0 +1,695 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"lens_position_control.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._ZN21lens_position_controlC2ER13cam_typedef_t,"ax",%progbits
+  19              		.align	1
+  20              		.global	_ZN21lens_position_controlC2ER13cam_typedef_t
+  21              		.thumb
+  22              		.thumb_func
+  24              	_ZN21lens_position_controlC2ER13cam_typedef_t:
+  25              	.LFB10:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * @file    lens_position_control.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * @date    August-15-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  * @brief   Control of lens position common interface for VCM and piezos
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** #include <cstdlib>
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** #include "vcm.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** #include "af_helper.h"
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** #include "actuator.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** #include "lens_position_control.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** #define SLOGF_ID                SLOG_ID_AF
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** extern "C" void move_done_callback_c(void* lpc) {
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     static_cast<lens_position_control*>(lpc)->move_done();
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** void lens_position_control::move_done() {
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     // FIXME check if move succeeded
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     (*move_done_cb_.cb_fun)(move_done_cb_.user_data, true, current_hall_code());
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** lens_position_control::lens_position_control(cam_typedef_t& cam) :
+  27              		.loc 1 33 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  33              	.LBB20:
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         cam_(cam),
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         is_vcm_{cam.info.grp == GRP_A} {
+  34              		.loc 1 35 0
+  35 0000 0160     		str	r1, [r0]
+  36 0002 91F82930 		ldrb	r3, [r1, #41]	@ zero_extendqisi2
+  37 0006 03F0F003 		and	r3, r3, #240
+  38 000a A3F1A001 		sub	r1, r3, #160
+  39              	.LVL1:
+  40 000e 4B42     		rsbs	r3, r1, #0
+  41 0010 4B41     		adcs	r3, r3, r1
+  42 0012 0371     		strb	r3, [r0, #4]
+  43 0014 0023     		movs	r3, #0
+  44 0016 8360     		str	r3, [r0, #8]
+  45 0018 C360     		str	r3, [r0, #12]
+  46              	.LBE20:
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+  47              		.loc 1 36 0
+  48 001a 7047     		bx	lr
+  49              		.cfi_endproc
+  50              	.LFE10:
+  52              		.global	_ZN21lens_position_controlC1ER13cam_typedef_t
+  53              		.thumb_set _ZN21lens_position_controlC1ER13cam_typedef_t,_ZN21lens_position_controlC2ER13cam_typed
+  54              		.section	.text._ZNK21lens_position_control13get_hall_codeEms,"ax",%progbits
+  55              		.align	1
+  56              		.global	_ZNK21lens_position_control13get_hall_codeEms
+  57              		.thumb
+  58              		.thumb_func
+  60              	_ZNK21lens_position_control13get_hall_codeEms:
+  61              	.LFB12:
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** std::int16_t lens_position_control::get_hall_code(std::uint32_t object_distance_mm, std::int16_t le
+  62              		.loc 1 38 0
+  63              		.cfi_startproc
+  64              		@ args = 0, pretend = 0, frame = 8
+  65              		@ frame_needed = 0, uses_anonymous_args = 0
+  66              	.LVL2:
+  67 0000 0368     		ldr	r3, [r0]
+  68 0002 07B5     		push	{r0, r1, r2, lr}
+  69              	.LCFI0:
+  70              		.cfi_def_cfa_offset 16
+  71              		.cfi_offset 14, -4
+  72              	.LBB21:
+  73              	.LBB22:
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     // FIXME add temperature correction
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     std::int16_t hallcode;
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     if (is_vcm()) {
+  74              		.loc 1 41 0
+  75 0004 0279     		ldrb	r2, [r0, #4]	@ zero_extendqisi2
+  76              	.LVL3:
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         vcm_object_distance_to_hallcode(static_cast<vcm_t*>(cam_.optical->lens), object_distance_mm
+  77              		.loc 1 42 0
+  78 0006 5B68     		ldr	r3, [r3, #4]
+  79 0008 1868     		ldr	r0, [r3]
+  80              	.LVL4:
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         vcm_object_distance_to_hallcode(static_cast<vcm_t*>(cam_.optical->lens), object_distance_mm
+  81              		.loc 1 41 0
+  82 000a 1AB1     		cbz	r2, .L3
+  83              		.loc 1 42 0
+  84 000c 01AA     		add	r2, sp, #4
+  85 000e 084B     		ldr	r3, .L6
+  86 0010 9847     		blx	r3
+  87              	.LVL5:
+  88 0012 07E0     		b	.L4
+  89              	.LVL6:
+  90              	.L3:
+  91              	.LBB23:
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     } else {
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         std::uint16_t hc;
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         actuator_object_distance_to_lens_hallcode(static_cast<actuator_t*>(cam_.optical->lens), obj
+  92              		.loc 1 45 0
+  93 0014 074B     		ldr	r3, .L6+4
+  94 0016 0DF10602 		add	r2, sp, #6
+  95 001a 9847     		blx	r3
+  96              	.LVL7:
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         hallcode = hc;
+  97              		.loc 1 46 0
+  98 001c BDF80630 		ldrh	r3, [sp, #6]
+  99 0020 ADF80430 		strh	r3, [sp, #4]	@ movhi
+ 100              	.L4:
+ 101              	.LBE23:
+ 102              	.LBE22:
+ 103              	.LBE21:
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     }
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     return hallcode;
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 104              		.loc 1 49 0
+ 105 0024 BDF90400 		ldrsh	r0, [sp, #4]
+ 106 0028 03B0     		add	sp, sp, #12
+ 107              	.LCFI1:
+ 108              		.cfi_def_cfa_offset 4
+ 109              		@ sp needed
+ 110 002a 5DF804FB 		ldr	pc, [sp], #4
+ 111              	.L7:
+ 112 002e 00BF     		.align	2
+ 113              	.L6:
+ 114 0030 00000000 		.word	vcm_object_distance_to_hallcode
+ 115 0034 00000000 		.word	actuator_object_distance_to_lens_hallcode
+ 116              		.cfi_endproc
+ 117              	.LFE12:
+ 119              		.section	.text._ZNK21lens_position_control22get_object_distance_mmEss,"ax",%progbits
+ 120              		.align	1
+ 121              		.global	_ZNK21lens_position_control22get_object_distance_mmEss
+ 122              		.thumb
+ 123              		.thumb_func
+ 125              	_ZNK21lens_position_control22get_object_distance_mmEss:
+ 126              	.LFB13:
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** std::uint32_t lens_position_control::get_object_distance_mm(std::int16_t hall_code, std::int16_t le
+ 127              		.loc 1 51 0
+ 128              		.cfi_startproc
+ 129              		@ args = 0, pretend = 0, frame = 8
+ 130              		@ frame_needed = 0, uses_anonymous_args = 0
+ 131              	.LVL8:
+ 132 0000 0368     		ldr	r3, [r0]
+ 133 0002 13B5     		push	{r0, r1, r4, lr}
+ 134              	.LCFI2:
+ 135              		.cfi_def_cfa_offset 16
+ 136              		.cfi_offset 4, -8
+ 137              		.cfi_offset 14, -4
+ 138              	.LBB24:
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     // FIXME add temperature correction
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     std::uint32_t object_distance_mm;
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     if (is_vcm()) {
+ 139              		.loc 1 54 0
+ 140 0004 0479     		ldrb	r4, [r0, #4]	@ zero_extendqisi2
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         vcm_hallcode_to_object_distance(static_cast<vcm_t*>(cam_.optical->lens), hall_code, &object
+ 141              		.loc 1 55 0
+ 142 0006 5B68     		ldr	r3, [r3, #4]
+ 143 0008 1868     		ldr	r0, [r3]
+ 144              	.LVL9:
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         vcm_hallcode_to_object_distance(static_cast<vcm_t*>(cam_.optical->lens), hall_code, &object
+ 145              		.loc 1 54 0
+ 146 000a 14B1     		cbz	r4, .L9
+ 147              		.loc 1 55 0
+ 148 000c 01AA     		add	r2, sp, #4
+ 149              	.LVL10:
+ 150 000e 044B     		ldr	r3, .L12
+ 151 0010 02E0     		b	.L11
+ 152              	.LVL11:
+ 153              	.L9:
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     } else {
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         actuator_lens_hallcode_to_object_distance(static_cast<actuator_t*>(cam_.optical->lens), hal
+ 154              		.loc 1 57 0
+ 155 0012 044B     		ldr	r3, .L12+4
+ 156 0014 89B2     		uxth	r1, r1
+ 157 0016 01AA     		add	r2, sp, #4
+ 158              	.LVL12:
+ 159              	.L11:
+ 160 0018 9847     		blx	r3
+ 161              	.LVL13:
+ 162              	.LBE24:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     }
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     return object_distance_mm;
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 163              		.loc 1 60 0
+ 164 001a 0198     		ldr	r0, [sp, #4]
+ 165 001c 02B0     		add	sp, sp, #8
+ 166              	.LCFI3:
+ 167              		.cfi_def_cfa_offset 8
+ 168              		@ sp needed
+ 169 001e 10BD     		pop	{r4, pc}
+ 170              	.L13:
+ 171              		.align	2
+ 172              	.L12:
+ 173 0020 00000000 		.word	vcm_hallcode_to_object_distance
+ 174 0024 00000000 		.word	actuator_lens_hallcode_to_object_distance
+ 175              		.cfi_endproc
+ 176              	.LFE13:
+ 178              		.section	.text._ZNK21lens_position_control24get_hard_stop_hall_codesEPsS0_,"ax",%progbits
+ 179              		.align	1
+ 180              		.global	_ZNK21lens_position_control24get_hard_stop_hall_codesEPsS0_
+ 181              		.thumb
+ 182              		.thumb_func
+ 184              	_ZNK21lens_position_control24get_hard_stop_hall_codesEPsS0_:
+ 185              	.LFB14:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** void lens_position_control::get_hard_stop_hall_codes(std::int16_t* hc_min, std::int16_t* hc_max) co
+ 186              		.loc 1 63 0
+ 187              		.cfi_startproc
+ 188              		@ args = 0, pretend = 0, frame = 8
+ 189              		@ frame_needed = 0, uses_anonymous_args = 0
+ 190              	.LVL14:
+ 191 0000 73B5     		push	{r0, r1, r4, r5, r6, lr}
+ 192              	.LCFI4:
+ 193              		.cfi_def_cfa_offset 24
+ 194              		.cfi_offset 4, -16
+ 195              		.cfi_offset 5, -12
+ 196              		.cfi_offset 6, -8
+ 197              		.cfi_offset 14, -4
+ 198              	.LBB25:
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     if (is_vcm())
+ 199              		.loc 1 64 0
+ 200 0002 0679     		ldrb	r6, [r0, #4]	@ zero_extendqisi2
+ 201              	.LBE25:
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     if (is_vcm())
+ 202              		.loc 1 63 0
+ 203 0004 0D46     		mov	r5, r1
+ 204 0006 1446     		mov	r4, r2
+ 205 0008 0368     		ldr	r3, [r0]
+ 206              	.LBB27:
+ 207              		.loc 1 64 0
+ 208 000a 26B1     		cbz	r6, .L15
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         vcm_get_hard_stop_hall(static_cast<vcm_t*>(cam_.optical->lens), hc_min, hc_max);
+ 209              		.loc 1 65 0
+ 210 000c 5B68     		ldr	r3, [r3, #4]
+ 211 000e 1868     		ldr	r0, [r3]
+ 212              	.LVL15:
+ 213 0010 0B4B     		ldr	r3, .L17
+ 214 0012 9847     		blx	r3
+ 215              	.LVL16:
+ 216 0014 12E0     		b	.L14
+ 217              	.LVL17:
+ 218              	.L15:
+ 219              	.LBB26:
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     else {
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         std::uint16_t hmin = *hc_min;
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         std::uint16_t hmax = *hc_max;
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         actuator_get_hard_stop_hall(static_cast<actuator_t*>(cam_.optical->lens), &hmin, &hmax);
+ 220              		.loc 1 69 0
+ 221 0016 5B68     		ldr	r3, [r3, #4]
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         std::uint16_t hmax = *hc_max;
+ 222              		.loc 1 67 0
+ 223 0018 0A88     		ldrh	r2, [r1]
+ 224              	.LVL18:
+ 225              		.loc 1 69 0
+ 226 001a 01A9     		add	r1, sp, #4
+ 227              	.LVL19:
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         std::uint16_t hmax = *hc_max;
+ 228              		.loc 1 67 0
+ 229 001c ADF80420 		strh	r2, [sp, #4]	@ movhi
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         actuator_get_hard_stop_hall(static_cast<actuator_t*>(cam_.optical->lens), &hmin, &hmax);
+ 230              		.loc 1 68 0
+ 231 0020 2288     		ldrh	r2, [r4]
+ 232              		.loc 1 69 0
+ 233 0022 1868     		ldr	r0, [r3]
+ 234              	.LVL20:
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         actuator_get_hard_stop_hall(static_cast<actuator_t*>(cam_.optical->lens), &hmin, &hmax);
+ 235              		.loc 1 68 0
+ 236 0024 ADF80620 		strh	r2, [sp, #6]	@ movhi
+ 237              		.loc 1 69 0
+ 238 0028 0DF10602 		add	r2, sp, #6
+ 239 002c 054B     		ldr	r3, .L17+4
+ 240 002e 9847     		blx	r3
+ 241              	.LVL21:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         *hc_min = hmin;
+ 242              		.loc 1 70 0
+ 243 0030 BDF80430 		ldrh	r3, [sp, #4]
+ 244 0034 2B80     		strh	r3, [r5]	@ movhi
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         *hc_max = hmax;
+ 245              		.loc 1 71 0
+ 246 0036 BDF80630 		ldrh	r3, [sp, #6]
+ 247 003a 2380     		strh	r3, [r4]	@ movhi
+ 248              	.L14:
+ 249              	.LBE26:
+ 250              	.LBE27:
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     }
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 251              		.loc 1 73 0
+ 252 003c 02B0     		add	sp, sp, #8
+ 253              	.LCFI5:
+ 254              		.cfi_def_cfa_offset 16
+ 255              		@ sp needed
+ 256 003e 70BD     		pop	{r4, r5, r6, pc}
+ 257              	.LVL22:
+ 258              	.L18:
+ 259              		.align	2
+ 260              	.L17:
+ 261 0040 00000000 		.word	vcm_get_hard_stop_hall
+ 262 0044 00000000 		.word	actuator_get_hard_stop_hall
+ 263              		.cfi_endproc
+ 264              	.LFE14:
+ 266              		.section	.text._ZNK21lens_position_control17current_hall_codeEv,"ax",%progbits
+ 267              		.align	1
+ 268              		.global	_ZNK21lens_position_control17current_hall_codeEv
+ 269              		.thumb
+ 270              		.thumb_func
+ 272              	_ZNK21lens_position_control17current_hall_codeEv:
+ 273              	.LFB15:
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** std::int16_t lens_position_control::current_hall_code() const {
+ 274              		.loc 1 75 0
+ 275              		.cfi_startproc
+ 276              		@ args = 0, pretend = 0, frame = 0
+ 277              		@ frame_needed = 0, uses_anonymous_args = 0
+ 278              		@ link register save eliminated.
+ 279              	.LVL23:
+ 280 0000 0368     		ldr	r3, [r0]
+ 281              	.LBB34:
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     std::int16_t hc;
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     if (is_vcm())
+ 282              		.loc 1 77 0
+ 283 0002 0279     		ldrb	r2, [r0, #4]	@ zero_extendqisi2
+ 284              	.LBE34:
+ 285              	.LBB35:
+ 286              	.LBB36:
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         hc = static_cast<vcm_t*>(cam_.optical->lens)->target_hall_code;
+ 287              		.loc 1 78 0
+ 288 0004 5B68     		ldr	r3, [r3, #4]
+ 289 0006 1B68     		ldr	r3, [r3]
+ 290              	.LBE36:
+ 291              	.LBE35:
+ 292              	.LBB38:
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         hc = static_cast<vcm_t*>(cam_.optical->lens)->target_hall_code;
+ 293              		.loc 1 77 0
+ 294 0008 0AB1     		cbz	r2, .L20
+ 295              	.LVL24:
+ 296              	.LBE38:
+ 297              	.LBB39:
+ 298              	.LBB37:
+ 299              		.loc 1 78 0
+ 300 000a 588B     		ldrh	r0, [r3, #26]
+ 301              	.LVL25:
+ 302 000c 00E0     		b	.L21
+ 303              	.LVL26:
+ 304              	.L20:
+ 305              	.LBE37:
+ 306              	.LBE39:
+ 307              	.LBB40:
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     else
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         hc = static_cast<actuator_t*>(cam_.optical->lens)->last_move_hall_code;
+ 308              		.loc 1 80 0
+ 309 000e 588D     		ldrh	r0, [r3, #42]
+ 310              	.LVL27:
+ 311              	.L21:
+ 312              	.LBE40:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     return hc;
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 313              		.loc 1 82 0
+ 314 0010 00B2     		sxth	r0, r0
+ 315 0012 7047     		bx	lr
+ 316              		.cfi_endproc
+ 317              	.LFE15:
+ 319              		.section	.text._ZN21lens_position_control9move_doneEv,"ax",%progbits
+ 320              		.align	1
+ 321              		.global	_ZN21lens_position_control9move_doneEv
+ 322              		.thumb
+ 323              		.thumb_func
+ 325              	_ZN21lens_position_control9move_doneEv:
+ 326              	.LFB8:
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     // FIXME check if move succeeded
+ 327              		.loc 1 28 0
+ 328              		.cfi_startproc
+ 329              		@ args = 0, pretend = 0, frame = 0
+ 330              		@ frame_needed = 0, uses_anonymous_args = 0
+ 331              	.LVL28:
+ 332 0000 10B5     		push	{r4, lr}
+ 333              	.LCFI6:
+ 334              		.cfi_def_cfa_offset 8
+ 335              		.cfi_offset 4, -8
+ 336              		.cfi_offset 14, -4
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 337              		.loc 1 30 0
+ 338 0002 054B     		ldr	r3, .L23
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     // FIXME check if move succeeded
+ 339              		.loc 1 28 0
+ 340 0004 0446     		mov	r4, r0
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 341              		.loc 1 30 0
+ 342 0006 9847     		blx	r3
+ 343              	.LVL29:
+ 344 0008 0121     		movs	r1, #1
+ 345 000a A368     		ldr	r3, [r4, #8]
+ 346 000c 0246     		mov	r2, r0
+ 347 000e E068     		ldr	r0, [r4, #12]
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+ 348              		.loc 1 31 0
+ 349 0010 BDE81040 		pop	{r4, lr}
+ 350              	.LCFI7:
+ 351              		.cfi_restore 14
+ 352              		.cfi_restore 4
+ 353              		.cfi_def_cfa_offset 0
+ 354              	.LVL30:
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 355              		.loc 1 30 0
+ 356 0014 1847     		bx	r3	@ indirect register sibling call
+ 357              	.LVL31:
+ 358              	.L24:
+ 359 0016 00BF     		.align	2
+ 360              	.L23:
+ 361 0018 00000000 		.word	_ZNK21lens_position_control17current_hall_codeEv
+ 362              		.cfi_endproc
+ 363              	.LFE8:
+ 365              		.section	.text.move_done_callback_c,"ax",%progbits
+ 366              		.align	1
+ 367              		.global	move_done_callback_c
+ 368              		.thumb
+ 369              		.thumb_func
+ 371              	move_done_callback_c:
+ 372              	.LFB7:
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     static_cast<lens_position_control*>(lpc)->move_done();
+ 373              		.loc 1 24 0
+ 374              		.cfi_startproc
+ 375              		@ args = 0, pretend = 0, frame = 0
+ 376              		@ frame_needed = 0, uses_anonymous_args = 0
+ 377              	.LVL32:
+ 378 0000 08B5     		push	{r3, lr}
+ 379              	.LCFI8:
+ 380              		.cfi_def_cfa_offset 8
+ 381              		.cfi_offset 3, -8
+ 382              		.cfi_offset 14, -4
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 383              		.loc 1 25 0
+ 384 0002 014B     		ldr	r3, .L26
+ 385 0004 9847     		blx	r3
+ 386              	.LVL33:
+ 387 0006 08BD     		pop	{r3, pc}
+ 388              	.L27:
+ 389              		.align	2
+ 390              	.L26:
+ 391 0008 00000000 		.word	_ZN21lens_position_control9move_doneEv
+ 392              		.cfi_endproc
+ 393              	.LFE7:
+ 395              		.section	.text._ZN21lens_position_control15start_move_lensEstNS_20move_done_callback_tE,"ax",%prog
+ 396              		.align	1
+ 397              		.global	_ZN21lens_position_control15start_move_lensEstNS_20move_done_callback_tE
+ 398              		.thumb
+ 399              		.thumb_func
+ 401              	_ZN21lens_position_control15start_move_lensEstNS_20move_done_callback_tE:
+ 402              	.LFB16:
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** 
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** bool lens_position_control::start_move_lens(std::int16_t hall_code, std::uint16_t tolerance, move_d
+ 403              		.loc 1 84 0
+ 404              		.cfi_startproc
+ 405              		@ args = 12, pretend = 8, frame = 0
+ 406              		@ frame_needed = 0, uses_anonymous_args = 0
+ 407              	.LVL34:
+ 408 0000 82B0     		sub	sp, sp, #8
+ 409              	.LCFI9:
+ 410              		.cfi_def_cfa_offset 8
+ 411              	.LBB41:
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     SLOGF(SLOG_DEBUG, "Request to move lens %X to position %d with tolerance %d", (int)cam_.info.mo
+ 412              		.loc 1 85 0
+ 413 0002 DFF888C0 		ldr	ip, .L31+20
+ 414              	.LBE41:
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     SLOGF(SLOG_DEBUG, "Request to move lens %X to position %d with tolerance %d", (int)cam_.info.mo
+ 415              		.loc 1 84 0
+ 416 0006 2DE9F341 		push	{r0, r1, r4, r5, r6, r7, r8, lr}
+ 417              	.LCFI10:
+ 418              		.cfi_def_cfa_offset 40
+ 419              		.cfi_offset 4, -32
+ 420              		.cfi_offset 5, -28
+ 421              		.cfi_offset 6, -24
+ 422              		.cfi_offset 7, -20
+ 423              		.cfi_offset 8, -16
+ 424              		.cfi_offset 14, -12
+ 425              	.LBB45:
+ 426              		.loc 1 85 0
+ 427 000a 0546     		mov	r5, r0
+ 428              	.LBE45:
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     SLOGF(SLOG_DEBUG, "Request to move lens %X to position %d with tolerance %d", (int)cam_.info.mo
+ 429              		.loc 1 84 0
+ 430 000c 08AE     		add	r6, sp, #32
+ 431 000e 0446     		mov	r4, r0
+ 432 0010 8846     		mov	r8, r1
+ 433 0012 46F8043F 		str	r3, [r6, #4]!
+ 434 0016 1746     		mov	r7, r2
+ 435              	.LBB46:
+ 436              		.loc 1 85 0
+ 437 0018 55F8083B 		ldr	r3, [r5], #8
+ 438 001c 2B20     		movs	r0, #43
+ 439              	.LVL35:
+ 440 001e 93F82930 		ldrb	r3, [r3, #41]	@ zero_extendqisi2
+ 441 0022 0091     		str	r1, [sp]
+ 442 0024 0192     		str	r2, [sp, #4]
+ 443 0026 1021     		movs	r1, #16
+ 444              	.LVL36:
+ 445 0028 134A     		ldr	r2, .L31
+ 446              	.LVL37:
+ 447 002a E047     		blx	ip
+ 448              	.LVL38:
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     move_done_cb_ = callback;
+ 449              		.loc 1 86 0
+ 450 002c 96E80300 		ldmia	r6, {r0, r1}
+ 451 0030 85E80300 		stmia	r5, {r0, r1}
+ 452              	.LVL39:
+ 453              	.LBB42:
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     bool move_started{true};
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     if (std::abs(current_hall_code() - hall_code) < tolerance) {
+ 454              		.loc 1 88 0
+ 455 0034 2046     		mov	r0, r4
+ 456 0036 114B     		ldr	r3, .L31+4
+ 457 0038 9847     		blx	r3
+ 458              	.LVL40:
+ 459 003a C8EB0000 		rsb	r0, r8, r0
+ 460 003e 0028     		cmp	r0, #0
+ 461 0040 B8BF     		it	lt
+ 462 0042 4042     		rsblt	r0, r0, #0
+ 463 0044 B842     		cmp	r0, r7
+ 464 0046 04DA     		bge	.L29
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         move_done();
+ 465              		.loc 1 89 0
+ 466 0048 2046     		mov	r0, r4
+ 467 004a 0D4B     		ldr	r3, .L31+8
+ 468 004c 9847     		blx	r3
+ 469              	.LVL41:
+ 470              	.LBE42:
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     bool move_started{true};
+ 471              		.loc 1 87 0
+ 472 004e 0120     		movs	r0, #1
+ 473              	.LBB44:
+ 474 0050 0CE0     		b	.L30
+ 475              	.L29:
+ 476              	.LBB43:
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     } else {
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         cam_return_t ret = cam_move_lens_to_position(&cam_, hall_code, tolerance, &move_done_callba
+ 477              		.loc 1 91 0
+ 478 0052 0023     		movs	r3, #0
+ 479 0054 0094     		str	r4, [sp]
+ 480 0056 1FFA88F1 		uxth	r1, r8
+ 481 005a 0193     		str	r3, [sp, #4]
+ 482 005c 3A46     		mov	r2, r7
+ 483 005e 2068     		ldr	r0, [r4]
+ 484 0060 084B     		ldr	r3, .L31+12
+ 485 0062 094C     		ldr	r4, .L31+16
+ 486              	.LVL42:
+ 487 0064 A047     		blx	r4
+ 488              	.LVL43:
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****         move_started = (ret == CAM_OK);
+ 489              		.loc 1 92 0
+ 490 0066 B0FA80F0 		clz	r0, r0
+ 491              	.LVL44:
+ 492 006a 4009     		lsrs	r0, r0, #5
+ 493              	.LVL45:
+ 494              	.L30:
+ 495              	.LBE43:
+ 496              	.LBE44:
+ 497              	.LBE46:
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     }
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp ****     return move_started;
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lens_position_control.cpp **** }
+ 498              		.loc 1 95 0
+ 499 006c 02B0     		add	sp, sp, #8
+ 500              	.LCFI11:
+ 501              		.cfi_def_cfa_offset 32
+ 502              		@ sp needed
+ 503 006e BDE8F041 		pop	{r4, r5, r6, r7, r8, lr}
+ 504              	.LCFI12:
+ 505              		.cfi_restore 14
+ 506              		.cfi_restore 8
+ 507              		.cfi_restore 7
+ 508              		.cfi_restore 6
+ 509              		.cfi_restore 5
+ 510              		.cfi_restore 4
+ 511              		.cfi_def_cfa_offset 8
+ 512              	.LVL46:
+ 513 0072 02B0     		add	sp, sp, #8
+ 514              	.LCFI13:
+ 515              		.cfi_def_cfa_offset 0
+ 516 0074 7047     		bx	lr
+ 517              	.L32:
+ 518 0076 00BF     		.align	2
+ 519              	.L31:
+ 520 0078 00000000 		.word	.LC0
+ 521 007c 00000000 		.word	_ZNK21lens_position_control17current_hall_codeEv
+ 522 0080 00000000 		.word	_ZN21lens_position_control9move_doneEv
+ 523 0084 00000000 		.word	move_done_callback_c
+ 524 0088 00000000 		.word	cam_move_lens_to_position
+ 525 008c 00000000 		.word	slogf
+ 526              		.cfi_endproc
+ 527              	.LFE16:
+ 529              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 530              	.LC0:
+ 531 0000 52657175 		.ascii	"Request to move lens %X to position %d with toleran"
+ 531      65737420 
+ 531      746F206D 
+ 531      6F766520 
+ 531      6C656E73 
+ 532 0033 63652025 		.ascii	"ce %d\000"
+ 532      6400
+ 533              		.text
+ 534              	.Letext0:
+ 535              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+ 536              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 537              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdlib.h"
+ 538              		.file 5 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdlib"
+ 539              		.file 6 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 540              		.file 7 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 541              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_syncio.h"
+ 542              		.file 9 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_pwm.h"
+ 543              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 544              		.file 11 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 545              		.file 12 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 546              		.file 13 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 547              		.file 14 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/event_groups.h"
+ 548              		.file 15 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/vcm.h"
+ 549              		.file 16 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 550              		.file 17 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/optical.h"
+ 551              		.file 18 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/eeprom.h"
+ 552              		.file 19 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/light_system.h"
+ 553              		.file 20 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/hall.h"
+ 554              		.file 21 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/actuator.h"
+ 555              		.file 22 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/lens_position_control.h"
+ 556              		.file 23 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 lens_position_control.cpp
+     /tmp/cc7CVf6h.s:19     .text._ZN21lens_position_controlC2ER13cam_typedef_t:00000000 $t
+     /tmp/cc7CVf6h.s:24     .text._ZN21lens_position_controlC2ER13cam_typedef_t:00000000 _ZN21lens_position_controlC2ER13cam_typedef_t
+     /tmp/cc7CVf6h.s:24     .text._ZN21lens_position_controlC2ER13cam_typedef_t:00000000 _ZN21lens_position_controlC1ER13cam_typedef_t
+     /tmp/cc7CVf6h.s:55     .text._ZNK21lens_position_control13get_hall_codeEms:00000000 $t
+     /tmp/cc7CVf6h.s:60     .text._ZNK21lens_position_control13get_hall_codeEms:00000000 _ZNK21lens_position_control13get_hall_codeEms
+     /tmp/cc7CVf6h.s:114    .text._ZNK21lens_position_control13get_hall_codeEms:00000030 $d
+     /tmp/cc7CVf6h.s:120    .text._ZNK21lens_position_control22get_object_distance_mmEss:00000000 $t
+     /tmp/cc7CVf6h.s:125    .text._ZNK21lens_position_control22get_object_distance_mmEss:00000000 _ZNK21lens_position_control22get_object_distance_mmEss
+     /tmp/cc7CVf6h.s:173    .text._ZNK21lens_position_control22get_object_distance_mmEss:00000020 $d
+     /tmp/cc7CVf6h.s:179    .text._ZNK21lens_position_control24get_hard_stop_hall_codesEPsS0_:00000000 $t
+     /tmp/cc7CVf6h.s:184    .text._ZNK21lens_position_control24get_hard_stop_hall_codesEPsS0_:00000000 _ZNK21lens_position_control24get_hard_stop_hall_codesEPsS0_
+     /tmp/cc7CVf6h.s:261    .text._ZNK21lens_position_control24get_hard_stop_hall_codesEPsS0_:00000040 $d
+     /tmp/cc7CVf6h.s:267    .text._ZNK21lens_position_control17current_hall_codeEv:00000000 $t
+     /tmp/cc7CVf6h.s:272    .text._ZNK21lens_position_control17current_hall_codeEv:00000000 _ZNK21lens_position_control17current_hall_codeEv
+     /tmp/cc7CVf6h.s:320    .text._ZN21lens_position_control9move_doneEv:00000000 $t
+     /tmp/cc7CVf6h.s:325    .text._ZN21lens_position_control9move_doneEv:00000000 _ZN21lens_position_control9move_doneEv
+     /tmp/cc7CVf6h.s:361    .text._ZN21lens_position_control9move_doneEv:00000018 $d
+     /tmp/cc7CVf6h.s:366    .text.move_done_callback_c:00000000 $t
+     /tmp/cc7CVf6h.s:371    .text.move_done_callback_c:00000000 move_done_callback_c
+     /tmp/cc7CVf6h.s:391    .text.move_done_callback_c:00000008 $d
+     /tmp/cc7CVf6h.s:396    .text._ZN21lens_position_control15start_move_lensEstNS_20move_done_callback_tE:00000000 $t
+     /tmp/cc7CVf6h.s:401    .text._ZN21lens_position_control15start_move_lensEstNS_20move_done_callback_tE:00000000 _ZN21lens_position_control15start_move_lensEstNS_20move_done_callback_tE
+     /tmp/cc7CVf6h.s:520    .text._ZN21lens_position_control15start_move_lensEstNS_20move_done_callback_tE:00000078 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+vcm_object_distance_to_hallcode
+actuator_object_distance_to_lens_hallcode
+vcm_hallcode_to_object_distance
+actuator_lens_hallcode_to_object_distance
+vcm_get_hard_stop_hall
+actuator_get_hard_stop_hall
+cam_move_lens_to_position
+slogf

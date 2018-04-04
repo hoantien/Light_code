@@ -1,0 +1,821 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"hal_vic.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.vic_init,"ax",%progbits
+  19              		.align	1
+  20              		.global	vic_init
+  21              		.thumb
+  22              		.thumb_func
+  24              	vic_init:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * Redistribution and use in source and binary forms,
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * with or without modification,
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * are strictly prohibited without prior permission of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * @file    hal_vic.h
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * @date    Mar-17-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * @brief   This file contains all the functions prototype of the PrimeCell
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  * Vectored Interrupt Controller (VIC).
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  *
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c ****  ******************************************************************************/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /* Includes ------------------------------------------------------------------*/
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #include "hal_vic.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #include "cortex_r4.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #include "assert.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #ifdef OS
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #include "portmacro.h"
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #endif
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /* Private define ------------------------------------------------------------*/
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_WORD_SIZE	32
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_IRQ_SR		0x000 /* IRQ status register. */
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_FIQ_SR		0x004 /* FIQ status register. */
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_RAW_INT_SR	0x008 /* Raw interrupt status register */
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_INT_SR		0x00c /* Interrupt select register. */
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_INT_ER		0x010 /* Interrupt enable register. */
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_INT_ECR		0x014 /* Interrupt enable clear register. */
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_SW_INTR		0x018 /* Software interrupt register. */
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_SW_INT_CR	0x01c /* Software interrupt clear register. */
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_PER			0x020 /* Protection enable register. */
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_SW_PMR		0x024 /* Software priority mask register. */
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_PDR			0x028 /* Priority daisy-chain register. */
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_VA0R		0x100 /* Vector address 0 register. */
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_PA0R		0x200 /* Vector priority address 0 register. */
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define VIC_VAR			0xF00 /* Vector Address register. */
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /* Macro use in assert param */
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define IS_VIC_IRQ_TYPE(TYPE)	((TYPE >= SPI_IRQn) && (TYPE < IRQn_MAX_IDX))
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #define IS_VIC_IRQ_PRIO(PRIO)	(PRIO < 16)
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /* Private typedef -----------------------------------------------------------*/
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /* Private function_ ---------------------------------------------------------*/
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /* Private variables ---------------------------------------------------------*/
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** static irq_handler vic_isr[IRQn_MAX_IDX];
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** static volatile uint8_t vic_init_flag;
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** /* Exported functions --------------------------------------------------------*/
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void vic_init(void)
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+  27              		.loc 1 55 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+  33              		.loc 1 56 0
+  34 0000 0849     		ldr	r1, .L7
+  35              	.LBB2:
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	for(int i = 0; i < IRQn_MAX_IDX; i++)
+  36              		.loc 1 58 0
+  37 0002 0023     		movs	r3, #0
+  38              	.LVL1:
+  39              	.L2:
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		if(i >= VIC_WORD_SIZE)
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 			vic_base = VIC1_BASE;
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		writel(vic_base + VIC_VA0R + ((i%VIC_WORD_SIZE) << 2), i);
+  40              		.loc 1 62 0 discriminator 2
+  41 0004 03F01F02 		and	r2, r3, #31
+  42 0008 9200     		lsls	r2, r2, #2
+  43 000a 02F58072 		add	r2, r2, #256
+  44 000e 5350     		str	r3, [r2, r1]
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+  45              		.loc 1 58 0 discriminator 2
+  46 0010 0133     		adds	r3, r3, #1
+  47              	.LVL2:
+  48 0012 342B     		cmp	r3, #52
+  49 0014 04D0     		beq	.L6
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		writel(vic_base + VIC_VA0R + ((i%VIC_WORD_SIZE) << 2), i);
+  50              		.loc 1 61 0
+  51 0016 044A     		ldr	r2, .L7+4
+  52 0018 1F2B     		cmp	r3, #31
+  53 001a C8BF     		it	gt
+  54 001c 1146     		movgt	r1, r2
+  55              	.LVL3:
+  56 001e F1E7     		b	.L2
+  57              	.LVL4:
+  58              	.L6:
+  59              	.LBE2:
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+  60              		.loc 1 64 0
+  61 0020 7047     		bx	lr
+  62              	.L8:
+  63 0022 00BF     		.align	2
+  64              	.L7:
+  65 0024 00200302 		.word	33759232
+  66 0028 00300302 		.word	33763328
+  67              		.cfi_endproc
+  68              	.LFE1:
+  70              		.section	.text.vic_enable_irq,"ax",%progbits
+  71              		.align	1
+  72              		.global	vic_enable_irq
+  73              		.thumb
+  74              		.thumb_func
+  76              	vic_enable_irq:
+  77              	.LFB2:
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void vic_enable_irq(irq_n_type_t n)
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+  78              		.loc 1 67 0
+  79              		.cfi_startproc
+  80              		@ args = 0, pretend = 0, frame = 0
+  81              		@ frame_needed = 0, uses_anonymous_args = 0
+  82              	.LVL5:
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+  83              		.loc 1 69 0
+  84 0000 3328     		cmp	r0, #51
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+  85              		.loc 1 67 0
+  86 0002 10B5     		push	{r4, lr}
+  87              	.LCFI0:
+  88              		.cfi_def_cfa_offset 8
+  89              		.cfi_offset 4, -8
+  90              		.cfi_offset 14, -4
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+  91              		.loc 1 67 0
+  92 0004 0446     		mov	r4, r0
+  93              		.loc 1 69 0
+  94 0006 04D9     		bls	.L10
+  95              		.loc 1 69 0 is_stmt 0 discriminator 1
+  96 0008 0748     		ldr	r0, .L14
+  97              	.LVL6:
+  98 000a 4521     		movs	r1, #69
+  99 000c 074B     		ldr	r3, .L14+4
+ 100 000e 9847     		blx	r3
+ 101              	.LVL7:
+ 102 0010 01E0     		b	.L11
+ 103              	.LVL8:
+ 104              	.L10:
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(n >= VIC_WORD_SIZE)
+ 105              		.loc 1 71 0 is_stmt 1
+ 106 0012 1F28     		cmp	r0, #31
+ 107 0014 03D9     		bls	.L13
+ 108              	.LVL9:
+ 109              	.L11:
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_base = VIC1_BASE;
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 110              		.loc 1 74 0
+ 111 0016 203C     		subs	r4, r4, #32
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 112              		.loc 1 73 0
+ 113 0018 054A     		ldr	r2, .L14+8
+ 114              		.loc 1 74 0
+ 115 001a E4B2     		uxtb	r4, r4
+ 116              	.LVL10:
+ 117 001c 00E0     		b	.L12
+ 118              	.LVL11:
+ 119              	.L13:
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 120              		.loc 1 68 0
+ 121 001e 054A     		ldr	r2, .L14+12
+ 122              	.LVL12:
+ 123              	.L12:
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	writel(vic_base + VIC_INT_ER, 0x1 << n);
+ 124              		.loc 1 76 0
+ 125 0020 0123     		movs	r3, #1
+ 126 0022 A340     		lsls	r3, r3, r4
+ 127 0024 1361     		str	r3, [r2, #16]
+ 128 0026 10BD     		pop	{r4, pc}
+ 129              	.LVL13:
+ 130              	.L15:
+ 131              		.align	2
+ 132              	.L14:
+ 133 0028 00000000 		.word	.LANCHOR0
+ 134 002c 00000000 		.word	assert_failed
+ 135 0030 00300302 		.word	33763328
+ 136 0034 00200302 		.word	33759232
+ 137              		.cfi_endproc
+ 138              	.LFE2:
+ 140              		.section	.text.vic_disable_irq,"ax",%progbits
+ 141              		.align	1
+ 142              		.global	vic_disable_irq
+ 143              		.thumb
+ 144              		.thumb_func
+ 146              	vic_disable_irq:
+ 147              	.LFB3:
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void vic_disable_irq(irq_n_type_t n)
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+ 148              		.loc 1 80 0
+ 149              		.cfi_startproc
+ 150              		@ args = 0, pretend = 0, frame = 0
+ 151              		@ frame_needed = 0, uses_anonymous_args = 0
+ 152              	.LVL14:
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 153              		.loc 1 82 0
+ 154 0000 3328     		cmp	r0, #51
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+ 155              		.loc 1 80 0
+ 156 0002 10B5     		push	{r4, lr}
+ 157              	.LCFI1:
+ 158              		.cfi_def_cfa_offset 8
+ 159              		.cfi_offset 4, -8
+ 160              		.cfi_offset 14, -4
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+ 161              		.loc 1 80 0
+ 162 0004 0446     		mov	r4, r0
+ 163              		.loc 1 82 0
+ 164 0006 04D9     		bls	.L17
+ 165              		.loc 1 82 0 is_stmt 0 discriminator 1
+ 166 0008 0748     		ldr	r0, .L21
+ 167              	.LVL15:
+ 168 000a 5221     		movs	r1, #82
+ 169 000c 074B     		ldr	r3, .L21+4
+ 170 000e 9847     		blx	r3
+ 171              	.LVL16:
+ 172 0010 01E0     		b	.L18
+ 173              	.LVL17:
+ 174              	.L17:
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(n >= VIC_WORD_SIZE)
+ 175              		.loc 1 84 0 is_stmt 1
+ 176 0012 1F28     		cmp	r0, #31
+ 177 0014 03D9     		bls	.L20
+ 178              	.LVL18:
+ 179              	.L18:
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_base = VIC1_BASE;
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 180              		.loc 1 87 0
+ 181 0016 203C     		subs	r4, r4, #32
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 182              		.loc 1 86 0
+ 183 0018 054A     		ldr	r2, .L21+8
+ 184              		.loc 1 87 0
+ 185 001a E4B2     		uxtb	r4, r4
+ 186              	.LVL19:
+ 187 001c 00E0     		b	.L19
+ 188              	.LVL20:
+ 189              	.L20:
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 190              		.loc 1 81 0
+ 191 001e 054A     		ldr	r2, .L21+12
+ 192              	.LVL21:
+ 193              	.L19:
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	writel(vic_base + VIC_INT_ECR, 0x1 << n);
+ 194              		.loc 1 89 0
+ 195 0020 0123     		movs	r3, #1
+ 196 0022 A340     		lsls	r3, r3, r4
+ 197 0024 5361     		str	r3, [r2, #20]
+ 198 0026 10BD     		pop	{r4, pc}
+ 199              	.LVL22:
+ 200              	.L22:
+ 201              		.align	2
+ 202              	.L21:
+ 203 0028 00000000 		.word	.LANCHOR1
+ 204 002c 00000000 		.word	assert_failed
+ 205 0030 00300302 		.word	33763328
+ 206 0034 00200302 		.word	33759232
+ 207              		.cfi_endproc
+ 208              	.LFE3:
+ 210              		.section	.text.vic_register_irq,"ax",%progbits
+ 211              		.align	1
+ 212              		.global	vic_register_irq
+ 213              		.thumb
+ 214              		.thumb_func
+ 216              	vic_register_irq:
+ 217              	.LFB4:
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void vic_register_irq(irq_n_type_t n, irq_handler handler)
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+ 218              		.loc 1 93 0
+ 219              		.cfi_startproc
+ 220              		@ args = 0, pretend = 0, frame = 0
+ 221              		@ frame_needed = 0, uses_anonymous_args = 0
+ 222              	.LVL23:
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 223              		.loc 1 94 0
+ 224 0000 3328     		cmp	r0, #51
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 225              		.loc 1 93 0
+ 226 0002 70B5     		push	{r4, r5, r6, lr}
+ 227              	.LCFI2:
+ 228              		.cfi_def_cfa_offset 16
+ 229              		.cfi_offset 4, -16
+ 230              		.cfi_offset 5, -12
+ 231              		.cfi_offset 6, -8
+ 232              		.cfi_offset 14, -4
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 233              		.loc 1 93 0
+ 234 0004 0446     		mov	r4, r0
+ 235 0006 0D46     		mov	r5, r1
+ 236              		.loc 1 94 0
+ 237 0008 03D9     		bls	.L24
+ 238              		.loc 1 94 0 is_stmt 0 discriminator 1
+ 239 000a 0B48     		ldr	r0, .L27
+ 240              	.LVL24:
+ 241 000c 5E21     		movs	r1, #94
+ 242              	.LVL25:
+ 243 000e 0B4B     		ldr	r3, .L27+4
+ 244 0010 9847     		blx	r3
+ 245              	.LVL26:
+ 246              	.L24:
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(handler != NULL);
+ 247              		.loc 1 95 0 is_stmt 1
+ 248 0012 1DB9     		cbnz	r5, .L25
+ 249              		.loc 1 95 0 is_stmt 0 discriminator 1
+ 250 0014 0848     		ldr	r0, .L27
+ 251 0016 5F21     		movs	r1, #95
+ 252 0018 084B     		ldr	r3, .L27+4
+ 253 001a 9847     		blx	r3
+ 254              	.LVL27:
+ 255              	.L25:
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(vic_init_flag == 0)
+ 256              		.loc 1 97 0 is_stmt 1
+ 257 001c 084E     		ldr	r6, .L27+8
+ 258 001e 3378     		ldrb	r3, [r6]	@ zero_extendqisi2
+ 259 0020 1BB9     		cbnz	r3, .L26
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_init();
+ 260              		.loc 1 99 0
+ 261 0022 084B     		ldr	r3, .L27+12
+ 262 0024 9847     		blx	r3
+ 263              	.LVL28:
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_init_flag = 1;
+ 264              		.loc 1 100 0
+ 265 0026 0123     		movs	r3, #1
+ 266 0028 3370     		strb	r3, [r6]
+ 267              	.L26:
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	vic_isr[(uint32_t)n] = handler;
+ 268              		.loc 1 102 0
+ 269 002a 074B     		ldr	r3, .L27+16
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	vic_enable_irq(n);
+ 270              		.loc 1 103 0
+ 271 002c 2046     		mov	r0, r4
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	vic_enable_irq(n);
+ 272              		.loc 1 102 0
+ 273 002e 43F82450 		str	r5, [r3, r4, lsl #2]
+ 274              		.loc 1 103 0
+ 275 0032 064B     		ldr	r3, .L27+20
+ 276 0034 9847     		blx	r3
+ 277              	.LVL29:
+ 278 0036 70BD     		pop	{r4, r5, r6, pc}
+ 279              	.LVL30:
+ 280              	.L28:
+ 281              		.align	2
+ 282              	.L27:
+ 283 0038 00000000 		.word	.LANCHOR2
+ 284 003c 00000000 		.word	assert_failed
+ 285 0040 00000000 		.word	.LANCHOR3
+ 286 0044 00000000 		.word	vic_init
+ 287 0048 00000000 		.word	.LANCHOR4
+ 288 004c 00000000 		.word	vic_enable_irq
+ 289              		.cfi_endproc
+ 290              	.LFE4:
+ 292              		.section	.text.vic_unregister_irq,"ax",%progbits
+ 293              		.align	1
+ 294              		.global	vic_unregister_irq
+ 295              		.thumb
+ 296              		.thumb_func
+ 298              	vic_unregister_irq:
+ 299              	.LFB5:
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void vic_unregister_irq(irq_n_type_t n)
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+ 300              		.loc 1 107 0
+ 301              		.cfi_startproc
+ 302              		@ args = 0, pretend = 0, frame = 0
+ 303              		@ frame_needed = 0, uses_anonymous_args = 0
+ 304              	.LVL31:
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 305              		.loc 1 108 0
+ 306 0000 3328     		cmp	r0, #51
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 307              		.loc 1 107 0
+ 308 0002 10B5     		push	{r4, lr}
+ 309              	.LCFI3:
+ 310              		.cfi_def_cfa_offset 8
+ 311              		.cfi_offset 4, -8
+ 312              		.cfi_offset 14, -4
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 313              		.loc 1 107 0
+ 314 0004 0446     		mov	r4, r0
+ 315              		.loc 1 108 0
+ 316 0006 03D9     		bls	.L30
+ 317              		.loc 1 108 0 is_stmt 0 discriminator 1
+ 318 0008 0548     		ldr	r0, .L31
+ 319              	.LVL32:
+ 320 000a 6C21     		movs	r1, #108
+ 321 000c 054B     		ldr	r3, .L31+4
+ 322 000e 9847     		blx	r3
+ 323              	.LVL33:
+ 324              	.L30:
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	vic_disable_irq(n);
+ 325              		.loc 1 110 0 is_stmt 1
+ 326 0010 054B     		ldr	r3, .L31+8
+ 327 0012 2046     		mov	r0, r4
+ 328 0014 9847     		blx	r3
+ 329              	.LVL34:
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	vic_isr[(uint32_t)n] = NULL;
+ 330              		.loc 1 111 0
+ 331 0016 0022     		movs	r2, #0
+ 332 0018 044B     		ldr	r3, .L31+12
+ 333 001a 43F82420 		str	r2, [r3, r4, lsl #2]
+ 334 001e 10BD     		pop	{r4, pc}
+ 335              	.L32:
+ 336              		.align	2
+ 337              	.L31:
+ 338 0020 00000000 		.word	.LANCHOR5
+ 339 0024 00000000 		.word	assert_failed
+ 340 0028 00000000 		.word	vic_disable_irq
+ 341 002c 00000000 		.word	.LANCHOR4
+ 342              		.cfi_endproc
+ 343              	.LFE5:
+ 345              		.section	.text.vApplicationIRQHandler,"ax",%progbits
+ 346              		.align	1
+ 347              		.global	vApplicationIRQHandler
+ 348              		.thumb
+ 349              		.thumb_func
+ 351              	vApplicationIRQHandler:
+ 352              	.LFB6:
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #ifdef OS
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void vApplicationIRQHandler(void)
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+ 353              		.loc 1 116 0
+ 354              		.cfi_startproc
+ 355              		@ args = 0, pretend = 0, frame = 0
+ 356              		@ frame_needed = 0, uses_anonymous_args = 0
+ 357 0000 08B5     		push	{r3, lr}
+ 358              	.LCFI4:
+ 359              		.cfi_def_cfa_offset 8
+ 360              		.cfi_offset 3, -8
+ 361              		.cfi_offset 14, -4
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int int_n;
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	int_n = readl(VIC0_BASE + VIC_VAR);
+ 362              		.loc 1 118 0
+ 363 0002 064B     		ldr	r3, .L38
+ 364 0004 1A68     		ldr	r2, [r3]
+ 365              	.LVL35:
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(vic_isr[int_n] != 0)
+ 366              		.loc 1 120 0
+ 367 0006 064B     		ldr	r3, .L38+4
+ 368 0008 53F82230 		ldr	r3, [r3, r2, lsl #2]
+ 369 000c 0BB1     		cbz	r3, .L34
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		portENABLE_INTERRUPTS();
+ 370              		.loc 1 122 0
+ 371              	@ 122 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c" 1
+ 372 000e 62B6     		CPSIE i   
+ 373              	
+ 374              	@ 0 "" 2
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_isr[int_n]();
+ 375              		.loc 1 123 0
+ 376              		.thumb
+ 377 0010 9847     		blx	r3
+ 378              	.LVL36:
+ 379              	.L34:
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	writel(VIC1_BASE + VIC_VAR, 0);
+ 380              		.loc 1 125 0
+ 381 0012 0022     		movs	r2, #0
+ 382 0014 034B     		ldr	r3, .L38+8
+ 383 0016 1A60     		str	r2, [r3]
+ 384 0018 08BD     		pop	{r3, pc}
+ 385              	.L39:
+ 386 001a 00BF     		.align	2
+ 387              	.L38:
+ 388 001c 002F0302 		.word	33763072
+ 389 0020 00000000 		.word	.LANCHOR4
+ 390 0024 003F0302 		.word	33767168
+ 391              		.cfi_endproc
+ 392              	.LFE6:
+ 394              		.section	.text.vic_set_priority_irq,"ax",%progbits
+ 395              		.align	1
+ 396              		.global	vic_set_priority_irq
+ 397              		.thumb
+ 398              		.thumb_func
+ 400              	vic_set_priority_irq:
+ 401              	.LFB7:
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #else
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void int_default_handler(void)
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int int_n;
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	int_n = readl(VIC0_BASE + VIC_VAR);
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(vic_isr[int_n] != 0)
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_isr[int_n]();
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	writel(VIC1_BASE + VIC_VAR, 0);
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	writel(VIC0_BASE + VIC_VAR, 0);
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** #endif
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** void vic_set_priority_irq(irq_n_type_t n, uint8_t prio)
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+ 402              		.loc 1 143 0
+ 403              		.cfi_startproc
+ 404              		@ args = 0, pretend = 0, frame = 0
+ 405              		@ frame_needed = 0, uses_anonymous_args = 0
+ 406              	.LVL37:
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 407              		.loc 1 145 0
+ 408 0000 3328     		cmp	r0, #51
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+ 409              		.loc 1 143 0
+ 410 0002 38B5     		push	{r3, r4, r5, lr}
+ 411              	.LCFI5:
+ 412              		.cfi_def_cfa_offset 16
+ 413              		.cfi_offset 3, -16
+ 414              		.cfi_offset 4, -12
+ 415              		.cfi_offset 5, -8
+ 416              		.cfi_offset 14, -4
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+ 417              		.loc 1 143 0
+ 418 0004 0446     		mov	r4, r0
+ 419 0006 0D46     		mov	r5, r1
+ 420              		.loc 1 145 0
+ 421 0008 03D9     		bls	.L41
+ 422              		.loc 1 145 0 is_stmt 0 discriminator 1
+ 423 000a 0A48     		ldr	r0, .L45
+ 424              	.LVL38:
+ 425 000c 9121     		movs	r1, #145
+ 426              	.LVL39:
+ 427 000e 0A4B     		ldr	r3, .L45+4
+ 428 0010 9847     		blx	r3
+ 429              	.LVL40:
+ 430              	.L41:
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_PRIO(prio));
+ 431              		.loc 1 146 0 is_stmt 1
+ 432 0012 0F2D     		cmp	r5, #15
+ 433 0014 03D9     		bls	.L42
+ 434              		.loc 1 146 0 is_stmt 0 discriminator 1
+ 435 0016 0748     		ldr	r0, .L45
+ 436 0018 9221     		movs	r1, #146
+ 437 001a 074B     		ldr	r3, .L45+4
+ 438 001c 9847     		blx	r3
+ 439              	.LVL41:
+ 440              	.L42:
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(n >= VIC_WORD_SIZE)
+ 441              		.loc 1 148 0 is_stmt 1
+ 442 001e 1F2C     		cmp	r4, #31
+ 443              	.LVL42:
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_base = VIC1_BASE;
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 444              		.loc 1 151 0
+ 445 0020 83BF     		ittte	hi
+ 446 0022 203C     		subhi	r4, r4, #32
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 447              		.loc 1 150 0
+ 448 0024 054B     		ldrhi	r3, .L45+8
+ 449              		.loc 1 151 0
+ 450 0026 E4B2     		uxtbhi	r4, r4
+ 451              	.LVL43:
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 452              		.loc 1 144 0
+ 453 0028 054B     		ldrls	r3, .L45+12
+ 454              	.LVL44:
+ 455 002a 03F50073 		add	r3, r3, #512
+ 456              	.LVL45:
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	writel(vic_base + VIC_PA0R + (n << 2), (unsigned int)prio);
+ 457              		.loc 1 153 0
+ 458 002e 43F82450 		str	r5, [r3, r4, lsl #2]
+ 459 0032 38BD     		pop	{r3, r4, r5, pc}
+ 460              	.LVL46:
+ 461              	.L46:
+ 462              		.align	2
+ 463              	.L45:
+ 464 0034 00000000 		.word	.LANCHOR6
+ 465 0038 00000000 		.word	assert_failed
+ 466 003c 00300302 		.word	33763328
+ 467 0040 00200302 		.word	33759232
+ 468              		.cfi_endproc
+ 469              	.LFE7:
+ 471              		.section	.text.vic_get_priority_irq,"ax",%progbits
+ 472              		.align	1
+ 473              		.global	vic_get_priority_irq
+ 474              		.thumb
+ 475              		.thumb_func
+ 477              	vic_get_priority_irq:
+ 478              	.LFB8:
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** uint8_t vic_get_priority_irq(irq_n_type_t n)
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** {
+ 479              		.loc 1 157 0
+ 480              		.cfi_startproc
+ 481              		@ args = 0, pretend = 0, frame = 0
+ 482              		@ frame_needed = 0, uses_anonymous_args = 0
+ 483              	.LVL47:
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 484              		.loc 1 158 0
+ 485 0000 3328     		cmp	r0, #51
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 486              		.loc 1 157 0
+ 487 0002 10B5     		push	{r4, lr}
+ 488              	.LCFI6:
+ 489              		.cfi_def_cfa_offset 8
+ 490              		.cfi_offset 4, -8
+ 491              		.cfi_offset 14, -4
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	assert_param(IS_VIC_IRQ_TYPE(n));
+ 492              		.loc 1 157 0
+ 493 0004 0446     		mov	r4, r0
+ 494              		.loc 1 158 0
+ 495 0006 04D9     		bls	.L48
+ 496              		.loc 1 158 0 is_stmt 0 discriminator 1
+ 497 0008 0848     		ldr	r0, .L52
+ 498              	.LVL48:
+ 499 000a 9E21     		movs	r1, #158
+ 500 000c 084B     		ldr	r3, .L52+4
+ 501 000e 9847     		blx	r3
+ 502              	.LVL49:
+ 503 0010 01E0     		b	.L49
+ 504              	.LVL50:
+ 505              	.L48:
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	unsigned int vic_base = VIC0_BASE;
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(n >= VIC_WORD_SIZE)
+ 506              		.loc 1 161 0 is_stmt 1
+ 507 0012 1F28     		cmp	r0, #31
+ 508 0014 03D9     		bls	.L51
+ 509              	.LVL51:
+ 510              	.L49:
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	{
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		vic_base = VIC1_BASE;
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 511              		.loc 1 164 0
+ 512 0016 203C     		subs	r4, r4, #32
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 		n -= VIC_WORD_SIZE;
+ 513              		.loc 1 163 0
+ 514 0018 064B     		ldr	r3, .L52+8
+ 515              		.loc 1 164 0
+ 516 001a E4B2     		uxtb	r4, r4
+ 517              	.LVL52:
+ 518 001c 00E0     		b	.L50
+ 519              	.LVL53:
+ 520              	.L51:
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	if(n >= VIC_WORD_SIZE)
+ 521              		.loc 1 160 0
+ 522 001e 064B     		ldr	r3, .L52+12
+ 523              	.LVL54:
+ 524              	.L50:
+ 525 0020 03F50073 		add	r3, r3, #512
+ 526              	.LVL55:
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	}
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** 	return (uint8_t)readl(vic_base + VIC_PA0R + (n << 2));
+ 527              		.loc 1 166 0
+ 528 0024 53F82400 		ldr	r0, [r3, r4, lsl #2]
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_vic.c **** }
+ 529              		.loc 1 167 0
+ 530 0028 C0B2     		uxtb	r0, r0
+ 531 002a 10BD     		pop	{r4, pc}
+ 532              	.LVL56:
+ 533              	.L53:
+ 534              		.align	2
+ 535              	.L52:
+ 536 002c 00000000 		.word	.LANCHOR7
+ 537 0030 00000000 		.word	assert_failed
+ 538 0034 00300302 		.word	33763328
+ 539 0038 00200302 		.word	33759232
+ 540              		.cfi_endproc
+ 541              	.LFE8:
+ 543              		.section	.rodata.__FUNCTION__.6272,"a",%progbits
+ 544              		.set	.LANCHOR5,. + 0
+ 547              	__FUNCTION__.6272:
+ 548 0000 7669635F 		.ascii	"vic_unregister_irq\000"
+ 548      756E7265 
+ 548      67697374 
+ 548      65725F69 
+ 548      727100
+ 549              		.section	.bss.vic_isr,"aw",%nobits
+ 550              		.align	2
+ 551              		.set	.LANCHOR4,. + 0
+ 554              	vic_isr:
+ 555 0000 00000000 		.space	208
+ 555      00000000 
+ 555      00000000 
+ 555      00000000 
+ 555      00000000 
+ 556              		.section	.rodata.__FUNCTION__.6258,"a",%progbits
+ 557              		.set	.LANCHOR0,. + 0
+ 560              	__FUNCTION__.6258:
+ 561 0000 7669635F 		.ascii	"vic_enable_irq\000"
+ 561      656E6162 
+ 561      6C655F69 
+ 561      727100
+ 562              		.section	.bss.vic_init_flag,"aw",%nobits
+ 563              		.set	.LANCHOR3,. + 0
+ 566              	vic_init_flag:
+ 567 0000 00       		.space	1
+ 568              		.section	.rodata.__FUNCTION__.6268,"a",%progbits
+ 569              		.set	.LANCHOR2,. + 0
+ 572              	__FUNCTION__.6268:
+ 573 0000 7669635F 		.ascii	"vic_register_irq\000"
+ 573      72656769 
+ 573      73746572 
+ 573      5F697271 
+ 573      00
+ 574              		.section	.rodata.__FUNCTION__.6263,"a",%progbits
+ 575              		.set	.LANCHOR1,. + 0
+ 578              	__FUNCTION__.6263:
+ 579 0000 7669635F 		.ascii	"vic_disable_irq\000"
+ 579      64697361 
+ 579      626C655F 
+ 579      69727100 
+ 580              		.section	.rodata.__FUNCTION__.6282,"a",%progbits
+ 581              		.set	.LANCHOR6,. + 0
+ 584              	__FUNCTION__.6282:
+ 585 0000 7669635F 		.ascii	"vic_set_priority_irq\000"
+ 585      7365745F 
+ 585      7072696F 
+ 585      72697479 
+ 585      5F697271 
+ 586              		.section	.rodata.__FUNCTION__.6286,"a",%progbits
+ 587              		.set	.LANCHOR7,. + 0
+ 590              	__FUNCTION__.6286:
+ 591 0000 7669635F 		.ascii	"vic_get_priority_irq\000"
+ 591      6765745F 
+ 591      7072696F 
+ 591      72697479 
+ 591      5F697271 
+ 592              		.text
+ 593              	.Letext0:
+ 594              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 595              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 596              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+ 597              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_vic.c
+     /tmp/ccT8lEtQ.s:19     .text.vic_init:00000000 $t
+     /tmp/ccT8lEtQ.s:24     .text.vic_init:00000000 vic_init
+     /tmp/ccT8lEtQ.s:65     .text.vic_init:00000024 $d
+     /tmp/ccT8lEtQ.s:71     .text.vic_enable_irq:00000000 $t
+     /tmp/ccT8lEtQ.s:76     .text.vic_enable_irq:00000000 vic_enable_irq
+     /tmp/ccT8lEtQ.s:133    .text.vic_enable_irq:00000028 $d
+     /tmp/ccT8lEtQ.s:141    .text.vic_disable_irq:00000000 $t
+     /tmp/ccT8lEtQ.s:146    .text.vic_disable_irq:00000000 vic_disable_irq
+     /tmp/ccT8lEtQ.s:203    .text.vic_disable_irq:00000028 $d
+     /tmp/ccT8lEtQ.s:211    .text.vic_register_irq:00000000 $t
+     /tmp/ccT8lEtQ.s:216    .text.vic_register_irq:00000000 vic_register_irq
+     /tmp/ccT8lEtQ.s:283    .text.vic_register_irq:00000038 $d
+     /tmp/ccT8lEtQ.s:293    .text.vic_unregister_irq:00000000 $t
+     /tmp/ccT8lEtQ.s:298    .text.vic_unregister_irq:00000000 vic_unregister_irq
+     /tmp/ccT8lEtQ.s:338    .text.vic_unregister_irq:00000020 $d
+     /tmp/ccT8lEtQ.s:346    .text.vApplicationIRQHandler:00000000 $t
+     /tmp/ccT8lEtQ.s:351    .text.vApplicationIRQHandler:00000000 vApplicationIRQHandler
+     /tmp/ccT8lEtQ.s:388    .text.vApplicationIRQHandler:0000001c $d
+     /tmp/ccT8lEtQ.s:395    .text.vic_set_priority_irq:00000000 $t
+     /tmp/ccT8lEtQ.s:400    .text.vic_set_priority_irq:00000000 vic_set_priority_irq
+     /tmp/ccT8lEtQ.s:464    .text.vic_set_priority_irq:00000034 $d
+     /tmp/ccT8lEtQ.s:472    .text.vic_get_priority_irq:00000000 $t
+     /tmp/ccT8lEtQ.s:477    .text.vic_get_priority_irq:00000000 vic_get_priority_irq
+     /tmp/ccT8lEtQ.s:536    .text.vic_get_priority_irq:0000002c $d
+     /tmp/ccT8lEtQ.s:547    .rodata.__FUNCTION__.6272:00000000 __FUNCTION__.6272
+     /tmp/ccT8lEtQ.s:550    .bss.vic_isr:00000000 $d
+     /tmp/ccT8lEtQ.s:554    .bss.vic_isr:00000000 vic_isr
+     /tmp/ccT8lEtQ.s:560    .rodata.__FUNCTION__.6258:00000000 __FUNCTION__.6258
+     /tmp/ccT8lEtQ.s:566    .bss.vic_init_flag:00000000 vic_init_flag
+     /tmp/ccT8lEtQ.s:567    .bss.vic_init_flag:00000000 $d
+     /tmp/ccT8lEtQ.s:572    .rodata.__FUNCTION__.6268:00000000 __FUNCTION__.6268
+     /tmp/ccT8lEtQ.s:578    .rodata.__FUNCTION__.6263:00000000 __FUNCTION__.6263
+     /tmp/ccT8lEtQ.s:584    .rodata.__FUNCTION__.6282:00000000 __FUNCTION__.6282
+     /tmp/ccT8lEtQ.s:590    .rodata.__FUNCTION__.6286:00000000 __FUNCTION__.6286
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed

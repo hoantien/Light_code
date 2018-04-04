@@ -1,0 +1,94 @@
+ARM GAS  /tmp/ccJn9GmF.s 			page 1
+
+
+   1              	# 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s"
+   1              	/******************************************************************************
+   0              	
+   0              	
+   2              	 * Copyright (c) 2016, The LightCo
+   3              	 * All rights reserved.
+   4              	 * Redistribution and use in source and binary forms, with or without
+   5              	 * modification, are strictly prohibited without prior permission
+   6              	 * of The LightCo.
+   7              	 *
+   8              	 * @file    armv7_start.s
+   9              	 * @author  The LightCo
+  10              	 * @version V1.0.0
+  11              	 * @date    Mar-15-2016
+  12              	 * @brief
+  13              	 *
+  14              	 ******************************************************************************/
+  15              	 /* This program is allocated to section "initvector" */
+  16              	
+  17              	
+  18              		.text
+  19              		.code 32
+  20              	
+  21              		.extern reset_handler
+  22              		.extern undefined_handler
+  23              		.extern svc_handler
+  24              		.extern prefetch_handler
+  25              		.extern abort_handler
+  26              		.extern reserved_handler
+  27              		.extern irq_handler
+  28              		.extern fiq_handler
+  29              	
+  30              		.global start
+  31              		.func   start
+  32              	
+  33              	start:
+  34 0000 48F09FE5 		ldr pc, =reset_handler                  /* Reset Vector */
+  35 0004 48F09FE5 		ldr pc, =undefined_handler
+  36 0008 48F09FE5 		ldr pc, =svc_handler
+  37 000c 48F09FE5 		ldr pc, =prefetch_handler
+  38 0010 48F09FE5 		ldr pc, =abort_handler
+  39 0014 48F09FE5 		ldr pc, =reserved_handler
+  40 0018 48F09FE5 		ldr pc, =irq_handler
+  41 001c 48F09FE5 		ldr pc, =fiq_handler
+  42              	
+  43              	code_start:
+  44 0020 00000000 		.word    start           /* pointer to the user application start address */
+  45              	code_end:
+  46 0024 00000000 		.word    end
+  47              	code_execute:
+  48 0028 00000000 		.word    execute                  /* execute address of first instruction */
+  49 002c 2E546865 		.string ".TheLightCo_CortexR4_ASICFwS1." /* firmware validation signature */
+  49      4C696768 
+  49      74436F5F 
+  49      436F7274 
+  49      65785234 
+  50 004b 0000F020 		.align 4
+ARM GAS  /tmp/ccJn9GmF.s 			page 2
+
+
+  50      E3
+  51 0050 00000000 		.end
+  51      00000000 
+  51      00000000 
+  51      00000000 
+  51      00000000 
+ARM GAS  /tmp/ccJn9GmF.s 			page 3
+
+
+DEFINED SYMBOLS
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:33     .text:00000000 start
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:34     .text:00000000 $a
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:43     .text:00000020 code_start
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:44     .text:00000020 $d
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:45     .text:00000024 code_end
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:47     .text:00000028 code_execute
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:51     .text:00000050 $d
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:50     .text:0000004b $d
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/armv7_start.s:50     .text:0000004c $a
+
+UNDEFINED SYMBOLS
+reset_handler
+undefined_handler
+svc_handler
+prefetch_handler
+abort_handler
+reserved_handler
+irq_handler
+fiq_handler
+end
+execute

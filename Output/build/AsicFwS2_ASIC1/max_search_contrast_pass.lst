@@ -1,0 +1,1013 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"max_search_contrast_pass.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._ZN24max_search_contrast_pass10initializeERK13contrast_pass,"ax",%progbits
+  19              		.align	1
+  20              		.global	_ZN24max_search_contrast_pass10initializeERK13contrast_pass
+  21              		.thumb
+  22              		.thumb_func
+  24              	_ZN24max_search_contrast_pass10initializeERK13contrast_pass:
+  25              	.LFB992:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * @file    max_search_contrast_pass.cpp
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * @date    Oct-31-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  * @brief   Contrast pass which searches for a local maximum
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** #include "log.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** #include "max_search_contrast_pass.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** #define SLOGF_ID                SLOG_ID_AF
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** max_search_contrast_pass::max_search_contrast_pass(std::int16_t start_pos, std::int16_t delta, std:
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         bool use_metric1) :
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             start_pos_{start_pos},
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             delta_{delta},
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             tolerance_{tolerance},
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             use_metric1_{use_metric1},
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             next_pos_{start_pos} {
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** void max_search_contrast_pass::initialize(const contrast_pass& prev_pass) {
+  27              		.loc 1 30 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // Update start and end positions
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     start_pos_ = prev_pass.out_best_pos();
+  32              		.loc 1 32 0
+  33 0000 0B68     		ldr	r3, [r1]
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // Update start and end positions
+  34              		.loc 1 30 0
+  35 0002 10B5     		push	{r4, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 8
+  38              		.cfi_offset 4, -8
+  39              		.cfi_offset 14, -4
+  40              		.loc 1 32 0
+  41 0004 9B6A     		ldr	r3, [r3, #40]
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // Update start and end positions
+  42              		.loc 1 30 0
+  43 0006 0446     		mov	r4, r0
+  44              		.loc 1 32 0
+  45 0008 0846     		mov	r0, r1
+  46              	.LVL1:
+  47 000a 9847     		blx	r3
+  48              	.LVL2:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // Compute initial next_pos_
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     initialize();
+  49              		.loc 1 34 0
+  50 000c 2368     		ldr	r3, [r4]
+  51 000e DB68     		ldr	r3, [r3, #12]
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // Compute initial next_pos_
+  52              		.loc 1 32 0
+  53 0010 A080     		strh	r0, [r4, #4]	@ movhi
+  54              		.loc 1 34 0
+  55 0012 2046     		mov	r0, r4
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+  56              		.loc 1 35 0
+  57 0014 BDE81040 		pop	{r4, lr}
+  58              	.LCFI1:
+  59              		.cfi_restore 14
+  60              		.cfi_restore 4
+  61              		.cfi_def_cfa_offset 0
+  62              	.LVL3:
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+  63              		.loc 1 34 0
+  64 0018 1847     		bx	r3	@ indirect register sibling call
+  65              	.LVL4:
+  66              		.cfi_endproc
+  67              	.LFE992:
+  69              		.section	.text._ZNK24max_search_contrast_pass7is_doneEv,"ax",%progbits
+  70              		.align	1
+  71              		.global	_ZNK24max_search_contrast_pass7is_doneEv
+  72              		.thumb
+  73              		.thumb_func
+  75              	_ZNK24max_search_contrast_pass7is_doneEv:
+  76              	.LFB994:
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** void max_search_contrast_pass::initialize() {
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // Reset best position/metric before each pass
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     best_meas_.pos = start_pos_;
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     best_meas_.metric1 = METRIC_MIN;
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     best_meas_.metric2 = METRIC_MIN;
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     next_pos_ = start_pos_;
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     state_ = State::IDLE;
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     SLOGF(SLOG_INFO, "Starting contrast max search pass with start_pos: %d, delta: %d", (int)start_
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** bool max_search_contrast_pass::is_done() const {
+  77              		.loc 1 49 0
+  78              		.cfi_startproc
+  79              		@ args = 0, pretend = 0, frame = 0
+  80              		@ frame_needed = 0, uses_anonymous_args = 0
+  81              		@ link register save eliminated.
+  82              	.LVL5:
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return (state_ == State::DONE);
+  83              		.loc 1 50 0
+  84 0000 806D     		ldr	r0, [r0, #88]
+  85              	.LVL6:
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+  86              		.loc 1 51 0
+  87 0002 031F     		subs	r3, r0, #4
+  88 0004 5842     		rsbs	r0, r3, #0
+  89 0006 5841     		adcs	r0, r0, r3
+  90 0008 7047     		bx	lr
+  91              		.cfi_endproc
+  92              	.LFE994:
+  94              		.section	.text._ZN24max_search_contrast_pass8next_posEv,"ax",%progbits
+  95              		.align	1
+  96              		.global	_ZN24max_search_contrast_pass8next_posEv
+  97              		.thumb
+  98              		.thumb_func
+ 100              	_ZN24max_search_contrast_pass8next_posEv:
+ 101              	.LFB995:
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** std::int16_t max_search_contrast_pass::next_pos() {
+ 102              		.loc 1 53 0
+ 103              		.cfi_startproc
+ 104              		@ args = 0, pretend = 0, frame = 0
+ 105              		@ frame_needed = 0, uses_anonymous_args = 0
+ 106              		@ link register save eliminated.
+ 107              	.LVL7:
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return next_pos_;
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 108              		.loc 1 55 0
+ 109 0000 B0F90C00 		ldrsh	r0, [r0, #12]
+ 110              	.LVL8:
+ 111 0004 7047     		bx	lr
+ 112              		.cfi_endproc
+ 113              	.LFE995:
+ 115              		.section	.text._ZNK24max_search_contrast_pass9toleranceEv,"ax",%progbits
+ 116              		.align	1
+ 117              		.global	_ZNK24max_search_contrast_pass9toleranceEv
+ 118              		.thumb
+ 119              		.thumb_func
+ 121              	_ZNK24max_search_contrast_pass9toleranceEv:
+ 122              	.LFB996:
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** std::uint16_t max_search_contrast_pass::tolerance() const {
+ 123              		.loc 1 57 0
+ 124              		.cfi_startproc
+ 125              		@ args = 0, pretend = 0, frame = 0
+ 126              		@ frame_needed = 0, uses_anonymous_args = 0
+ 127              		@ link register save eliminated.
+ 128              	.LVL9:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return tolerance_;
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 129              		.loc 1 59 0
+ 130 0000 0089     		ldrh	r0, [r0, #8]
+ 131              	.LVL10:
+ 132 0002 7047     		bx	lr
+ 133              		.cfi_endproc
+ 134              	.LFE996:
+ 136              		.section	.text._ZNK24max_search_contrast_pass11out_min_posEv,"ax",%progbits
+ 137              		.align	1
+ 138              		.global	_ZNK24max_search_contrast_pass11out_min_posEv
+ 139              		.thumb
+ 140              		.thumb_func
+ 142              	_ZNK24max_search_contrast_pass11out_min_posEv:
+ 143              	.LFB998:
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** void max_search_contrast_pass::set_measurement(const measurement_t& meas) {
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     if (state_ == State::IDLE) {
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         best_meas_ = meas;
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         state_ = State::STARTING;
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         next_pos_ = start_pos_ + delta_;
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         meas_arr_[0] = meas;
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     } else {
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         bool is_new_best{measurement_t::is_better(use_metric1_, meas, best_meas_)};
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         if (is_new_best)
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             best_meas_ = meas;
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         if (state_ == State::STARTING) {
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             meas_arr_[1] = meas;
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (is_new_best)
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****                 state_ = State::MOVING_UP;
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             else
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****                 state_ = State::MOVING_DOWN;
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         } else {
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             // State is MOVING_UP or MOVING_DOWN
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             std::size_t idx_best = (state_ == State::MOVING_UP) ? 1 : 0;
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             std::size_t idx_second = 1 - idx_best;
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             bool meas_is_third = !(is_new_best || measurement_t::is_better(use_metric1_, meas, meas
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (!meas_is_third) {
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****                 meas_arr_[idx_second] = meas_arr_[idx_best];
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****                 meas_arr_[idx_best] = meas;
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             }
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (!is_new_best)
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****                 state_ = State::DONE;
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         }
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         if (state_ == State::MOVING_UP)
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             next_pos_ = meas_arr_[1].pos + delta_;
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         else if (state_ == State::MOVING_DOWN)
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             next_pos_ = meas_arr_[0].pos - delta_;
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     }
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** std::int16_t max_search_contrast_pass::out_min_pos() const {
+ 144              		.loc 1 96 0
+ 145              		.cfi_startproc
+ 146              		@ args = 0, pretend = 0, frame = 0
+ 147              		@ frame_needed = 0, uses_anonymous_args = 0
+ 148              		@ link register save eliminated.
+ 149              	.LVL11:
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // New start position
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return meas_arr_[0].pos;
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 150              		.loc 1 99 0
+ 151 0000 B0F92800 		ldrsh	r0, [r0, #40]
+ 152              	.LVL12:
+ 153 0004 7047     		bx	lr
+ 154              		.cfi_endproc
+ 155              	.LFE998:
+ 157              		.section	.text._ZNK24max_search_contrast_pass11out_max_posEv,"ax",%progbits
+ 158              		.align	1
+ 159              		.global	_ZNK24max_search_contrast_pass11out_max_posEv
+ 160              		.thumb
+ 161              		.thumb_func
+ 163              	_ZNK24max_search_contrast_pass11out_max_posEv:
+ 164              	.LFB1001:
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** std::int16_t max_search_contrast_pass::out_max_pos() const {
+ 165              		.loc 1 101 0
+ 166              		.cfi_startproc
+ 167              		@ args = 0, pretend = 0, frame = 0
+ 168              		@ frame_needed = 0, uses_anonymous_args = 0
+ 169              		@ link register save eliminated.
+ 170              	.LVL13:
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // New end position
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return meas_arr_[1].pos;
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 171              		.loc 1 104 0
+ 172 0000 B0F94000 		ldrsh	r0, [r0, #64]
+ 173              	.LVL14:
+ 174 0004 7047     		bx	lr
+ 175              		.cfi_endproc
+ 176              	.LFE1001:
+ 178              		.section	.text._ZNK24max_search_contrast_pass12out_best_posEv,"ax",%progbits
+ 179              		.align	1
+ 180              		.global	_ZNK24max_search_contrast_pass12out_best_posEv
+ 181              		.thumb
+ 182              		.thumb_func
+ 184              	_ZNK24max_search_contrast_pass12out_best_posEv:
+ 185              	.LFB1002:
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** std::int16_t max_search_contrast_pass::out_best_pos() const {
+ 186              		.loc 1 106 0
+ 187              		.cfi_startproc
+ 188              		@ args = 0, pretend = 0, frame = 0
+ 189              		@ frame_needed = 0, uses_anonymous_args = 0
+ 190              		@ link register save eliminated.
+ 191              	.LVL15:
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return best_meas_.pos;
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 192              		.loc 1 108 0
+ 193 0000 B0F91000 		ldrsh	r0, [r0, #16]
+ 194              	.LVL16:
+ 195 0004 7047     		bx	lr
+ 196              		.cfi_endproc
+ 197              	.LFE1002:
+ 199              		.section	.text._ZNK24max_search_contrast_pass15out_best_metricEv,"ax",%progbits
+ 200              		.align	1
+ 201              		.global	_ZNK24max_search_contrast_pass15out_best_metricEv
+ 202              		.thumb
+ 203              		.thumb_func
+ 205              	_ZNK24max_search_contrast_pass15out_best_metricEv:
+ 206              	.LFB1003:
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** std::int64_t max_search_contrast_pass::out_best_metric() const {
+ 207              		.loc 1 110 0
+ 208              		.cfi_startproc
+ 209              		@ args = 0, pretend = 0, frame = 0
+ 210              		@ frame_needed = 0, uses_anonymous_args = 0
+ 211              		@ link register save eliminated.
+ 212              	.LVL17:
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return use_metric1_ ? best_meas_.metric1 : best_meas_.metric2;
+ 213              		.loc 1 111 0
+ 214 0000 837A     		ldrb	r3, [r0, #10]	@ zero_extendqisi2
+ 215 0002 13B1     		cbz	r3, .L9
+ 216              		.loc 1 111 0 is_stmt 0 discriminator 1
+ 217 0004 D0E90601 		ldrd	r0, [r0, #24]
+ 218              	.LVL18:
+ 219 0008 7047     		bx	lr
+ 220              	.LVL19:
+ 221              	.L9:
+ 222              		.loc 1 111 0 discriminator 2
+ 223 000a D0E90801 		ldrd	r0, [r0, #32]
+ 224              	.LVL20:
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 225              		.loc 1 112 0 is_stmt 1 discriminator 2
+ 226 000e 7047     		bx	lr
+ 227              		.cfi_endproc
+ 228              	.LFE1003:
+ 230              		.section	.text._ZNK24max_search_contrast_pass16num_measurementsEv,"ax",%progbits
+ 231              		.align	1
+ 232              		.global	_ZNK24max_search_contrast_pass16num_measurementsEv
+ 233              		.thumb
+ 234              		.thumb_func
+ 236              	_ZNK24max_search_contrast_pass16num_measurementsEv:
+ 237              	.LFB1004:
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** std::size_t max_search_contrast_pass::num_measurements() const {
+ 238              		.loc 1 114 0
+ 239              		.cfi_startproc
+ 240              		@ args = 0, pretend = 0, frame = 0
+ 241              		@ frame_needed = 0, uses_anonymous_args = 0
+ 242              		@ link register save eliminated.
+ 243              	.LVL21:
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return meas_arr_.size();
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 244              		.loc 1 116 0
+ 245 0000 0220     		movs	r0, #2
+ 246              	.LVL22:
+ 247 0002 7047     		bx	lr
+ 248              		.cfi_endproc
+ 249              	.LFE1004:
+ 251              		.section	.text._ZNK24max_search_contrast_pass12measurementsEv,"ax",%progbits
+ 252              		.align	1
+ 253              		.global	_ZNK24max_search_contrast_pass12measurementsEv
+ 254              		.thumb
+ 255              		.thumb_func
+ 257              	_ZNK24max_search_contrast_pass12measurementsEv:
+ 258              	.LFB1006:
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** auto max_search_contrast_pass::measurements() const -> const measurement_t* {
+ 259              		.loc 1 118 0
+ 260              		.cfi_startproc
+ 261              		@ args = 0, pretend = 0, frame = 0
+ 262              		@ frame_needed = 0, uses_anonymous_args = 0
+ 263              		@ link register save eliminated.
+ 264              	.LVL23:
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     return meas_arr_.data();
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 265              		.loc 1 120 0
+ 266 0000 2830     		adds	r0, r0, #40
+ 267              	.LVL24:
+ 268 0002 7047     		bx	lr
+ 269              		.cfi_endproc
+ 270              	.LFE1006:
+ 272              		.section	.text._ZN24max_search_contrast_passD2Ev,"axG",%progbits,_ZN24max_search_contrast_passD5Ev
+ 273              		.align	1
+ 274              		.weak	_ZN24max_search_contrast_passD2Ev
+ 275              		.thumb
+ 276              		.thumb_func
+ 278              	_ZN24max_search_contrast_passD2Ev:
+ 279              	.LFB1029:
+ 280              		.file 2 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * @file    max_search_contrast_pass.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * @date    Oct-31-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  * @brief   Contrast pass which searches for a local maximum
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** #ifndef __MAX_SEARCH_CONTRAST_PASS_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** #define __MAX_SEARCH_CONTRAST_PASS_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** #include <array>
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** #include "contrast_pass.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** 
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/max_search_contrast_pass.h **** class max_search_contrast_pass: public contrast_pass {
+ 281              		.loc 2 22 0
+ 282              		.cfi_startproc
+ 283              		@ args = 0, pretend = 0, frame = 0
+ 284              		@ frame_needed = 0, uses_anonymous_args = 0
+ 285              		@ link register save eliminated.
+ 286              	.LVL25:
+ 287              		.loc 2 22 0
+ 288 0000 7047     		bx	lr
+ 289              		.cfi_endproc
+ 290              	.LFE1029:
+ 292              		.weak	_ZN24max_search_contrast_passD1Ev
+ 293              		.thumb_set _ZN24max_search_contrast_passD1Ev,_ZN24max_search_contrast_passD2Ev
+ 294              		.section	.text._ZN24max_search_contrast_pass10initializeEv,"ax",%progbits
+ 295              		.align	1
+ 296              		.global	_ZN24max_search_contrast_pass10initializeEv
+ 297              		.thumb
+ 298              		.thumb_func
+ 300              	_ZN24max_search_contrast_pass10initializeEv:
+ 301              	.LFB993:
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     // Reset best position/metric before each pass
+ 302              		.loc 1 37 0
+ 303              		.cfi_startproc
+ 304              		@ args = 0, pretend = 0, frame = 0
+ 305              		@ frame_needed = 0, uses_anonymous_args = 0
+ 306              	.LVL26:
+ 307 0000 37B5     		push	{r0, r1, r2, r4, r5, lr}
+ 308              	.LCFI2:
+ 309              		.cfi_def_cfa_offset 24
+ 310              		.cfi_offset 4, -12
+ 311              		.cfi_offset 5, -8
+ 312              		.cfi_offset 14, -4
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     best_meas_.metric1 = METRIC_MIN;
+ 313              		.loc 1 39 0
+ 314 0002 8388     		ldrh	r3, [r0, #4]
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     best_meas_.metric2 = METRIC_MIN;
+ 315              		.loc 1 40 0
+ 316 0004 0024     		movs	r4, #0
+ 317 0006 4FF00045 		mov	r5, #-2147483648
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 318              		.loc 1 44 0
+ 319 000a 0022     		movs	r2, #0
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     best_meas_.metric2 = METRIC_MIN;
+ 320              		.loc 1 40 0
+ 321 000c C0E90645 		strd	r4, [r0, #24]
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 322              		.loc 1 46 0
+ 323 0010 0821     		movs	r1, #8
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 324              		.loc 1 41 0
+ 325 0012 C0E90845 		strd	r4, [r0, #32]
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     best_meas_.metric1 = METRIC_MIN;
+ 326              		.loc 1 39 0
+ 327 0016 0382     		strh	r3, [r0, #16]	@ movhi
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     state_ = State::IDLE;
+ 328              		.loc 1 43 0
+ 329 0018 8381     		strh	r3, [r0, #12]	@ movhi
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 330              		.loc 1 46 0
+ 331 001a 1BB2     		sxth	r3, r3
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 332              		.loc 1 44 0
+ 333 001c 8265     		str	r2, [r0, #88]
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 334              		.loc 1 46 0
+ 335 001e B0F90620 		ldrsh	r2, [r0, #6]
+ 336 0022 034C     		ldr	r4, .L16
+ 337 0024 2B20     		movs	r0, #43
+ 338              	.LVL27:
+ 339 0026 0092     		str	r2, [sp]
+ 340 0028 024A     		ldr	r2, .L16+4
+ 341 002a A047     		blx	r4
+ 342              	.LVL28:
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 343              		.loc 1 47 0
+ 344 002c 03B0     		add	sp, sp, #12
+ 345              	.LCFI3:
+ 346              		.cfi_def_cfa_offset 12
+ 347              		@ sp needed
+ 348 002e 30BD     		pop	{r4, r5, pc}
+ 349              	.L17:
+ 350              		.align	2
+ 351              	.L16:
+ 352 0030 00000000 		.word	slogf
+ 353 0034 00000000 		.word	.LC0
+ 354              		.cfi_endproc
+ 355              	.LFE993:
+ 357              		.section	.text._ZN24max_search_contrast_passD0Ev,"axG",%progbits,_ZN24max_search_contrast_passD5Ev
+ 358              		.align	1
+ 359              		.weak	_ZN24max_search_contrast_passD0Ev
+ 360              		.thumb
+ 361              		.thumb_func
+ 363              	_ZN24max_search_contrast_passD0Ev:
+ 364              	.LFB1031:
+ 365              		.loc 2 22 0
+ 366              		.cfi_startproc
+ 367              		@ args = 0, pretend = 0, frame = 0
+ 368              		@ frame_needed = 0, uses_anonymous_args = 0
+ 369              	.LVL29:
+ 370 0000 10B5     		push	{r4, lr}
+ 371              	.LCFI4:
+ 372              		.cfi_def_cfa_offset 8
+ 373              		.cfi_offset 4, -8
+ 374              		.cfi_offset 14, -4
+ 375              		.loc 2 22 0
+ 376 0002 024B     		ldr	r3, .L19
+ 377 0004 0446     		mov	r4, r0
+ 378              	.LVL30:
+ 379 0006 9847     		blx	r3
+ 380              	.LVL31:
+ 381 0008 2046     		mov	r0, r4
+ 382 000a 10BD     		pop	{r4, pc}
+ 383              	.LVL32:
+ 384              	.L20:
+ 385              		.align	2
+ 386              	.L19:
+ 387 000c 00000000 		.word	_ZdlPv
+ 388              		.cfi_endproc
+ 389              	.LFE1031:
+ 391              		.section	.text._ZN24max_search_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE,"
+ 392              		.align	1
+ 393              		.global	_ZN24max_search_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+ 394              		.thumb
+ 395              		.thumb_func
+ 397              	_ZN24max_search_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:
+ 398              	.LFB997:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     if (state_ == State::IDLE) {
+ 399              		.loc 1 61 0
+ 400              		.cfi_startproc
+ 401              		@ args = 0, pretend = 0, frame = 0
+ 402              		@ frame_needed = 0, uses_anonymous_args = 0
+ 403              	.LVL33:
+ 404 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 405              	.LCFI5:
+ 406              		.cfi_def_cfa_offset 24
+ 407              		.cfi_offset 4, -24
+ 408              		.cfi_offset 5, -20
+ 409              		.cfi_offset 6, -16
+ 410              		.cfi_offset 7, -12
+ 411              		.cfi_offset 8, -8
+ 412              		.cfi_offset 14, -4
+ 413              	.LBB97:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         best_meas_ = meas;
+ 414              		.loc 1 62 0
+ 415 0004 866D     		ldr	r6, [r0, #88]
+ 416              	.LBE97:
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     if (state_ == State::IDLE) {
+ 417              		.loc 1 61 0
+ 418 0006 0546     		mov	r5, r0
+ 419 0008 0C46     		mov	r4, r1
+ 420              	.LBB114:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         best_meas_ = meas;
+ 421              		.loc 1 62 0
+ 422 000a D6B9     		cbnz	r6, .L22
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         state_ = State::STARTING;
+ 423              		.loc 1 63 0
+ 424 000c 0E46     		mov	r6, r1
+ 425 000e 00F11007 		add	r7, r0, #16
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     } else {
+ 426              		.loc 1 66 0
+ 427 0012 2835     		adds	r5, r5, #40
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         state_ = State::STARTING;
+ 428              		.loc 1 63 0
+ 429 0014 0FCE     		ldmia	r6!, {r0, r1, r2, r3}
+ 430              	.LVL34:
+ 431 0016 0FC7     		stmia	r7!, {r0, r1, r2, r3}
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         meas_arr_[0] = meas;
+ 432              		.loc 1 65 0
+ 433 0018 35F8222C 		ldrh	r2, [r5, #-34]
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         next_pos_ = start_pos_ + delta_;
+ 434              		.loc 1 64 0
+ 435 001c 0123     		movs	r3, #1
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         state_ = State::STARTING;
+ 436              		.loc 1 63 0
+ 437 001e 96E80300 		ldmia	r6, {r0, r1}
+ 438 0022 87E80300 		stmia	r7, {r0, r1}
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         next_pos_ = start_pos_ + delta_;
+ 439              		.loc 1 64 0
+ 440 0026 2B63     		str	r3, [r5, #48]
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         meas_arr_[0] = meas;
+ 441              		.loc 1 65 0
+ 442 0028 35F8243C 		ldrh	r3, [r5, #-36]
+ 443 002c 1344     		add	r3, r3, r2
+ 444 002e 25F81C3C 		strh	r3, [r5, #-28]	@ movhi
+ 445              	.LVL35:
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     } else {
+ 446              		.loc 1 66 0
+ 447 0032 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+ 448              	.LVL36:
+ 449 0034 0FC5     		stmia	r5!, {r0, r1, r2, r3}
+ 450              	.LVL37:
+ 451 0036 96E80300 		ldmia	r6, {r0, r1}
+ 452 003a 85E80300 		stmia	r5, {r0, r1}
+ 453 003e BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 454              	.LVL38:
+ 455              	.L22:
+ 456              	.LBB98:
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         if (is_new_best)
+ 457              		.loc 1 68 0
+ 458 0042 877A     		ldrb	r7, [r0, #10]	@ zero_extendqisi2
+ 459              	.LVL39:
+ 460              	.LBB99:
+ 461              	.LBB100:
+ 462              		.file 3 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @file    contrast_pass.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @date    Sept-14-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @brief   Interface for one pass of contrast computation
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #ifndef __CONTRAST_PASS_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #define __CONTRAST_PASS_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #ifdef __cplusplus
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #include <cstdint>
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #include <limits>
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** class contrast_pass {
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** public:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****     struct measurement_t {
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int16_t pos;
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int64_t metric1;
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int64_t metric2;
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         static bool is_better(bool use_metric1, const measurement_t& meas1, const measurement_t& me
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****             return use_metric1 ? (meas1.metric1 > meas2.metric1) : (meas1.metric2 > meas2.metric2);
+ 463              		.loc 3 33 0
+ 464 0044 27B1     		cbz	r7, .L24
+ 465              	.LVL40:
+ 466              	.LBB101:
+ 467              	.LBB102:
+ 468 0046 D1E90223 		ldrd	r2, [r1, #8]
+ 469 004a D0E90601 		ldrd	r0, [r0, #24]
+ 470              	.LVL41:
+ 471 004e 03E0     		b	.L36
+ 472              	.LVL42:
+ 473              	.L24:
+ 474              	.LBE102:
+ 475              	.LBE101:
+ 476 0050 D1E90423 		ldrd	r2, [r1, #16]
+ 477 0054 D0E90801 		ldrd	r0, [r0, #32]
+ 478              	.LVL43:
+ 479              	.L36:
+ 480 0058 9042     		cmp	r0, r2
+ 481 005a 71EB0303 		sbcs	r3, r1, r3
+ 482 005e B4BF     		ite	lt
+ 483 0060 4FF0010E 		movlt	lr, #1
+ 484 0064 4FF0000E 		movge	lr, #0
+ 485              	.LBE100:
+ 486              	.LBE99:
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             best_meas_ = meas;
+ 487              		.loc 1 69 0
+ 488 0068 BEF1000F 		cmp	lr, #0
+ 489 006c 5DD0     		beq	.L26
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         if (state_ == State::STARTING) {
+ 490              		.loc 1 70 0
+ 491 006e A046     		mov	r8, r4
+ 492 0070 05F1100C 		add	ip, r5, #16
+ 493              	.LBB103:
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             meas_arr_[1] = meas;
+ 494              		.loc 1 71 0
+ 495 0074 012E     		cmp	r6, #1
+ 496              	.LBE103:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         if (state_ == State::STARTING) {
+ 497              		.loc 1 70 0
+ 498 0076 B8E80F00 		ldmia	r8!, {r0, r1, r2, r3}
+ 499              	.LVL44:
+ 500 007a ACE80F00 		stmia	ip!, {r0, r1, r2, r3}
+ 501 007e 98E80300 		ldmia	r8, {r0, r1}
+ 502 0082 8CE80300 		stmia	ip, {r0, r1}
+ 503              	.LBB112:
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             meas_arr_[1] = meas;
+ 504              		.loc 1 71 0
+ 505 0086 46D0     		beq	.L27
+ 506              	.L35:
+ 507              	.LBB104:
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             std::size_t idx_second = 1 - idx_best;
+ 508              		.loc 1 79 0
+ 509 0088 B31E     		subs	r3, r6, #2
+ 510 008a 5E42     		rsbs	r6, r3, #0
+ 511 008c 5E41     		adcs	r6, r6, r3
+ 512              	.LVL45:
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             bool meas_is_third = !(is_new_best || measurement_t::is_better(use_metric1_, meas, meas
+ 513              		.loc 1 80 0
+ 514 008e C6F1010C 		rsb	ip, r6, #1
+ 515              	.LVL46:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (!meas_is_third) {
+ 516              		.loc 1 81 0
+ 517 0092 BEF1000F 		cmp	lr, #0
+ 518 0096 25D1     		bne	.L28
+ 519              	.LVL47:
+ 520 0098 1823     		movs	r3, #24
+ 521              	.LBB105:
+ 522              	.LBB106:
+ 523              	.LBB107:
+ 524              	.LBB108:
+ 525              		.loc 3 33 0 discriminator 1
+ 526 009a 03FB0C51 		mla	r1, r3, ip, r5
+ 527              	.LBE108:
+ 528              	.LBE107:
+ 529 009e 27B1     		cbz	r7, .L29
+ 530              	.LVL48:
+ 531              	.LBB110:
+ 532              	.LBB109:
+ 533              		.loc 3 33 0 is_stmt 0
+ 534 00a0 D4E90223 		ldrd	r2, [r4, #8]
+ 535 00a4 D1E90C01 		ldrd	r0, [r1, #48]
+ 536 00a8 03E0     		b	.L37
+ 537              	.LVL49:
+ 538              	.L29:
+ 539              	.LBE109:
+ 540              	.LBE110:
+ 541 00aa D4E90423 		ldrd	r2, [r4, #16]
+ 542 00ae D1E90E01 		ldrd	r0, [r1, #56]
+ 543              	.L37:
+ 544 00b2 9042     		cmp	r0, r2
+ 545 00b4 71EB0303 		sbcs	r3, r1, r3
+ 546 00b8 B4BF     		ite	lt
+ 547 00ba 0123     		movlt	r3, #1
+ 548 00bc 0023     		movge	r3, #0
+ 549              	.LBE106:
+ 550              	.LBE105:
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (!meas_is_third) {
+ 551              		.loc 1 81 0 is_stmt 1
+ 552 00be 8BB9     		cbnz	r3, .L28
+ 553              	.LVL50:
+ 554              	.L33:
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         }
+ 555              		.loc 1 87 0
+ 556 00c0 0423     		movs	r3, #4
+ 557              	.LVL51:
+ 558              	.L38:
+ 559 00c2 AB65     		str	r3, [r5, #88]
+ 560              	.L32:
+ 561              	.LBE104:
+ 562              	.LBE112:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             next_pos_ = meas_arr_[1].pos + delta_;
+ 563              		.loc 1 89 0
+ 564 00c4 AB6D     		ldr	r3, [r5, #88]
+ 565 00c6 022B     		cmp	r3, #2
+ 566 00c8 04D1     		bne	.L31
+ 567              	.LVL52:
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         else if (state_ == State::MOVING_DOWN)
+ 568              		.loc 1 90 0
+ 569 00ca EA88     		ldrh	r2, [r5, #6]
+ 570 00cc B5F84030 		ldrh	r3, [r5, #64]
+ 571 00d0 1344     		add	r3, r3, r2
+ 572 00d2 04E0     		b	.L39
+ 573              	.LVL53:
+ 574              	.L31:
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             next_pos_ = meas_arr_[0].pos - delta_;
+ 575              		.loc 1 91 0
+ 576 00d4 032B     		cmp	r3, #3
+ 577 00d6 34D1     		bne	.L21
+ 578              	.LVL54:
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****     }
+ 579              		.loc 1 92 0
+ 580 00d8 2B8D     		ldrh	r3, [r5, #40]
+ 581 00da EA88     		ldrh	r2, [r5, #6]
+ 582 00dc 9B1A     		subs	r3, r3, r2
+ 583              	.LVL55:
+ 584              	.L39:
+ 585 00de AB81     		strh	r3, [r5, #12]	@ movhi
+ 586 00e0 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 587              	.LVL56:
+ 588              	.L28:
+ 589              	.LBB113:
+ 590              	.LBB111:
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****                 meas_arr_[idx_best] = meas;
+ 591              		.loc 1 83 0
+ 592 00e4 1823     		movs	r3, #24
+ 593 00e6 03FB0656 		mla	r6, r3, r6, r5
+ 594              	.LVL57:
+ 595 00ea 03FB0C57 		mla	r7, r3, ip, r5
+ 596              	.LVL58:
+ 597 00ee 2836     		adds	r6, r6, #40
+ 598 00f0 B446     		mov	ip, r6
+ 599              	.LVL59:
+ 600 00f2 2837     		adds	r7, r7, #40
+ 601 00f4 BCE80F00 		ldmia	ip!, {r0, r1, r2, r3}
+ 602 00f8 0FC7     		stmia	r7!, {r0, r1, r2, r3}
+ 603 00fa 9CE80300 		ldmia	ip, {r0, r1}
+ 604 00fe 87E80300 		stmia	r7, {r0, r1}
+ 605              	.LVL60:
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             }
+ 606              		.loc 1 84 0
+ 607 0102 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+ 608              	.LVL61:
+ 609 0104 0FC6     		stmia	r6!, {r0, r1, r2, r3}
+ 610 0106 94E80300 		ldmia	r4, {r0, r1}
+ 611 010a 8CE80300 		stmia	ip, {r0, r1}
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****                 state_ = State::DONE;
+ 612              		.loc 1 86 0
+ 613 010e BEF1000F 		cmp	lr, #0
+ 614 0112 D7D1     		bne	.L32
+ 615 0114 D4E7     		b	.L33
+ 616              	.LVL62:
+ 617              	.L27:
+ 618              	.LBE111:
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (is_new_best)
+ 619              		.loc 1 72 0
+ 620 0116 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+ 621              	.LVL63:
+ 622 0118 05F14006 		add	r6, r5, #64
+ 623 011c 0FC6     		stmia	r6!, {r0, r1, r2, r3}
+ 624 011e 94E80300 		ldmia	r4, {r0, r1}
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             else
+ 625              		.loc 1 74 0
+ 626 0122 0223     		movs	r3, #2
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (is_new_best)
+ 627              		.loc 1 72 0
+ 628 0124 86E80300 		stmia	r6, {r0, r1}
+ 629 0128 CBE7     		b	.L38
+ 630              	.LVL64:
+ 631              	.L26:
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             meas_arr_[1] = meas;
+ 632              		.loc 1 71 0
+ 633 012a 012E     		cmp	r6, #1
+ 634 012c ACD1     		bne	.L35
+ 635              	.LVL65:
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (is_new_best)
+ 636              		.loc 1 72 0
+ 637 012e 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+ 638              	.LVL66:
+ 639 0130 05F14006 		add	r6, r5, #64
+ 640 0134 0FC6     		stmia	r6!, {r0, r1, r2, r3}
+ 641 0136 94E80300 		ldmia	r4, {r0, r1}
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         } else {
+ 642              		.loc 1 76 0
+ 643 013a 0323     		movs	r3, #3
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****             if (is_new_best)
+ 644              		.loc 1 72 0
+ 645 013c 86E80300 		stmia	r6, {r0, r1}
+ 646 0140 BFE7     		b	.L38
+ 647              	.LVL67:
+ 648              	.L21:
+ 649 0142 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 650              	.LBE113:
+ 651              	.LBE98:
+ 652              	.LBE114:
+ 653              		.cfi_endproc
+ 654              	.LFE997:
+ 656              		.section	.text._ZN24max_search_contrast_passC2Esstb,"ax",%progbits
+ 657              		.align	1
+ 658              		.global	_ZN24max_search_contrast_passC2Esstb
+ 659              		.thumb
+ 660              		.thumb_func
+ 662              	_ZN24max_search_contrast_passC2Esstb:
+ 663              	.LFB990:
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp ****         bool use_metric1) :
+ 664              		.loc 1 21 0
+ 665              		.cfi_startproc
+ 666              		@ args = 4, pretend = 0, frame = 0
+ 667              		@ frame_needed = 0, uses_anonymous_args = 0
+ 668              	.LVL68:
+ 669 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 670              	.LCFI6:
+ 671              		.cfi_def_cfa_offset 20
+ 672              		.cfi_offset 4, -20
+ 673              		.cfi_offset 5, -16
+ 674              		.cfi_offset 6, -12
+ 675              		.cfi_offset 7, -8
+ 676              		.cfi_offset 14, -4
+ 677              	.LBB115:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** }
+ 678              		.loc 1 27 0
+ 679 0002 0381     		strh	r3, [r0, #8]	@ movhi
+ 680 0004 0026     		movs	r6, #0
+ 681 0006 9DF81430 		ldrb	r3, [sp, #20]	@ zero_extendqisi2
+ 682              	.LVL69:
+ 683 000a 0027     		movs	r7, #0
+ 684 000c 8372     		strb	r3, [r0, #10]
+ 685 000e 0023     		movs	r3, #0
+ 686 0010 054D     		ldr	r5, .L41
+ 687 0012 0560     		str	r5, [r0]
+ 688 0014 8180     		strh	r1, [r0, #4]	@ movhi
+ 689 0016 C280     		strh	r2, [r0, #6]	@ movhi
+ 690 0018 8181     		strh	r1, [r0, #12]	@ movhi
+ 691 001a 0382     		strh	r3, [r0, #16]	@ movhi
+ 692 001c C0E90667 		strd	r6, [r0, #24]
+ 693 0020 C0E90867 		strd	r6, [r0, #32]
+ 694 0024 8365     		str	r3, [r0, #88]
+ 695              	.LBE115:
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/max_search_contrast_pass.cpp **** 
+ 696              		.loc 1 28 0
+ 697 0026 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 698              	.LVL70:
+ 699              	.L42:
+ 700              		.align	2
+ 701              	.L41:
+ 702 0028 08000000 		.word	.LANCHOR0+8
+ 703              		.cfi_endproc
+ 704              	.LFE990:
+ 706              		.global	_ZN24max_search_contrast_passC1Esstb
+ 707              		.thumb_set _ZN24max_search_contrast_passC1Esstb,_ZN24max_search_contrast_passC2Esstb
+ 708              		.global	_ZTV24max_search_contrast_pass
+ 709              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 710              	.LC0:
+ 711 0000 53746172 		.ascii	"Starting contrast max search pass with start_pos: %"
+ 711      74696E67 
+ 711      20636F6E 
+ 711      74726173 
+ 711      74206D61 
+ 712 0033 642C2064 		.ascii	"d, delta: %d\000"
+ 712      656C7461 
+ 712      3A202564 
+ 712      00
+ 713              		.section	.rodata._ZTV24max_search_contrast_pass,"a",%progbits
+ 714              		.align	3
+ 715              		.set	.LANCHOR0,. + 0
+ 718              	_ZTV24max_search_contrast_pass:
+ 719 0000 00000000 		.word	0
+ 720 0004 00000000 		.word	0
+ 721 0008 00000000 		.word	_ZN24max_search_contrast_passD1Ev
+ 722 000c 00000000 		.word	_ZN24max_search_contrast_passD0Ev
+ 723 0010 00000000 		.word	_ZN24max_search_contrast_pass10initializeERK13contrast_pass
+ 724 0014 00000000 		.word	_ZN24max_search_contrast_pass10initializeEv
+ 725 0018 00000000 		.word	_ZNK24max_search_contrast_pass7is_doneEv
+ 726 001c 00000000 		.word	_ZN24max_search_contrast_pass8next_posEv
+ 727 0020 00000000 		.word	_ZNK24max_search_contrast_pass9toleranceEv
+ 728 0024 00000000 		.word	_ZN24max_search_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+ 729 0028 00000000 		.word	_ZNK24max_search_contrast_pass11out_min_posEv
+ 730 002c 00000000 		.word	_ZNK24max_search_contrast_pass11out_max_posEv
+ 731 0030 00000000 		.word	_ZNK24max_search_contrast_pass12out_best_posEv
+ 732 0034 00000000 		.word	_ZNK24max_search_contrast_pass15out_best_metricEv
+ 733 0038 00000000 		.word	_ZNK24max_search_contrast_pass16num_measurementsEv
+ 734 003c 00000000 		.word	_ZNK24max_search_contrast_pass12measurementsEv
+ 735              		.text
+ 736              	.Letext0:
+ 737              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 738              		.file 5 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 739              		.file 6 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+ 740              		.file 7 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/lock.h"
+ 741              		.file 8 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/_types.h"
+ 742              		.file 9 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/sys/reent.h"
+ 743              		.file 10 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stdarg.
+ 744              		.file 11 "<built-in>"
+ 745              		.file 12 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/except
+ 746              		.file 13 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/arm-none-ea
+ 747              		.file 14 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cwchar"
+ 748              		.file 15 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 749              		.file 16 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/clocale"
+ 750              		.file 17 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/array"
+ 751              		.file 18 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/exception"
+ 752              		.file 19 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/debug/debug
+ 753              		.file 20 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/predef
+ 754              		.file 21 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/ext/new_all
+ 755              		.file 22 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/ext/numeric
+ 756              		.file 23 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/wchar.h"
+ 757              		.file 24 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/move.h
+ 758              		.file 25 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/locale.h"
+ 759              		.file 26 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/bits/stl_pa
+ 760              		.file 27 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/light_system.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 max_search_contrast_pass.cpp
+     /tmp/cckh691b.s:19     .text._ZN24max_search_contrast_pass10initializeERK13contrast_pass:00000000 $t
+     /tmp/cckh691b.s:24     .text._ZN24max_search_contrast_pass10initializeERK13contrast_pass:00000000 _ZN24max_search_contrast_pass10initializeERK13contrast_pass
+     /tmp/cckh691b.s:70     .text._ZNK24max_search_contrast_pass7is_doneEv:00000000 $t
+     /tmp/cckh691b.s:75     .text._ZNK24max_search_contrast_pass7is_doneEv:00000000 _ZNK24max_search_contrast_pass7is_doneEv
+     /tmp/cckh691b.s:95     .text._ZN24max_search_contrast_pass8next_posEv:00000000 $t
+     /tmp/cckh691b.s:100    .text._ZN24max_search_contrast_pass8next_posEv:00000000 _ZN24max_search_contrast_pass8next_posEv
+     /tmp/cckh691b.s:116    .text._ZNK24max_search_contrast_pass9toleranceEv:00000000 $t
+     /tmp/cckh691b.s:121    .text._ZNK24max_search_contrast_pass9toleranceEv:00000000 _ZNK24max_search_contrast_pass9toleranceEv
+     /tmp/cckh691b.s:137    .text._ZNK24max_search_contrast_pass11out_min_posEv:00000000 $t
+     /tmp/cckh691b.s:142    .text._ZNK24max_search_contrast_pass11out_min_posEv:00000000 _ZNK24max_search_contrast_pass11out_min_posEv
+     /tmp/cckh691b.s:158    .text._ZNK24max_search_contrast_pass11out_max_posEv:00000000 $t
+     /tmp/cckh691b.s:163    .text._ZNK24max_search_contrast_pass11out_max_posEv:00000000 _ZNK24max_search_contrast_pass11out_max_posEv
+     /tmp/cckh691b.s:179    .text._ZNK24max_search_contrast_pass12out_best_posEv:00000000 $t
+     /tmp/cckh691b.s:184    .text._ZNK24max_search_contrast_pass12out_best_posEv:00000000 _ZNK24max_search_contrast_pass12out_best_posEv
+     /tmp/cckh691b.s:200    .text._ZNK24max_search_contrast_pass15out_best_metricEv:00000000 $t
+     /tmp/cckh691b.s:205    .text._ZNK24max_search_contrast_pass15out_best_metricEv:00000000 _ZNK24max_search_contrast_pass15out_best_metricEv
+     /tmp/cckh691b.s:231    .text._ZNK24max_search_contrast_pass16num_measurementsEv:00000000 $t
+     /tmp/cckh691b.s:236    .text._ZNK24max_search_contrast_pass16num_measurementsEv:00000000 _ZNK24max_search_contrast_pass16num_measurementsEv
+     /tmp/cckh691b.s:252    .text._ZNK24max_search_contrast_pass12measurementsEv:00000000 $t
+     /tmp/cckh691b.s:257    .text._ZNK24max_search_contrast_pass12measurementsEv:00000000 _ZNK24max_search_contrast_pass12measurementsEv
+     /tmp/cckh691b.s:273    .text._ZN24max_search_contrast_passD2Ev:00000000 $t
+     /tmp/cckh691b.s:278    .text._ZN24max_search_contrast_passD2Ev:00000000 _ZN24max_search_contrast_passD2Ev
+     /tmp/cckh691b.s:278    .text._ZN24max_search_contrast_passD2Ev:00000000 _ZN24max_search_contrast_passD1Ev
+     /tmp/cckh691b.s:295    .text._ZN24max_search_contrast_pass10initializeEv:00000000 $t
+     /tmp/cckh691b.s:300    .text._ZN24max_search_contrast_pass10initializeEv:00000000 _ZN24max_search_contrast_pass10initializeEv
+     /tmp/cckh691b.s:352    .text._ZN24max_search_contrast_pass10initializeEv:00000030 $d
+     /tmp/cckh691b.s:358    .text._ZN24max_search_contrast_passD0Ev:00000000 $t
+     /tmp/cckh691b.s:363    .text._ZN24max_search_contrast_passD0Ev:00000000 _ZN24max_search_contrast_passD0Ev
+     /tmp/cckh691b.s:387    .text._ZN24max_search_contrast_passD0Ev:0000000c $d
+     /tmp/cckh691b.s:392    .text._ZN24max_search_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:00000000 $t
+     /tmp/cckh691b.s:397    .text._ZN24max_search_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:00000000 _ZN24max_search_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+     /tmp/cckh691b.s:657    .text._ZN24max_search_contrast_passC2Esstb:00000000 $t
+     /tmp/cckh691b.s:662    .text._ZN24max_search_contrast_passC2Esstb:00000000 _ZN24max_search_contrast_passC2Esstb
+     /tmp/cckh691b.s:702    .text._ZN24max_search_contrast_passC2Esstb:00000028 $d
+     /tmp/cckh691b.s:662    .text._ZN24max_search_contrast_passC2Esstb:00000000 _ZN24max_search_contrast_passC1Esstb
+     /tmp/cckh691b.s:718    .rodata._ZTV24max_search_contrast_pass:00000000 _ZTV24max_search_contrast_pass
+     /tmp/cckh691b.s:714    .rodata._ZTV24max_search_contrast_pass:00000000 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 _ZN24max_search_contrast_passD5Ev
+
+UNDEFINED SYMBOLS
+slogf
+_ZdlPv

@@ -1,0 +1,1638 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"gen_heap.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.prvInsertBlockIntoFreeList,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	prvInsertBlockIntoFreeList:
+  24              	.LFB9:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     FreeRTOS V8.2.1 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     All rights reserved
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     This file is part of the FreeRTOS distribution.
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     FreeRTOS is free software; you can redistribute it and/or modify it under
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     the terms of the GNU General Public License (version 2) as published by the
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     Free Software Foundation >>!AND MODIFIED BY!<< the FreeRTOS exception.
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     ***************************************************************************
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     >>!   distribute a combined work that includes FreeRTOS without being   !<<
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     >>!   obliged to provide the source code for proprietary components     !<<
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     >>!   outside of the FreeRTOS kernel.                                   !<<
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     ***************************************************************************
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     link: http://www.freertos.org/a00114.html
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     ***************************************************************************
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *                                                                       *
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    FreeRTOS provides completely free yet professionally developed,    *
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    robust, strictly quality controlled, supported, and cross          *
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    platform software that is more than just the market leader, it     *
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    is the industry's de facto standard.                               *
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *                                                                       *
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    Help yourself get started quickly while simultaneously helping     *
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    tutorial book, reference manual, or both:                          *
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *    http://www.FreeRTOS.org/Documentation                              *
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****      *                                                                       *
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     ***************************************************************************
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     the FAQ page "My application does not run, what could be wrong?".  Have you
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     defined configASSERT()?
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     http://www.FreeRTOS.org/support - In return for receiving this top quality
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     embedded software for free we request you assist our global community by
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     participating in the support forum.
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     http://www.FreeRTOS.org/training - Investing in training allows your team to
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     be as productive as possible as early as possible.  Now you can receive
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     Ltd, and the world's leading authority on the world's leading RTOS.
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     compatible FAT file system, and our tiny thread aware UDP/IP stack.
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     licenses offer ticketed support, indemnification and commercial middleware.
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     engineered and independently SIL3 certified version for use in safety and
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     mission critical applications that require provable dependability.
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     1 tab == 4 spaces!
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** */
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * A sample implementation of pvPortMalloc() that allows the heap to be defined
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * across multiple non-contigous blocks and combines (coalescences) adjacent
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * memory blocks as they are freed.
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * See heap_1.c, heap_2.c, heap_3.c and heap_4.c for alternative
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * implementations, and the memory management pages of http://www.FreeRTOS.org
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * for more information.
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * Usage notes:
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * vPortDefineHeapRegions() ***must*** be called before pvPortMalloc().
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * pvPortMalloc() will be called if any task objects (tasks, queues, event
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * groups, etc.) are created, therefore vPortDefineHeapRegions() ***must*** be
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * called before any other objects are defined.
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * vPortDefineHeapRegions() takes a single parameter.  The parameter is an array
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * of HeapRegion_t structures.  HeapRegion_t is defined in portable.h as
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * typedef struct HeapRegion
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * {
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *	uint8_t *pucStartAddress; << Start address of a block of memory that will be part of the heap.
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *	size_t xSizeInBytes;	  << Size of the block of memory.
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * } HeapRegion_t;
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * The array is terminated using a NULL zero sized region definition, and the
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * memory regions defined in the array ***must*** appear in address order from
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * low address to high address.  So the following is a valid example of how
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * to use the function.
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * HeapRegion_t xHeapRegions[] =
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * {
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * 	{ ( uint8_t * ) 0x80000000UL, 0x10000 }, << Defines a block of 0x10000 bytes starting at addres
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * 	{ ( uint8_t * ) 0x90000000UL, 0xa0000 }, << Defines a block of 0xa0000 bytes starting at addres
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * 	{ NULL, 0 }                << Terminates the array.
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * };
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * vPortDefineHeapRegions( xHeapRegions ); << Pass the array into vPortDefineHeapRegions().
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * Note 0x80000000 is the lower address so appears in the array first.
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  *
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  */
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** #include <stdlib.h>
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** all the API functions to use the MPU wrappers.  That should only be done when
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** task.h is included from an application file. */
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** #define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** #include "FreeRTOS.h"
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** #include "task.h"
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** #include "gen_heap.h"
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** #undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /* Assumes 8bit bytes! */
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** #define gen_heapBITS_PER_BYTE		( ( size_t ) 8 )
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** heap_attribute_t default_heap_attribute;
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** size_t xPortGetMinimumEverFreeHeapSize()
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     return gen_xPortGetMinimumEverFreeHeapSize(&default_heap_attribute);
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** size_t xPortGetFreeHeapSize()
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     return gen_xPortGetFreeHeapSize(&default_heap_attribute);
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** void vPortFree1(void *pv, const char *file, int line)
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     gen_vPortFree1(&default_heap_attribute, pv, file, line);
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** void *pvPortMalloc1(size_t xWantedSize, const char *file, int line)
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     return gen_pvPortMalloc1(&default_heap_attribute, xWantedSize, file, line);
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * Inserts a block of memory that is being freed into the correct position in
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * the list of free memory blocks.  The block being freed will be merged with
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * the block in front it and/or the block behind it if the memory blocks are
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  * adjacent to each other.
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****  */
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** static void prvInsertBlockIntoFreeList(heap_attribute_t * heap_attribute, heap_BlockLink_t *pxBlock
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /* Gets set to the top bit of an size_t type.  When this bit in the xBlockSize
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** member of an BlockLink_t structure is set then the block belongs to the
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** application.  When the bit is free the block is still part of the free heap
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** space. */
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** static const size_t xBlockAllocatedBit = ( ( size_t ) 1 ) << ( ( sizeof( size_t ) * gen_heapBITS_PE
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** void *gen_pvPortMalloc1(heap_attribute_t * heap_attribute, size_t xWantedSize, const char *func, in
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_BlockLink_t *pxBlock = NULL, *pxPreviousBlock, *pxNewBlockLink;
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	void *pvReturn = NULL;
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	/* The heap must be initialised before the first call to
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	prvPortMalloc(). */
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	configASSERT( heap_attribute->pxEnd );
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	vTaskSuspendAll();
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* Check the requested block size is not so large that the top bit is
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		set.  The top bit of the block size member of the BlockLink_t structure
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		is used to determine who owns the block - the application or the
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		kernel, so it must be free. */
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if( ( xWantedSize & xBlockAllocatedBit ) == 0 )
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			/* The wanted size is increased so it can contain a BlockLink_t
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			structure in addition to the requested amount of bytes. */
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			if( xWantedSize > 0 )
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				xWantedSize += heap_attribute->uxHeapStructSize;
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				/* Ensure that blocks are always aligned to the required number
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				of bytes. */
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				if( ( xWantedSize & heap_attribute->xByteAlignmentMask ) != 0x00 )
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					/* Byte alignment required. */
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					xWantedSize += ( heap_attribute->xByteAlignment - ( xWantedSize & heap_attribute->xByteAlignme
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				else
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					mtCOVERAGE_TEST_MARKER();
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			}
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			else
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				mtCOVERAGE_TEST_MARKER();
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			}
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			if( ( xWantedSize > 0 ) && ( xWantedSize <= heap_attribute->xFreeBytesRemaining ) )
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				/* Traverse the list from the start	(lowest address) block until
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				one	of adequate size is found. */
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				pxPreviousBlock = &heap_attribute->xStart;
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				pxBlock = heap_attribute->xStart.pxNextFreeBlock;
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				while( ( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL ) )
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pxPreviousBlock = pxBlock;
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pxBlock = pxBlock->pxNextFreeBlock;
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				/* If the end marker was reached then a block of adequate size
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				was	not found. */
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				if( pxBlock != heap_attribute->pxEnd )
+ 226:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					/* Return the memory space pointed to - jumping over the
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					BlockLink_t structure at its start. */
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pvReturn = ( void * ) ( ( ( uint8_t * ) pxPreviousBlock->pxNextFreeBlock ) + heap_attribute->u
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 231:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					/* This block is being returned for use so must be taken out
+ 232:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					of the list of free blocks. */
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pxPreviousBlock->pxNextFreeBlock = pxBlock->pxNextFreeBlock;
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					/* If the block is larger than required it can be split into
+ 236:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					two. */
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					if( ( pxBlock->xBlockSize - xWantedSize ) > 2 * heap_attribute->uxHeapStructSize )
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						/* This block is to be split into two.  Create a new
+ 240:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						block following the number of bytes requested. The void
+ 241:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						cast is used to prevent byte alignment warnings from the
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						compiler. */
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						pxNewBlockLink = ( void * ) ( ( ( uint8_t * ) pxBlock ) + xWantedSize );
+ 244:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						/* Calculate the sizes of two blocks split from the
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						single block. */
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						pxNewBlockLink->xBlockSize = pxBlock->xBlockSize - xWantedSize;
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						pxBlock->xBlockSize = xWantedSize;
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 250:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						/* Insert the new block into the list of free blocks. */
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						prvInsertBlockIntoFreeList(heap_attribute, ( pxNewBlockLink ) );
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					}
+ 253:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					else
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						mtCOVERAGE_TEST_MARKER();
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					}
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					heap_attribute->xFreeBytesRemaining -= pxBlock->xBlockSize;
+ 259:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					if( heap_attribute->xFreeBytesRemaining < heap_attribute->xMinimumEverFreeBytesRemaining )
+ 261:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 262:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						heap_attribute->xMinimumEverFreeBytesRemaining = heap_attribute->xFreeBytesRemaining;
+ 263:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					}
+ 264:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					else
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 266:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						mtCOVERAGE_TEST_MARKER();
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					}
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 269:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					/* The block is being returned - it is allocated and owned
+ 270:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					by the application and has no "next" block. */
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pxBlock->xBlockSize |= xBlockAllocatedBit;
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pxBlock->pxNextFreeBlock = NULL;
+ 273:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				else
+ 275:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 276:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					mtCOVERAGE_TEST_MARKER();
+ 277:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			}
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			else
+ 280:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				mtCOVERAGE_TEST_MARKER();
+ 282:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			}
+ 283:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 284:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		else
+ 285:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 286:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			mtCOVERAGE_TEST_MARKER();
+ 287:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 288:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 289:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		traceMALLOC( pvReturn, xWantedSize );
+ 290:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	( void ) xTaskResumeAll();
+ 292:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 293:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	#if( configUSE_MALLOC_FAILED_HOOK == 1 )
+ 294:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if( pvReturn == NULL )
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 297:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			extern void vApplicationMallocFailedHook( void );
+ 298:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			printf("\r\nError in gen_pvPortMalloc() when called from %s [%d]. "
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			       "Wanted size: %u, first free block addr: %x, size: %u, total free size: %u\r\n",
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			        func, line, (unsigned int)xWantedSize, (unsigned int)(heap_attribute->xStart.pxNextFreeB
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			        (unsigned int)(heap_attribute->xStart.pxNextFreeBlock->xBlockSize), (unsigned int)(heap_
+ 302:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			vApplicationMallocFailedHook();
+ 303:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 304:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		else
+ 305:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 306:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			mtCOVERAGE_TEST_MARKER();
+ 307:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 308:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 309:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	#endif
+ 310:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 311:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	return pvReturn;
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 313:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 314:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** void gen_vPortFree1(heap_attribute_t * heap_attribute, void *pv, const char *func, int line)
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     uint8_t *puc = ( uint8_t * ) pv;
+ 318:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     heap_BlockLink_t *pxLink;
+ 319:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	if( pv != NULL )
+ 321:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 322:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* The memory being freed will have an BlockLink_t structure immediately
+ 323:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		before it. */
+ 324:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		puc -= heap_attribute->uxHeapStructSize;
+ 325:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 326:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* This casting is to keep the compiler from issuing warnings. */
+ 327:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxLink = ( void * ) puc;
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if ((( pxLink->xBlockSize & xBlockAllocatedBit ) == 0 ) || (pxLink->pxNextFreeBlock != NULL))
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****             printf("\r\nError in gen_vPortFree() when called from %s [%d]. p to free: %x, xBlockSiz
+ 332:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****                     func, line, (int)pv, (int)pxLink->xBlockSize, (int)pxLink->pxNextFreeBlock);
+ 333:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		configASSERT( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 );
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if( ( pxLink->xBlockSize & xBlockAllocatedBit ) != 0 )
+ 338:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			if( pxLink->pxNextFreeBlock == NULL )
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				/* The block is being returned to the heap - it is no longer
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				allocated. */
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				pxLink->xBlockSize &= ~xBlockAllocatedBit;
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				vTaskSuspendAll();
+ 346:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 347:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					/* Add this block to the list of free blocks. */
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					heap_attribute->xFreeBytesRemaining += pxLink->xBlockSize;
+ 349:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					traceFREE( pv, pxLink->xBlockSize );
+ 350:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					prvInsertBlockIntoFreeList(heap_attribute, ( ( heap_BlockLink_t * ) pxLink ) );
+ 351:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 352:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				( void ) xTaskResumeAll();
+ 353:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			}
+ 354:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			else
+ 355:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 356:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				mtCOVERAGE_TEST_MARKER();
+ 357:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			}
+ 358:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 359:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		else
+ 360:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 361:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			mtCOVERAGE_TEST_MARKER();
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 364:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 365:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 366:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 367:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** size_t gen_xPortGetFreeHeapSize( heap_attribute_t * heap_attribute )
+ 368:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 369:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	return heap_attribute->xFreeBytesRemaining;
+ 370:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 371:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 372:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 373:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** size_t gen_xPortGetMinimumEverFreeHeapSize( heap_attribute_t * heap_attribute )
+ 374:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 375:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	return heap_attribute->xMinimumEverFreeBytesRemaining;
+ 376:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 377:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 378:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 379:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** static void prvInsertBlockIntoFreeList(heap_attribute_t * heap_attribute, heap_BlockLink_t *pxBlock
+ 380:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+  26              		.loc 1 380 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+ 381:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_BlockLink_t *pxIterator;
+ 382:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	uint8_t *puc;
+ 383:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 384:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	/* Iterate through the list until a block is found that has a higher address
+ 385:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	than the block being inserted. */
+ 386:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	for( pxIterator = &(heap_attribute->xStart); pxIterator->pxNextFreeBlock < pxBlockToInsert; pxIter
+  31              		.loc 1 386 0
+  32 0000 0346     		mov	r3, r0
+  33              	.LVL1:
+ 380:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_BlockLink_t *pxIterator;
+  34              		.loc 1 380 0
+  35 0002 30B5     		push	{r4, r5, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 12
+  38              		.cfi_offset 4, -12
+  39              		.cfi_offset 5, -8
+  40              		.cfi_offset 14, -4
+  41              	.LVL2:
+  42              	.L2:
+  43              		.loc 1 386 0 discriminator 1
+  44 0004 1A68     		ldr	r2, [r3]
+  45 0006 8A42     		cmp	r2, r1
+  46 0008 01D2     		bcs	.L10
+  47 000a 1346     		mov	r3, r2
+  48              	.LVL3:
+  49 000c FAE7     		b	.L2
+  50              	.LVL4:
+  51              	.L10:
+ 387:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 388:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* Nothing to do here, just iterate to the right position. */
+ 389:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 390:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 391:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	/* Do the block being inserted, and the block it is being inserted after
+ 392:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	make a contiguous block of memory? */
+ 393:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	puc = ( uint8_t * ) pxIterator;
+ 394:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	if( ( puc + pxIterator->xBlockSize ) == ( uint8_t * ) pxBlockToInsert )
+  52              		.loc 1 394 0
+  53 000e 5C68     		ldr	r4, [r3, #4]
+  54 0010 1D19     		adds	r5, r3, r4
+  55 0012 8D42     		cmp	r5, r1
+ 395:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 396:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxIterator->xBlockSize += pxBlockToInsert->xBlockSize;
+  56              		.loc 1 396 0
+  57 0014 01BF     		itttt	eq
+  58 0016 4968     		ldreq	r1, [r1, #4]
+  59              	.LVL5:
+  60 0018 6418     		addeq	r4, r4, r1
+  61 001a 1946     		moveq	r1, r3
+  62 001c 5C60     		streq	r4, [r3, #4]
+  63              	.LVL6:
+ 397:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxBlockToInsert = pxIterator;
+ 398:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 399:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	else
+ 400:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 401:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		mtCOVERAGE_TEST_MARKER();
+ 402:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 403:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 404:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	/* Do the block being inserted, and the block it is being inserted before
+ 405:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	make a contiguous block of memory? */
+ 406:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	puc = ( uint8_t * ) pxBlockToInsert;
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	if( ( puc + pxBlockToInsert->xBlockSize ) == ( uint8_t * ) pxIterator->pxNextFreeBlock )
+  64              		.loc 1 407 0
+  65 001e 4C68     		ldr	r4, [r1, #4]
+  66 0020 0D19     		adds	r5, r1, r4
+  67 0022 9542     		cmp	r5, r2
+  68 0024 06D1     		bne	.L4
+ 408:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 409:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if( pxIterator->pxNextFreeBlock != heap_attribute->pxEnd )
+  69              		.loc 1 409 0
+  70 0026 8068     		ldr	r0, [r0, #8]
+  71              	.LVL7:
+  72 0028 8242     		cmp	r2, r0
+ 410:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 411:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			/* Form one big block from the two blocks. */
+ 412:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			pxBlockToInsert->xBlockSize += pxIterator->pxNextFreeBlock->xBlockSize;
+  73              		.loc 1 412 0
+  74 002a 1FBF     		itttt	ne
+  75 002c 5068     		ldrne	r0, [r2, #4]
+ 413:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			pxBlockToInsert->pxNextFreeBlock = pxIterator->pxNextFreeBlock->pxNextFreeBlock;
+  76              		.loc 1 413 0
+  77 002e 1268     		ldrne	r2, [r2]
+ 412:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			pxBlockToInsert->pxNextFreeBlock = pxIterator->pxNextFreeBlock->pxNextFreeBlock;
+  78              		.loc 1 412 0
+  79 0030 2418     		addne	r4, r4, r0
+  80 0032 4C60     		strne	r4, [r1, #4]
+  81              	.L4:
+ 414:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 415:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		else
+ 416:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 417:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			pxBlockToInsert->pxNextFreeBlock = heap_attribute->pxEnd;
+ 418:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 419:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 420:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	else
+ 421:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 422:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxBlockToInsert->pxNextFreeBlock = pxIterator->pxNextFreeBlock;
+ 423:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 424:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 425:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	/* If the block being inserted plugged a gab, so was merged with the block
+ 426:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	before and the block after, then it's pxNextFreeBlock pointer will have
+ 427:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	already been set, and should not be set here as that would make it point
+ 428:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	to itself. */
+ 429:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	if( pxIterator != pxBlockToInsert )
+  82              		.loc 1 429 0
+  83 0034 8B42     		cmp	r3, r1
+ 422:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+  84              		.loc 1 422 0
+  85 0036 0A60     		str	r2, [r1]
+ 430:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 431:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxIterator->pxNextFreeBlock = pxBlockToInsert;
+  86              		.loc 1 431 0
+  87 0038 18BF     		it	ne
+  88 003a 1960     		strne	r1, [r3]
+  89 003c 30BD     		pop	{r4, r5, pc}
+  90              		.cfi_endproc
+  91              	.LFE9:
+  93              		.section	.text.xPortGetMinimumEverFreeHeapSize,"ax",%progbits
+  94              		.align	1
+  95              		.global	xPortGetMinimumEverFreeHeapSize
+  96              		.thumb
+  97              		.thumb_func
+  99              	xPortGetMinimumEverFreeHeapSize:
+ 100              	.LFB1:
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     return gen_xPortGetMinimumEverFreeHeapSize(&default_heap_attribute);
+ 101              		.loc 1 134 0
+ 102              		.cfi_startproc
+ 103              		@ args = 0, pretend = 0, frame = 0
+ 104              		@ frame_needed = 0, uses_anonymous_args = 0
+ 105              		@ link register save eliminated.
+ 106              	.LVL8:
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 107              		.loc 1 136 0
+ 108 0000 014B     		ldr	r3, .L12
+ 109 0002 1869     		ldr	r0, [r3, #16]
+ 110 0004 7047     		bx	lr
+ 111              	.L13:
+ 112 0006 00BF     		.align	2
+ 113              	.L12:
+ 114 0008 00000000 		.word	.LANCHOR0
+ 115              		.cfi_endproc
+ 116              	.LFE1:
+ 118              		.section	.text.xPortGetFreeHeapSize,"ax",%progbits
+ 119              		.align	1
+ 120              		.global	xPortGetFreeHeapSize
+ 121              		.thumb
+ 122              		.thumb_func
+ 124              	xPortGetFreeHeapSize:
+ 125              	.LFB2:
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     return gen_xPortGetFreeHeapSize(&default_heap_attribute);
+ 126              		.loc 1 139 0
+ 127              		.cfi_startproc
+ 128              		@ args = 0, pretend = 0, frame = 0
+ 129              		@ frame_needed = 0, uses_anonymous_args = 0
+ 130              		@ link register save eliminated.
+ 131              	.LVL9:
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 132              		.loc 1 141 0
+ 133 0000 014B     		ldr	r3, .L15
+ 134 0002 D868     		ldr	r0, [r3, #12]
+ 135 0004 7047     		bx	lr
+ 136              	.L16:
+ 137 0006 00BF     		.align	2
+ 138              	.L15:
+ 139 0008 00000000 		.word	.LANCHOR0
+ 140              		.cfi_endproc
+ 141              	.LFE2:
+ 143              		.section	.text.gen_pvPortMalloc1,"ax",%progbits
+ 144              		.align	1
+ 145              		.global	gen_pvPortMalloc1
+ 146              		.thumb
+ 147              		.thumb_func
+ 149              	gen_pvPortMalloc1:
+ 150              	.LFB5:
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_BlockLink_t *pxBlock = NULL, *pxPreviousBlock, *pxNewBlockLink;
+ 151              		.loc 1 172 0
+ 152              		.cfi_startproc
+ 153              		@ args = 0, pretend = 0, frame = 0
+ 154              		@ frame_needed = 0, uses_anonymous_args = 0
+ 155              	.LVL10:
+ 156 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+ 157              	.LCFI1:
+ 158              		.cfi_def_cfa_offset 28
+ 159              		.cfi_offset 4, -28
+ 160              		.cfi_offset 5, -24
+ 161              		.cfi_offset 6, -20
+ 162              		.cfi_offset 7, -16
+ 163              		.cfi_offset 8, -12
+ 164              		.cfi_offset 9, -8
+ 165              		.cfi_offset 14, -4
+ 166 0004 9846     		mov	r8, r3
+ 167 0006 85B0     		sub	sp, sp, #20
+ 168              	.LCFI2:
+ 169              		.cfi_def_cfa_offset 48
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 170              		.loc 1 178 0
+ 171 0008 8368     		ldr	r3, [r0, #8]
+ 172              	.LVL11:
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_BlockLink_t *pxBlock = NULL, *pxPreviousBlock, *pxNewBlockLink;
+ 173              		.loc 1 172 0
+ 174 000a 0546     		mov	r5, r0
+ 175 000c 0C46     		mov	r4, r1
+ 176 000e 9146     		mov	r9, r2
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 177              		.loc 1 178 0
+ 178 0010 53B9     		cbnz	r3, .L18
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 179              		.loc 1 178 0 is_stmt 0 discriminator 1
+ 180              	@ 178 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 181 0012 72B6     		CPSID i   
+ 182 0014 BFF34F8F 	DSB       
+ 183 0018 BFF36F8F 	ISB         
+ 184              	@ 0 "" 2
+ 185              		.thumb
+ 186 001c 2D48     		ldr	r0, .L37
+ 187              	.LVL12:
+ 188 001e B222     		movs	r2, #178
+ 189              	.LVL13:
+ 190 0020 2D49     		ldr	r1, .L37+4
+ 191              	.LVL14:
+ 192 0022 2E4B     		ldr	r3, .L37+8
+ 193 0024 9847     		blx	r3
+ 194              	.LVL15:
+ 195              	.L19:
+ 196 0026 FEE7     		b	.L19
+ 197              	.LVL16:
+ 198              	.L18:
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 199              		.loc 1 180 0 is_stmt 1
+ 200 0028 2D4B     		ldr	r3, .L37+12
+ 201 002a 9847     		blx	r3
+ 202              	.LVL17:
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 203              		.loc 1 186 0
+ 204 002c 002C     		cmp	r4, #0
+ 205 002e 3ADB     		blt	.L32
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 206              		.loc 1 190 0
+ 207 0030 37D0     		beq	.L31
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 208              		.loc 1 192 0
+ 209 0032 EA69     		ldr	r2, [r5, #28]
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 210              		.loc 1 196 0
+ 211 0034 AB69     		ldr	r3, [r5, #24]
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 212              		.loc 1 192 0
+ 213 0036 1444     		add	r4, r4, r2
+ 214              	.LVL18:
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 215              		.loc 1 196 0
+ 216 0038 2340     		ands	r3, r4, r3
+ 217 003a 1EBF     		ittt	ne
+ 218 003c 6969     		ldrne	r1, [r5, #20]
+ 219 003e 6418     		addne	r4, r4, r1
+ 220              	.LVL19:
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 221              		.loc 1 199 0
+ 222 0040 E41A     		subne	r4, r4, r3
+ 223              	.LVL20:
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 224              		.loc 1 211 0
+ 225 0042 002C     		cmp	r4, #0
+ 226 0044 2DD0     		beq	.L31
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			{
+ 227              		.loc 1 211 0 is_stmt 0 discriminator 1
+ 228 0046 EB68     		ldr	r3, [r5, #12]
+ 229 0048 9C42     		cmp	r4, r3
+ 230 004a 2CD8     		bhi	.L32
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				while( ( pxBlock->xBlockSize < xWantedSize ) && ( pxBlock->pxNextFreeBlock != NULL ) )
+ 231              		.loc 1 216 0 is_stmt 1
+ 232 004c 2E68     		ldr	r6, [r5]
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				pxBlock = heap_attribute->xStart.pxNextFreeBlock;
+ 233              		.loc 1 215 0
+ 234 004e 2846     		mov	r0, r5
+ 235              	.LVL21:
+ 236              	.L24:
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 237              		.loc 1 217 0
+ 238 0050 7368     		ldr	r3, [r6, #4]
+ 239 0052 A342     		cmp	r3, r4
+ 240 0054 03D3     		bcc	.L22
+ 241              	.L25:
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 242              		.loc 1 225 0
+ 243 0056 A968     		ldr	r1, [r5, #8]
+ 244 0058 8E42     		cmp	r6, r1
+ 245 005a 06D1     		bne	.L23
+ 246 005c 23E0     		b	.L32
+ 247              	.L22:
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 248              		.loc 1 217 0 discriminator 1
+ 249 005e 3168     		ldr	r1, [r6]
+ 250 0060 0029     		cmp	r1, #0
+ 251 0062 F8D0     		beq	.L25
+ 252 0064 3046     		mov	r0, r6
+ 253 0066 0E46     		mov	r6, r1
+ 254              	.LVL22:
+ 255 0068 F2E7     		b	.L24
+ 256              	.LVL23:
+ 257              	.L23:
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 258              		.loc 1 237 0
+ 259 006a 1B1B     		subs	r3, r3, r4
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 260              		.loc 1 229 0
+ 261 006c 0768     		ldr	r7, [r0]
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 262              		.loc 1 237 0
+ 263 006e B3EB420F 		cmp	r3, r2, lsl #1
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 264              		.loc 1 233 0
+ 265 0072 3168     		ldr	r1, [r6]
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 266              		.loc 1 229 0
+ 267 0074 1744     		add	r7, r7, r2
+ 268              	.LVL24:
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 269              		.loc 1 233 0
+ 270 0076 0160     		str	r1, [r0]
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 271              		.loc 1 237 0
+ 272 0078 05D9     		bls	.L26
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 273              		.loc 1 243 0
+ 274 007a 3119     		adds	r1, r6, r4
+ 275              	.LVL25:
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					}
+ 276              		.loc 1 251 0
+ 277 007c 2846     		mov	r0, r5
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 						pxBlock->xBlockSize = xWantedSize;
+ 278              		.loc 1 247 0
+ 279 007e 4B60     		str	r3, [r1, #4]
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 280              		.loc 1 248 0
+ 281 0080 7460     		str	r4, [r6, #4]
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					}
+ 282              		.loc 1 251 0
+ 283 0082 184B     		ldr	r3, .L37+16
+ 284 0084 9847     		blx	r3
+ 285              	.LVL26:
+ 286              	.L26:
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 287              		.loc 1 258 0
+ 288 0086 7268     		ldr	r2, [r6, #4]
+ 289 0088 EB68     		ldr	r3, [r5, #12]
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 290              		.loc 1 260 0
+ 291 008a 2969     		ldr	r1, [r5, #16]
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 292              		.loc 1 258 0
+ 293 008c 9B1A     		subs	r3, r3, r2
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					{
+ 294              		.loc 1 260 0
+ 295 008e 8B42     		cmp	r3, r1
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 296              		.loc 1 258 0
+ 297 0090 EB60     		str	r3, [r5, #12]
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pxBlock->pxNextFreeBlock = NULL;
+ 298              		.loc 1 271 0
+ 299 0092 42F00042 		orr	r2, r2, #-2147483648
+ 262:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					}
+ 300              		.loc 1 262 0
+ 301 0096 38BF     		it	cc
+ 302 0098 2B61     		strcc	r3, [r5, #16]
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 303              		.loc 1 272 0
+ 304 009a 0023     		movs	r3, #0
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					pxBlock->pxNextFreeBlock = NULL;
+ 305              		.loc 1 271 0
+ 306 009c 7260     		str	r2, [r6, #4]
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 307              		.loc 1 272 0
+ 308 009e 3360     		str	r3, [r6]
+ 309 00a0 02E0     		b	.L20
+ 310              	.LVL27:
+ 311              	.L31:
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 312              		.loc 1 174 0
+ 313 00a2 2746     		mov	r7, r4
+ 314 00a4 00E0     		b	.L20
+ 315              	.LVL28:
+ 316              	.L32:
+ 317 00a6 0027     		movs	r7, #0
+ 318              	.LVL29:
+ 319              	.L20:
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 320              		.loc 1 291 0
+ 321 00a8 0F4B     		ldr	r3, .L37+20
+ 322 00aa 9847     		blx	r3
+ 323              	.LVL30:
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 324              		.loc 1 295 0
+ 325 00ac 6FB9     		cbnz	r7, .L28
+ 326              	.LVL31:
+ 327              	.LBB6:
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			        (unsigned int)(heap_attribute->xStart.pxNextFreeBlock->xBlockSize), (unsigned int)(heap_
+ 328              		.loc 1 300 0
+ 329 00ae 2B68     		ldr	r3, [r5]
+ 298:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			       "Wanted size: %u, first free block addr: %x, size: %u, total free size: %u\r\n",
+ 330              		.loc 1 298 0
+ 331 00b0 4946     		mov	r1, r9
+ 332 00b2 0093     		str	r3, [sp]
+ 333 00b4 4246     		mov	r2, r8
+ 334 00b6 0D48     		ldr	r0, .L37+24
+ 335 00b8 5B68     		ldr	r3, [r3, #4]
+ 336 00ba 0193     		str	r3, [sp, #4]
+ 337 00bc EB68     		ldr	r3, [r5, #12]
+ 338 00be 0293     		str	r3, [sp, #8]
+ 339 00c0 2346     		mov	r3, r4
+ 340 00c2 064C     		ldr	r4, .L37+8
+ 341              	.LVL32:
+ 342 00c4 A047     		blx	r4
+ 343              	.LVL33:
+ 302:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 344              		.loc 1 302 0
+ 345 00c6 0A4B     		ldr	r3, .L37+28
+ 346 00c8 9847     		blx	r3
+ 347              	.LVL34:
+ 348              	.L28:
+ 349              	.LBE6:
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 350              		.loc 1 312 0
+ 351 00ca 3846     		mov	r0, r7
+ 352 00cc 05B0     		add	sp, sp, #20
+ 353              	.LCFI3:
+ 354              		.cfi_def_cfa_offset 28
+ 355              		@ sp needed
+ 356 00ce BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 357              	.LVL35:
+ 358              	.L38:
+ 359 00d2 00BF     		.align	2
+ 360              	.L37:
+ 361 00d4 00000000 		.word	.LC0
+ 362 00d8 00000000 		.word	.LANCHOR1
+ 363 00dc 00000000 		.word	printf
+ 364 00e0 00000000 		.word	vTaskSuspendAll
+ 365 00e4 00000000 		.word	prvInsertBlockIntoFreeList
+ 366 00e8 00000000 		.word	xTaskResumeAll
+ 367 00ec 20000000 		.word	.LC1
+ 368 00f0 00000000 		.word	vApplicationMallocFailedHook
+ 369              		.cfi_endproc
+ 370              	.LFE5:
+ 372              		.section	.text.pvPortMalloc1,"ax",%progbits
+ 373              		.align	1
+ 374              		.global	pvPortMalloc1
+ 375              		.thumb
+ 376              		.thumb_func
+ 378              	pvPortMalloc1:
+ 379              	.LFB4:
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     return gen_pvPortMalloc1(&default_heap_attribute, xWantedSize, file, line);
+ 380              		.loc 1 149 0
+ 381              		.cfi_startproc
+ 382              		@ args = 0, pretend = 0, frame = 0
+ 383              		@ frame_needed = 0, uses_anonymous_args = 0
+ 384              	.LVL36:
+ 385 0000 38B5     		push	{r3, r4, r5, lr}
+ 386              	.LCFI4:
+ 387              		.cfi_def_cfa_offset 16
+ 388              		.cfi_offset 3, -16
+ 389              		.cfi_offset 4, -12
+ 390              		.cfi_offset 5, -8
+ 391              		.cfi_offset 14, -4
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     return gen_pvPortMalloc1(&default_heap_attribute, xWantedSize, file, line);
+ 392              		.loc 1 149 0
+ 393 0002 0546     		mov	r5, r0
+ 394 0004 0C46     		mov	r4, r1
+ 395 0006 1346     		mov	r3, r2
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 396              		.loc 1 150 0
+ 397 0008 2946     		mov	r1, r5
+ 398              	.LVL37:
+ 399 000a 2246     		mov	r2, r4
+ 400              	.LVL38:
+ 401 000c 0148     		ldr	r0, .L40
+ 402              	.LVL39:
+ 403 000e 024C     		ldr	r4, .L40+4
+ 404              	.LVL40:
+ 405 0010 A047     		blx	r4
+ 406              	.LVL41:
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 407              		.loc 1 151 0
+ 408 0012 38BD     		pop	{r3, r4, r5, pc}
+ 409              	.LVL42:
+ 410              	.L41:
+ 411              		.align	2
+ 412              	.L40:
+ 413 0014 00000000 		.word	.LANCHOR0
+ 414 0018 00000000 		.word	gen_pvPortMalloc1
+ 415              		.cfi_endproc
+ 416              	.LFE4:
+ 418              		.section	.text.gen_vPortFree1,"ax",%progbits
+ 419              		.align	1
+ 420              		.global	gen_vPortFree1
+ 421              		.thumb
+ 422              		.thumb_func
+ 424              	gen_vPortFree1:
+ 425              	.LFB6:
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     uint8_t *puc = ( uint8_t * ) pv;
+ 426              		.loc 1 316 0
+ 427              		.cfi_startproc
+ 428              		@ args = 0, pretend = 0, frame = 0
+ 429              		@ frame_needed = 0, uses_anonymous_args = 0
+ 430              	.LVL43:
+ 431 0000 73B5     		push	{r0, r1, r4, r5, r6, lr}
+ 432              	.LCFI5:
+ 433              		.cfi_def_cfa_offset 24
+ 434              		.cfi_offset 4, -16
+ 435              		.cfi_offset 5, -12
+ 436              		.cfi_offset 6, -8
+ 437              		.cfi_offset 14, -4
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     uint8_t *puc = ( uint8_t * ) pv;
+ 438              		.loc 1 316 0
+ 439 0002 1646     		mov	r6, r2
+ 440 0004 0546     		mov	r5, r0
+ 441 0006 1A46     		mov	r2, r3
+ 442              	.LVL44:
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 443              		.loc 1 320 0
+ 444 0008 0B46     		mov	r3, r1
+ 445              	.LVL45:
+ 446 000a 0029     		cmp	r1, #0
+ 447 000c 38D0     		beq	.L42
+ 324:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 448              		.loc 1 324 0
+ 449 000e C469     		ldr	r4, [r0, #28]
+ 450 0010 0C1B     		subs	r4, r1, r4
+ 451              	.LVL46:
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 452              		.loc 1 329 0
+ 453 0012 6068     		ldr	r0, [r4, #4]
+ 454              	.LVL47:
+ 455 0014 2168     		ldr	r1, [r4]
+ 456              	.LVL48:
+ 457 0016 0028     		cmp	r0, #0
+ 458 0018 00DA     		bge	.L44
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 459              		.loc 1 329 0 is_stmt 0 discriminator 1
+ 460 001a 29B1     		cbz	r1, .L45
+ 461              	.L44:
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****                     func, line, (int)pv, (int)pxLink->xBlockSize, (int)pxLink->pxNextFreeBlock);
+ 462              		.loc 1 331 0 is_stmt 1
+ 463 001c 8DE80300 		stmia	sp, {r0, r1}
+ 464 0020 3146     		mov	r1, r6
+ 465 0022 1848     		ldr	r0, .L56
+ 466 0024 184E     		ldr	r6, .L56+4
+ 467              	.LVL49:
+ 468 0026 B047     		blx	r6
+ 469              	.LVL50:
+ 470              	.L45:
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 471              		.loc 1 334 0
+ 472 0028 6368     		ldr	r3, [r4, #4]
+ 473 002a 002B     		cmp	r3, #0
+ 474 002c 0BDB     		blt	.L46
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		configASSERT( pxLink->pxNextFreeBlock == NULL );
+ 475              		.loc 1 334 0 is_stmt 0 discriminator 1
+ 476              	@ 334 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 477 002e 72B6     		CPSID i   
+ 478 0030 BFF34F8F 	DSB       
+ 479 0034 BFF36F8F 	ISB         
+ 480              	@ 0 "" 2
+ 481              		.thumb
+ 482 0038 1448     		ldr	r0, .L56+8
+ 483 003a 4FF4A772 		mov	r2, #334
+ 484 003e 1449     		ldr	r1, .L56+12
+ 485 0040 114B     		ldr	r3, .L56+4
+ 486 0042 9847     		blx	r3
+ 487              	.LVL51:
+ 488              	.L47:
+ 489 0044 FEE7     		b	.L47
+ 490              	.L46:
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 491              		.loc 1 335 0 is_stmt 1
+ 492 0046 2268     		ldr	r2, [r4]
+ 493 0048 5AB1     		cbz	r2, .L48
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 494              		.loc 1 335 0 is_stmt 0 discriminator 1
+ 495              	@ 335 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 496 004a 72B6     		CPSID i   
+ 497 004c BFF34F8F 	DSB       
+ 498 0050 BFF36F8F 	ISB         
+ 499              	@ 0 "" 2
+ 500              		.thumb
+ 501 0054 0D48     		ldr	r0, .L56+8
+ 502 0056 40F24F12 		movw	r2, #335
+ 503 005a 0D49     		ldr	r1, .L56+12
+ 504 005c 0A4B     		ldr	r3, .L56+4
+ 505 005e 9847     		blx	r3
+ 506              	.LVL52:
+ 507              	.L49:
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 508              		.loc 1 335 0 discriminator 2
+ 509 0060 FEE7     		b	.L49
+ 510              	.L48:
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 511              		.loc 1 343 0 is_stmt 1
+ 512 0062 23F00043 		bic	r3, r3, #-2147483648
+ 513 0066 6360     		str	r3, [r4, #4]
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				{
+ 514              		.loc 1 345 0
+ 515 0068 0A4B     		ldr	r3, .L56+16
+ 516 006a 9847     		blx	r3
+ 517              	.LVL53:
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					traceFREE( pv, pxLink->xBlockSize );
+ 518              		.loc 1 348 0
+ 519 006c EA68     		ldr	r2, [r5, #12]
+ 520 006e 6368     		ldr	r3, [r4, #4]
+ 350:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 521              		.loc 1 350 0
+ 522 0070 2846     		mov	r0, r5
+ 523 0072 2146     		mov	r1, r4
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 					traceFREE( pv, pxLink->xBlockSize );
+ 524              		.loc 1 348 0
+ 525 0074 1344     		add	r3, r3, r2
+ 526 0076 EB60     		str	r3, [r5, #12]
+ 350:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 				}
+ 527              		.loc 1 350 0
+ 528 0078 074B     		ldr	r3, .L56+20
+ 529 007a 9847     		blx	r3
+ 530              	.LVL54:
+ 352:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			}
+ 531              		.loc 1 352 0
+ 532 007c 074B     		ldr	r3, .L56+24
+ 533 007e 9847     		blx	r3
+ 534              	.LVL55:
+ 535              	.L42:
+ 364:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 536              		.loc 1 364 0
+ 537 0080 02B0     		add	sp, sp, #8
+ 538              	.LCFI6:
+ 539              		.cfi_def_cfa_offset 16
+ 540              		@ sp needed
+ 541 0082 70BD     		pop	{r4, r5, r6, pc}
+ 542              	.LVL56:
+ 543              	.L57:
+ 544              		.align	2
+ 545              	.L56:
+ 546 0084 A4000000 		.word	.LC2
+ 547 0088 00000000 		.word	printf
+ 548 008c 00000000 		.word	.LC0
+ 549 0090 00000000 		.word	.LANCHOR2
+ 550 0094 00000000 		.word	vTaskSuspendAll
+ 551 0098 00000000 		.word	prvInsertBlockIntoFreeList
+ 552 009c 00000000 		.word	xTaskResumeAll
+ 553              		.cfi_endproc
+ 554              	.LFE6:
+ 556              		.section	.text.vPortFree1,"ax",%progbits
+ 557              		.align	1
+ 558              		.global	vPortFree1
+ 559              		.thumb
+ 560              		.thumb_func
+ 562              	vPortFree1:
+ 563              	.LFB3:
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     gen_vPortFree1(&default_heap_attribute, pv, file, line);
+ 564              		.loc 1 144 0
+ 565              		.cfi_startproc
+ 566              		@ args = 0, pretend = 0, frame = 0
+ 567              		@ frame_needed = 0, uses_anonymous_args = 0
+ 568              	.LVL57:
+ 569 0000 38B5     		push	{r3, r4, r5, lr}
+ 570              	.LCFI7:
+ 571              		.cfi_def_cfa_offset 16
+ 572              		.cfi_offset 3, -16
+ 573              		.cfi_offset 4, -12
+ 574              		.cfi_offset 5, -8
+ 575              		.cfi_offset 14, -4
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     gen_vPortFree1(&default_heap_attribute, pv, file, line);
+ 576              		.loc 1 144 0
+ 577 0002 0546     		mov	r5, r0
+ 578 0004 0C46     		mov	r4, r1
+ 579 0006 1346     		mov	r3, r2
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 580              		.loc 1 145 0
+ 581 0008 2946     		mov	r1, r5
+ 582              	.LVL58:
+ 583 000a 2246     		mov	r2, r4
+ 584              	.LVL59:
+ 585 000c 0148     		ldr	r0, .L59
+ 586              	.LVL60:
+ 587 000e 024C     		ldr	r4, .L59+4
+ 588              	.LVL61:
+ 589 0010 A047     		blx	r4
+ 590              	.LVL62:
+ 591 0012 38BD     		pop	{r3, r4, r5, pc}
+ 592              	.LVL63:
+ 593              	.L60:
+ 594              		.align	2
+ 595              	.L59:
+ 596 0014 00000000 		.word	.LANCHOR0
+ 597 0018 00000000 		.word	gen_vPortFree1
+ 598              		.cfi_endproc
+ 599              	.LFE3:
+ 601              		.section	.text.gen_xPortGetFreeHeapSize,"ax",%progbits
+ 602              		.align	1
+ 603              		.global	gen_xPortGetFreeHeapSize
+ 604              		.thumb
+ 605              		.thumb_func
+ 607              	gen_xPortGetFreeHeapSize:
+ 608              	.LFB7:
+ 368:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	return heap_attribute->xFreeBytesRemaining;
+ 609              		.loc 1 368 0
+ 610              		.cfi_startproc
+ 611              		@ args = 0, pretend = 0, frame = 0
+ 612              		@ frame_needed = 0, uses_anonymous_args = 0
+ 613              		@ link register save eliminated.
+ 614              	.LVL64:
+ 370:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 615              		.loc 1 370 0
+ 616 0000 C068     		ldr	r0, [r0, #12]
+ 617              	.LVL65:
+ 618 0002 7047     		bx	lr
+ 619              		.cfi_endproc
+ 620              	.LFE7:
+ 622              		.section	.text.gen_xPortGetMinimumEverFreeHeapSize,"ax",%progbits
+ 623              		.align	1
+ 624              		.global	gen_xPortGetMinimumEverFreeHeapSize
+ 625              		.thumb
+ 626              		.thumb_func
+ 628              	gen_xPortGetMinimumEverFreeHeapSize:
+ 629              	.LFB8:
+ 374:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	return heap_attribute->xMinimumEverFreeBytesRemaining;
+ 630              		.loc 1 374 0
+ 631              		.cfi_startproc
+ 632              		@ args = 0, pretend = 0, frame = 0
+ 633              		@ frame_needed = 0, uses_anonymous_args = 0
+ 634              		@ link register save eliminated.
+ 635              	.LVL66:
+ 376:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 636              		.loc 1 376 0
+ 637 0000 0069     		ldr	r0, [r0, #16]
+ 638              	.LVL67:
+ 639 0002 7047     		bx	lr
+ 640              		.cfi_endproc
+ 641              	.LFE8:
+ 643              		.section	.text.gen_vPortDefineHeapRegions,"ax",%progbits
+ 644              		.align	1
+ 645              		.global	gen_vPortDefineHeapRegions
+ 646              		.thumb
+ 647              		.thumb_func
+ 649              	gen_vPortDefineHeapRegions:
+ 650              	.LFB10:
+ 432:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 433:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	else
+ 434:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 435:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		mtCOVERAGE_TEST_MARKER();
+ 436:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 437:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** }
+ 438:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** /*-----------------------------------------------------------*/
+ 439:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 440:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** void gen_vPortDefineHeapRegions(heap_attribute_t * heap_attribute, const HeapRegion_t * const pxHea
+ 441:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** {
+ 651              		.loc 1 441 0
+ 652              		.cfi_startproc
+ 653              		@ args = 0, pretend = 0, frame = 0
+ 654              		@ frame_needed = 0, uses_anonymous_args = 0
+ 655              	.LVL68:
+ 442:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_BlockLink_t *pxFirstFreeBlockInRegion = NULL, *pxPreviousFreeBlock;
+ 443:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     uint8_t *pucAlignedHeap;
+ 444:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     size_t xTotalRegionSize, xTotalHeapSize = 0;
+ 445:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     BaseType_t xDefinedRegions = 0;
+ 446:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     uint32_t ulAddress;
+ 447:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     const HeapRegion_t *pxHeapRegion;
+ 448:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 449:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	/* Can only call once! */
+ 450:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	configASSERT( heap_attribute->pxEnd == NULL );
+ 656              		.loc 1 450 0
+ 657 0000 8368     		ldr	r3, [r0, #8]
+ 441:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_BlockLink_t *pxFirstFreeBlockInRegion = NULL, *pxPreviousFreeBlock;
+ 658              		.loc 1 441 0
+ 659 0002 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 660              	.LCFI8:
+ 661              		.cfi_def_cfa_offset 24
+ 662              		.cfi_offset 4, -24
+ 663              		.cfi_offset 5, -20
+ 664              		.cfi_offset 6, -16
+ 665              		.cfi_offset 7, -12
+ 666              		.cfi_offset 8, -8
+ 667              		.cfi_offset 14, -4
+ 668              		.loc 1 450 0
+ 669 0006 5BB1     		cbz	r3, .L64
+ 670              		.loc 1 450 0 is_stmt 0 discriminator 1
+ 671              	@ 450 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 672 0008 72B6     		CPSID i   
+ 673 000a BFF34F8F 	DSB       
+ 674 000e BFF36F8F 	ISB         
+ 675              	@ 0 "" 2
+ 676              		.thumb
+ 677 0012 4648     		ldr	r0, .L88
+ 678              	.LVL69:
+ 679 0014 4FF4E172 		mov	r2, #450
+ 680              	.LVL70:
+ 681 0018 4549     		ldr	r1, .L88+4
+ 682              	.LVL71:
+ 683 001a 464B     		ldr	r3, .L88+8
+ 684 001c 9847     		blx	r3
+ 685              	.LVL72:
+ 686              	.L65:
+ 687 001e FEE7     		b	.L65
+ 688              	.LVL73:
+ 689              	.L64:
+ 451:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 452:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	configASSERT((byteAlignment % portBYTE_ALIGNMENT) == 0);
+ 690              		.loc 1 452 0 is_stmt 1
+ 691 0020 5307     		lsls	r3, r2, #29
+ 692 0022 0BD0     		beq	.L66
+ 693              		.loc 1 452 0 is_stmt 0 discriminator 1
+ 694              	@ 452 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 695 0024 72B6     		CPSID i   
+ 696 0026 BFF34F8F 	DSB       
+ 697 002a BFF36F8F 	ISB         
+ 698              	@ 0 "" 2
+ 699              		.thumb
+ 700 002e 3F48     		ldr	r0, .L88
+ 701              	.LVL74:
+ 702 0030 4FF4E272 		mov	r2, #452
+ 703              	.LVL75:
+ 704 0034 3E49     		ldr	r1, .L88+4
+ 705              	.LVL76:
+ 706 0036 3F4B     		ldr	r3, .L88+8
+ 707 0038 9847     		blx	r3
+ 708              	.LVL77:
+ 709              	.L67:
+ 710              		.loc 1 452 0 discriminator 2
+ 711 003a FEE7     		b	.L67
+ 712              	.LVL78:
+ 713              	.L66:
+ 453:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	configASSERT((byteAlignment & (byteAlignment - 1)) == 0); /* requested alignment must be power of 
+ 714              		.loc 1 453 0 is_stmt 1
+ 715 003c 561E     		subs	r6, r2, #1
+ 716 003e 16EA0205 		ands	r5, r6, r2
+ 717 0042 0BD0     		beq	.L68
+ 718              		.loc 1 453 0 is_stmt 0 discriminator 1
+ 719              	@ 453 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 720 0044 72B6     		CPSID i   
+ 721 0046 BFF34F8F 	DSB       
+ 722 004a BFF36F8F 	ISB         
+ 723              	@ 0 "" 2
+ 724              		.thumb
+ 725 004e 3748     		ldr	r0, .L88
+ 726              	.LVL79:
+ 727 0050 40F2C512 		movw	r2, #453
+ 728              	.LVL80:
+ 729 0054 3649     		ldr	r1, .L88+4
+ 730              	.LVL81:
+ 731 0056 374B     		ldr	r3, .L88+8
+ 732 0058 9847     		blx	r3
+ 733              	.LVL82:
+ 734              	.L69:
+ 735              		.loc 1 453 0 discriminator 3
+ 736 005a FEE7     		b	.L69
+ 737              	.LVL83:
+ 738              	.L68:
+ 454:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     /* The size of the structure placed at the beginning of each allocated memory block must by cor
+ 455:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	size_t byteAlignmentMask = byteAlignment - 1;
+ 456:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     heap_attribute->xByteAlignment = byteAlignment;
+ 739              		.loc 1 456 0 is_stmt 1
+ 740 005c 4261     		str	r2, [r0, #20]
+ 457:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     heap_attribute->xByteAlignmentMask = byteAlignmentMask;
+ 458:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     heap_attribute->uxHeapStructSize = ( ( sizeof ( heap_BlockLink_t ) + ( byteAlignment - 1 ) ) & 
+ 741              		.loc 1 458 0
+ 742 005e F743     		mvns	r7, r6
+ 743 0060 0732     		adds	r2, r2, #7
+ 744              	.LVL84:
+ 745 0062 3A40     		ands	r2, r2, r7
+ 746 0064 0831     		adds	r1, r1, #8
+ 747              	.LVL85:
+ 444:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     BaseType_t xDefinedRegions = 0;
+ 748              		.loc 1 444 0
+ 749 0066 AE46     		mov	lr, r5
+ 457:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     heap_attribute->xByteAlignmentMask = byteAlignmentMask;
+ 750              		.loc 1 457 0
+ 751 0068 8661     		str	r6, [r0, #24]
+ 752              		.loc 1 458 0
+ 753 006a C261     		str	r2, [r0, #28]
+ 754              	.LVL86:
+ 755              	.L70:
+ 459:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 460:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c ****     pxHeapRegion = &( pxHeapRegions[ xDefinedRegions ] );
+ 461:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	while( pxHeapRegion->xSizeInBytes > 0 )
+ 756              		.loc 1 462 0
+ 757 006c 51F8043C 		ldr	r3, [r1, #-4]
+ 758 0070 002B     		cmp	r3, #0
+ 759 0072 46D0     		beq	.L87
+ 760              	.LVL87:
+ 463:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	{
+ 464:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		xTotalRegionSize = pxHeapRegion->xSizeInBytes;
+ 465:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 466:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* Ensure the heap region starts on a correctly aligned boundary. */
+ 467:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		ulAddress = ( uint32_t ) pxHeapRegion->pucStartAddress;
+ 761              		.loc 1 467 0
+ 762 0074 51F8084C 		ldr	r4, [r1, #-8]
+ 763              	.LVL88:
+ 468:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if( ( ulAddress & heap_attribute->xByteAlignmentMask ) != 0 )
+ 764              		.loc 1 468 0
+ 765 0078 3442     		tst	r4, r6
+ 469:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 470:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			ulAddress += ( heap_attribute->xByteAlignment - 1 );
+ 766              		.loc 1 470 0
+ 767 007a 1FBF     		itttt	ne
+ 768 007c 06EB040C 		addne	ip, r6, r4
+ 769              	.LVL89:
+ 471:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			ulAddress &= ~heap_attribute->xByteAlignmentMask;
+ 770              		.loc 1 471 0
+ 771 0080 0CEA070C 		andne	ip, ip, r7
+ 772              	.LVL90:
+ 773 0084 1B19     		addne	r3, r3, r4
+ 774              	.LVL91:
+ 472:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 473:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			/* Adjust the size for the bytes lost to alignment. */
+ 474:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			xTotalRegionSize -= ulAddress - ( uint32_t ) pxHeapRegion->pucStartAddress;
+ 775              		.loc 1 474 0
+ 776 0086 CCEB0303 		rsbne	r3, ip, r3
+ 777              	.LVL92:
+ 471:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			ulAddress &= ~heap_attribute->xByteAlignmentMask;
+ 778              		.loc 1 471 0
+ 779 008a 18BF     		it	ne
+ 780 008c 6446     		movne	r4, ip
+ 781              	.LVL93:
+ 782 008e D0F808C0 		ldr	ip, [r0, #8]
+ 475:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 476:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 477:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pucAlignedHeap = ( uint8_t * ) ulAddress;
+ 478:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 479:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* Set xStart if it has not already been set. */
+ 480:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if( xDefinedRegions == 0 )
+ 783              		.loc 1 480 0
+ 784 0092 15B9     		cbnz	r5, .L72
+ 481:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 482:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			/* xStart is used to hold a pointer to the first item in the list of
+ 483:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			free blocks.  The void cast is used to prevent compiler warnings. */
+ 484:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			heap_attribute->xStart.pxNextFreeBlock = ( heap_BlockLink_t * ) pucAlignedHeap;
+ 485:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			heap_attribute->xStart.xBlockSize = ( size_t ) 0;
+ 785              		.loc 1 485 0
+ 786 0094 80E83000 		stmia	r0, {r4, r5}
+ 787 0098 1CE0     		b	.L73
+ 788              	.L72:
+ 486:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 487:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		else
+ 488:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 489:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			/* Should only get here if one region has already been added to the
+ 490:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			heap. */
+ 491:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			configASSERT( heap_attribute->pxEnd != NULL );
+ 789              		.loc 1 491 0
+ 790 009a BCF1000F 		cmp	ip, #0
+ 791 009e 0BD1     		bne	.L74
+ 792              		.loc 1 491 0 is_stmt 0 discriminator 1
+ 793              	@ 491 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 794 00a0 72B6     		CPSID i   
+ 795 00a2 BFF34F8F 	DSB       
+ 796 00a6 BFF36F8F 	ISB         
+ 797              	@ 0 "" 2
+ 798              		.thumb
+ 799 00aa 2048     		ldr	r0, .L88
+ 800              	.LVL94:
+ 801 00ac 40F2EB12 		movw	r2, #491
+ 802 00b0 1F49     		ldr	r1, .L88+4
+ 803              	.LVL95:
+ 804 00b2 204B     		ldr	r3, .L88+8
+ 805              	.LVL96:
+ 806 00b4 9847     		blx	r3
+ 807              	.LVL97:
+ 808              	.L75:
+ 809              		.loc 1 491 0 discriminator 4
+ 810 00b6 FEE7     		b	.L75
+ 811              	.LVL98:
+ 812              	.L74:
+ 492:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 493:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			/* Check blocks are passed in with increasing start addresses. */
+ 494:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			configASSERT( ulAddress > ( uint32_t ) heap_attribute->pxEnd );
+ 813              		.loc 1 494 0 is_stmt 1
+ 814 00b8 A445     		cmp	ip, r4
+ 815 00ba 0BD3     		bcc	.L73
+ 816              		.loc 1 494 0 is_stmt 0 discriminator 1
+ 817              	@ 494 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 818 00bc 72B6     		CPSID i   
+ 819 00be BFF34F8F 	DSB       
+ 820 00c2 BFF36F8F 	ISB         
+ 821              	@ 0 "" 2
+ 822              		.thumb
+ 823 00c6 1948     		ldr	r0, .L88
+ 824              	.LVL99:
+ 825 00c8 4FF4F772 		mov	r2, #494
+ 826 00cc 1849     		ldr	r1, .L88+4
+ 827              	.LVL100:
+ 828 00ce 194B     		ldr	r3, .L88+8
+ 829              	.LVL101:
+ 830 00d0 9847     		blx	r3
+ 831              	.LVL102:
+ 832              	.L76:
+ 833              		.loc 1 494 0 discriminator 5
+ 834 00d2 FEE7     		b	.L76
+ 835              	.LVL103:
+ 836              	.L73:
+ 495:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 496:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 497:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* Remember the location of the end marker in the previous region, if
+ 498:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		any. */
+ 499:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxPreviousFreeBlock = heap_attribute->pxEnd;
+ 500:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 501:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* pxEnd is used to mark the end of the list of free blocks and is
+ 502:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		inserted at the end of the region space. */
+ 503:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		ulAddress = ( ( uint32_t ) pucAlignedHeap ) + xTotalRegionSize;
+ 837              		.loc 1 503 0 is_stmt 1
+ 838 00d4 2344     		add	r3, r3, r4
+ 839              	.LVL104:
+ 504:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		ulAddress -= heap_attribute->uxHeapStructSize;
+ 840              		.loc 1 504 0
+ 841 00d6 9B1A     		subs	r3, r3, r2
+ 842              	.LVL105:
+ 505:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		ulAddress &= ~heap_attribute->xByteAlignmentMask;
+ 843              		.loc 1 505 0
+ 844 00d8 3B40     		ands	r3, r3, r7
+ 845              	.LVL106:
+ 506:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		heap_attribute->pxEnd = ( heap_BlockLink_t * ) ulAddress;
+ 507:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		heap_attribute->pxEnd->xBlockSize = 0;
+ 846              		.loc 1 507 0
+ 847 00da 4FF00008 		mov	r8, #0
+ 506:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		heap_attribute->pxEnd = ( heap_BlockLink_t * ) ulAddress;
+ 848              		.loc 1 506 0
+ 849 00de 8360     		str	r3, [r0, #8]
+ 850              		.loc 1 507 0
+ 851 00e0 C3F80480 		str	r8, [r3, #4]
+ 508:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		heap_attribute->pxEnd->pxNextFreeBlock = NULL;
+ 852              		.loc 1 508 0
+ 853 00e4 C3F80080 		str	r8, [r3]
+ 854              	.LVL107:
+ 509:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 510:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* To start with there is a single free block in this region that is
+ 511:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		sized to take up the entire heap region minus the space taken by the
+ 512:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		free block structure. */
+ 513:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxFirstFreeBlockInRegion = ( heap_BlockLink_t * ) pucAlignedHeap;
+ 514:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxFirstFreeBlockInRegion->xBlockSize = ulAddress - ( uint32_t ) pxFirstFreeBlockInRegion;
+ 855              		.loc 1 514 0
+ 856 00e8 C4EB0308 		rsb	r8, r4, r3
+ 515:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxFirstFreeBlockInRegion->pxNextFreeBlock = heap_attribute->pxEnd;
+ 857              		.loc 1 515 0
+ 858 00ec 84E80801 		stmia	r4, {r3, r8}
+ 516:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 517:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* If this is not the first region that makes up the entire heap space
+ 518:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		then link the previous region to this region. */
+ 519:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		if( pxPreviousFreeBlock != NULL )
+ 859              		.loc 1 519 0
+ 860 00f0 BCF1000F 		cmp	ip, #0
+ 861 00f4 01D0     		beq	.L77
+ 520:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		{
+ 521:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 			pxPreviousFreeBlock->pxNextFreeBlock = pxFirstFreeBlockInRegion;
+ 862              		.loc 1 521 0
+ 863 00f6 CCF80040 		str	r4, [ip]
+ 864              	.L77:
+ 522:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		}
+ 523:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 524:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		xTotalHeapSize += pxFirstFreeBlockInRegion->xBlockSize;
+ 865              		.loc 1 524 0
+ 866 00fa C644     		add	lr, lr, r8
+ 867              	.LVL108:
+ 525:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 526:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		/* Move onto the next HeapRegion_t structure. */
+ 527:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		xDefinedRegions++;
+ 868              		.loc 1 527 0
+ 869 00fc 0135     		adds	r5, r5, #1
+ 870              	.LVL109:
+ 871 00fe 0831     		adds	r1, r1, #8
+ 872              	.LVL110:
+ 873 0100 B4E7     		b	.L70
+ 874              	.LVL111:
+ 875              	.L87:
+ 528:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 		pxHeapRegion = &( pxHeapRegions[ xDefinedRegions ] );
+ 529:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	}
+ 530:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 531:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_attribute->xMinimumEverFreeBytesRemaining = xTotalHeapSize;
+ 876              		.loc 1 531 0
+ 877 0102 C0F810E0 		str	lr, [r0, #16]
+ 532:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	heap_attribute->xFreeBytesRemaining = xTotalHeapSize;
+ 878              		.loc 1 532 0
+ 879 0106 C0F80CE0 		str	lr, [r0, #12]
+ 533:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 
+ 534:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	/* Check something was actually defined before it is accessed. */
+ 535:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c **** 	configASSERT( xTotalHeapSize );
+ 880              		.loc 1 535 0
+ 881 010a BEF1000F 		cmp	lr, #0
+ 882 010e 0BD1     		bne	.L63
+ 883              		.loc 1 535 0 is_stmt 0 discriminator 1
+ 884              	@ 535 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/gen_heap.c" 1
+ 885 0110 72B6     		CPSID i   
+ 886 0112 BFF34F8F 	DSB       
+ 887 0116 BFF36F8F 	ISB         
+ 888              	@ 0 "" 2
+ 889              		.thumb
+ 890 011a 0448     		ldr	r0, .L88
+ 891              	.LVL112:
+ 892 011c 40F21722 		movw	r2, #535
+ 893 0120 0349     		ldr	r1, .L88+4
+ 894              	.LVL113:
+ 895 0122 044B     		ldr	r3, .L88+8
+ 896 0124 9847     		blx	r3
+ 897              	.LVL114:
+ 898              	.L80:
+ 899              		.loc 1 535 0 discriminator 6
+ 900 0126 FEE7     		b	.L80
+ 901              	.LVL115:
+ 902              	.L63:
+ 903 0128 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 904              	.LVL116:
+ 905              	.L89:
+ 906              		.align	2
+ 907              	.L88:
+ 908 012c 00000000 		.word	.LC0
+ 909 0130 00000000 		.word	.LANCHOR3
+ 910 0134 00000000 		.word	printf
+ 911              		.cfi_endproc
+ 912              	.LFE10:
+ 914              		.global	default_heap_attribute
+ 915              		.section	.rodata.__FUNCTION__.5855,"a",%progbits
+ 916              		.set	.LANCHOR3,. + 0
+ 919              	__FUNCTION__.5855:
+ 920 0000 67656E5F 		.ascii	"gen_vPortDefineHeapRegions\000"
+ 920      76506F72 
+ 920      74446566 
+ 920      696E6548 
+ 920      65617052 
+ 921              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 922              	.LC0:
+ 923 0000 0D0A5B25 		.ascii	"\015\012[%s: %d]: Invalid argument!\015\012\000"
+ 923      733A2025 
+ 923      645D3A20 
+ 923      496E7661 
+ 923      6C696420 
+ 924              	.LC1:
+ 925 0020 0D0A4572 		.ascii	"\015\012Error in gen_pvPortMalloc() when called fro"
+ 925      726F7220 
+ 925      696E2067 
+ 925      656E5F70 
+ 925      76506F72 
+ 926 004d 6D202573 		.ascii	"m %s [%d]. Wanted size: %u, first free block addr: "
+ 926      205B2564 
+ 926      5D2E2057 
+ 926      616E7465 
+ 926      64207369 
+ 927 0080 25782C20 		.ascii	"%x, size: %u, total free size: %u\015\012\000"
+ 927      73697A65 
+ 927      3A202575 
+ 927      2C20746F 
+ 927      74616C20 
+ 928              	.LC2:
+ 929 00a4 0D0A4572 		.ascii	"\015\012Error in gen_vPortFree() when called from %"
+ 929      726F7220 
+ 929      696E2067 
+ 929      656E5F76 
+ 929      506F7274 
+ 930 00d1 73205B25 		.ascii	"s [%d]. p to free: %x, xBlockSize: %x, next_free_p:"
+ 930      645D2E20 
+ 930      7020746F 
+ 930      20667265 
+ 930      653A2025 
+ 931 0104 2025780D 		.ascii	" %x\015\012\000"
+ 931      0A00
+ 932              		.section	.rodata.__FUNCTION__.5808,"a",%progbits
+ 933              		.set	.LANCHOR1,. + 0
+ 936              	__FUNCTION__.5808:
+ 937 0000 67656E5F 		.ascii	"gen_pvPortMalloc1\000"
+ 937      7076506F 
+ 937      72744D61 
+ 937      6C6C6F63 
+ 937      3100
+ 938              		.section	.rodata.__FUNCTION__.5824,"a",%progbits
+ 939              		.set	.LANCHOR2,. + 0
+ 942              	__FUNCTION__.5824:
+ 943 0000 67656E5F 		.ascii	"gen_vPortFree1\000"
+ 943      76506F72 
+ 943      74467265 
+ 943      653100
+ 944              		.section	.bss.default_heap_attribute,"aw",%nobits
+ 945              		.align	2
+ 946              		.set	.LANCHOR0,. + 0
+ 949              	default_heap_attribute:
+ 950 0000 00000000 		.space	32
+ 950      00000000 
+ 950      00000000 
+ 950      00000000 
+ 950      00000000 
+ 951              		.text
+ 952              	.Letext0:
+ 953              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+ 954              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 955              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 956              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 957              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/portable.h"
+ 958              		.file 7 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/gen_heap.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 gen_heap.c
+     /tmp/ccfk3wpD.s:19     .text.prvInsertBlockIntoFreeList:00000000 $t
+     /tmp/ccfk3wpD.s:23     .text.prvInsertBlockIntoFreeList:00000000 prvInsertBlockIntoFreeList
+     /tmp/ccfk3wpD.s:94     .text.xPortGetMinimumEverFreeHeapSize:00000000 $t
+     /tmp/ccfk3wpD.s:99     .text.xPortGetMinimumEverFreeHeapSize:00000000 xPortGetMinimumEverFreeHeapSize
+     /tmp/ccfk3wpD.s:114    .text.xPortGetMinimumEverFreeHeapSize:00000008 $d
+     /tmp/ccfk3wpD.s:119    .text.xPortGetFreeHeapSize:00000000 $t
+     /tmp/ccfk3wpD.s:124    .text.xPortGetFreeHeapSize:00000000 xPortGetFreeHeapSize
+     /tmp/ccfk3wpD.s:139    .text.xPortGetFreeHeapSize:00000008 $d
+     /tmp/ccfk3wpD.s:144    .text.gen_pvPortMalloc1:00000000 $t
+     /tmp/ccfk3wpD.s:149    .text.gen_pvPortMalloc1:00000000 gen_pvPortMalloc1
+     /tmp/ccfk3wpD.s:361    .text.gen_pvPortMalloc1:000000d4 $d
+     /tmp/ccfk3wpD.s:373    .text.pvPortMalloc1:00000000 $t
+     /tmp/ccfk3wpD.s:378    .text.pvPortMalloc1:00000000 pvPortMalloc1
+     /tmp/ccfk3wpD.s:413    .text.pvPortMalloc1:00000014 $d
+     /tmp/ccfk3wpD.s:419    .text.gen_vPortFree1:00000000 $t
+     /tmp/ccfk3wpD.s:424    .text.gen_vPortFree1:00000000 gen_vPortFree1
+     /tmp/ccfk3wpD.s:546    .text.gen_vPortFree1:00000084 $d
+     /tmp/ccfk3wpD.s:557    .text.vPortFree1:00000000 $t
+     /tmp/ccfk3wpD.s:562    .text.vPortFree1:00000000 vPortFree1
+     /tmp/ccfk3wpD.s:596    .text.vPortFree1:00000014 $d
+     /tmp/ccfk3wpD.s:602    .text.gen_xPortGetFreeHeapSize:00000000 $t
+     /tmp/ccfk3wpD.s:607    .text.gen_xPortGetFreeHeapSize:00000000 gen_xPortGetFreeHeapSize
+     /tmp/ccfk3wpD.s:623    .text.gen_xPortGetMinimumEverFreeHeapSize:00000000 $t
+     /tmp/ccfk3wpD.s:628    .text.gen_xPortGetMinimumEverFreeHeapSize:00000000 gen_xPortGetMinimumEverFreeHeapSize
+     /tmp/ccfk3wpD.s:644    .text.gen_vPortDefineHeapRegions:00000000 $t
+     /tmp/ccfk3wpD.s:649    .text.gen_vPortDefineHeapRegions:00000000 gen_vPortDefineHeapRegions
+     /tmp/ccfk3wpD.s:908    .text.gen_vPortDefineHeapRegions:0000012c $d
+     /tmp/ccfk3wpD.s:949    .bss.default_heap_attribute:00000000 default_heap_attribute
+     /tmp/ccfk3wpD.s:919    .rodata.__FUNCTION__.5855:00000000 __FUNCTION__.5855
+     /tmp/ccfk3wpD.s:936    .rodata.__FUNCTION__.5808:00000000 __FUNCTION__.5808
+     /tmp/ccfk3wpD.s:942    .rodata.__FUNCTION__.5824:00000000 __FUNCTION__.5824
+     /tmp/ccfk3wpD.s:945    .bss.default_heap_attribute:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+printf
+vTaskSuspendAll
+xTaskResumeAll
+vApplicationMallocFailedHook

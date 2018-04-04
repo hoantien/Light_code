@@ -1,0 +1,919 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"uniform_contrast_pass.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._ZN21uniform_contrast_pass10initializeERK13contrast_pass,"ax",%progbits
+  19              		.align	1
+  20              		.global	_ZN21uniform_contrast_pass10initializeERK13contrast_pass
+  21              		.thumb
+  22              		.thumb_func
+  24              	_ZN21uniform_contrast_pass10initializeERK13contrast_pass:
+  25              	.LFB183:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * @file    uniform_contrast_pass.cpp
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * @date    Oct-31-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  * @brief   Contrast pass with uniformly spaced measurements
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** #include "log.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** #include "uniform_contrast_pass.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** #define SLOGF_ID                SLOG_ID_AF
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** uniform_contrast_pass::uniform_contrast_pass(std::int16_t start_pos, std::int16_t end_pos,
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         std::int16_t delta, std::uint16_t tolerance, bool use_metric1, bool interval_shrink) :
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****             start_pos_{start_pos},
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****             end_pos_{end_pos},
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****             delta_{delta},
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****             tolerance_{tolerance},
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****             next_pos_{start_pos},
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****             use_metric1_{use_metric1},
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****             interval_shrink_{interval_shrink} {
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** void uniform_contrast_pass::initialize(const contrast_pass& prev_pass) {
+  27              		.loc 1 32 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Update start and end positions
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     start_pos_ = prev_pass.out_min_pos();
+  32              		.loc 1 34 0
+  33 0000 0B68     		ldr	r3, [r1]
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Update start and end positions
+  34              		.loc 1 32 0
+  35 0002 70B5     		push	{r4, r5, r6, lr}
+  36              	.LCFI0:
+  37              		.cfi_def_cfa_offset 16
+  38              		.cfi_offset 4, -16
+  39              		.cfi_offset 5, -12
+  40              		.cfi_offset 6, -8
+  41              		.cfi_offset 14, -4
+  42              		.loc 1 34 0
+  43 0004 1B6A     		ldr	r3, [r3, #32]
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Update start and end positions
+  44              		.loc 1 32 0
+  45 0006 0446     		mov	r4, r0
+  46              		.loc 1 34 0
+  47 0008 0846     		mov	r0, r1
+  48              	.LVL1:
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Update start and end positions
+  49              		.loc 1 32 0
+  50 000a 0D46     		mov	r5, r1
+  51              		.loc 1 34 0
+  52 000c 9847     		blx	r3
+  53              	.LVL2:
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     end_pos_ = prev_pass.out_max_pos();
+  54              		.loc 1 35 0
+  55 000e 2B68     		ldr	r3, [r5]
+  56 0010 5B6A     		ldr	r3, [r3, #36]
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     end_pos_ = prev_pass.out_max_pos();
+  57              		.loc 1 34 0
+  58 0012 A080     		strh	r0, [r4, #4]	@ movhi
+  59              		.loc 1 35 0
+  60 0014 2846     		mov	r0, r5
+  61 0016 9847     		blx	r3
+  62              	.LVL3:
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Compute initial next_pos_
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     initialize();
+  63              		.loc 1 37 0
+  64 0018 2368     		ldr	r3, [r4]
+  65 001a DB68     		ldr	r3, [r3, #12]
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Compute initial next_pos_
+  66              		.loc 1 35 0
+  67 001c E080     		strh	r0, [r4, #6]	@ movhi
+  68              		.loc 1 37 0
+  69 001e 2046     		mov	r0, r4
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+  70              		.loc 1 38 0
+  71 0020 BDE87040 		pop	{r4, r5, r6, lr}
+  72              	.LCFI1:
+  73              		.cfi_restore 14
+  74              		.cfi_restore 6
+  75              		.cfi_restore 5
+  76              		.cfi_restore 4
+  77              		.cfi_def_cfa_offset 0
+  78              	.LVL4:
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+  79              		.loc 1 37 0
+  80 0024 1847     		bx	r3	@ indirect register sibling call
+  81              	.LVL5:
+  82              		.cfi_endproc
+  83              	.LFE183:
+  85              		.section	.text._ZNK21uniform_contrast_pass7is_doneEv,"ax",%progbits
+  86              		.align	1
+  87              		.global	_ZNK21uniform_contrast_pass7is_doneEv
+  88              		.thumb
+  89              		.thumb_func
+  91              	_ZNK21uniform_contrast_pass7is_doneEv:
+  92              	.LFB185:
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** void uniform_contrast_pass::initialize() {
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Reset best position/metric before each pass
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     best_meas_.pos = start_pos_;
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     best_meas_.metric1 = METRIC_MIN;
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     best_meas_.metric2 = METRIC_MIN;
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int32_t pos_range = end_pos_;
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     pos_range -= start_pos_;
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::uint16_t num_steps = static_cast<std::uint16_t>((pos_range + delta_ - 1) / delta_);
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (num_steps == 0)
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         num_steps = 1;  // do 1 step even if (start_pos == end_pos)
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::uint16_t tot_d = (num_steps - 1) * delta_;
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t start_d = static_cast<std::int16_t>((pos_range - tot_d) / 2);
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     next_pos_ = start_pos_ + start_d;
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     SLOGF(SLOG_INFO, "Starting contrast sweep pass with start_pos: %d, end_pos: %d, delta: %d", (in
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** bool uniform_contrast_pass::is_done() const {
+  93              		.loc 1 57 0
+  94              		.cfi_startproc
+  95              		@ args = 0, pretend = 0, frame = 0
+  96              		@ frame_needed = 0, uses_anonymous_args = 0
+  97              		@ link register save eliminated.
+  98              	.LVL6:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return (next_pos_ > end_pos_);
+  99              		.loc 1 58 0
+ 100 0000 B0F90C20 		ldrsh	r2, [r0, #12]
+ 101 0004 B0F90600 		ldrsh	r0, [r0, #6]
+ 102              	.LVL7:
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 103              		.loc 1 59 0
+ 104 0008 8242     		cmp	r2, r0
+ 105 000a D4BF     		ite	le
+ 106 000c 0020     		movle	r0, #0
+ 107 000e 0120     		movgt	r0, #1
+ 108 0010 7047     		bx	lr
+ 109              		.cfi_endproc
+ 110              	.LFE185:
+ 112              		.section	.text._ZN21uniform_contrast_pass8next_posEv,"ax",%progbits
+ 113              		.align	1
+ 114              		.global	_ZN21uniform_contrast_pass8next_posEv
+ 115              		.thumb
+ 116              		.thumb_func
+ 118              	_ZN21uniform_contrast_pass8next_posEv:
+ 119              	.LFB186:
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** std::int16_t uniform_contrast_pass::next_pos() {
+ 120              		.loc 1 61 0
+ 121              		.cfi_startproc
+ 122              		@ args = 0, pretend = 0, frame = 0
+ 123              		@ frame_needed = 0, uses_anonymous_args = 0
+ 124              		@ link register save eliminated.
+ 125              	.LVL8:
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return next_pos_;
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 126              		.loc 1 63 0
+ 127 0000 B0F90C00 		ldrsh	r0, [r0, #12]
+ 128              	.LVL9:
+ 129 0004 7047     		bx	lr
+ 130              		.cfi_endproc
+ 131              	.LFE186:
+ 133              		.section	.text._ZNK21uniform_contrast_pass9toleranceEv,"ax",%progbits
+ 134              		.align	1
+ 135              		.global	_ZNK21uniform_contrast_pass9toleranceEv
+ 136              		.thumb
+ 137              		.thumb_func
+ 139              	_ZNK21uniform_contrast_pass9toleranceEv:
+ 140              	.LFB187:
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** std::uint16_t uniform_contrast_pass::tolerance() const {
+ 141              		.loc 1 65 0
+ 142              		.cfi_startproc
+ 143              		@ args = 0, pretend = 0, frame = 0
+ 144              		@ frame_needed = 0, uses_anonymous_args = 0
+ 145              		@ link register save eliminated.
+ 146              	.LVL10:
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return tolerance_;
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 147              		.loc 1 67 0
+ 148 0000 4089     		ldrh	r0, [r0, #10]
+ 149              	.LVL11:
+ 150 0002 7047     		bx	lr
+ 151              		.cfi_endproc
+ 152              	.LFE187:
+ 154              		.section	.text._ZNK21uniform_contrast_pass11out_min_posEv,"ax",%progbits
+ 155              		.align	1
+ 156              		.global	_ZNK21uniform_contrast_pass11out_min_posEv
+ 157              		.thumb
+ 158              		.thumb_func
+ 160              	_ZNK21uniform_contrast_pass11out_min_posEv:
+ 161              	.LFB189:
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** void uniform_contrast_pass::set_measurement(const measurement_t& meas) {
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (measurement_t::is_better(use_metric1_, meas, best_meas_))
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         best_meas_ = meas;
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     next_pos_ += delta_;
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** std::int16_t uniform_contrast_pass::out_min_pos() const {
+ 162              		.loc 1 75 0
+ 163              		.cfi_startproc
+ 164              		@ args = 0, pretend = 0, frame = 0
+ 165              		@ frame_needed = 0, uses_anonymous_args = 0
+ 166              	.LVL12:
+ 167 0000 30B5     		push	{r4, r5, lr}
+ 168              	.LCFI2:
+ 169              		.cfi_def_cfa_offset 12
+ 170              		.cfi_offset 4, -12
+ 171              		.cfi_offset 5, -8
+ 172              		.cfi_offset 14, -4
+ 173              	.LBB18:
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // New start position
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t d = delta_;
+ 174              		.loc 1 77 0
+ 175 0002 0389     		ldrh	r3, [r0, #8]
+ 176              	.LVL13:
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (interval_shrink_)
+ 177              		.loc 1 78 0
+ 178 0004 C27B     		ldrb	r2, [r0, #15]	@ zero_extendqisi2
+ 179 0006 2AB1     		cbz	r2, .L6
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         d = (d + 1) / 2;
+ 180              		.loc 1 79 0
+ 181 0008 1BB2     		sxth	r3, r3
+ 182 000a 0133     		adds	r3, r3, #1
+ 183              	.LVL14:
+ 184 000c 0222     		movs	r2, #2
+ 185 000e 93FBF2F3 		sdiv	r3, r3, r2
+ 186              	.LVL15:
+ 187 0012 9BB2     		uxth	r3, r3
+ 188              	.LVL16:
+ 189              	.L6:
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t best_pos = best_meas_.pos;
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Limit next pass start to requested interval [start_pos, end_pos]
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t sp = (best_pos >= (start_pos_ + d)) ? (best_pos - d) : start_pos_;
+ 190              		.loc 1 82 0
+ 191 0014 1CB2     		sxth	r4, r3
+ 192 0016 8288     		ldrh	r2, [r0, #4]
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t best_pos = best_meas_.pos;
+ 193              		.loc 1 80 0
+ 194 0018 018A     		ldrh	r1, [r0, #16]
+ 195              	.LVL17:
+ 196              		.loc 1 82 0
+ 197 001a 04FA82F4 		sxtah	r4, r4, r2
+ 198 001e 0DB2     		sxth	r5, r1
+ 199 0020 B0F90600 		ldrsh	r0, [r0, #6]
+ 200              	.LVL18:
+ 201 0024 A542     		cmp	r5, r4
+ 202 0026 A4BF     		itt	ge
+ 203 0028 CB1A     		subge	r3, r1, r3
+ 204              	.LVL19:
+ 205 002a 9AB2     		uxthge	r2, r3
+ 206 002c 12B2     		sxth	r2, r2
+ 207              	.LBE18:
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (sp > end_pos_)
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         sp = end_pos_;
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return sp;
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 208              		.loc 1 86 0
+ 209 002e 9042     		cmp	r0, r2
+ 210 0030 A8BF     		it	ge
+ 211 0032 1046     		movge	r0, r2
+ 212 0034 30BD     		pop	{r4, r5, pc}
+ 213              		.cfi_endproc
+ 214              	.LFE189:
+ 216              		.section	.text._ZNK21uniform_contrast_pass11out_max_posEv,"ax",%progbits
+ 217              		.align	1
+ 218              		.global	_ZNK21uniform_contrast_pass11out_max_posEv
+ 219              		.thumb
+ 220              		.thumb_func
+ 222              	_ZNK21uniform_contrast_pass11out_max_posEv:
+ 223              	.LFB190:
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** std::int16_t uniform_contrast_pass::out_max_pos() const {
+ 224              		.loc 1 88 0
+ 225              		.cfi_startproc
+ 226              		@ args = 0, pretend = 0, frame = 0
+ 227              		@ frame_needed = 0, uses_anonymous_args = 0
+ 228              	.LVL20:
+ 229 0000 70B5     		push	{r4, r5, r6, lr}
+ 230              	.LCFI3:
+ 231              		.cfi_def_cfa_offset 16
+ 232              		.cfi_offset 4, -16
+ 233              		.cfi_offset 5, -12
+ 234              		.cfi_offset 6, -8
+ 235              		.cfi_offset 14, -4
+ 236              	.LBB19:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // New end position
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t d = delta_;
+ 237              		.loc 1 90 0
+ 238 0002 0389     		ldrh	r3, [r0, #8]
+ 239              	.LVL21:
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (interval_shrink_)
+ 240              		.loc 1 91 0
+ 241 0004 C27B     		ldrb	r2, [r0, #15]	@ zero_extendqisi2
+ 242 0006 2AB1     		cbz	r2, .L13
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         d = (d + 1) / 2;
+ 243              		.loc 1 92 0
+ 244 0008 1BB2     		sxth	r3, r3
+ 245 000a 0133     		adds	r3, r3, #1
+ 246              	.LVL22:
+ 247 000c 0222     		movs	r2, #2
+ 248 000e 93FBF2F3 		sdiv	r3, r3, r2
+ 249              	.LVL23:
+ 250 0012 9BB2     		uxth	r3, r3
+ 251              	.LVL24:
+ 252              	.L13:
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t best_pos = best_meas_.pos;
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Limit next pass end to requested interval [start_pos, end_pos]
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t ep = (best_pos <= (end_pos_ - d)) ? best_pos + d : end_pos_;
+ 253              		.loc 1 95 0
+ 254 0014 C288     		ldrh	r2, [r0, #6]
+ 255 0016 1EB2     		sxth	r6, r3
+ 256 0018 14B2     		sxth	r4, r2
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t best_pos = best_meas_.pos;
+ 257              		.loc 1 93 0
+ 258 001a 018A     		ldrh	r1, [r0, #16]
+ 259              	.LVL25:
+ 260              		.loc 1 95 0
+ 261 001c A41B     		subs	r4, r4, r6
+ 262 001e B0F90400 		ldrsh	r0, [r0, #4]
+ 263              	.LVL26:
+ 264 0022 0DB2     		sxth	r5, r1
+ 265 0024 A542     		cmp	r5, r4
+ 266 0026 DCBF     		itt	le
+ 267 0028 5B18     		addle	r3, r3, r1
+ 268              	.LVL27:
+ 269 002a 9AB2     		uxthle	r2, r3
+ 270 002c 12B2     		sxth	r2, r2
+ 271              	.LBE19:
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (ep < start_pos_)
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         ep = start_pos_;
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return ep;
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 272              		.loc 1 99 0
+ 273 002e 9042     		cmp	r0, r2
+ 274 0030 B8BF     		it	lt
+ 275 0032 1046     		movlt	r0, r2
+ 276 0034 70BD     		pop	{r4, r5, r6, pc}
+ 277              		.cfi_endproc
+ 278              	.LFE190:
+ 280              		.section	.text._ZNK21uniform_contrast_pass12out_best_posEv,"ax",%progbits
+ 281              		.align	1
+ 282              		.global	_ZNK21uniform_contrast_pass12out_best_posEv
+ 283              		.thumb
+ 284              		.thumb_func
+ 286              	_ZNK21uniform_contrast_pass12out_best_posEv:
+ 287              	.LFB191:
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** std::int16_t uniform_contrast_pass::out_best_pos() const {
+ 288              		.loc 1 101 0
+ 289              		.cfi_startproc
+ 290              		@ args = 0, pretend = 0, frame = 0
+ 291              		@ frame_needed = 0, uses_anonymous_args = 0
+ 292              		@ link register save eliminated.
+ 293              	.LVL28:
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return best_meas_.pos;
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 294              		.loc 1 103 0
+ 295 0000 B0F91000 		ldrsh	r0, [r0, #16]
+ 296              	.LVL29:
+ 297 0004 7047     		bx	lr
+ 298              		.cfi_endproc
+ 299              	.LFE191:
+ 301              		.section	.text._ZNK21uniform_contrast_pass15out_best_metricEv,"ax",%progbits
+ 302              		.align	1
+ 303              		.global	_ZNK21uniform_contrast_pass15out_best_metricEv
+ 304              		.thumb
+ 305              		.thumb_func
+ 307              	_ZNK21uniform_contrast_pass15out_best_metricEv:
+ 308              	.LFB192:
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** std::int64_t uniform_contrast_pass::out_best_metric() const {
+ 309              		.loc 1 105 0
+ 310              		.cfi_startproc
+ 311              		@ args = 0, pretend = 0, frame = 0
+ 312              		@ frame_needed = 0, uses_anonymous_args = 0
+ 313              		@ link register save eliminated.
+ 314              	.LVL30:
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return use_metric1_ ? best_meas_.metric1 : best_meas_.metric2;
+ 315              		.loc 1 106 0
+ 316 0000 837B     		ldrb	r3, [r0, #14]	@ zero_extendqisi2
+ 317 0002 13B1     		cbz	r3, .L20
+ 318              		.loc 1 106 0 is_stmt 0 discriminator 1
+ 319 0004 D0E90601 		ldrd	r0, [r0, #24]
+ 320              	.LVL31:
+ 321 0008 7047     		bx	lr
+ 322              	.LVL32:
+ 323              	.L20:
+ 324              		.loc 1 106 0 discriminator 2
+ 325 000a D0E90801 		ldrd	r0, [r0, #32]
+ 326              	.LVL33:
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 327              		.loc 1 107 0 is_stmt 1 discriminator 2
+ 328 000e 7047     		bx	lr
+ 329              		.cfi_endproc
+ 330              	.LFE192:
+ 332              		.section	.text._ZNK21uniform_contrast_pass16num_measurementsEv,"ax",%progbits
+ 333              		.align	1
+ 334              		.global	_ZNK21uniform_contrast_pass16num_measurementsEv
+ 335              		.thumb
+ 336              		.thumb_func
+ 338              	_ZNK21uniform_contrast_pass16num_measurementsEv:
+ 339              	.LFB193:
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** std::size_t uniform_contrast_pass::num_measurements() const {
+ 340              		.loc 1 109 0
+ 341              		.cfi_startproc
+ 342              		@ args = 0, pretend = 0, frame = 0
+ 343              		@ frame_needed = 0, uses_anonymous_args = 0
+ 344              		@ link register save eliminated.
+ 345              	.LVL34:
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return 0;
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 346              		.loc 1 111 0
+ 347 0000 0020     		movs	r0, #0
+ 348              	.LVL35:
+ 349 0002 7047     		bx	lr
+ 350              		.cfi_endproc
+ 351              	.LFE193:
+ 353              		.section	.text._ZNK21uniform_contrast_pass12measurementsEv,"ax",%progbits
+ 354              		.align	1
+ 355              		.global	_ZNK21uniform_contrast_pass12measurementsEv
+ 356              		.thumb
+ 357              		.thumb_func
+ 359              	_ZNK21uniform_contrast_pass12measurementsEv:
+ 360              	.LFB194:
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** auto uniform_contrast_pass::measurements() const -> const measurement_t* {
+ 361              		.loc 1 113 0
+ 362              		.cfi_startproc
+ 363              		@ args = 0, pretend = 0, frame = 0
+ 364              		@ frame_needed = 0, uses_anonymous_args = 0
+ 365              		@ link register save eliminated.
+ 366              	.LVL36:
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     return nullptr;
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 367              		.loc 1 115 0
+ 368 0000 0020     		movs	r0, #0
+ 369              	.LVL37:
+ 370 0002 7047     		bx	lr
+ 371              		.cfi_endproc
+ 372              	.LFE194:
+ 374              		.section	.text._ZN21uniform_contrast_passD2Ev,"axG",%progbits,_ZN21uniform_contrast_passD5Ev,comda
+ 375              		.align	1
+ 376              		.weak	_ZN21uniform_contrast_passD2Ev
+ 377              		.thumb
+ 378              		.thumb_func
+ 380              	_ZN21uniform_contrast_passD2Ev:
+ 381              	.LFB196:
+ 382              		.file 2 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * @file    uniform_contrast_pass.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * @date    Oct-31-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  * @brief   Contrast pass with uniformly spaced measurements
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** #ifndef __UNIFORM_CONTRAST_PASS_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** #define __UNIFORM_CONTRAST_PASS_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** #include "contrast_pass.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/uniform_contrast_pass.h **** class uniform_contrast_pass: public contrast_pass {
+ 383              		.loc 2 21 0
+ 384              		.cfi_startproc
+ 385              		@ args = 0, pretend = 0, frame = 0
+ 386              		@ frame_needed = 0, uses_anonymous_args = 0
+ 387              		@ link register save eliminated.
+ 388              	.LVL38:
+ 389              		.loc 2 21 0
+ 390 0000 7047     		bx	lr
+ 391              		.cfi_endproc
+ 392              	.LFE196:
+ 394              		.weak	_ZN21uniform_contrast_passD1Ev
+ 395              		.thumb_set _ZN21uniform_contrast_passD1Ev,_ZN21uniform_contrast_passD2Ev
+ 396              		.section	.text._ZN21uniform_contrast_pass10initializeEv,"ax",%progbits
+ 397              		.align	1
+ 398              		.global	_ZN21uniform_contrast_pass10initializeEv
+ 399              		.thumb
+ 400              		.thumb_func
+ 402              	_ZN21uniform_contrast_pass10initializeEv:
+ 403              	.LFB184:
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     // Reset best position/metric before each pass
+ 404              		.loc 1 40 0
+ 405              		.cfi_startproc
+ 406              		@ args = 0, pretend = 0, frame = 0
+ 407              		@ frame_needed = 0, uses_anonymous_args = 0
+ 408              	.LVL39:
+ 409 0000 F7B5     		push	{r0, r1, r2, r4, r5, r6, r7, lr}
+ 410              	.LCFI4:
+ 411              		.cfi_def_cfa_offset 32
+ 412              		.cfi_offset 4, -20
+ 413              		.cfi_offset 5, -16
+ 414              		.cfi_offset 6, -12
+ 415              		.cfi_offset 7, -8
+ 416              		.cfi_offset 14, -4
+ 417              	.LBB20:
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     best_meas_.metric1 = METRIC_MIN;
+ 418              		.loc 1 42 0
+ 419 0002 8588     		ldrh	r5, [r0, #4]
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (num_steps == 0)
+ 420              		.loc 1 48 0
+ 421 0004 0489     		ldrh	r4, [r0, #8]
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     pos_range -= start_pos_;
+ 422              		.loc 1 46 0
+ 423 0006 B0F90670 		ldrsh	r7, [r0, #6]
+ 424              	.LVL40:
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     best_meas_.metric2 = METRIC_MIN;
+ 425              		.loc 1 43 0
+ 426 000a 0022     		movs	r2, #0
+ 427 000c 4FF00043 		mov	r3, #-2147483648
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (num_steps == 0)
+ 428              		.loc 1 48 0
+ 429 0010 26B2     		sxth	r6, r4
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     best_meas_.metric2 = METRIC_MIN;
+ 430              		.loc 1 43 0
+ 431 0012 C0E90623 		strd	r2, [r0, #24]
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+ 432              		.loc 1 44 0
+ 433 0016 C0E90823 		strd	r2, [r0, #32]
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::uint16_t num_steps = static_cast<std::uint16_t>((pos_range + delta_ - 1) / delta_);
+ 434              		.loc 1 47 0
+ 435 001a 2BB2     		sxth	r3, r5
+ 436 001c F91A     		subs	r1, r7, r3
+ 437              	.LVL41:
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (num_steps == 0)
+ 438              		.loc 1 48 0
+ 439 001e 8A19     		adds	r2, r1, r6
+ 440 0020 013A     		subs	r2, r2, #1
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     best_meas_.metric1 = METRIC_MIN;
+ 441              		.loc 1 42 0
+ 442 0022 0582     		strh	r5, [r0, #16]	@ movhi
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (num_steps == 0)
+ 443              		.loc 1 48 0
+ 444 0024 92FBF6F2 		sdiv	r2, r2, r6
+ 445 0028 92B2     		uxth	r2, r2
+ 446              	.LVL42:
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         num_steps = 1;  // do 1 step even if (start_pos == end_pos)
+ 447              		.loc 1 49 0
+ 448 002a 002A     		cmp	r2, #0
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::uint16_t tot_d = (num_steps - 1) * delta_;
+ 449              		.loc 1 50 0
+ 450 002c 08BF     		it	eq
+ 451 002e 0122     		moveq	r2, #1
+ 452              	.LVL43:
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     std::int16_t start_d = static_cast<std::int16_t>((pos_range - tot_d) / 2);
+ 453              		.loc 1 51 0
+ 454 0030 013A     		subs	r2, r2, #1
+ 455              	.LVL44:
+ 456 0032 12FB04F2 		smulbb	r2, r2, r4
+ 457              	.LVL45:
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 458              		.loc 1 54 0
+ 459 0036 084C     		ldr	r4, .L27
+ 460              	.LVL46:
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     next_pos_ = start_pos_ + start_d;
+ 461              		.loc 1 52 0
+ 462 0038 92B2     		uxth	r2, r2
+ 463 003a 891A     		subs	r1, r1, r2
+ 464              	.LVL47:
+ 465 003c 0222     		movs	r2, #2
+ 466 003e 91FBF2F1 		sdiv	r1, r1, r2
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 467              		.loc 1 54 0
+ 468 0042 064A     		ldr	r2, .L27+4
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     SLOGF(SLOG_INFO, "Starting contrast sweep pass with start_pos: %d, end_pos: %d, delta: %d", (in
+ 469              		.loc 1 53 0
+ 470 0044 2944     		add	r1, r1, r5
+ 471 0046 8181     		strh	r1, [r0, #12]	@ movhi
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 472              		.loc 1 54 0
+ 473 0048 2B20     		movs	r0, #43
+ 474              	.LVL48:
+ 475 004a 0097     		str	r7, [sp]
+ 476 004c 0821     		movs	r1, #8
+ 477 004e 0196     		str	r6, [sp, #4]
+ 478 0050 A047     		blx	r4
+ 479              	.LVL49:
+ 480              	.LBE20:
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+ 481              		.loc 1 55 0
+ 482 0052 03B0     		add	sp, sp, #12
+ 483              	.LCFI5:
+ 484              		.cfi_def_cfa_offset 20
+ 485              		@ sp needed
+ 486 0054 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 487              	.LVL50:
+ 488              	.L28:
+ 489 0056 00BF     		.align	2
+ 490              	.L27:
+ 491 0058 00000000 		.word	slogf
+ 492 005c 00000000 		.word	.LC0
+ 493              		.cfi_endproc
+ 494              	.LFE184:
+ 496              		.section	.text._ZN21uniform_contrast_passD0Ev,"axG",%progbits,_ZN21uniform_contrast_passD5Ev,comda
+ 497              		.align	1
+ 498              		.weak	_ZN21uniform_contrast_passD0Ev
+ 499              		.thumb
+ 500              		.thumb_func
+ 502              	_ZN21uniform_contrast_passD0Ev:
+ 503              	.LFB198:
+ 504              		.loc 2 21 0
+ 505              		.cfi_startproc
+ 506              		@ args = 0, pretend = 0, frame = 0
+ 507              		@ frame_needed = 0, uses_anonymous_args = 0
+ 508              	.LVL51:
+ 509 0000 10B5     		push	{r4, lr}
+ 510              	.LCFI6:
+ 511              		.cfi_def_cfa_offset 8
+ 512              		.cfi_offset 4, -8
+ 513              		.cfi_offset 14, -4
+ 514              		.loc 2 21 0
+ 515 0002 024B     		ldr	r3, .L30
+ 516 0004 0446     		mov	r4, r0
+ 517              	.LVL52:
+ 518 0006 9847     		blx	r3
+ 519              	.LVL53:
+ 520 0008 2046     		mov	r0, r4
+ 521 000a 10BD     		pop	{r4, pc}
+ 522              	.LVL54:
+ 523              	.L31:
+ 524              		.align	2
+ 525              	.L30:
+ 526 000c 00000000 		.word	_ZdlPv
+ 527              		.cfi_endproc
+ 528              	.LFE198:
+ 530              		.section	.text._ZN21uniform_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE,"ax"
+ 531              		.align	1
+ 532              		.global	_ZN21uniform_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+ 533              		.thumb
+ 534              		.thumb_func
+ 536              	_ZN21uniform_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:
+ 537              	.LFB188:
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (measurement_t::is_better(use_metric1_, meas, best_meas_))
+ 538              		.loc 1 69 0
+ 539              		.cfi_startproc
+ 540              		@ args = 0, pretend = 0, frame = 0
+ 541              		@ frame_needed = 0, uses_anonymous_args = 0
+ 542              	.LVL55:
+ 543 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+ 544              	.LCFI7:
+ 545              		.cfi_def_cfa_offset 20
+ 546              		.cfi_offset 4, -20
+ 547              		.cfi_offset 5, -16
+ 548              		.cfi_offset 6, -12
+ 549              		.cfi_offset 7, -8
+ 550              		.cfi_offset 14, -4
+ 551              	.LBB25:
+ 552              	.LBB26:
+ 553              		.file 3 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @file    contrast_pass.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @date    Sept-14-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  * @brief   Interface for one pass of contrast computation
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #ifndef __CONTRAST_PASS_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #define __CONTRAST_PASS_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #ifdef __cplusplus
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #include <cstdint>
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** #include <limits>
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** class contrast_pass {
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** public:
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****     struct measurement_t {
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int16_t pos;
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int64_t metric1;
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         std::int64_t metric2;
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h **** 
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****         static bool is_better(bool use_metric1, const measurement_t& meas1, const measurement_t& me
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/contrast_pass.h ****             return use_metric1 ? (meas1.metric1 > meas2.metric1) : (meas1.metric2 > meas2.metric2);
+ 554              		.loc 3 33 0
+ 555 0002 837B     		ldrb	r3, [r0, #14]	@ zero_extendqisi2
+ 556              	.LBE26:
+ 557              	.LBE25:
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     if (measurement_t::is_better(use_metric1_, meas, best_meas_))
+ 558              		.loc 1 69 0
+ 559 0004 0546     		mov	r5, r0
+ 560              	.LBB30:
+ 561              	.LBB29:
+ 562              		.loc 3 33 0
+ 563 0006 23B1     		cbz	r3, .L33
+ 564              	.LVL56:
+ 565              	.LBB27:
+ 566              	.LBB28:
+ 567 0008 D1E90223 		ldrd	r2, [r1, #8]
+ 568 000c D0E90667 		ldrd	r6, [r0, #24]
+ 569 0010 03E0     		b	.L39
+ 570              	.LVL57:
+ 571              	.L33:
+ 572              	.LBE28:
+ 573              	.LBE27:
+ 574 0012 D1E90423 		ldrd	r2, [r1, #16]
+ 575 0016 D0E90867 		ldrd	r6, [r0, #32]
+ 576              	.L39:
+ 577 001a 9642     		cmp	r6, r2
+ 578 001c 77EB0303 		sbcs	r3, r7, r3
+ 579 0020 B4BF     		ite	lt
+ 580 0022 0123     		movlt	r3, #1
+ 581 0024 0023     		movge	r3, #0
+ 582              	.LBE29:
+ 583              	.LBE30:
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         best_meas_ = meas;
+ 584              		.loc 1 70 0
+ 585 0026 43B1     		cbz	r3, .L35
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****     next_pos_ += delta_;
+ 586              		.loc 1 71 0
+ 587 0028 0C46     		mov	r4, r1
+ 588 002a 05F11006 		add	r6, r5, #16
+ 589 002e 0FCC     		ldmia	r4!, {r0, r1, r2, r3}
+ 590              	.LVL58:
+ 591 0030 0FC6     		stmia	r6!, {r0, r1, r2, r3}
+ 592 0032 94E80300 		ldmia	r4, {r0, r1}
+ 593 0036 86E80300 		stmia	r6, {r0, r1}
+ 594              	.LVL59:
+ 595              	.L35:
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 596              		.loc 1 72 0
+ 597 003a AB89     		ldrh	r3, [r5, #12]
+ 598 003c 2A89     		ldrh	r2, [r5, #8]
+ 599 003e 1344     		add	r3, r3, r2
+ 600 0040 AB81     		strh	r3, [r5, #12]	@ movhi
+ 601 0042 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 602              		.cfi_endproc
+ 603              	.LFE188:
+ 605              		.section	.text._ZN21uniform_contrast_passC2Essstbb,"ax",%progbits
+ 606              		.align	1
+ 607              		.global	_ZN21uniform_contrast_passC2Essstbb
+ 608              		.thumb
+ 609              		.thumb_func
+ 611              	_ZN21uniform_contrast_passC2Essstbb:
+ 612              	.LFB181:
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp ****         std::int16_t delta, std::uint16_t tolerance, bool use_metric1, bool interval_shrink) :
+ 613              		.loc 1 21 0
+ 614              		.cfi_startproc
+ 615              		@ args = 12, pretend = 0, frame = 0
+ 616              		@ frame_needed = 0, uses_anonymous_args = 0
+ 617              	.LVL60:
+ 618 0000 30B5     		push	{r4, r5, lr}
+ 619              	.LCFI8:
+ 620              		.cfi_def_cfa_offset 12
+ 621              		.cfi_offset 4, -12
+ 622              		.cfi_offset 5, -8
+ 623              		.cfi_offset 14, -4
+ 624              	.LBB31:
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** }
+ 625              		.loc 1 29 0
+ 626 0002 0381     		strh	r3, [r0, #8]	@ movhi
+ 627 0004 BDF80C30 		ldrh	r3, [sp, #12]
+ 628              	.LVL61:
+ 629 0008 4381     		strh	r3, [r0, #10]	@ movhi
+ 630 000a 9DF81030 		ldrb	r3, [sp, #16]	@ zero_extendqisi2
+ 631 000e 8373     		strb	r3, [r0, #14]
+ 632 0010 9DF81430 		ldrb	r3, [sp, #20]	@ zero_extendqisi2
+ 633 0014 C373     		strb	r3, [r0, #15]
+ 634 0016 0023     		movs	r3, #0
+ 635 0018 C280     		strh	r2, [r0, #6]	@ movhi
+ 636 001a 0022     		movs	r2, #0
+ 637              	.LVL62:
+ 638 001c 0382     		strh	r3, [r0, #16]	@ movhi
+ 639 001e 0023     		movs	r3, #0
+ 640 0020 044D     		ldr	r5, .L41
+ 641 0022 0560     		str	r5, [r0]
+ 642 0024 8180     		strh	r1, [r0, #4]	@ movhi
+ 643 0026 8181     		strh	r1, [r0, #12]	@ movhi
+ 644 0028 C0E90623 		strd	r2, [r0, #24]
+ 645 002c C0E90823 		strd	r2, [r0, #32]
+ 646              	.LBE31:
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/uniform_contrast_pass.cpp **** 
+ 647              		.loc 1 30 0
+ 648 0030 30BD     		pop	{r4, r5, pc}
+ 649              	.LVL63:
+ 650              	.L42:
+ 651 0032 00BF     		.align	2
+ 652              	.L41:
+ 653 0034 08000000 		.word	.LANCHOR0+8
+ 654              		.cfi_endproc
+ 655              	.LFE181:
+ 657              		.global	_ZN21uniform_contrast_passC1Essstbb
+ 658              		.thumb_set _ZN21uniform_contrast_passC1Essstbb,_ZN21uniform_contrast_passC2Essstbb
+ 659              		.global	_ZTV21uniform_contrast_pass
+ 660              		.section	.rodata._ZTV21uniform_contrast_pass,"a",%progbits
+ 661              		.align	3
+ 662              		.set	.LANCHOR0,. + 0
+ 665              	_ZTV21uniform_contrast_pass:
+ 666 0000 00000000 		.word	0
+ 667 0004 00000000 		.word	0
+ 668 0008 00000000 		.word	_ZN21uniform_contrast_passD1Ev
+ 669 000c 00000000 		.word	_ZN21uniform_contrast_passD0Ev
+ 670 0010 00000000 		.word	_ZN21uniform_contrast_pass10initializeERK13contrast_pass
+ 671 0014 00000000 		.word	_ZN21uniform_contrast_pass10initializeEv
+ 672 0018 00000000 		.word	_ZNK21uniform_contrast_pass7is_doneEv
+ 673 001c 00000000 		.word	_ZN21uniform_contrast_pass8next_posEv
+ 674 0020 00000000 		.word	_ZNK21uniform_contrast_pass9toleranceEv
+ 675 0024 00000000 		.word	_ZN21uniform_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+ 676 0028 00000000 		.word	_ZNK21uniform_contrast_pass11out_min_posEv
+ 677 002c 00000000 		.word	_ZNK21uniform_contrast_pass11out_max_posEv
+ 678 0030 00000000 		.word	_ZNK21uniform_contrast_pass12out_best_posEv
+ 679 0034 00000000 		.word	_ZNK21uniform_contrast_pass15out_best_metricEv
+ 680 0038 00000000 		.word	_ZNK21uniform_contrast_pass16num_measurementsEv
+ 681 003c 00000000 		.word	_ZNK21uniform_contrast_pass12measurementsEv
+ 682              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 683              	.LC0:
+ 684 0000 53746172 		.ascii	"Starting contrast sweep pass with start_pos: %d, en"
+ 684      74696E67 
+ 684      20636F6E 
+ 684      74726173 
+ 684      74207377 
+ 685 0033 645F706F 		.ascii	"d_pos: %d, delta: %d\000"
+ 685      733A2025 
+ 685      642C2064 
+ 685      656C7461 
+ 685      3A202564 
+ 686              		.text
+ 687              	.Letext0:
+ 688              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 689              		.file 5 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 690              		.file 6 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 691              		.file 7 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/arm-none-eab
+ 692              		.file 8 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 uniform_contrast_pass.cpp
+     /tmp/ccDVjuDb.s:19     .text._ZN21uniform_contrast_pass10initializeERK13contrast_pass:00000000 $t
+     /tmp/ccDVjuDb.s:24     .text._ZN21uniform_contrast_pass10initializeERK13contrast_pass:00000000 _ZN21uniform_contrast_pass10initializeERK13contrast_pass
+     /tmp/ccDVjuDb.s:86     .text._ZNK21uniform_contrast_pass7is_doneEv:00000000 $t
+     /tmp/ccDVjuDb.s:91     .text._ZNK21uniform_contrast_pass7is_doneEv:00000000 _ZNK21uniform_contrast_pass7is_doneEv
+     /tmp/ccDVjuDb.s:113    .text._ZN21uniform_contrast_pass8next_posEv:00000000 $t
+     /tmp/ccDVjuDb.s:118    .text._ZN21uniform_contrast_pass8next_posEv:00000000 _ZN21uniform_contrast_pass8next_posEv
+     /tmp/ccDVjuDb.s:134    .text._ZNK21uniform_contrast_pass9toleranceEv:00000000 $t
+     /tmp/ccDVjuDb.s:139    .text._ZNK21uniform_contrast_pass9toleranceEv:00000000 _ZNK21uniform_contrast_pass9toleranceEv
+     /tmp/ccDVjuDb.s:155    .text._ZNK21uniform_contrast_pass11out_min_posEv:00000000 $t
+     /tmp/ccDVjuDb.s:160    .text._ZNK21uniform_contrast_pass11out_min_posEv:00000000 _ZNK21uniform_contrast_pass11out_min_posEv
+     /tmp/ccDVjuDb.s:217    .text._ZNK21uniform_contrast_pass11out_max_posEv:00000000 $t
+     /tmp/ccDVjuDb.s:222    .text._ZNK21uniform_contrast_pass11out_max_posEv:00000000 _ZNK21uniform_contrast_pass11out_max_posEv
+     /tmp/ccDVjuDb.s:281    .text._ZNK21uniform_contrast_pass12out_best_posEv:00000000 $t
+     /tmp/ccDVjuDb.s:286    .text._ZNK21uniform_contrast_pass12out_best_posEv:00000000 _ZNK21uniform_contrast_pass12out_best_posEv
+     /tmp/ccDVjuDb.s:302    .text._ZNK21uniform_contrast_pass15out_best_metricEv:00000000 $t
+     /tmp/ccDVjuDb.s:307    .text._ZNK21uniform_contrast_pass15out_best_metricEv:00000000 _ZNK21uniform_contrast_pass15out_best_metricEv
+     /tmp/ccDVjuDb.s:333    .text._ZNK21uniform_contrast_pass16num_measurementsEv:00000000 $t
+     /tmp/ccDVjuDb.s:338    .text._ZNK21uniform_contrast_pass16num_measurementsEv:00000000 _ZNK21uniform_contrast_pass16num_measurementsEv
+     /tmp/ccDVjuDb.s:354    .text._ZNK21uniform_contrast_pass12measurementsEv:00000000 $t
+     /tmp/ccDVjuDb.s:359    .text._ZNK21uniform_contrast_pass12measurementsEv:00000000 _ZNK21uniform_contrast_pass12measurementsEv
+     /tmp/ccDVjuDb.s:375    .text._ZN21uniform_contrast_passD2Ev:00000000 $t
+     /tmp/ccDVjuDb.s:380    .text._ZN21uniform_contrast_passD2Ev:00000000 _ZN21uniform_contrast_passD2Ev
+     /tmp/ccDVjuDb.s:380    .text._ZN21uniform_contrast_passD2Ev:00000000 _ZN21uniform_contrast_passD1Ev
+     /tmp/ccDVjuDb.s:397    .text._ZN21uniform_contrast_pass10initializeEv:00000000 $t
+     /tmp/ccDVjuDb.s:402    .text._ZN21uniform_contrast_pass10initializeEv:00000000 _ZN21uniform_contrast_pass10initializeEv
+     /tmp/ccDVjuDb.s:491    .text._ZN21uniform_contrast_pass10initializeEv:00000058 $d
+     /tmp/ccDVjuDb.s:497    .text._ZN21uniform_contrast_passD0Ev:00000000 $t
+     /tmp/ccDVjuDb.s:502    .text._ZN21uniform_contrast_passD0Ev:00000000 _ZN21uniform_contrast_passD0Ev
+     /tmp/ccDVjuDb.s:526    .text._ZN21uniform_contrast_passD0Ev:0000000c $d
+     /tmp/ccDVjuDb.s:531    .text._ZN21uniform_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:00000000 $t
+     /tmp/ccDVjuDb.s:536    .text._ZN21uniform_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE:00000000 _ZN21uniform_contrast_pass15set_measurementERKN13contrast_pass13measurement_tE
+     /tmp/ccDVjuDb.s:606    .text._ZN21uniform_contrast_passC2Essstbb:00000000 $t
+     /tmp/ccDVjuDb.s:611    .text._ZN21uniform_contrast_passC2Essstbb:00000000 _ZN21uniform_contrast_passC2Essstbb
+     /tmp/ccDVjuDb.s:653    .text._ZN21uniform_contrast_passC2Essstbb:00000034 $d
+     /tmp/ccDVjuDb.s:611    .text._ZN21uniform_contrast_passC2Essstbb:00000000 _ZN21uniform_contrast_passC1Essstbb
+     /tmp/ccDVjuDb.s:665    .rodata._ZTV21uniform_contrast_pass:00000000 _ZTV21uniform_contrast_pass
+     /tmp/ccDVjuDb.s:661    .rodata._ZTV21uniform_contrast_pass:00000000 $d
+                     .debug_frame:00000010 $d
+                           .group:00000000 _ZN21uniform_contrast_passD5Ev
+
+UNDEFINED SYMBOLS
+slogf
+_ZdlPv

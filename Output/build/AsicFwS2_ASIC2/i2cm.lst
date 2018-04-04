@@ -1,0 +1,1157 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"i2cm.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.i2cm_init,"ax",%progbits
+  19              		.align	1
+  20              		.global	i2cm_init
+  21              		.thumb
+  22              		.thumb_func
+  24              	i2cm_init:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * @file    i2cm.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * @date    May-29-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * @brief   This file contains expand for I2C master driver
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #include "os.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #include "assert.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #include "lcc_system.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #include "log.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #include "hal_i2c.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #include "hal_vic.h"
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #include "i2cm.h"
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Private define-------------------------------------------------------------*/
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #define SLOGF_ID					SLOG_ID_I2C_MASTER
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #define I2CM_TIMEOUT				1000
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Private typedef------------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** typedef struct
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** {
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	SemaphoreHandle_t sem_trans;
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	SemaphoreHandle_t sem_msg;
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_error_t status;
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	hal_i2c_buffer_t txbuf;
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	hal_i2c_buffer_t rxbuf;
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t addr;
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t is_initialized;
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** } i2cm_t;
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Private macro--------------------------------------------------------------*/
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Private function prototype ------------------------------------------------*/
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** static void i2cm_handler(hal_i2c_channel_t chid, hal_i2c_status_t status);
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Private variables----------------------------------------------------------*/
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** static i2cm_t i2cm_tbl[I2CM_CH_MAX_IDX];
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Exported functions implementation -----------------------------------------*/
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /*
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * i2cm_init
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  */
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** i2cm_error_t i2cm_init(i2c_t chid)
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** {
+  27              		.loc 1 52 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 16
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 7FB5     		push	{r0, r1, r2, r3, r4, r5, r6, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 32
+  35              		.cfi_offset 4, -16
+  36              		.cfi_offset 5, -12
+  37              		.cfi_offset 6, -8
+  38              		.cfi_offset 14, -4
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	hal_i2c_t i2cm_cfg;
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_error_t ret = I2CM_ERROR_NONE;
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	if (i2cm->is_initialized == pdFALSE) /* Un-initialization */
+  39              		.loc 1 57 0
+  40 0002 1E4D     		ldr	r5, .L13
+  41 0004 4401     		lsls	r4, r0, #5
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+  42              		.loc 1 52 0
+  43 0006 0646     		mov	r6, r0
+  44              		.loc 1 57 0
+  45 0008 2B19     		adds	r3, r5, r4
+  46 000a 5B7F     		ldrb	r3, [r3, #29]	@ zero_extendqisi2
+  47 000c 002B     		cmp	r3, #0
+  48 000e 31D1     		bne	.L2
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Create semaphore to protect resource while using transceiver */
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->sem_trans = xSemaphoreCreateMutex();
+  49              		.loc 1 60 0
+  50 0010 0120     		movs	r0, #1
+  51              	.LVL1:
+  52 0012 1B4B     		ldr	r3, .L13+4
+  53 0014 9847     		blx	r3
+  54              	.LVL2:
+  55 0016 2851     		str	r0, [r5, r4]
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		assert_param(i2cm->sem_trans);
+  56              		.loc 1 61 0
+  57 0018 18B9     		cbnz	r0, .L3
+  58              		.loc 1 61 0 is_stmt 0 discriminator 1
+  59 001a 1A48     		ldr	r0, .L13+8
+  60 001c 3D21     		movs	r1, #61
+  61 001e 1A4B     		ldr	r3, .L13+12
+  62 0020 9847     		blx	r3
+  63              	.LVL3:
+  64              	.L3:
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Create semaphore for waiting transfer completion */
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->sem_msg = xSemaphoreCreateBinary();
+  65              		.loc 1 63 0 is_stmt 1
+  66 0022 1A4B     		ldr	r3, .L13+16
+  67 0024 0120     		movs	r0, #1
+  68 0026 0021     		movs	r1, #0
+  69 0028 0322     		movs	r2, #3
+  70 002a 9847     		blx	r3
+  71              	.LVL4:
+  72 002c 2B19     		adds	r3, r5, r4
+  73 002e 5860     		str	r0, [r3, #4]
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		assert_param(i2cm->sem_msg);
+  74              		.loc 1 64 0
+  75 0030 18B9     		cbnz	r0, .L4
+  76              		.loc 1 64 0 is_stmt 0 discriminator 1
+  77 0032 1448     		ldr	r0, .L13+8
+  78 0034 4021     		movs	r1, #64
+  79 0036 144B     		ldr	r3, .L13+12
+  80 0038 9847     		blx	r3
+  81              	.LVL5:
+  82              	.L4:
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Setup i2c hardware and interrupt */
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.chid = chid;
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #ifdef EVT3_REWORK
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		if ((I2C_FORWARD_ASIC2_CHANNEL == chid) ||
+  83              		.loc 1 69 0 is_stmt 1
+  84 003a 092E     		cmp	r6, #9
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #ifdef EVT3_REWORK
+  85              		.loc 1 67 0
+  86 003c 8DF80460 		strb	r6, [sp, #4]
+  87              		.loc 1 69 0
+  88 0040 01D0     		beq	.L5
+  89              		.loc 1 69 0 is_stmt 0 discriminator 1
+  90 0042 0F2E     		cmp	r6, #15
+  91 0044 01D1     		bne	.L6
+  92              	.L5:
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			(I2C_FORWARD_ASIC3_CHANNEL == chid))
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		{
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			i2cm_cfg.clock_speed = I2C_SPEED_1MHz;
+  93              		.loc 1 72 0 is_stmt 1
+  94 0046 0223     		movs	r3, #2
+  95 0048 00E0     		b	.L11
+  96              	.L6:
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		}
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		else
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		{
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			i2cm_cfg.clock_speed = I2C_SPEED_400KHz;
+  97              		.loc 1 76 0
+  98 004a 0123     		movs	r3, #1
+  99              	.L11:
+ 100 004c 8DF80530 		strb	r3, [sp, #5]
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		}
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #else
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.clock_speed = I2C_SPEED_100KHz;
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** #endif
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.address_mode = I2C_7BIT;
+ 101              		.loc 1 81 0
+ 102 0050 0023     		movs	r3, #0
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.operation_mode = I2C_MASTER;
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.owner_addr = 0x00;
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.irq_handler = i2cm_handler;
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		hal_i2c_init(&i2cm_cfg);
+ 103              		.loc 1 86 0
+ 104 0052 01A8     		add	r0, sp, #4
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.operation_mode = I2C_MASTER;
+ 105              		.loc 1 81 0
+ 106 0054 8DF80630 		strb	r3, [sp, #6]
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		hal_i2c_enable_irq(&i2cm_cfg);
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->is_initialized = pdTRUE;
+ 107              		.loc 1 89 0
+ 108 0058 2C44     		add	r4, r4, r5
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.owner_addr = 0x00;
+ 109              		.loc 1 82 0
+ 110 005a 8DF80730 		strb	r3, [sp, #7]
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm_cfg.irq_handler = i2cm_handler;
+ 111              		.loc 1 83 0
+ 112 005e ADF80830 		strh	r3, [sp, #8]	@ movhi
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 113              		.loc 1 84 0
+ 114 0062 0B4B     		ldr	r3, .L13+20
+ 115 0064 0393     		str	r3, [sp, #12]
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		hal_i2c_enable_irq(&i2cm_cfg);
+ 116              		.loc 1 86 0
+ 117 0066 0B4B     		ldr	r3, .L13+24
+ 118 0068 9847     		blx	r3
+ 119              	.LVL6:
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 120              		.loc 1 87 0
+ 121 006a 0B4B     		ldr	r3, .L13+28
+ 122 006c 01A8     		add	r0, sp, #4
+ 123 006e 9847     		blx	r3
+ 124              	.LVL7:
+ 125              		.loc 1 89 0
+ 126 0070 0123     		movs	r3, #1
+ 127 0072 6377     		strb	r3, [r4, #29]
+ 128              	.L2:
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	return ret;
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 129              		.loc 1 93 0
+ 130 0074 0020     		movs	r0, #0
+ 131 0076 04B0     		add	sp, sp, #16
+ 132              	.LCFI1:
+ 133              		.cfi_def_cfa_offset 16
+ 134              		@ sp needed
+ 135 0078 70BD     		pop	{r4, r5, r6, pc}
+ 136              	.LVL8:
+ 137              	.L14:
+ 138 007a 00BF     		.align	2
+ 139              	.L13:
+ 140 007c 00000000 		.word	.LANCHOR0
+ 141 0080 00000000 		.word	xQueueCreateMutex
+ 142 0084 00000000 		.word	.LANCHOR1
+ 143 0088 00000000 		.word	assert_failed
+ 144 008c 00000000 		.word	xQueueGenericCreate
+ 145 0090 00000000 		.word	i2cm_handler
+ 146 0094 00000000 		.word	hal_i2c_init
+ 147 0098 00000000 		.word	hal_i2c_enable_irq
+ 148              		.cfi_endproc
+ 149              	.LFE1:
+ 151              		.section	.text.i2cm_handler,"ax",%progbits
+ 152              		.align	1
+ 153              		.thumb
+ 154              		.thumb_func
+ 156              	i2cm_handler:
+ 157              	.LFB6:
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /*
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * i2cm_deinit
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  */
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** i2cm_error_t i2cm_deinit(i2c_t chid)
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** {
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	if (i2cm->is_initialized == pdTRUE) /* Initialized */
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		hal_i2c_deinit(chid);
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		vSemaphoreDelete(i2cm->sem_trans);
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		vSemaphoreDelete(i2cm->sem_msg);
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->is_initialized = pdFALSE;
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		return I2CM_ERROR_NONE;
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	return I2CM_ERROR_INVALID;
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /*
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * i2cm_transceiver
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  */
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** i2cm_error_t i2cm_transceiver(i2c_t chid, uint8_t addr,
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 								uint8_t *tx, uint16_t txlen,
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 								uint8_t *rx, uint16_t rxlen)
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** {
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((txlen != 0) || (rxlen != 0));		/* Have not data */
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((txlen == 0) || (tx != NULL));		/* Check TX buffer */
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((rxlen == 0) || (rx != NULL));		/* Check RX buffer */
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	if (i2cm->is_initialized == pdFALSE)
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		return I2CM_ERROR_UNINITIALIZED;
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	/* Wait for the completion of current transfer */
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	if (xSemaphoreTake(i2cm->sem_trans, I2CM_TIMEOUT) == pdPASS)
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		volatile i2cm_error_t status;
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Setup message */
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->addr = addr;
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->rxbuf.length = rxlen;
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->rxbuf.bytes = rx;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->txbuf.length = txlen;
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->txbuf.bytes = tx;
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		if (txlen > 0)	/* Send I2C message to slave*/
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			hal_i2c_master_tx(chid, i2cm->addr, &i2cm->txbuf);
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		else			/* Get I2C message from slave */
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			hal_i2c_master_rx(chid, i2cm->addr, &i2cm->rxbuf);
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Make sure that the current transfer must be done */
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		xSemaphoreTake(i2cm->sem_msg, portMAX_DELAY);
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Store the transfer status temporarily for reentrancy */
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		status = i2cm->status;
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Release resource for other transfers */
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		xSemaphoreGive(i2cm->sem_trans);
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Return transfer status */
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		return status;
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	else
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		return I2CM_ERROR_BUSY;
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /*
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * i2cm_read
+ 163:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  */
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** i2cm_error_t i2cm_read(i2c_t i2c, i2cm_mode_t mode,
+ 165:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				uint8_t sla, uint16_t reg, uint8_t *byte)
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** {
+ 167:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t addr[2];
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t addr_len = 0;
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t data_len = 1;
+ 170:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	switch (mode)
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case WORD_ADDR16:
+ 174:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case BYTE_ADDR16:
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			addr[addr_len++] = (uint8_t)(reg >> 8);
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case WORD_ADDR8:
+ 177:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case BYTE_ADDR8:
+ 178:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		default:
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			addr[addr_len++] = (uint8_t)reg;
+ 180:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			if ((mode == WORD_ADDR8) || (mode == WORD_ADDR16))
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				data_len = 2;
+ 182:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 183:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	return i2cm_transceiver(i2c, sla, addr, addr_len, byte, data_len);
+ 185:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 186:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /*
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * i2cm_write
+ 189:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  */
+ 190:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** i2cm_error_t i2cm_write(i2c_t i2c, i2cm_mode_t mode,
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				uint8_t sla, uint16_t reg, uint8_t *byte)
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** {
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t buf[4];
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t len = 0;
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	switch (mode)
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case WORD_ADDR16:
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = (uint8_t)(reg >> 8);
+ 200:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case WORD_ADDR8:
+ 201:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = (uint8_t)reg;
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte++;
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte;
+ 204:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 205:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 206:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case BYTE_ADDR16:
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = (uint8_t)(reg >> 8);
+ 208:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case BYTE_ADDR8:
+ 209:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		default:
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = (uint8_t)reg;
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte++;
+ 212:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 213:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 214:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	return i2cm_transceiver(i2c, sla, buf, len, NULL, 0);
+ 215:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 216:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 217:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /* Private functions implementation ------------------------------------------*/
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** /*
+ 219:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  * i2cm_handler
+ 220:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c ****  */
+ 221:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 222:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** static void i2cm_handler(hal_i2c_channel_t chid, hal_i2c_status_t status)
+ 223:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** {
+ 158              		.loc 1 223 0
+ 159              		.cfi_startproc
+ 160              		@ args = 0, pretend = 0, frame = 8
+ 161              		@ frame_needed = 0, uses_anonymous_args = 0
+ 162              	.LVL9:
+ 224:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 225:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	bool completed = false;
+ 226:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 227:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	switch (status)
+ 163              		.loc 1 227 0
+ 164 0000 0429     		cmp	r1, #4
+ 223:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 165              		.loc 1 223 0
+ 166 0002 37B5     		push	{r0, r1, r2, r4, r5, lr}
+ 167              	.LCFI2:
+ 168              		.cfi_def_cfa_offset 24
+ 169              		.cfi_offset 4, -12
+ 170              		.cfi_offset 5, -8
+ 171              		.cfi_offset 14, -4
+ 223:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 172              		.loc 1 223 0
+ 173 0004 0446     		mov	r4, r0
+ 174              		.loc 1 227 0
+ 175 0006 04D0     		beq	.L17
+ 176 0008 0729     		cmp	r1, #7
+ 177 000a 19D0     		beq	.L18
+ 178 000c 0229     		cmp	r1, #2
+ 179 000e 2BD1     		bne	.L15
+ 180 0010 0DE0     		b	.L27
+ 181              	.L17:
+ 228:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 229:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case I2C_TX_COMPLETED:
+ 230:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			if (i2cm->rxbuf.length)
+ 182              		.loc 1 230 0
+ 183 0012 164A     		ldr	r2, .L28
+ 184 0014 4301     		lsls	r3, r0, #5
+ 185 0016 D118     		adds	r1, r2, r3
+ 186              	.LVL10:
+ 187 0018 0D8B     		ldrh	r5, [r1, #24]
+ 188 001a 2DB1     		cbz	r5, .L20
+ 231:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			{
+ 232:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				/* Trigger receive data from slave */
+ 233:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				hal_i2c_master_rx(chid, i2cm->addr, &i2cm->rxbuf);
+ 189              		.loc 1 233 0
+ 190 001c 0A46     		mov	r2, r1
+ 191 001e 097F     		ldrb	r1, [r1, #28]	@ zero_extendqisi2
+ 192 0020 1432     		adds	r2, r2, #20
+ 193 0022 134B     		ldr	r3, .L28+4
+ 194 0024 9847     		blx	r3
+ 195              	.LVL11:
+ 196 0026 1FE0     		b	.L15
+ 197              	.LVL12:
+ 198              	.L20:
+ 234:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			}
+ 235:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			else
+ 236:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			{
+ 237:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				i2cm->status = I2CM_ERROR_TRANSMITTED;
+ 199              		.loc 1 237 0
+ 200 0028 0523     		movs	r3, #5
+ 201 002a 0B72     		strb	r3, [r1, #8]
+ 202              	.LVL13:
+ 203 002c 0DE0     		b	.L21
+ 204              	.LVL14:
+ 205              	.L27:
+ 238:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				/* Completed current transaction */
+ 239:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				completed = true;
+ 240:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			}
+ 241:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 242:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 243:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case I2C_RX_COMPLETED:
+ 244:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			if (i2cm->txbuf.length)
+ 206              		.loc 1 244 0
+ 207 002e 0F4B     		ldr	r3, .L28
+ 208 0030 03EB4013 		add	r3, r3, r0, lsl #5
+ 209 0034 1A8A     		ldrh	r2, [r3, #16]
+ 210 0036 0AB1     		cbz	r2, .L22
+ 245:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				i2cm->status = I2CM_ERROR_TRANSCEIVED;
+ 211              		.loc 1 245 0
+ 212 0038 0722     		movs	r2, #7
+ 213 003a 05E0     		b	.L26
+ 214              	.L22:
+ 246:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			else
+ 247:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				i2cm->status = I2CM_ERROR_RECEIVED;
+ 215              		.loc 1 247 0
+ 216 003c 0622     		movs	r2, #6
+ 217 003e 03E0     		b	.L26
+ 218              	.L18:
+ 248:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			/* Completed current transaction */
+ 249:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			completed = true;
+ 250:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 251:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 252:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case I2C_ERROR:
+ 253:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			i2cm->status = I2CM_ERROR_BUSY;
+ 219              		.loc 1 253 0
+ 220 0040 0A4B     		ldr	r3, .L28
+ 221 0042 8022     		movs	r2, #128
+ 222 0044 03EB4013 		add	r3, r3, r0, lsl #5
+ 223              	.L26:
+ 224 0048 1A72     		strb	r2, [r3, #8]
+ 225              	.LVL15:
+ 226              	.L21:
+ 227              	.LBB2:
+ 254:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			/* Completed current transaction */
+ 255:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			completed = true;
+ 256:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 257:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 258:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		default:
+ 259:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 260:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 261:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 262:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	if (completed)
+ 263:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 264:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		BaseType_t higher_pri_task_woken = pdFALSE;
+ 228              		.loc 1 264 0
+ 229 004a 02A9     		add	r1, sp, #8
+ 230 004c 0023     		movs	r3, #0
+ 231 004e 41F8043D 		str	r3, [r1, #-4]!
+ 265:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		xSemaphoreGiveFromISR(i2cm->sem_msg, &higher_pri_task_woken);
+ 232              		.loc 1 265 0
+ 233 0052 064B     		ldr	r3, .L28
+ 234 0054 03EB4414 		add	r4, r3, r4, lsl #5
+ 235 0058 064B     		ldr	r3, .L28+8
+ 236 005a 6068     		ldr	r0, [r4, #4]
+ 237              	.LVL16:
+ 238 005c 9847     		blx	r3
+ 239              	.LVL17:
+ 240              	.LBB3:
+ 266:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		portEND_SWITCHING_ISR(higher_pri_task_woken);
+ 241              		.loc 1 266 0
+ 242 005e 019B     		ldr	r3, [sp, #4]
+ 243 0060 13B1     		cbz	r3, .L15
+ 244              		.loc 1 266 0 is_stmt 0 discriminator 1
+ 245 0062 0122     		movs	r2, #1
+ 246 0064 044B     		ldr	r3, .L28+12
+ 247 0066 1A60     		str	r2, [r3]
+ 248              	.LVL18:
+ 249              	.L15:
+ 250              	.LBE3:
+ 251              	.LBE2:
+ 267:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 268:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 252              		.loc 1 268 0 is_stmt 1
+ 253 0068 03B0     		add	sp, sp, #12
+ 254              	.LCFI3:
+ 255              		.cfi_def_cfa_offset 12
+ 256              		@ sp needed
+ 257 006a 30BD     		pop	{r4, r5, pc}
+ 258              	.L29:
+ 259              		.align	2
+ 260              	.L28:
+ 261 006c 00000000 		.word	.LANCHOR0
+ 262 0070 00000000 		.word	hal_i2c_master_rx
+ 263 0074 00000000 		.word	xQueueGiveFromISR
+ 264 0078 00000000 		.word	ulPortYieldRequired
+ 265              		.cfi_endproc
+ 266              	.LFE6:
+ 268              		.section	.text.i2cm_deinit,"ax",%progbits
+ 269              		.align	1
+ 270              		.global	i2cm_deinit
+ 271              		.thumb
+ 272              		.thumb_func
+ 274              	i2cm_deinit:
+ 275              	.LFB2:
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 276              		.loc 1 99 0
+ 277              		.cfi_startproc
+ 278              		@ args = 0, pretend = 0, frame = 0
+ 279              		@ frame_needed = 0, uses_anonymous_args = 0
+ 280              	.LVL19:
+ 281 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 282              	.LCFI4:
+ 283              		.cfi_def_cfa_offset 24
+ 284              		.cfi_offset 3, -24
+ 285              		.cfi_offset 4, -20
+ 286              		.cfi_offset 5, -16
+ 287              		.cfi_offset 6, -12
+ 288              		.cfi_offset 7, -8
+ 289              		.cfi_offset 14, -4
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 290              		.loc 1 102 0
+ 291 0002 094F     		ldr	r7, .L33
+ 292 0004 4501     		lsls	r5, r0, #5
+ 293 0006 7E19     		adds	r6, r7, r5
+ 294 0008 737F     		ldrb	r3, [r6, #29]	@ zero_extendqisi2
+ 295 000a 012B     		cmp	r3, #1
+ 296 000c 09D1     		bne	.L32
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		vSemaphoreDelete(i2cm->sem_trans);
+ 297              		.loc 1 104 0
+ 298 000e 074B     		ldr	r3, .L33+4
+ 299 0010 9847     		blx	r3
+ 300              	.LVL20:
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		vSemaphoreDelete(i2cm->sem_msg);
+ 301              		.loc 1 105 0
+ 302 0012 7859     		ldr	r0, [r7, r5]
+ 303 0014 064D     		ldr	r5, .L33+8
+ 304 0016 A847     		blx	r5
+ 305              	.LVL21:
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 306              		.loc 1 106 0
+ 307 0018 7068     		ldr	r0, [r6, #4]
+ 308 001a A847     		blx	r5
+ 309              	.LVL22:
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		return I2CM_ERROR_NONE;
+ 310              		.loc 1 108 0
+ 311 001c 0020     		movs	r0, #0
+ 312 001e 7077     		strb	r0, [r6, #29]
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 313              		.loc 1 109 0
+ 314 0020 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 315              	.LVL23:
+ 316              	.L32:
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 317              		.loc 1 112 0
+ 318 0022 0120     		movs	r0, #1
+ 319              	.LVL24:
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 320              		.loc 1 113 0
+ 321 0024 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 322              	.L34:
+ 323 0026 00BF     		.align	2
+ 324              	.L33:
+ 325 0028 00000000 		.word	.LANCHOR0
+ 326 002c 00000000 		.word	hal_i2c_deinit
+ 327 0030 00000000 		.word	vQueueDelete
+ 328              		.cfi_endproc
+ 329              	.LFE2:
+ 331              		.section	.text.i2cm_transceiver,"ax",%progbits
+ 332              		.align	1
+ 333              		.global	i2cm_transceiver
+ 334              		.thumb
+ 335              		.thumb_func
+ 337              	i2cm_transceiver:
+ 338              	.LFB3:
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 339              		.loc 1 121 0
+ 340              		.cfi_startproc
+ 341              		@ args = 8, pretend = 0, frame = 16
+ 342              		@ frame_needed = 0, uses_anonymous_args = 0
+ 343              	.LVL25:
+ 344 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 345              	.LCFI5:
+ 346              		.cfi_def_cfa_offset 36
+ 347              		.cfi_offset 4, -36
+ 348              		.cfi_offset 5, -32
+ 349              		.cfi_offset 6, -28
+ 350              		.cfi_offset 7, -24
+ 351              		.cfi_offset 8, -20
+ 352              		.cfi_offset 9, -16
+ 353              		.cfi_offset 10, -12
+ 354              		.cfi_offset 11, -8
+ 355              		.cfi_offset 14, -4
+ 356 0004 85B0     		sub	sp, sp, #20
+ 357              	.LCFI6:
+ 358              		.cfi_def_cfa_offset 56
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	i2cm_t *i2cm = &i2cm_tbl[chid];
+ 359              		.loc 1 121 0
+ 360 0006 BDF83CA0 		ldrh	r10, [sp, #60]
+ 361 000a 8046     		mov	r8, r0
+ 362              	.LVL26:
+ 363 000c 0E46     		mov	r6, r1
+ 364 000e 0092     		str	r2, [sp]
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((txlen == 0) || (tx != NULL));		/* Check TX buffer */
+ 365              		.loc 1 124 0
+ 366 0010 9946     		mov	r9, r3
+ 367 0012 2BB9     		cbnz	r3, .L36
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((txlen == 0) || (tx != NULL));		/* Check TX buffer */
+ 368              		.loc 1 124 0 is_stmt 0 discriminator 1
+ 369 0014 BAF1000F 		cmp	r10, #0
+ 370 0018 0BD1     		bne	.L46
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((txlen == 0) || (tx != NULL));		/* Check TX buffer */
+ 371              		.loc 1 124 0 discriminator 2
+ 372 001a 2E48     		ldr	r0, .L53
+ 373              	.LVL27:
+ 374 001c 7C21     		movs	r1, #124
+ 375              	.LVL28:
+ 376 001e 0CE0     		b	.L51
+ 377              	.LVL29:
+ 378              	.L36:
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((rxlen == 0) || (rx != NULL));		/* Check RX buffer */
+ 379              		.loc 1 125 0 is_stmt 1
+ 380 0020 009B     		ldr	r3, [sp]
+ 381              	.LVL30:
+ 382 0022 1BB9     		cbnz	r3, .L42
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	assert_param((rxlen == 0) || (rx != NULL));		/* Check RX buffer */
+ 383              		.loc 1 125 0 is_stmt 0 discriminator 2
+ 384 0024 2B48     		ldr	r0, .L53
+ 385              	.LVL31:
+ 386 0026 7D21     		movs	r1, #125
+ 387              	.LVL32:
+ 388 0028 2B4B     		ldr	r3, .L53+4
+ 389 002a 9847     		blx	r3
+ 390              	.LVL33:
+ 391              	.L42:
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 392              		.loc 1 126 0 is_stmt 1
+ 393 002c BAF1000F 		cmp	r10, #0
+ 394 0030 05D0     		beq	.L38
+ 395              	.L46:
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 396              		.loc 1 126 0 is_stmt 0 discriminator 1
+ 397 0032 0E9B     		ldr	r3, [sp, #56]
+ 398 0034 1BB9     		cbnz	r3, .L38
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 399              		.loc 1 126 0 discriminator 2
+ 400 0036 2748     		ldr	r0, .L53
+ 401 0038 7E21     		movs	r1, #126
+ 402              	.L51:
+ 403 003a 274B     		ldr	r3, .L53+4
+ 404 003c 9847     		blx	r3
+ 405              	.LVL34:
+ 406              	.L38:
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		return I2CM_ERROR_UNINITIALIZED;
+ 407              		.loc 1 128 0 is_stmt 1
+ 408 003e 274C     		ldr	r4, .L53+8
+ 409 0040 4FEA4815 		lsl	r5, r8, #5
+ 410 0044 04EB050C 		add	ip, r4, r5
+ 411 0048 9CF81D30 		ldrb	r3, [ip, #29]	@ zero_extendqisi2
+ 412 004c 0CF1180B 		add	fp, ip, #24
+ 413 0050 002B     		cmp	r3, #0
+ 414 0052 38D0     		beq	.L44
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 415              		.loc 1 132 0
+ 416 0054 0021     		movs	r1, #0
+ 417 0056 6059     		ldr	r0, [r4, r5]
+ 418 0058 4FF47A72 		mov	r2, #1000
+ 419 005c 0B46     		mov	r3, r1
+ 420 005e 204F     		ldr	r7, .L53+12
+ 421 0060 CDF804C0 		str	ip, [sp, #4]
+ 422 0064 B847     		blx	r7
+ 423              	.LVL35:
+ 424 0066 DDF804C0 		ldr	ip, [sp, #4]
+ 425 006a 0128     		cmp	r0, #1
+ 426 006c 2DD1     		bne	.L45
+ 427              	.LBB4:
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->txbuf.length = txlen;
+ 428              		.loc 1 139 0
+ 429 006e 0E9A     		ldr	r2, [sp, #56]
+ 430 0070 B1B2     		uxth	r1, r6
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 431              		.loc 1 141 0
+ 432 0072 009B     		ldr	r3, [sp]
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		else			/* Get I2C message from slave */
+ 433              		.loc 1 144 0
+ 434 0074 4046     		mov	r0, r8
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->txbuf.length = txlen;
+ 435              		.loc 1 139 0
+ 436 0076 CCF81420 		str	r2, [ip, #20]
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		else			/* Get I2C message from slave */
+ 437              		.loc 1 144 0
+ 438 007a 6219     		adds	r2, r4, r5
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->rxbuf.length = rxlen;
+ 439              		.loc 1 137 0
+ 440 007c 8BF80460 		strb	r6, [fp, #4]
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->rxbuf.bytes = rx;
+ 441              		.loc 1 138 0
+ 442 0080 ACF818A0 		strh	r10, [ip, #24]	@ movhi
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		i2cm->txbuf.bytes = tx;
+ 443              		.loc 1 140 0
+ 444 0084 ACF81090 		strh	r9, [ip, #16]	@ movhi
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 445              		.loc 1 141 0
+ 446 0088 CCF80C30 		str	r3, [ip, #12]
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			hal_i2c_master_tx(chid, i2cm->addr, &i2cm->txbuf);
+ 447              		.loc 1 143 0
+ 448 008c B9F1000F 		cmp	r9, #0
+ 449 0090 02D0     		beq	.L40
+ 450              	.LVL36:
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		else			/* Get I2C message from slave */
+ 451              		.loc 1 144 0
+ 452 0092 0C32     		adds	r2, r2, #12
+ 453 0094 134B     		ldr	r3, .L53+16
+ 454 0096 01E0     		b	.L52
+ 455              	.L40:
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 456              		.loc 1 146 0
+ 457 0098 134B     		ldr	r3, .L53+20
+ 458 009a 1432     		adds	r2, r2, #20
+ 459              	.L52:
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Store the transfer status temporarily for reentrancy */
+ 460              		.loc 1 149 0
+ 461 009c 6619     		adds	r6, r4, r5
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 462              		.loc 1 146 0
+ 463 009e 9847     		blx	r3
+ 464              	.LVL37:
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Store the transfer status temporarily for reentrancy */
+ 465              		.loc 1 149 0
+ 466 00a0 0021     		movs	r1, #0
+ 467 00a2 0B46     		mov	r3, r1
+ 468 00a4 4FF0FF32 		mov	r2, #-1
+ 469 00a8 7068     		ldr	r0, [r6, #4]
+ 470 00aa B847     		blx	r7
+ 471              	.LVL38:
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Return transfer status */
+ 472              		.loc 1 153 0
+ 473 00ac 0021     		movs	r1, #0
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Release resource for other transfers */
+ 474              		.loc 1 151 0
+ 475 00ae 337A     		ldrb	r3, [r6, #8]	@ zero_extendqisi2
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Return transfer status */
+ 476              		.loc 1 153 0
+ 477 00b0 6059     		ldr	r0, [r4, r5]
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Release resource for other transfers */
+ 478              		.loc 1 151 0
+ 479 00b2 8DF80F30 		strb	r3, [sp, #15]
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		/* Return transfer status */
+ 480              		.loc 1 153 0
+ 481 00b6 0A46     		mov	r2, r1
+ 482 00b8 0B46     		mov	r3, r1
+ 483 00ba 0C4C     		ldr	r4, .L53+24
+ 484 00bc A047     		blx	r4
+ 485              	.LVL39:
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	}
+ 486              		.loc 1 155 0
+ 487 00be 9DF80F00 		ldrb	r0, [sp, #15]	@ zero_extendqisi2
+ 488 00c2 C0B2     		uxtb	r0, r0
+ 489 00c4 02E0     		b	.L50
+ 490              	.L44:
+ 491              	.LBE4:
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 492              		.loc 1 129 0
+ 493 00c6 0220     		movs	r0, #2
+ 494 00c8 00E0     		b	.L50
+ 495              	.L45:
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 496              		.loc 1 158 0
+ 497 00ca 8020     		movs	r0, #128
+ 498              	.L50:
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 499              		.loc 1 159 0
+ 500 00cc 05B0     		add	sp, sp, #20
+ 501              	.LCFI7:
+ 502              		.cfi_def_cfa_offset 36
+ 503              	.LVL40:
+ 504              		@ sp needed
+ 505 00ce BDE8F08F 		pop	{r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 506              	.LVL41:
+ 507              	.L54:
+ 508 00d2 00BF     		.align	2
+ 509              	.L53:
+ 510 00d4 00000000 		.word	.LANCHOR2
+ 511 00d8 00000000 		.word	assert_failed
+ 512 00dc 00000000 		.word	.LANCHOR0
+ 513 00e0 00000000 		.word	xQueueGenericReceive
+ 514 00e4 00000000 		.word	hal_i2c_master_tx
+ 515 00e8 00000000 		.word	hal_i2c_master_rx
+ 516 00ec 00000000 		.word	xQueueGenericSend
+ 517              		.cfi_endproc
+ 518              	.LFE3:
+ 520              		.section	.text.i2cm_read,"ax",%progbits
+ 521              		.align	1
+ 522              		.global	i2cm_read
+ 523              		.thumb
+ 524              		.thumb_func
+ 526              	i2cm_read:
+ 527              	.LFB4:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t addr[2];
+ 528              		.loc 1 166 0
+ 529              		.cfi_startproc
+ 530              		@ args = 4, pretend = 0, frame = 8
+ 531              		@ frame_needed = 0, uses_anonymous_args = 0
+ 532              	.LVL42:
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 533              		.loc 1 171 0
+ 534 0000 0129     		cmp	r1, #1
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t addr[2];
+ 535              		.loc 1 166 0
+ 536 0002 30B5     		push	{r4, r5, lr}
+ 537              	.LCFI8:
+ 538              		.cfi_def_cfa_offset 12
+ 539              		.cfi_offset 4, -12
+ 540              		.cfi_offset 5, -8
+ 541              		.cfi_offset 14, -4
+ 542 0004 85B0     		sub	sp, sp, #20
+ 543              	.LCFI9:
+ 544              		.cfi_def_cfa_offset 32
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 545              		.loc 1 171 0
+ 546 0006 01D0     		beq	.L57
+ 547 0008 0329     		cmp	r1, #3
+ 548 000a 04D1     		bne	.L67
+ 549              	.L57:
+ 550              	.LVL43:
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case WORD_ADDR8:
+ 551              		.loc 1 175 0
+ 552 000c 1C0A     		lsrs	r4, r3, #8
+ 553 000e 8DF80C40 		strb	r4, [sp, #12]
+ 554 0012 0124     		movs	r4, #1
+ 555 0014 00E0     		b	.L56
+ 556              	.LVL44:
+ 557              	.L67:
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t data_len = 1;
+ 558              		.loc 1 168 0
+ 559 0016 0024     		movs	r4, #0
+ 560              	.LVL45:
+ 561              	.L56:
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			if ((mode == WORD_ADDR8) || (mode == WORD_ADDR16))
+ 562              		.loc 1 179 0
+ 563 0018 0DF1100E 		add	lr, sp, #16
+ 564 001c 651C     		adds	r5, r4, #1
+ 565              	.LVL46:
+ 566 001e 7444     		add	r4, r4, lr
+ 567 0020 04F8043C 		strb	r3, [r4, #-4]
+ 180:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 				data_len = 2;
+ 568              		.loc 1 180 0
+ 569 0024 8C1E     		subs	r4, r1, #2
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 570              		.loc 1 184 0
+ 571 0026 089B     		ldr	r3, [sp, #32]
+ 572              	.LVL47:
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 573              		.loc 1 181 0
+ 574 0028 012C     		cmp	r4, #1
+ 575              	.LVL48:
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 576              		.loc 1 184 0
+ 577 002a 0093     		str	r3, [sp]
+ 578 002c 8CBF     		ite	hi
+ 579 002e 0123     		movhi	r3, #1
+ 580 0030 0223     		movls	r3, #2
+ 581 0032 1146     		mov	r1, r2
+ 582              	.LVL49:
+ 583 0034 03AA     		add	r2, sp, #12
+ 584              	.LVL50:
+ 585 0036 0193     		str	r3, [sp, #4]
+ 586 0038 EBB2     		uxtb	r3, r5
+ 587 003a 024C     		ldr	r4, .L68
+ 588 003c A047     		blx	r4
+ 589              	.LVL51:
+ 185:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 590              		.loc 1 185 0
+ 591 003e 05B0     		add	sp, sp, #20
+ 592              	.LCFI10:
+ 593              		.cfi_def_cfa_offset 12
+ 594              		@ sp needed
+ 595 0040 30BD     		pop	{r4, r5, pc}
+ 596              	.LVL52:
+ 597              	.L69:
+ 598 0042 00BF     		.align	2
+ 599              	.L68:
+ 600 0044 00000000 		.word	i2cm_transceiver
+ 601              		.cfi_endproc
+ 602              	.LFE4:
+ 604              		.section	.text.i2cm_write,"ax",%progbits
+ 605              		.align	1
+ 606              		.global	i2cm_write
+ 607              		.thumb
+ 608              		.thumb_func
+ 610              	i2cm_write:
+ 611              	.LFB5:
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t buf[4];
+ 612              		.loc 1 192 0
+ 613              		.cfi_startproc
+ 614              		@ args = 4, pretend = 0, frame = 8
+ 615              		@ frame_needed = 0, uses_anonymous_args = 0
+ 616              	.LVL53:
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 617              		.loc 1 196 0
+ 618 0000 0229     		cmp	r1, #2
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t buf[4];
+ 619              		.loc 1 192 0
+ 620 0002 7FB5     		push	{r0, r1, r2, r3, r4, r5, r6, lr}
+ 621              	.LCFI11:
+ 622              		.cfi_def_cfa_offset 32
+ 623              		.cfi_offset 4, -16
+ 624              		.cfi_offset 5, -12
+ 625              		.cfi_offset 6, -8
+ 626              		.cfi_offset 14, -4
+ 627              	.LVL54:
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	uint8_t buf[4];
+ 628              		.loc 1 192 0
+ 629 0004 089E     		ldr	r6, [sp, #32]
+ 630 0006 3578     		ldrb	r5, [r6]	@ zero_extendqisi2
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 	{
+ 631              		.loc 1 196 0
+ 632 0008 0DD0     		beq	.L77
+ 633 000a 0329     		cmp	r1, #3
+ 634 000c 06D0     		beq	.L73
+ 635 000e 0129     		cmp	r1, #1
+ 636 0010 1DD1     		bne	.L78
+ 637              	.LVL55:
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case BYTE_ADDR8:
+ 638              		.loc 1 207 0
+ 639 0012 1C0A     		lsrs	r4, r3, #8
+ 640 0014 8DF80C40 		strb	r4, [sp, #12]
+ 641 0018 0C46     		mov	r4, r1
+ 642 001a 19E0     		b	.L71
+ 643              	.LVL56:
+ 644              	.L73:
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 		case WORD_ADDR8:
+ 645              		.loc 1 199 0
+ 646 001c 190A     		lsrs	r1, r3, #8
+ 647              	.LVL57:
+ 648 001e 0124     		movs	r4, #1
+ 649 0020 8DF80C10 		strb	r1, [sp, #12]
+ 650 0024 00E0     		b	.L72
+ 651              	.LVL58:
+ 652              	.L77:
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 653              		.loc 1 194 0
+ 654 0026 0024     		movs	r4, #0
+ 655              	.LVL59:
+ 656              	.L72:
+ 201:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte++;
+ 657              		.loc 1 201 0
+ 658 0028 04A9     		add	r1, sp, #16
+ 659 002a 2144     		add	r1, r1, r4
+ 660 002c 01F8043C 		strb	r3, [r1, #-4]
+ 661              	.LVL60:
+ 662 0030 631C     		adds	r3, r4, #1
+ 663              	.LVL61:
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte;
+ 664              		.loc 1 202 0
+ 665 0032 04A9     		add	r1, sp, #16
+ 666 0034 51FA83F3 		uxtab	r3, r1, r3
+ 667 0038 03F8045C 		strb	r5, [r3, #-4]
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 668              		.loc 1 203 0
+ 669 003c E31C     		adds	r3, r4, #3
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte;
+ 670              		.loc 1 202 0
+ 671 003e 0234     		adds	r4, r4, #2
+ 672              	.LVL62:
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 673              		.loc 1 203 0
+ 674 0040 DBB2     		uxtb	r3, r3
+ 675              	.LVL63:
+ 676 0042 51FA84F4 		uxtab	r4, r1, r4
+ 677 0046 7178     		ldrb	r1, [r6, #1]	@ zero_extendqisi2
+ 678 0048 04F8041C 		strb	r1, [r4, #-4]
+ 204:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 679              		.loc 1 204 0
+ 680 004c 0CE0     		b	.L75
+ 681              	.LVL64:
+ 682              	.L78:
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 683              		.loc 1 194 0
+ 684 004e 0024     		movs	r4, #0
+ 685              	.LVL65:
+ 686              	.L71:
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte++;
+ 687              		.loc 1 210 0
+ 688 0050 04A9     		add	r1, sp, #16
+ 689              	.LVL66:
+ 690 0052 2144     		add	r1, r1, r4
+ 691 0054 01F8043C 		strb	r3, [r1, #-4]
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 692              		.loc 1 211 0
+ 693 0058 A31C     		adds	r3, r4, #2
+ 694              	.LVL67:
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			buf[len++] = *byte++;
+ 695              		.loc 1 210 0
+ 696 005a 0134     		adds	r4, r4, #1
+ 697              	.LVL68:
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 			break;
+ 698              		.loc 1 211 0
+ 699 005c 04A9     		add	r1, sp, #16
+ 700 005e 51FA84F4 		uxtab	r4, r1, r4
+ 701 0062 DBB2     		uxtb	r3, r3
+ 702              	.LVL69:
+ 703 0064 04F8045C 		strb	r5, [r4, #-4]
+ 704              	.LVL70:
+ 705              	.L75:
+ 214:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** }
+ 706              		.loc 1 214 0
+ 707 0068 0021     		movs	r1, #0
+ 708 006a 044C     		ldr	r4, .L79
+ 709 006c 0091     		str	r1, [sp]
+ 710 006e 0191     		str	r1, [sp, #4]
+ 711 0070 1146     		mov	r1, r2
+ 712 0072 03AA     		add	r2, sp, #12
+ 713              	.LVL71:
+ 714 0074 A047     		blx	r4
+ 715              	.LVL72:
+ 215:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cm.c **** 
+ 716              		.loc 1 215 0
+ 717 0076 04B0     		add	sp, sp, #16
+ 718              	.LCFI12:
+ 719              		.cfi_def_cfa_offset 16
+ 720              		@ sp needed
+ 721 0078 70BD     		pop	{r4, r5, r6, pc}
+ 722              	.L80:
+ 723 007a 00BF     		.align	2
+ 724              	.L79:
+ 725 007c 00000000 		.word	i2cm_transceiver
+ 726              		.cfi_endproc
+ 727              	.LFE5:
+ 729              		.global	i2cm
+ 730              		.section	.rodata.__FUNCTION__.8903,"a",%progbits
+ 731              		.set	.LANCHOR1,. + 0
+ 734              	__FUNCTION__.8903:
+ 735 0000 6932636D 		.ascii	"i2cm_init\000"
+ 735      5F696E69 
+ 735      7400
+ 736              		.section	.data.i2cm,"aw",%progbits
+ 737              		.align	2
+ 740              	i2cm:
+ 741 0000 00000000 		.word	i2cm_init
+ 742 0004 00000000 		.word	i2cm_deinit
+ 743 0008 00000000 		.word	i2cm_transceiver
+ 744 000c 00000000 		.word	i2cm_read
+ 745 0010 00000000 		.word	i2cm_write
+ 746              		.section	.rodata.__FUNCTION__.8917,"a",%progbits
+ 747              		.set	.LANCHOR2,. + 0
+ 750              	__FUNCTION__.8917:
+ 751 0000 6932636D 		.ascii	"i2cm_transceiver\000"
+ 751      5F747261 
+ 751      6E736365 
+ 751      69766572 
+ 751      00
+ 752              		.section	.bss.i2cm_tbl,"aw",%nobits
+ 753              		.align	2
+ 754              		.set	.LANCHOR0,. + 0
+ 757              	i2cm_tbl:
+ 758 0000 00000000 		.space	608
+ 758      00000000 
+ 758      00000000 
+ 758      00000000 
+ 758      00000000 
+ 759              		.text
+ 760              	.Letext0:
+ 761              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 762              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 763              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 764              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 765              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 766              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 767              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 768              		.file 9 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 769              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cm.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2cm.c
+     /tmp/cccSfsxs.s:19     .text.i2cm_init:00000000 $t
+     /tmp/cccSfsxs.s:24     .text.i2cm_init:00000000 i2cm_init
+     /tmp/cccSfsxs.s:140    .text.i2cm_init:0000007c $d
+     /tmp/cccSfsxs.s:156    .text.i2cm_handler:00000000 i2cm_handler
+     /tmp/cccSfsxs.s:152    .text.i2cm_handler:00000000 $t
+     /tmp/cccSfsxs.s:261    .text.i2cm_handler:0000006c $d
+     /tmp/cccSfsxs.s:269    .text.i2cm_deinit:00000000 $t
+     /tmp/cccSfsxs.s:274    .text.i2cm_deinit:00000000 i2cm_deinit
+     /tmp/cccSfsxs.s:325    .text.i2cm_deinit:00000028 $d
+     /tmp/cccSfsxs.s:332    .text.i2cm_transceiver:00000000 $t
+     /tmp/cccSfsxs.s:337    .text.i2cm_transceiver:00000000 i2cm_transceiver
+     /tmp/cccSfsxs.s:510    .text.i2cm_transceiver:000000d4 $d
+     /tmp/cccSfsxs.s:521    .text.i2cm_read:00000000 $t
+     /tmp/cccSfsxs.s:526    .text.i2cm_read:00000000 i2cm_read
+     /tmp/cccSfsxs.s:600    .text.i2cm_read:00000044 $d
+     /tmp/cccSfsxs.s:605    .text.i2cm_write:00000000 $t
+     /tmp/cccSfsxs.s:610    .text.i2cm_write:00000000 i2cm_write
+     /tmp/cccSfsxs.s:725    .text.i2cm_write:0000007c $d
+     /tmp/cccSfsxs.s:740    .data.i2cm:00000000 i2cm
+     /tmp/cccSfsxs.s:734    .rodata.__FUNCTION__.8903:00000000 __FUNCTION__.8903
+     /tmp/cccSfsxs.s:737    .data.i2cm:00000000 $d
+     /tmp/cccSfsxs.s:750    .rodata.__FUNCTION__.8917:00000000 __FUNCTION__.8917
+     /tmp/cccSfsxs.s:753    .bss.i2cm_tbl:00000000 $d
+     /tmp/cccSfsxs.s:757    .bss.i2cm_tbl:00000000 i2cm_tbl
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+xQueueCreateMutex
+assert_failed
+xQueueGenericCreate
+hal_i2c_init
+hal_i2c_enable_irq
+hal_i2c_master_rx
+xQueueGiveFromISR
+ulPortYieldRequired
+hal_i2c_deinit
+vQueueDelete
+xQueueGenericReceive
+hal_i2c_master_tx
+xQueueGenericSend

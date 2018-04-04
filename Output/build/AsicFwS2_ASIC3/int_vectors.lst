@@ -1,0 +1,104 @@
+ARM GAS  /tmp/cckXTYXt.s 			page 1
+
+
+   1              	# 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s"
+   1              	/******************************************************************************
+   0              	
+   0              	
+   2              	 * Copyright (c) 2016, The LightCo
+   3              	 * All rights reserved.
+   4              	 * Redistribution and use in source and binary forms, with or without
+   5              	 * modification, are strictly prohibited without prior permission
+   6              	 * of The LightCo.
+   7              	 *
+   8              	 * @file    int_vectors.s
+   9              	 * @author  The LightCo
+  10              	 * @version V1.0.0
+  11              	 * @date    Mar-09-2016
+  12              	 * @brief
+  13              	 *
+  14              	 ******************************************************************************/
+  15              	/* This program is allocated to section "intvec" */
+  16              	
+  17              		.text
+  18              		.code 32
+  19              	
+  20              		.global undefined_handler
+  21              		.global svc_handler
+  22              		.global prefetch_handler
+  23              		.global abort_handler
+  24              		.global reserved_handler
+  25              		.global irq_handler
+  26              		.global fiq_handler
+  27              		.global swi_handler
+  28              	
+  29              	.macro save_user_regs
+  30              		sub	sp, sp, #72
+  31              		stmia sp, {r0 - r12}
+  32              		add	r8, sp, #60
+  33              		stmdb r8, {sp, lr}^
+  34              		str	lr, [r8, #0]
+  35              		mrs	r6, spsr
+  36              		str	r6, [r8, #4]
+  37              		str	r0, [r8, #8]
+  38              		mov	r0, sp
+  39              	.endm
+  40              	
+  41              	.macro restore_user_regs
+  42              		ldmia sp, {r0 - lr}^
+  43              		mov	r0, r0
+  44              		ldr	lr, [sp, #60]
+  45              		add	sp, sp, #72
+  46              		subs pc, lr, #4
+  47              	.endm
+  48              	
+  49              	undefined_handler:
+  50 0000 FEFFFFEA 		b  undefined_handler
+  51              	
+  52              	svc_handler:
+  53 0004 FEFFFFEA 		b  svc_handler
+  54              	
+ARM GAS  /tmp/cckXTYXt.s 			page 2
+
+
+  55              	prefetch_handler:
+  56 0008 FEFFFFEA 		b  prefetch_handler
+  57              	
+  58              	#ifndef OS
+  59              	swi_handler:
+  60              		b .
+  61              	#endif
+  62              	
+  63              	abort_handler:
+  64 000c FEFFFFEA 		b  abort_handler
+  65              	
+  66              	reserved_handler:
+  67 0010 FEFFFFEA 		b  reserved_handler
+  68              	
+  69              	#ifndef OS
+  70              		.extern int_default_handler
+  71              	irq_handler:
+  72              		save_user_regs
+  73              		bl  int_default_handler
+  74              		restore_user_regs
+  75              	#endif
+  76              	
+  77              	fiq_handler:
+  78 0014 FEFFFFEA 		b  fiq_handler
+  79              	
+  80              		.end
+ARM GAS  /tmp/cckXTYXt.s 			page 3
+
+
+DEFINED SYMBOLS
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s:49     .text:00000000 undefined_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s:52     .text:00000004 svc_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s:55     .text:00000008 prefetch_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s:63     .text:0000000c abort_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s:66     .text:00000010 reserved_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s:77     .text:00000014 fiq_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/int_vectors.s:50     .text:00000000 $a
+
+UNDEFINED SYMBOLS
+irq_handler
+swi_handler

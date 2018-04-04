@@ -1,0 +1,370 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"os_port.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.vApplicationMallocFailedHook,"ax",%progbits
+  19              		.align	1
+  20              		.global	vApplicationMallocFailedHook
+  21              		.thumb
+  22              		.thumb_func
+  24              	vApplicationMallocFailedHook:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * @file    os_assert.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * @date    Mar-10-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  * @brief   This file contains expand of the os_assert
+  13:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** #include "os.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** #include "log.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  18:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void vApplicationMallocFailedHook(void)
+  19:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+  27              		.loc 1 19 0
+  28              		.cfi_startproc
+  29              		@ Volatile: function does not return.
+  30              		@ args = 0, pretend = 0, frame = 0
+  31              		@ frame_needed = 0, uses_anonymous_args = 0
+  32 0000 08B5     		push	{r3, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 8
+  35              		.cfi_offset 3, -8
+  36              		.cfi_offset 14, -4
+  20:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	/* This function will only be called if an API call to create a task, queue
+  21:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	or semaphore fails because there is too little heap RAM remaining - and
+  22:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	configUSE_MALLOC_FAILED_HOOK is set to 1 in FreeRTOSConfig.h. */
+  23:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	printf("\r\n%s\r\n", __FUNCTION__);
+  37              		.loc 1 23 0
+  38 0002 0549     		ldr	r1, .L4
+  39 0004 054B     		ldr	r3, .L4+4
+  40 0006 0648     		ldr	r0, .L4+8
+  41 0008 9847     		blx	r3
+  42              	.LVL0:
+  24:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	__disable_irq();
+  43              		.loc 1 24 0
+  44              	@ 24 "/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c" 1
+  45 000a 72B6     		CPSID i   
+  46 000c BFF34F8F 	DSB       
+  47 0010 BFF36F8F 	ISB         
+  48              	@ 0 "" 2
+  49              		.thumb
+  50              	.L2:
+  25:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	while(1);
+  51              		.loc 1 25 0 discriminator 1
+  52 0014 FEE7     		b	.L2
+  53              	.L5:
+  54 0016 00BF     		.align	2
+  55              	.L4:
+  56 0018 00000000 		.word	.LANCHOR0
+  57 001c 00000000 		.word	printf
+  58 0020 00000000 		.word	.LC0
+  59              		.cfi_endproc
+  60              	.LFE1:
+  62              		.section	.text.vApplicationStackOverflowHook,"ax",%progbits
+  63              		.align	1
+  64              		.global	vApplicationStackOverflowHook
+  65              		.thumb
+  66              		.thumb_func
+  68              	vApplicationStackOverflowHook:
+  69              	.LFB2:
+  26:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  27:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  28:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 
+  29:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void vApplicationStackOverflowHook(xTaskHandle *pxTask, signed char *pcTaskName)
+  30:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+  70              		.loc 1 30 0
+  71              		.cfi_startproc
+  72              		@ Volatile: function does not return.
+  73              		@ args = 0, pretend = 0, frame = 0
+  74              		@ frame_needed = 0, uses_anonymous_args = 0
+  75              	.LVL1:
+  76 0000 08B5     		push	{r3, lr}
+  77              	.LCFI1:
+  78              		.cfi_def_cfa_offset 8
+  79              		.cfi_offset 3, -8
+  80              		.cfi_offset 14, -4
+  81              		.loc 1 30 0
+  82 0002 0246     		mov	r2, r0
+  83 0004 0B46     		mov	r3, r1
+  31:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	(void)pxTask;
+  32:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	(void)pcTaskName;
+  33:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	/* This function will only be called if a task overflows its stack.  Note
+  34:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	that stack overflow checking does slow down the context switch
+  35:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	implementation and will only be performed if configCHECK_FOR_STACK_OVERFLOW
+  36:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	is set to either 1 or 2 in FreeRTOSConfig.h. */
+  37:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	printf("\r\n%s: %08X %s\r\n", __FUNCTION__, (unsigned int)pxTask, pcTaskName);
+  84              		.loc 1 37 0
+  85 0006 054C     		ldr	r4, .L8
+  86 0008 0549     		ldr	r1, .L8+4
+  87              	.LVL2:
+  88 000a 0648     		ldr	r0, .L8+8
+  89              	.LVL3:
+  90 000c A047     		blx	r4
+  91              	.LVL4:
+  38:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	__disable_irq();
+  92              		.loc 1 38 0
+  93              	@ 38 "/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c" 1
+  94 000e 72B6     		CPSID i   
+  95 0010 BFF34F8F 	DSB       
+  96 0014 BFF36F8F 	ISB         
+  97              	@ 0 "" 2
+  98              		.thumb
+  99              	.L7:
+  39:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	while(1);
+ 100              		.loc 1 39 0 discriminator 1
+ 101 0018 FEE7     		b	.L7
+ 102              	.L9:
+ 103 001a 00BF     		.align	2
+ 104              	.L8:
+ 105 001c 00000000 		.word	printf
+ 106 0020 00000000 		.word	.LANCHOR1
+ 107 0024 07000000 		.word	.LC1
+ 108              		.cfi_endproc
+ 109              	.LFE2:
+ 111              		.section	.text.vApplicationIdleHook,"ax",%progbits
+ 112              		.align	1
+ 113              		.global	vApplicationIdleHook
+ 114              		.thumb
+ 115              		.thumb_func
+ 117              	vApplicationIdleHook:
+ 118              	.LFB3:
+  40:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  41:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  42:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void vApplicationIdleHook(void)
+  44:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+ 119              		.loc 1 44 0
+ 120              		.cfi_startproc
+ 121              		@ args = 0, pretend = 0, frame = 0
+ 122              		@ frame_needed = 0, uses_anonymous_args = 0
+ 123              		@ link register save eliminated.
+ 124 0000 7047     		bx	lr
+ 125              		.cfi_endproc
+ 126              	.LFE3:
+ 128              		.section	.text.vApplicationTickHook,"ax",%progbits
+ 129              		.align	1
+ 130              		.global	vApplicationTickHook
+ 131              		.thumb
+ 132              		.thumb_func
+ 134              	vApplicationTickHook:
+ 135              	.LFB4:
+  45:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	/* This example does not use the idle hook to perform any processing. The
+  46:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	idle hook will only be called if configUSE_IDLE_HOOK is set to 1 in
+  47:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	FreeRTOSConfig.h. */
+  48:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  49:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  50:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 
+  51:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void vApplicationTickHook(void)
+  52:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+ 136              		.loc 1 52 0
+ 137              		.cfi_startproc
+ 138              		@ args = 0, pretend = 0, frame = 0
+ 139              		@ frame_needed = 0, uses_anonymous_args = 0
+ 140              		@ link register save eliminated.
+ 141 0000 7047     		bx	lr
+ 142              		.cfi_endproc
+ 143              	.LFE4:
+ 145              		.section	.text.prvGetRegistersFromStack,"ax",%progbits
+ 146              		.align	1
+ 147              		.global	prvGetRegistersFromStack
+ 148              		.thumb
+ 149              		.thumb_func
+ 151              	prvGetRegistersFromStack:
+ 152              	.LFB5:
+  53:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	/* This example does not use the tick hook to perform any processing. The
+  54:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	tick hook will only be called if configUSE_TICK_HOOK is set to 1 in
+  55:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	FreeRTOSConfig.h. */
+  56:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  57:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  58:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void prvGetRegistersFromStack(uint32_t *pulFaultStackAddress)
+  59:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+ 153              		.loc 1 59 0
+ 154              		.cfi_startproc
+ 155              		@ Volatile: function does not return.
+ 156              		@ args = 0, pretend = 0, frame = 0
+ 157              		@ frame_needed = 0, uses_anonymous_args = 0
+ 158              		@ link register save eliminated.
+ 159              	.LVL5:
+ 160              	.L13:
+  60:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /* These are volatile to try and prevent the compiler/linker optimising them
+  61:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** away as the variables never actually get used. If the debugger won't show the
+  62:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** values of the variables, make them global my moving their declaration outside
+  63:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** of this function.
+  64:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** */
+  65:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	while(1);
+ 161              		.loc 1 65 0 discriminator 1
+ 162 0000 FEE7     		b	.L13
+ 163              		.cfi_endproc
+ 164              	.LFE5:
+ 166              		.section	.text.hard_fault_handler,"ax",%progbits
+ 167              		.align	1
+ 168              		.global	hard_fault_handler
+ 169              		.thumb
+ 170              		.thumb_func
+ 172              	hard_fault_handler:
+ 173              	.LFB6:
+  66:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  67:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  68:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void hard_fault_handler(void)
+  69:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+ 174              		.loc 1 69 0
+ 175              		.cfi_startproc
+ 176              		@ Volatile: function does not return.
+ 177              		@ args = 0, pretend = 0, frame = 0
+ 178              		@ frame_needed = 0, uses_anonymous_args = 0
+ 179              		@ link register save eliminated.
+ 180              	.L15:
+  70:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	while(1);
+ 181              		.loc 1 70 0 discriminator 1
+ 182 0000 FEE7     		b	.L15
+ 183              		.cfi_endproc
+ 184              	.LFE6:
+ 186              		.section	.text.bus_fault_handler,"ax",%progbits
+ 187              		.align	1
+ 188              		.global	bus_fault_handler
+ 189              		.thumb
+ 190              		.thumb_func
+ 192              	bus_fault_handler:
+ 193              	.LFB7:
+  71:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  72:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  73:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void bus_fault_handler(void)
+  74:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+ 194              		.loc 1 74 0
+ 195              		.cfi_startproc
+ 196              		@ Volatile: function does not return.
+ 197              		@ args = 0, pretend = 0, frame = 0
+ 198              		@ frame_needed = 0, uses_anonymous_args = 0
+ 199              		@ link register save eliminated.
+ 200              	.L17:
+  75:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	while(1);
+ 201              		.loc 1 75 0 discriminator 1
+ 202 0000 FEE7     		b	.L17
+ 203              		.cfi_endproc
+ 204              	.LFE7:
+ 206              		.section	.text.usage_fault_handler,"ax",%progbits
+ 207              		.align	1
+ 208              		.global	usage_fault_handler
+ 209              		.thumb
+ 210              		.thumb_func
+ 212              	usage_fault_handler:
+ 213              	.LFB8:
+  76:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  77:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  78:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void usage_fault_handler(void)
+  79:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+ 214              		.loc 1 79 0
+ 215              		.cfi_startproc
+ 216              		@ Volatile: function does not return.
+ 217              		@ args = 0, pretend = 0, frame = 0
+ 218              		@ frame_needed = 0, uses_anonymous_args = 0
+ 219              		@ link register save eliminated.
+ 220              	.L19:
+  80:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	while(1);
+ 221              		.loc 1 80 0 discriminator 1
+ 222 0000 FEE7     		b	.L19
+ 223              		.cfi_endproc
+ 224              	.LFE8:
+ 226              		.section	.text.mem_manage_handler,"ax",%progbits
+ 227              		.align	1
+ 228              		.global	mem_manage_handler
+ 229              		.thumb
+ 230              		.thumb_func
+ 232              	mem_manage_handler:
+ 233              	.LFB9:
+  81:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** }
+  82:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** /*-----------------------------------------------------------*/
+  83:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** void mem_manage_handler(void)
+  84:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** {
+ 234              		.loc 1 84 0
+ 235              		.cfi_startproc
+ 236              		@ Volatile: function does not return.
+ 237              		@ args = 0, pretend = 0, frame = 0
+ 238              		@ frame_needed = 0, uses_anonymous_args = 0
+ 239              		@ link register save eliminated.
+ 240              	.L21:
+  85:/home/tienluong/workspace/atlantis_fw/platform/common/os_port.c **** 	while(1);
+ 241              		.loc 1 85 0 discriminator 1
+ 242 0000 FEE7     		b	.L21
+ 243              		.cfi_endproc
+ 244              	.LFE9:
+ 246              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 247              	.LC0:
+ 248 0000 0D0A2573 		.ascii	"\015\012%s\015\012\000"
+ 248      0D0A00
+ 249              	.LC1:
+ 250 0007 0D0A2573 		.ascii	"\015\012%s: %08X %s\015\012\000"
+ 250      3A202530 
+ 250      38582025 
+ 250      730D0A00 
+ 251              		.section	.rodata.__FUNCTION__.8878,"a",%progbits
+ 252              		.set	.LANCHOR0,. + 0
+ 255              	__FUNCTION__.8878:
+ 256 0000 76417070 		.ascii	"vApplicationMallocFailedHook\000"
+ 256      6C696361 
+ 256      74696F6E 
+ 256      4D616C6C 
+ 256      6F634661 
+ 257              		.section	.rodata.__FUNCTION__.8884,"a",%progbits
+ 258              		.set	.LANCHOR1,. + 0
+ 261              	__FUNCTION__.8884:
+ 262 0000 76417070 		.ascii	"vApplicationStackOverflowHook\000"
+ 262      6C696361 
+ 262      74696F6E 
+ 262      53746163 
+ 262      6B4F7665 
+ 263              		.text
+ 264              	.Letext0:
+ 265              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 266              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 267              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/task.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 os_port.c
+     /tmp/ccxKLraZ.s:19     .text.vApplicationMallocFailedHook:00000000 $t
+     /tmp/ccxKLraZ.s:24     .text.vApplicationMallocFailedHook:00000000 vApplicationMallocFailedHook
+     /tmp/ccxKLraZ.s:56     .text.vApplicationMallocFailedHook:00000018 $d
+     /tmp/ccxKLraZ.s:63     .text.vApplicationStackOverflowHook:00000000 $t
+     /tmp/ccxKLraZ.s:68     .text.vApplicationStackOverflowHook:00000000 vApplicationStackOverflowHook
+     /tmp/ccxKLraZ.s:105    .text.vApplicationStackOverflowHook:0000001c $d
+     /tmp/ccxKLraZ.s:112    .text.vApplicationIdleHook:00000000 $t
+     /tmp/ccxKLraZ.s:117    .text.vApplicationIdleHook:00000000 vApplicationIdleHook
+     /tmp/ccxKLraZ.s:129    .text.vApplicationTickHook:00000000 $t
+     /tmp/ccxKLraZ.s:134    .text.vApplicationTickHook:00000000 vApplicationTickHook
+     /tmp/ccxKLraZ.s:146    .text.prvGetRegistersFromStack:00000000 $t
+     /tmp/ccxKLraZ.s:151    .text.prvGetRegistersFromStack:00000000 prvGetRegistersFromStack
+     /tmp/ccxKLraZ.s:167    .text.hard_fault_handler:00000000 $t
+     /tmp/ccxKLraZ.s:172    .text.hard_fault_handler:00000000 hard_fault_handler
+     /tmp/ccxKLraZ.s:187    .text.bus_fault_handler:00000000 $t
+     /tmp/ccxKLraZ.s:192    .text.bus_fault_handler:00000000 bus_fault_handler
+     /tmp/ccxKLraZ.s:207    .text.usage_fault_handler:00000000 $t
+     /tmp/ccxKLraZ.s:212    .text.usage_fault_handler:00000000 usage_fault_handler
+     /tmp/ccxKLraZ.s:227    .text.mem_manage_handler:00000000 $t
+     /tmp/ccxKLraZ.s:232    .text.mem_manage_handler:00000000 mem_manage_handler
+     /tmp/ccxKLraZ.s:255    .rodata.__FUNCTION__.8878:00000000 __FUNCTION__.8878
+     /tmp/ccxKLraZ.s:261    .rodata.__FUNCTION__.8884:00000000 __FUNCTION__.8884
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+printf

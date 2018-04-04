@@ -1,0 +1,3157 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"hal_mipi2axi.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.rx_controller_intr,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	rx_controller_intr:
+  24              	.LFB10:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * Redistribution and use in source and binary forms,
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * with or without modification,
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * are strictly prohibited without prior permission of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * @file    hal_mipi2axi.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * @version V1.0.1
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * @date    July-01-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  * @brief   This file contains APIs for controlling MIPI2AXI (MIPI RX bridge)
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "std_type.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "assert.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "hal_mipi2axi.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "board_config.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "cortex_r4.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "hal_vic.h"
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "os.h"
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #include "task.h"
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Private defines -----------------------------------------------------------*/
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* MIPI 2 CSI registers*/
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	PHY_TEST_CTRL1_REG		0x54
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	PHY_TEST_CTRL0_REG		0x50
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	PHY_SHUTDOWNZ_REG		0x40
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	CSI2_RESETN_REG			0x08
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	N_LANES_REG				0x04
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	PHY_RESET_REG			0x44
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* RX FIFO default value */
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT0			0
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT1			1
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT2			2
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT3			3
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT4			4
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT5			5
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT6			6
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT7			7
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT8			8
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT9			9
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT10			10
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT11			11
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT12			12
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT13			13
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT14			14
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT15			15
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT16			16
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT17			17
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT18			18
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT19			19
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT20			20
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT21			21
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT22			22
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT23			23
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT24			24
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT25			25
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT26			26
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT27			27
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT28			28
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT29			29
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT30			30
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define SHIFT_TO_BIT31			31
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	EIGHT_BITS_PER_PIXEL				8
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	TEN_BITS_PER_PIXEL					10
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	TWELVE_BITS_PER_PIXEL				12
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	FOURTEEN_BITS_PER_PIXEL				14
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define VC_0		0
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define VC_1		1
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define VC_2		2
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define VC_3		3
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	H_HALF_DWORD_MASK			0x0000ffff
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define	L_HALF_DWORD_MASK			0xffff0000
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define RX_FIFO_DMA_DEFAULT		0x00104
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** //#define RX_FIFO_DMA_DEFAULT		0x800104
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define ISR_DISABLE_ALL		(uint32_t)(0xFFFFFFFF)
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define MIPI_CHANNEL_INSTANCE_OFFSET    ((uint32_t)(CSLHS1_BASE - CSLHS0_BASE))
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Set value for MIPI RX Controller */
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define MIPI_RX_REG(ch, addr) \
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     (*((volatile uint32_t *)(CSLHS0_BASE + (ch)*MIPI_CHANNEL_INSTANCE_OFFSET + (addr))))
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Set value for MIPI RX Controller */
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define WRITE_MIPI_RX_REG(ch, addr, val) \
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	(MIPI_RX_REG(ch, addr) = (uint32_t)val)
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Macro to align number x in multiple of 16 */
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #define GET_MULTIPLES_16(x) (((x - 1) | 15) + 1)
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Private typedefs ----------------------------------------------------------*/
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** typedef struct mipi2axi_ins_info
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	mipi2axi_callback callback;
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	void *user_data;
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** } mipi2axi_ins_info_t;
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Private variables ---------------------------------------------------------*/
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static mipi2axi_ins_info_t instances[MIPI2AXI_MAX_INS] =
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.callback = NULL,
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.user_data = NULL
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	},
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.callback = NULL,
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.user_data = NULL
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	},
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.callback = NULL,
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.user_data = NULL
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	},
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.callback = NULL,
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.user_data = NULL
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	},
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.callback = NULL,
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.user_data = NULL
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	},
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.callback = NULL,
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		.user_data = NULL
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	},
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** };
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Private functions ---------------------------------------------------------*/
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static int convert_in_halfword(uint16_t width, mipi2axi_data_type_t data_type,
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 								mipi2axi_stream_mode_t mode)
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	int num_of_halfword;
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	int bits_per_pixel;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	switch(data_type)
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_RAW10:
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			bits_per_pixel = TEN_BITS_PER_PIXEL;
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_RAW12:
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			bits_per_pixel = TWELVE_BITS_PER_PIXEL;
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_RAW14:
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			bits_per_pixel = FOURTEEN_BITS_PER_PIXEL;
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_RAW8:
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		default:
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			bits_per_pixel = EIGHT_BITS_PER_PIXEL;
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(mode == MIPI2AXI_SNAPSHOT_MODE)
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		/* 10bits per pixel would be packed in 16 bytes */
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		num_of_halfword = (width * bits_per_pixel) / 8;
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		/* If it is not exactly multiple of 16 then do +1 to it */
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		if((num_of_halfword % 16) != 0)
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			num_of_halfword = (num_of_halfword / 16) + 1;
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		else
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			num_of_halfword = (num_of_halfword / 16);
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	else
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		/* num_of_halfword should be num_of_pixels*2/16
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		 * because 1 pixel occupies 2 bytes */
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		num_of_halfword = (width * 2) / 16;
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	return num_of_halfword;
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void mipi_rx_dphy_init(uint8_t ins_idx)
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_SHUTDOWNZ */
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_SHUTDOWNZ_REG, 1);
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_RESETZ */
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_RESET_REG, 1);
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* CSI2_RESETN */
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, CSI2_RESETN_REG, 1);
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL1 */
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL1_REG, 0);
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL0_REG, 0);
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_SHUTDOWNZ */
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_SHUTDOWNZ_REG, 0);
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_RESETZ */
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_RESET_REG, 0);
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL0_REG, 0x1);
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL0_REG, 0x2);
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL1 */
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL1_REG, 0x00010044);
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL0_REG, 0x0);
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_TEST_CTRL1 */
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL1_REG, 0x00000044);
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_TEST_CTRL1 */
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL1_REG, 0x00000016);
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_TEST_CTRL0 */
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL0_REG, 0x2);
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(ins_idx, PHY_TEST_CTRL0_REG, 0x0);
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* Data lanes = 4 */
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, N_LANES_REG, 0x03);
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_SHUTDOWNZ */
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_SHUTDOWNZ_REG, 1);
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_RESETZ */
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     WRITE_MIPI_RX_REG(ins_idx, PHY_RESET_REG, 1);
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static inline void mipi2axi_irq_hdl(mipi2axi_channel_t channel)
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t int_detail, error_detail;
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check data interrupt register */
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	int_detail = READ_MIPI2AXI_REG(channel, MIPI2AXI_SIGNAL_INTR);
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check error interrupt register */
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	error_detail = READ_MIPI2AXI_REG(channel, MIPI2AXI_ERROR_INTR);
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(error_detail)
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	    unsigned int tick = xTaskGetTickCountFromISR();
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf(
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 				"\r\nRX[%d] Error: 0x%x [ts: %d] \r\n",
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 				(unsigned int)channel,
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 				(unsigned int)error_detail,
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 				tick);
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(instances[channel].callback != 0)
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		instances[channel].callback(
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									channel,
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									int_detail,
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									error_detail,
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									instances[channel].user_data);
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Clear interrupt flags */
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, SIGNAL_INT1_CLR_REG, int_detail);
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, ERROR_INT2_CLR_REG, error_detail);
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void mipi2axi_irq_hdl_ins0(void)
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(0);
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void mipi2axi_irq_hdl_ins1(void)
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(1);
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void mipi2axi_irq_hdl_ins2(void)
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(2);
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void mipi2axi_irq_hdl_ins3(void)
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(3);
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void mipi2axi_irq_hdl_ins4(void)
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(4);
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void mipi2axi_irq_hdl_ins5(void)
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(5);
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void rx_controller_intr(mipi2axi_channel_t channel)
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+  26              		.loc 1 285 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+  31 0000 38B5     		push	{r3, r4, r5, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 16
+  34              		.cfi_offset 3, -16
+  35              		.cfi_offset 4, -12
+  36              		.cfi_offset 5, -8
+  37              		.cfi_offset 14, -4
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint8_t has_error = 0;
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	unsigned int intval = MIPI_RX_REG(channel, 0xC);
+  38              		.loc 1 287 0
+  39 0002 00F50054 		add	r4, r0, #8192
+  40 0006 1F34     		adds	r4, r4, #31
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint8_t has_error = 0;
+  41              		.loc 1 285 0
+  42 0008 0546     		mov	r5, r0
+  43              		.loc 1 287 0
+  44 000a 2403     		lsls	r4, r4, #12
+  45 000c E268     		ldr	r2, [r4, #12]
+  46              	.LVL1:
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+  47              		.loc 1 289 0
+  48 000e 1AB1     		cbz	r2, .L2
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_MAIN: 0x%08x \r\n", (int)channel, intval);
+  49              		.loc 1 290 0
+  50 0010 1A48     		ldr	r0, .L35
+  51              	.LVL2:
+  52 0012 2946     		mov	r1, r5
+  53 0014 1A4B     		ldr	r3, .L35+4
+  54 0016 9847     		blx	r3
+  55              	.LVL3:
+  56              	.L2:
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	intval = MIPI_RX_REG(channel, 0xe0);
+  57              		.loc 1 292 0
+  58 0018 D4F8E020 		ldr	r2, [r4, #224]
+  59              	.LVL4:
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+  60              		.loc 1 294 0
+  61 001c 1AB1     		cbz	r2, .L3
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_PHY_FATAL: 0x%08x \r\n", (int)channel, intval);
+  62              		.loc 1 295 0
+  63 001e 1948     		ldr	r0, .L35+8
+  64 0020 2946     		mov	r1, r5
+  65 0022 174B     		ldr	r3, .L35+4
+  66 0024 9847     		blx	r3
+  67              	.LVL5:
+  68              	.L3:
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	intval = MIPI_RX_REG(channel, 0xf0);
+  69              		.loc 1 297 0
+  70 0026 D4F8F020 		ldr	r2, [r4, #240]
+  71              	.LVL6:
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+  72              		.loc 1 299 0
+  73 002a 1AB1     		cbz	r2, .L4
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_PKT_FATAL: 0x%08x \r\n", (int)channel, intval);
+  74              		.loc 1 300 0
+  75 002c 1648     		ldr	r0, .L35+12
+  76 002e 2946     		mov	r1, r5
+  77 0030 134B     		ldr	r3, .L35+4
+  78 0032 9847     		blx	r3
+  79              	.LVL7:
+  80              	.L4:
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	intval = MIPI_RX_REG(channel, 0x100);
+  81              		.loc 1 302 0
+  82 0034 D4F80021 		ldr	r2, [r4, #256]
+  83              	.LVL8:
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+  84              		.loc 1 304 0
+  85 0038 1AB1     		cbz	r2, .L5
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_FRAME_FATAL: 0x%08x \r\n", (int)channel, intval);
+  86              		.loc 1 305 0
+  87 003a 1448     		ldr	r0, .L35+16
+  88 003c 2946     		mov	r1, r5
+  89 003e 104B     		ldr	r3, .L35+4
+  90 0040 9847     		blx	r3
+  91              	.LVL9:
+  92              	.L5:
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	intval = MIPI_RX_REG(channel, 0x110);
+  93              		.loc 1 307 0
+  94 0042 D4F81021 		ldr	r2, [r4, #272]
+  95              	.LVL10:
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 309:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+  96              		.loc 1 309 0
+  97 0046 1AB1     		cbz	r2, .L6
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_PHY: 0x%08x \r\n", (int)channel, intval);
+  98              		.loc 1 310 0
+  99 0048 1148     		ldr	r0, .L35+20
+ 100 004a 2946     		mov	r1, r5
+ 101 004c 0C4B     		ldr	r3, .L35+4
+ 102 004e 9847     		blx	r3
+ 103              	.LVL11:
+ 104              	.L6:
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	intval = MIPI_RX_REG(channel, 0x120);
+ 105              		.loc 1 312 0
+ 106 0050 D4F82021 		ldr	r2, [r4, #288]
+ 107              	.LVL12:
+ 313:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 314:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+ 108              		.loc 1 314 0
+ 109 0054 1AB1     		cbz	r2, .L7
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_PKT: 0x%08x \r\n", (int)channel, intval);
+ 110              		.loc 1 315 0
+ 111 0056 0F48     		ldr	r0, .L35+24
+ 112 0058 2946     		mov	r1, r5
+ 113 005a 094B     		ldr	r3, .L35+4
+ 114 005c 9847     		blx	r3
+ 115              	.LVL13:
+ 116              	.L7:
+ 316:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 317:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	intval = MIPI_RX_REG(channel, 0x130);
+ 117              		.loc 1 317 0
+ 118 005e D4F83021 		ldr	r2, [r4, #304]
+ 119              	.LVL14:
+ 318:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 319:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+ 120              		.loc 1 319 0
+ 121 0062 1AB1     		cbz	r2, .L8
+ 320:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_LINE: 0x%08x \r\n", (int)channel, intval);
+ 122              		.loc 1 320 0
+ 123 0064 0C48     		ldr	r0, .L35+28
+ 124 0066 2946     		mov	r1, r5
+ 125 0068 054B     		ldr	r3, .L35+4
+ 126 006a 9847     		blx	r3
+ 127              	.LVL15:
+ 128              	.L8:
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 322:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	intval = MIPI_RX_REG(channel, 0x140);
+ 129              		.loc 1 322 0
+ 130 006c D4F84021 		ldr	r2, [r4, #320]
+ 131              	.LVL16:
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	has_error |= intval;
+ 324:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(intval)
+ 132              		.loc 1 324 0
+ 133 0070 1AB1     		cbz	r2, .L1
+ 325:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf("\r\nMIPI RX[%d] error INT_ST_IPI: 0x%08x \r\n", (int)channel, intval);
+ 134              		.loc 1 325 0
+ 135 0072 0A48     		ldr	r0, .L35+32
+ 136 0074 2946     		mov	r1, r5
+ 137 0076 024B     		ldr	r3, .L35+4
+ 138 0078 9847     		blx	r3
+ 139              	.LVL17:
+ 140              	.L1:
+ 141 007a 38BD     		pop	{r3, r4, r5, pc}
+ 142              	.L36:
+ 143              		.align	2
+ 144              	.L35:
+ 145 007c 00000000 		.word	.LC0
+ 146 0080 00000000 		.word	printf
+ 147 0084 2B000000 		.word	.LC1
+ 148 0088 5B000000 		.word	.LC2
+ 149 008c 8B000000 		.word	.LC3
+ 150 0090 BD000000 		.word	.LC4
+ 151 0094 E7000000 		.word	.LC5
+ 152 0098 11010000 		.word	.LC6
+ 153 009c 3C010000 		.word	.LC7
+ 154              		.cfi_endproc
+ 155              	.LFE10:
+ 157              		.section	.text.rx_controller_intr_ins5,"ax",%progbits
+ 158              		.align	1
+ 159              		.thumb
+ 160              		.thumb_func
+ 162              	rx_controller_intr_ins5:
+ 163              	.LFB16:
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 327:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #if 0
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(has_error)
+ 329:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 330:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		hal_mipi2axi_stop(channel);
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		/*while(1);*/
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** #endif
+ 334:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 335:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 336:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void rx_controller_intr_ins0(void)
+ 337:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(0);
+ 339:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 341:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void rx_controller_intr_ins1(void)
+ 342:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 343:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(1);
+ 344:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 345:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 346:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void rx_controller_intr_ins2(void)
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(2);
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 350:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 351:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void rx_controller_intr_ins3(void)
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 353:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(3);
+ 354:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 355:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 356:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void rx_controller_intr_ins4(void)
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 358:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(4);
+ 359:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 361:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** static void rx_controller_intr_ins5(void)
+ 362:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 164              		.loc 1 362 0
+ 165              		.cfi_startproc
+ 166              		@ args = 0, pretend = 0, frame = 0
+ 167              		@ frame_needed = 0, uses_anonymous_args = 0
+ 168 0000 08B5     		push	{r3, lr}
+ 169              	.LCFI1:
+ 170              		.cfi_def_cfa_offset 8
+ 171              		.cfi_offset 3, -8
+ 172              		.cfi_offset 14, -4
+ 363:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(5);
+ 173              		.loc 1 363 0
+ 174 0002 0520     		movs	r0, #5
+ 175 0004 014B     		ldr	r3, .L38
+ 176 0006 9847     		blx	r3
+ 177              	.LVL18:
+ 178 0008 08BD     		pop	{r3, pc}
+ 179              	.L39:
+ 180 000a 00BF     		.align	2
+ 181              	.L38:
+ 182 000c 00000000 		.word	rx_controller_intr
+ 183              		.cfi_endproc
+ 184              	.LFE16:
+ 186              		.section	.text.rx_controller_intr_ins4,"ax",%progbits
+ 187              		.align	1
+ 188              		.thumb
+ 189              		.thumb_func
+ 191              	rx_controller_intr_ins4:
+ 192              	.LFB15:
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(4);
+ 193              		.loc 1 357 0
+ 194              		.cfi_startproc
+ 195              		@ args = 0, pretend = 0, frame = 0
+ 196              		@ frame_needed = 0, uses_anonymous_args = 0
+ 197 0000 08B5     		push	{r3, lr}
+ 198              	.LCFI2:
+ 199              		.cfi_def_cfa_offset 8
+ 200              		.cfi_offset 3, -8
+ 201              		.cfi_offset 14, -4
+ 358:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 202              		.loc 1 358 0
+ 203 0002 0420     		movs	r0, #4
+ 204 0004 014B     		ldr	r3, .L41
+ 205 0006 9847     		blx	r3
+ 206              	.LVL19:
+ 207 0008 08BD     		pop	{r3, pc}
+ 208              	.L42:
+ 209 000a 00BF     		.align	2
+ 210              	.L41:
+ 211 000c 00000000 		.word	rx_controller_intr
+ 212              		.cfi_endproc
+ 213              	.LFE15:
+ 215              		.section	.text.rx_controller_intr_ins3,"ax",%progbits
+ 216              		.align	1
+ 217              		.thumb
+ 218              		.thumb_func
+ 220              	rx_controller_intr_ins3:
+ 221              	.LFB14:
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(3);
+ 222              		.loc 1 352 0
+ 223              		.cfi_startproc
+ 224              		@ args = 0, pretend = 0, frame = 0
+ 225              		@ frame_needed = 0, uses_anonymous_args = 0
+ 226 0000 08B5     		push	{r3, lr}
+ 227              	.LCFI3:
+ 228              		.cfi_def_cfa_offset 8
+ 229              		.cfi_offset 3, -8
+ 230              		.cfi_offset 14, -4
+ 353:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 231              		.loc 1 353 0
+ 232 0002 0320     		movs	r0, #3
+ 233 0004 014B     		ldr	r3, .L44
+ 234 0006 9847     		blx	r3
+ 235              	.LVL20:
+ 236 0008 08BD     		pop	{r3, pc}
+ 237              	.L45:
+ 238 000a 00BF     		.align	2
+ 239              	.L44:
+ 240 000c 00000000 		.word	rx_controller_intr
+ 241              		.cfi_endproc
+ 242              	.LFE14:
+ 244              		.section	.text.rx_controller_intr_ins2,"ax",%progbits
+ 245              		.align	1
+ 246              		.thumb
+ 247              		.thumb_func
+ 249              	rx_controller_intr_ins2:
+ 250              	.LFB13:
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(2);
+ 251              		.loc 1 347 0
+ 252              		.cfi_startproc
+ 253              		@ args = 0, pretend = 0, frame = 0
+ 254              		@ frame_needed = 0, uses_anonymous_args = 0
+ 255 0000 08B5     		push	{r3, lr}
+ 256              	.LCFI4:
+ 257              		.cfi_def_cfa_offset 8
+ 258              		.cfi_offset 3, -8
+ 259              		.cfi_offset 14, -4
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 260              		.loc 1 348 0
+ 261 0002 0220     		movs	r0, #2
+ 262 0004 014B     		ldr	r3, .L47
+ 263 0006 9847     		blx	r3
+ 264              	.LVL21:
+ 265 0008 08BD     		pop	{r3, pc}
+ 266              	.L48:
+ 267 000a 00BF     		.align	2
+ 268              	.L47:
+ 269 000c 00000000 		.word	rx_controller_intr
+ 270              		.cfi_endproc
+ 271              	.LFE13:
+ 273              		.section	.text.rx_controller_intr_ins1,"ax",%progbits
+ 274              		.align	1
+ 275              		.thumb
+ 276              		.thumb_func
+ 278              	rx_controller_intr_ins1:
+ 279              	.LFB12:
+ 342:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(1);
+ 280              		.loc 1 342 0
+ 281              		.cfi_startproc
+ 282              		@ args = 0, pretend = 0, frame = 0
+ 283              		@ frame_needed = 0, uses_anonymous_args = 0
+ 284 0000 08B5     		push	{r3, lr}
+ 285              	.LCFI5:
+ 286              		.cfi_def_cfa_offset 8
+ 287              		.cfi_offset 3, -8
+ 288              		.cfi_offset 14, -4
+ 343:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 289              		.loc 1 343 0
+ 290 0002 0120     		movs	r0, #1
+ 291 0004 014B     		ldr	r3, .L50
+ 292 0006 9847     		blx	r3
+ 293              	.LVL22:
+ 294 0008 08BD     		pop	{r3, pc}
+ 295              	.L51:
+ 296 000a 00BF     		.align	2
+ 297              	.L50:
+ 298 000c 00000000 		.word	rx_controller_intr
+ 299              		.cfi_endproc
+ 300              	.LFE12:
+ 302              		.section	.text.rx_controller_intr_ins0,"ax",%progbits
+ 303              		.align	1
+ 304              		.thumb
+ 305              		.thumb_func
+ 307              	rx_controller_intr_ins0:
+ 308              	.LFB11:
+ 337:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     rx_controller_intr(0);
+ 309              		.loc 1 337 0
+ 310              		.cfi_startproc
+ 311              		@ args = 0, pretend = 0, frame = 0
+ 312              		@ frame_needed = 0, uses_anonymous_args = 0
+ 313 0000 08B5     		push	{r3, lr}
+ 314              	.LCFI6:
+ 315              		.cfi_def_cfa_offset 8
+ 316              		.cfi_offset 3, -8
+ 317              		.cfi_offset 14, -4
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 318              		.loc 1 338 0
+ 319 0002 0020     		movs	r0, #0
+ 320 0004 014B     		ldr	r3, .L53
+ 321 0006 9847     		blx	r3
+ 322              	.LVL23:
+ 323 0008 08BD     		pop	{r3, pc}
+ 324              	.L54:
+ 325 000a 00BF     		.align	2
+ 326              	.L53:
+ 327 000c 00000000 		.word	rx_controller_intr
+ 328              		.cfi_endproc
+ 329              	.LFE11:
+ 331              		.section	.text.mipi2axi_irq_hdl,"ax",%progbits
+ 332              		.align	1
+ 333              		.thumb
+ 334              		.thumb_func
+ 336              	mipi2axi_irq_hdl:
+ 337              	.LFB3:
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t int_detail, error_detail;
+ 338              		.loc 1 223 0
+ 339              		.cfi_startproc
+ 340              		@ args = 0, pretend = 0, frame = 0
+ 341              		@ frame_needed = 0, uses_anonymous_args = 0
+ 342              	.LVL24:
+ 343 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 344              	.LCFI7:
+ 345              		.cfi_def_cfa_offset 24
+ 346              		.cfi_offset 3, -24
+ 347              		.cfi_offset 4, -20
+ 348              		.cfi_offset 5, -16
+ 349              		.cfi_offset 6, -12
+ 350              		.cfi_offset 7, -8
+ 351              		.cfi_offset 14, -4
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check error interrupt register */
+ 352              		.loc 1 227 0
+ 353 0002 0503     		lsls	r5, r0, #12
+ 354 0004 104B     		ldr	r3, .L64
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t int_detail, error_detail;
+ 355              		.loc 1 223 0
+ 356 0006 0446     		mov	r4, r0
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check error interrupt register */
+ 357              		.loc 1 227 0
+ 358 0008 EF58     		ldr	r7, [r5, r3]
+ 359              	.LVL25:
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(error_detail)
+ 360              		.loc 1 229 0
+ 361 000a 1033     		adds	r3, r3, #16
+ 362 000c EE58     		ldr	r6, [r5, r3]
+ 363              	.LVL26:
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 364              		.loc 1 230 0
+ 365 000e 46B1     		cbz	r6, .L56
+ 366              	.LBB2:
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf(
+ 367              		.loc 1 232 0
+ 368 0010 0E4B     		ldr	r3, .L64+4
+ 369 0012 9847     		blx	r3
+ 370              	.LVL27:
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 				"\r\nRX[%d] Error: 0x%x [ts: %d] \r\n",
+ 371              		.loc 1 233 0
+ 372 0014 2146     		mov	r1, r4
+ 373 0016 3246     		mov	r2, r6
+ 374 0018 DFF840C0 		ldr	ip, .L64+20
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		printf(
+ 375              		.loc 1 232 0
+ 376 001c 0346     		mov	r3, r0
+ 377              	.LVL28:
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 				"\r\nRX[%d] Error: 0x%x [ts: %d] \r\n",
+ 378              		.loc 1 233 0
+ 379 001e 0C48     		ldr	r0, .L64+8
+ 380              	.LVL29:
+ 381 0020 E047     		blx	ip
+ 382              	.LVL30:
+ 383              	.L56:
+ 384              	.LBE2:
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 385              		.loc 1 240 0
+ 386 0022 0C4B     		ldr	r3, .L64+12
+ 387 0024 53F834C0 		ldr	ip, [r3, r4, lsl #3]
+ 388 0028 BCF1000F 		cmp	ip, #0
+ 389 002c 06D0     		beq	.L57
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									channel,
+ 390              		.loc 1 242 0
+ 391 002e 03EBC403 		add	r3, r3, r4, lsl #3
+ 392 0032 2046     		mov	r0, r4
+ 393 0034 3946     		mov	r1, r7
+ 394 0036 3246     		mov	r2, r6
+ 395 0038 5B68     		ldr	r3, [r3, #4]
+ 396 003a E047     		blx	ip
+ 397              	.LVL31:
+ 398              	.L57:
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, ERROR_INT2_CLR_REG, error_detail);
+ 399              		.loc 1 250 0
+ 400 003c 064B     		ldr	r3, .L64+16
+ 401 003e EF50     		str	r7, [r5, r3]
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 402              		.loc 1 251 0
+ 403 0040 1033     		adds	r3, r3, #16
+ 404 0042 EE50     		str	r6, [r5, r3]
+ 405 0044 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 406              	.LVL32:
+ 407              	.L65:
+ 408 0046 00BF     		.align	2
+ 409              	.L64:
+ 410 0048 38700202 		.word	33714232
+ 411 004c 00000000 		.word	xTaskGetTickCountFromISR
+ 412 0050 66010000 		.word	.LC8
+ 413 0054 00000000 		.word	.LANCHOR0
+ 414 0058 34700202 		.word	33714228
+ 415 005c 00000000 		.word	printf
+ 416              		.cfi_endproc
+ 417              	.LFE3:
+ 419              		.section	.text.mipi2axi_irq_hdl_ins5,"ax",%progbits
+ 420              		.align	1
+ 421              		.thumb
+ 422              		.thumb_func
+ 424              	mipi2axi_irq_hdl_ins5:
+ 425              	.LFB9:
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(5);
+ 426              		.loc 1 280 0
+ 427              		.cfi_startproc
+ 428              		@ args = 0, pretend = 0, frame = 0
+ 429              		@ frame_needed = 0, uses_anonymous_args = 0
+ 430 0000 08B5     		push	{r3, lr}
+ 431              	.LCFI8:
+ 432              		.cfi_def_cfa_offset 8
+ 433              		.cfi_offset 3, -8
+ 434              		.cfi_offset 14, -4
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 435              		.loc 1 281 0
+ 436 0002 0520     		movs	r0, #5
+ 437 0004 014B     		ldr	r3, .L67
+ 438 0006 9847     		blx	r3
+ 439              	.LVL33:
+ 440 0008 08BD     		pop	{r3, pc}
+ 441              	.L68:
+ 442 000a 00BF     		.align	2
+ 443              	.L67:
+ 444 000c 00000000 		.word	mipi2axi_irq_hdl
+ 445              		.cfi_endproc
+ 446              	.LFE9:
+ 448              		.section	.text.mipi2axi_irq_hdl_ins4,"ax",%progbits
+ 449              		.align	1
+ 450              		.thumb
+ 451              		.thumb_func
+ 453              	mipi2axi_irq_hdl_ins4:
+ 454              	.LFB8:
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(4);
+ 455              		.loc 1 275 0
+ 456              		.cfi_startproc
+ 457              		@ args = 0, pretend = 0, frame = 0
+ 458              		@ frame_needed = 0, uses_anonymous_args = 0
+ 459 0000 08B5     		push	{r3, lr}
+ 460              	.LCFI9:
+ 461              		.cfi_def_cfa_offset 8
+ 462              		.cfi_offset 3, -8
+ 463              		.cfi_offset 14, -4
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 464              		.loc 1 276 0
+ 465 0002 0420     		movs	r0, #4
+ 466 0004 014B     		ldr	r3, .L70
+ 467 0006 9847     		blx	r3
+ 468              	.LVL34:
+ 469 0008 08BD     		pop	{r3, pc}
+ 470              	.L71:
+ 471 000a 00BF     		.align	2
+ 472              	.L70:
+ 473 000c 00000000 		.word	mipi2axi_irq_hdl
+ 474              		.cfi_endproc
+ 475              	.LFE8:
+ 477              		.section	.text.mipi2axi_irq_hdl_ins3,"ax",%progbits
+ 478              		.align	1
+ 479              		.thumb
+ 480              		.thumb_func
+ 482              	mipi2axi_irq_hdl_ins3:
+ 483              	.LFB7:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(3);
+ 484              		.loc 1 270 0
+ 485              		.cfi_startproc
+ 486              		@ args = 0, pretend = 0, frame = 0
+ 487              		@ frame_needed = 0, uses_anonymous_args = 0
+ 488 0000 08B5     		push	{r3, lr}
+ 489              	.LCFI10:
+ 490              		.cfi_def_cfa_offset 8
+ 491              		.cfi_offset 3, -8
+ 492              		.cfi_offset 14, -4
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 493              		.loc 1 271 0
+ 494 0002 0320     		movs	r0, #3
+ 495 0004 014B     		ldr	r3, .L73
+ 496 0006 9847     		blx	r3
+ 497              	.LVL35:
+ 498 0008 08BD     		pop	{r3, pc}
+ 499              	.L74:
+ 500 000a 00BF     		.align	2
+ 501              	.L73:
+ 502 000c 00000000 		.word	mipi2axi_irq_hdl
+ 503              		.cfi_endproc
+ 504              	.LFE7:
+ 506              		.section	.text.mipi2axi_irq_hdl_ins2,"ax",%progbits
+ 507              		.align	1
+ 508              		.thumb
+ 509              		.thumb_func
+ 511              	mipi2axi_irq_hdl_ins2:
+ 512              	.LFB6:
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(2);
+ 513              		.loc 1 265 0
+ 514              		.cfi_startproc
+ 515              		@ args = 0, pretend = 0, frame = 0
+ 516              		@ frame_needed = 0, uses_anonymous_args = 0
+ 517 0000 08B5     		push	{r3, lr}
+ 518              	.LCFI11:
+ 519              		.cfi_def_cfa_offset 8
+ 520              		.cfi_offset 3, -8
+ 521              		.cfi_offset 14, -4
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 522              		.loc 1 266 0
+ 523 0002 0220     		movs	r0, #2
+ 524 0004 014B     		ldr	r3, .L76
+ 525 0006 9847     		blx	r3
+ 526              	.LVL36:
+ 527 0008 08BD     		pop	{r3, pc}
+ 528              	.L77:
+ 529 000a 00BF     		.align	2
+ 530              	.L76:
+ 531 000c 00000000 		.word	mipi2axi_irq_hdl
+ 532              		.cfi_endproc
+ 533              	.LFE6:
+ 535              		.section	.text.mipi2axi_irq_hdl_ins1,"ax",%progbits
+ 536              		.align	1
+ 537              		.thumb
+ 538              		.thumb_func
+ 540              	mipi2axi_irq_hdl_ins1:
+ 541              	.LFB5:
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(1);
+ 542              		.loc 1 260 0
+ 543              		.cfi_startproc
+ 544              		@ args = 0, pretend = 0, frame = 0
+ 545              		@ frame_needed = 0, uses_anonymous_args = 0
+ 546 0000 08B5     		push	{r3, lr}
+ 547              	.LCFI12:
+ 548              		.cfi_def_cfa_offset 8
+ 549              		.cfi_offset 3, -8
+ 550              		.cfi_offset 14, -4
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 551              		.loc 1 261 0
+ 552 0002 0120     		movs	r0, #1
+ 553 0004 014B     		ldr	r3, .L79
+ 554 0006 9847     		blx	r3
+ 555              	.LVL37:
+ 556 0008 08BD     		pop	{r3, pc}
+ 557              	.L80:
+ 558 000a 00BF     		.align	2
+ 559              	.L79:
+ 560 000c 00000000 		.word	mipi2axi_irq_hdl
+ 561              		.cfi_endproc
+ 562              	.LFE5:
+ 564              		.section	.text.mipi2axi_irq_hdl_ins0,"ax",%progbits
+ 565              		.align	1
+ 566              		.thumb
+ 567              		.thumb_func
+ 569              	mipi2axi_irq_hdl_ins0:
+ 570              	.LFB4:
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     mipi2axi_irq_hdl(0);
+ 571              		.loc 1 255 0
+ 572              		.cfi_startproc
+ 573              		@ args = 0, pretend = 0, frame = 0
+ 574              		@ frame_needed = 0, uses_anonymous_args = 0
+ 575 0000 08B5     		push	{r3, lr}
+ 576              	.LCFI13:
+ 577              		.cfi_def_cfa_offset 8
+ 578              		.cfi_offset 3, -8
+ 579              		.cfi_offset 14, -4
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 580              		.loc 1 256 0
+ 581 0002 0020     		movs	r0, #0
+ 582 0004 014B     		ldr	r3, .L82
+ 583 0006 9847     		blx	r3
+ 584              	.LVL38:
+ 585 0008 08BD     		pop	{r3, pc}
+ 586              	.L83:
+ 587 000a 00BF     		.align	2
+ 588              	.L82:
+ 589 000c 00000000 		.word	mipi2axi_irq_hdl
+ 590              		.cfi_endproc
+ 591              	.LFE4:
+ 593              		.section	.text.hal_mipi2axi_init,"ax",%progbits
+ 594              		.align	1
+ 595              		.global	hal_mipi2axi_init
+ 596              		.thumb
+ 597              		.thumb_func
+ 599              	hal_mipi2axi_init:
+ 600              	.LFB17:
+ 364:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 365:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 366:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** /* Exported functions --------------------------------------------------------*/
+ 367:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_init(mipi2axi_channel_t channel)
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 601              		.loc 1 368 0
+ 602              		.cfi_startproc
+ 603              		@ args = 0, pretend = 0, frame = 0
+ 604              		@ frame_needed = 0, uses_anonymous_args = 0
+ 605              	.LVL39:
+ 369:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameters */
+ 370:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 606              		.loc 1 370 0
+ 607 0000 0528     		cmp	r0, #5
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameters */
+ 608              		.loc 1 368 0
+ 609 0002 38B5     		push	{r3, r4, r5, lr}
+ 610              	.LCFI14:
+ 611              		.cfi_def_cfa_offset 16
+ 612              		.cfi_offset 3, -16
+ 613              		.cfi_offset 4, -12
+ 614              		.cfi_offset 5, -8
+ 615              		.cfi_offset 14, -4
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameters */
+ 616              		.loc 1 368 0
+ 617 0004 0446     		mov	r4, r0
+ 618              		.loc 1 370 0
+ 619 0006 04D9     		bls	.L85
+ 620              		.loc 1 370 0 is_stmt 0 discriminator 1
+ 621 0008 1648     		ldr	r0, .L86
+ 622              	.LVL40:
+ 623 000a 4FF4B971 		mov	r1, #370
+ 624 000e 164B     		ldr	r3, .L86+4
+ 625 0010 9847     		blx	r3
+ 626              	.LVL41:
+ 627              	.L85:
+ 628              	.LBB5:
+ 629              	.LBB6:
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_RESETZ */
+ 630              		.loc 1 185 0 is_stmt 1
+ 631 0012 04F50053 		add	r3, r4, #8192
+ 632 0016 1F33     		adds	r3, r3, #31
+ 633 0018 0122     		movs	r2, #1
+ 634 001a 1B03     		lsls	r3, r3, #12
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 635              		.loc 1 191 0
+ 636 001c 0021     		movs	r1, #0
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL1 */
+ 637              		.loc 1 201 0
+ 638 001e 0220     		movs	r0, #2
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 639              		.loc 1 203 0
+ 640 0020 124D     		ldr	r5, .L86+8
+ 641              	.LBE6:
+ 642              	.LBE5:
+ 371:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 372:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Initialize DPHY of MIPI RX Controller */
+ 373:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	mipi_rx_dphy_init(channel);
+ 374:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 375:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Configure default DMA */
+ 376:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, RX_FIFO_DMA_REG, RX_FIFO_DMA_DEFAULT);
+ 643              		.loc 1 376 0
+ 644 0022 2403     		lsls	r4, r4, #12
+ 645              	.LVL42:
+ 646              	.LBB8:
+ 647              	.LBB7:
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_RESETZ */
+ 648              		.loc 1 185 0
+ 649 0024 1A64     		str	r2, [r3, #64]
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* CSI2_RESETN */
+ 650              		.loc 1 187 0
+ 651 0026 5A64     		str	r2, [r3, #68]
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL1 */
+ 652              		.loc 1 189 0
+ 653 0028 9A60     		str	r2, [r3, #8]
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 654              		.loc 1 191 0
+ 655 002a 5965     		str	r1, [r3, #84]
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_SHUTDOWNZ */
+ 656              		.loc 1 193 0
+ 657 002c 1965     		str	r1, [r3, #80]
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_RESETZ */
+ 658              		.loc 1 195 0
+ 659 002e 1964     		str	r1, [r3, #64]
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 660              		.loc 1 197 0
+ 661 0030 5964     		str	r1, [r3, #68]
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 662              		.loc 1 199 0
+ 663 0032 1A65     		str	r2, [r3, #80]
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL1 */
+ 664              		.loc 1 201 0
+ 665 0034 1865     		str	r0, [r3, #80]
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 666              		.loc 1 203 0
+ 667 0036 5D65     		str	r5, [r3, #84]
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_TEST_CTRL1 */
+ 668              		.loc 1 207 0
+ 669 0038 4425     		movs	r5, #68
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_TEST_CTRL1 */
+ 670              		.loc 1 205 0
+ 671 003a 1965     		str	r1, [r3, #80]
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_TEST_CTRL1 */
+ 672              		.loc 1 207 0
+ 673 003c 5D65     		str	r5, [r3, #84]
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_TEST_CTRL0 */
+ 674              		.loc 1 209 0
+ 675 003e 1625     		movs	r5, #22
+ 676 0040 5D65     		str	r5, [r3, #84]
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* PHY_TEST_CTRL0 */
+ 677              		.loc 1 211 0
+ 678 0042 1865     		str	r0, [r3, #80]
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* Data lanes = 4 */
+ 679              		.loc 1 213 0
+ 680 0044 1965     		str	r1, [r3, #80]
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_SHUTDOWNZ */
+ 681              		.loc 1 215 0
+ 682 0046 0321     		movs	r1, #3
+ 683 0048 5960     		str	r1, [r3, #4]
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****     /* PHY_RESETZ */
+ 684              		.loc 1 217 0
+ 685 004a 1A64     		str	r2, [r3, #64]
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 686              		.loc 1 219 0
+ 687 004c 5A64     		str	r2, [r3, #68]
+ 688              	.LBE7:
+ 689              	.LBE8:
+ 690              		.loc 1 376 0
+ 691 004e 4FF48272 		mov	r2, #260
+ 692 0052 074B     		ldr	r3, .L86+12
+ 693 0054 E250     		str	r2, [r4, r3]
+ 377:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 378:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Disable all interrupt */
+ 379:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, INT1_MASK_REG, ISR_DISABLE_ALL);
+ 694              		.loc 1 379 0
+ 695 0056 4FF0FF33 		mov	r3, #-1
+ 696 005a 064A     		ldr	r2, .L86+16
+ 697 005c A350     		str	r3, [r4, r2]
+ 380:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, INT2_MASK_REG, ISR_DISABLE_ALL);
+ 698              		.loc 1 380 0
+ 699 005e 1032     		adds	r2, r2, #16
+ 700 0060 A350     		str	r3, [r4, r2]
+ 701 0062 38BD     		pop	{r3, r4, r5, pc}
+ 702              	.L87:
+ 703              		.align	2
+ 704              	.L86:
+ 705 0064 00000000 		.word	.LANCHOR1
+ 706 0068 00000000 		.word	assert_failed
+ 707 006c 44000100 		.word	65604
+ 708 0070 54700202 		.word	33714260
+ 709 0074 30700202 		.word	33714224
+ 710              		.cfi_endproc
+ 711              	.LFE17:
+ 713              		.section	.text.hal_mipi2axi_set_stream_property,"ax",%progbits
+ 714              		.align	1
+ 715              		.global	hal_mipi2axi_set_stream_property
+ 716              		.thumb
+ 717              		.thumb_func
+ 719              	hal_mipi2axi_set_stream_property:
+ 720              	.LFB18:
+ 381:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 382:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 383:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_set_stream_property(mipi2axi_channel_t channel,
+ 384:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 										mipi2axi_property_t *opt)
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 721              		.loc 1 385 0
+ 722              		.cfi_startproc
+ 723              		@ args = 0, pretend = 0, frame = 0
+ 724              		@ frame_needed = 0, uses_anonymous_args = 0
+ 725              	.LVL43:
+ 386:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameters ------------------------------------------------------*/
+ 387:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 726              		.loc 1 387 0
+ 727 0000 0528     		cmp	r0, #5
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameters ------------------------------------------------------*/
+ 728              		.loc 1 385 0
+ 729 0002 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 730              	.LCFI15:
+ 731              		.cfi_def_cfa_offset 24
+ 732              		.cfi_offset 4, -24
+ 733              		.cfi_offset 5, -20
+ 734              		.cfi_offset 6, -16
+ 735              		.cfi_offset 7, -12
+ 736              		.cfi_offset 8, -8
+ 737              		.cfi_offset 14, -4
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameters ------------------------------------------------------*/
+ 738              		.loc 1 385 0
+ 739 0006 0646     		mov	r6, r0
+ 740 0008 0C46     		mov	r4, r1
+ 741              		.loc 1 387 0
+ 742 000a 04D9     		bls	.L89
+ 743              		.loc 1 387 0 is_stmt 0 discriminator 1
+ 744 000c 5948     		ldr	r0, .L146
+ 745              	.LVL44:
+ 746 000e 40F28311 		movw	r1, #387
+ 747              	.LVL45:
+ 748 0012 594B     		ldr	r3, .L146+4
+ 749 0014 9847     		blx	r3
+ 750              	.LVL46:
+ 751              	.L89:
+ 388:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_VC_CHANNEL(opt->vc_option));
+ 752              		.loc 1 388 0 is_stmt 1
+ 753 0016 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 754 0018 13F0F00F 		tst	r3, #240
+ 755 001c 04D0     		beq	.L90
+ 756              		.loc 1 388 0 is_stmt 0 discriminator 1
+ 757 001e 5548     		ldr	r0, .L146
+ 758 0020 4FF4C271 		mov	r1, #388
+ 759 0024 544B     		ldr	r3, .L146+4
+ 760 0026 9847     		blx	r3
+ 761              	.LVL47:
+ 762              	.L90:
+ 389:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_VC_CHANNEL(opt->img_type.vc_will_captured));
+ 763              		.loc 1 389 0 is_stmt 1
+ 764 0028 637B     		ldrb	r3, [r4, #13]	@ zero_extendqisi2
+ 765 002a 13F0F00F 		tst	r3, #240
+ 766 002e 04D0     		beq	.L91
+ 767              		.loc 1 389 0 is_stmt 0 discriminator 1
+ 768 0030 5048     		ldr	r0, .L146
+ 769 0032 40F28511 		movw	r1, #389
+ 770 0036 504B     		ldr	r3, .L146+4
+ 771 0038 9847     		blx	r3
+ 772              	.LVL48:
+ 773              	.L91:
+ 390:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_VC_PACK_MODE(opt->stream_mode));
+ 774              		.loc 1 390 0 is_stmt 1
+ 775 003a 6378     		ldrb	r3, [r4, #1]	@ zero_extendqisi2
+ 776 003c 032B     		cmp	r3, #3
+ 777 003e 04D9     		bls	.L92
+ 778              		.loc 1 390 0 is_stmt 0 discriminator 1
+ 779 0040 4C48     		ldr	r0, .L146
+ 780 0042 4FF4C371 		mov	r1, #390
+ 781 0046 4C4B     		ldr	r3, .L146+4
+ 782 0048 9847     		blx	r3
+ 783              	.LVL49:
+ 784              	.L92:
+ 391:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_RAW_DATA_TYPE(opt->img_type.data_type));
+ 785              		.loc 1 391 0 is_stmt 1
+ 786 004a 237B     		ldrb	r3, [r4, #12]	@ zero_extendqisi2
+ 787 004c 2A3B     		subs	r3, r3, #42
+ 788 004e 032B     		cmp	r3, #3
+ 789 0050 04D9     		bls	.L93
+ 790              		.loc 1 391 0 is_stmt 0 discriminator 1
+ 791 0052 4848     		ldr	r0, .L146
+ 792 0054 40F28711 		movw	r1, #391
+ 793 0058 474B     		ldr	r3, .L146+4
+ 794 005a 9847     		blx	r3
+ 795              	.LVL50:
+ 796              	.L93:
+ 392:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 393:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t tmp = 0, reg_val = 0, offset = 0;
+ 394:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t vc_option = opt->vc_option;
+ 395:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t current_vc = 0;
+ 396:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 397:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/*
+ 398:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 * Configure data packing mode (stream mode)
+ 399:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 */
+ 400:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	tmp = opt->stream_mode;
+ 401:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	reg_val = READ_MIPI2AXI_REG(channel, DPM_REG);
+ 797              		.loc 1 401 0 is_stmt 1
+ 798 005c 3003     		lsls	r0, r6, #12
+ 402:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC0_CH)
+ 799              		.loc 1 402 0
+ 800 005e 2178     		ldrb	r1, [r4]	@ zero_extendqisi2
+ 401:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC0_CH)
+ 801              		.loc 1 401 0
+ 802 0060 464A     		ldr	r2, .L146+8
+ 803              		.loc 1 402 0
+ 804 0062 11F00106 		ands	r6, r1, #1
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 404:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val &= ~((uint32_t)((BIT1 | BIT0) << SHIFT_TO_BIT0));
+ 405:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT0);
+ 406:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 407:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC1_CH)
+ 805              		.loc 1 407 0
+ 806 0066 01F00207 		and	r7, r1, #2
+ 400:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	reg_val = READ_MIPI2AXI_REG(channel, DPM_REG);
+ 807              		.loc 1 400 0
+ 808 006a 6578     		ldrb	r5, [r4, #1]	@ zero_extendqisi2
+ 809              	.LVL51:
+ 810              		.loc 1 407 0
+ 811 006c 07F0FF0E 		and	lr, r7, #255
+ 401:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC0_CH)
+ 812              		.loc 1 401 0
+ 813 0070 8358     		ldr	r3, [r0, r2]
+ 814              	.LVL52:
+ 404:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT0);
+ 815              		.loc 1 404 0
+ 816 0072 1CBF     		itt	ne
+ 817 0074 23F00303 		bicne	r3, r3, #3
+ 818              	.LVL53:
+ 405:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 819              		.loc 1 405 0
+ 820 0078 2B43     		orrne	r3, r3, r5
+ 821              	.LVL54:
+ 822              		.loc 1 407 0
+ 823 007a 1FB1     		cbz	r7, .L95
+ 408:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 409:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val &= ~((uint32_t)((BIT1 | BIT0) << SHIFT_TO_BIT8));
+ 824              		.loc 1 409 0
+ 825 007c 23F44073 		bic	r3, r3, #768
+ 826              	.LVL55:
+ 410:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT8);
+ 827              		.loc 1 410 0
+ 828 0080 43EA0523 		orr	r3, r3, r5, lsl #8
+ 829              	.LVL56:
+ 830              	.L95:
+ 411:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 412:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC2_CH)
+ 831              		.loc 1 412 0
+ 832 0084 01F00407 		and	r7, r1, #4
+ 833 0088 07F0FF0C 		and	ip, r7, #255
+ 834 008c 1FB1     		cbz	r7, .L96
+ 413:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 414:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val &= ~((uint32_t)((BIT1 | BIT0) << SHIFT_TO_BIT16));
+ 835              		.loc 1 414 0
+ 836 008e 23F44033 		bic	r3, r3, #196608
+ 837              	.LVL57:
+ 415:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT16);
+ 838              		.loc 1 415 0
+ 839 0092 43EA0543 		orr	r3, r3, r5, lsl #16
+ 840              	.LVL58:
+ 841              	.L96:
+ 416:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 417:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC3_CH)
+ 842              		.loc 1 417 0
+ 843 0096 01F00808 		and	r8, r1, #8
+ 844 009a 08F0FF07 		and	r7, r8, #255
+ 845 009e B8F1000F 		cmp	r8, #0
+ 846 00a2 03D0     		beq	.L97
+ 418:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 419:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			reg_val &= ~((uint32_t)((BIT1 | BIT0) << SHIFT_TO_BIT24));
+ 847              		.loc 1 419 0
+ 848 00a4 23F04073 		bic	r3, r3, #50331648
+ 849              	.LVL59:
+ 420:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			reg_val |= (tmp << SHIFT_TO_BIT24);
+ 850              		.loc 1 420 0
+ 851 00a8 43EA0563 		orr	r3, r3, r5, lsl #24
+ 852              	.LVL60:
+ 853              	.L97:
+ 421:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 422:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, DPM_REG, reg_val);
+ 854              		.loc 1 422 0
+ 855 00ac 8350     		str	r3, [r0, r2]
+ 856              	.LVL61:
+ 857 00ae 637B     		ldrb	r3, [r4, #13]	@ zero_extendqisi2
+ 858              	.LVL62:
+ 859 00b0 023B     		subs	r3, r3, #2
+ 860 00b2 DBB2     		uxtb	r3, r3
+ 861 00b4 062B     		cmp	r3, #6
+ 423:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 424:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/*
+ 425:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 * Configures data type
+ 426:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 */
+ 427:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 428:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint8_t vc_will_capture = 0;
+ 429:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	switch(opt->img_type.vc_will_captured)
+ 862              		.loc 1 429 0
+ 863 00b6 8EBF     		itee	hi
+ 864 00b8 0023     		movhi	r3, #0
+ 865 00ba 314A     		ldrls	r2, .L146+12
+ 866              	.LVL63:
+ 867 00bc D35C     		ldrbls	r3, [r2, r3]	@ zero_extendqisi2
+ 868              	.LVL64:
+ 430:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 431:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_VC0_CH:
+ 432:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vc_will_capture = VC_0;
+ 433:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 434:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_VC1_CH:
+ 435:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vc_will_capture = VC_1;
+ 436:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 437:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_VC2_CH:
+ 438:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vc_will_capture = VC_2;
+ 439:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 440:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case MIPI2AXI_VC3_CH:
+ 441:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vc_will_capture = VC_3;
+ 442:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 443:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		default:
+ 444:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vc_will_capture = VC_0;
+ 445:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 446:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 447:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	tmp = (uint32_t)((vc_will_capture << SHIFT_TO_BIT8) +
+ 448:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 					(opt->img_type.data_type << SHIFT_TO_BIT0));
+ 869              		.loc 1 448 0
+ 870 00be 227B     		ldrb	r2, [r4, #12]	@ zero_extendqisi2
+ 447:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 					(opt->img_type.data_type << SHIFT_TO_BIT0));
+ 871              		.loc 1 447 0
+ 872 00c0 02EB0323 		add	r3, r2, r3, lsl #8
+ 873              	.LVL65:
+ 449:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC0_CH)
+ 874              		.loc 1 449 0
+ 875 00c4 46B1     		cbz	r6, .L99
+ 876              	.LVL66:
+ 450:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 451:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val = READ_MIPI2AXI_REG(channel, DT_REG_VC01);
+ 877              		.loc 1 451 0
+ 878 00c6 DFF8CC80 		ldr	r8, .L146+32
+ 879 00ca 50F80860 		ldr	r6, [r0, r8]
+ 880              	.LVL67:
+ 452:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val &= (uint32_t)L_HALF_DWORD_MASK; /* Clear 16 bits */
+ 881              		.loc 1 452 0
+ 882 00ce 360C     		lsrs	r6, r6, #16
+ 883              	.LVL68:
+ 884 00d0 3604     		lsls	r6, r6, #16
+ 885              	.LVL69:
+ 453:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT0);
+ 886              		.loc 1 453 0
+ 887 00d2 1E43     		orrs	r6, r6, r3
+ 888              	.LVL70:
+ 454:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		WRITE_MIPI2AXI_REG(channel, DT_REG_VC01, reg_val);
+ 889              		.loc 1 454 0
+ 890 00d4 40F80860 		str	r6, [r0, r8]
+ 891              	.LVL71:
+ 892              	.L99:
+ 455:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 456:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC1_CH)
+ 893              		.loc 1 456 0
+ 894 00d8 BEF1000F 		cmp	lr, #0
+ 895 00dc 08D0     		beq	.L100
+ 457:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 458:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val = READ_MIPI2AXI_REG(channel, DT_REG_VC01);
+ 896              		.loc 1 458 0
+ 897 00de DFF8B4E0 		ldr	lr, .L146+32
+ 898 00e2 50F80E60 		ldr	r6, [r0, lr]
+ 899              	.LVL72:
+ 459:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val &= (uint32_t)H_HALF_DWORD_MASK; /* Clear 16 bits */
+ 900              		.loc 1 459 0
+ 901 00e6 B6B2     		uxth	r6, r6
+ 902              	.LVL73:
+ 460:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT16);
+ 903              		.loc 1 460 0
+ 904 00e8 46EA0346 		orr	r6, r6, r3, lsl #16
+ 905              	.LVL74:
+ 461:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		WRITE_MIPI2AXI_REG(channel, DT_REG_VC01, reg_val);
+ 906              		.loc 1 461 0
+ 907 00ec 40F80E60 		str	r6, [r0, lr]
+ 908              	.LVL75:
+ 909              	.L100:
+ 462:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 463:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC2_CH)
+ 910              		.loc 1 463 0
+ 911 00f0 BCF1000F 		cmp	ip, #0
+ 912 00f4 08D0     		beq	.L101
+ 464:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 465:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val = READ_MIPI2AXI_REG(channel, DT_REG_VC23);
+ 913              		.loc 1 465 0
+ 914 00f6 DFF88CE0 		ldr	lr, .L146+16
+ 915 00fa 50F80E60 		ldr	r6, [r0, lr]
+ 916              	.LVL76:
+ 466:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val &= (uint32_t)L_HALF_DWORD_MASK; /* Clear 16 bits */
+ 917              		.loc 1 466 0
+ 918 00fe 360C     		lsrs	r6, r6, #16
+ 919              	.LVL77:
+ 920 0100 3604     		lsls	r6, r6, #16
+ 921              	.LVL78:
+ 467:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT0);
+ 922              		.loc 1 467 0
+ 923 0102 1E43     		orrs	r6, r6, r3
+ 924              	.LVL79:
+ 468:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		WRITE_MIPI2AXI_REG(channel, DT_REG_VC23, reg_val);
+ 925              		.loc 1 468 0
+ 926 0104 40F80E60 		str	r6, [r0, lr]
+ 927              	.LVL80:
+ 928              	.L101:
+ 469:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 470:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(opt->vc_option & MIPI2AXI_VC3_CH)
+ 929              		.loc 1 470 0
+ 930 0108 2FB1     		cbz	r7, .L102
+ 471:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 472:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val = READ_MIPI2AXI_REG(channel, DT_REG_VC23);
+ 931              		.loc 1 472 0
+ 932 010a 1E4F     		ldr	r7, .L146+16
+ 933 010c C659     		ldr	r6, [r0, r7]
+ 934              	.LVL81:
+ 473:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val &= (uint32_t)H_HALF_DWORD_MASK; /* Clear 16 bits */
+ 935              		.loc 1 473 0
+ 936 010e B6B2     		uxth	r6, r6
+ 937              	.LVL82:
+ 474:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		reg_val |= (tmp << SHIFT_TO_BIT16);
+ 938              		.loc 1 474 0
+ 939 0110 46EA0343 		orr	r3, r6, r3, lsl #16
+ 940              	.LVL83:
+ 475:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		WRITE_MIPI2AXI_REG(channel, DT_REG_VC23, reg_val);
+ 941              		.loc 1 475 0
+ 942 0114 C351     		str	r3, [r0, r7]
+ 943              	.LVL84:
+ 944              	.L102:
+ 945 0116 2B3A     		subs	r2, r2, #43
+ 946              	.LVL85:
+ 476:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 477:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 478:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/*
+ 479:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 * Calculate image pixel
+ 480:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 */
+ 481:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	tmp = convert_in_halfword(opt->img_size.width, opt->img_type.data_type,
+ 947              		.loc 1 481 0
+ 948 0118 E389     		ldrh	r3, [r4, #14]
+ 949              	.LVL86:
+ 950 011a D2B2     		uxtb	r2, r2
+ 951              	.LVL87:
+ 952 011c 022A     		cmp	r2, #2
+ 953 011e 8EBF     		itee	hi
+ 954 0120 0822     		movhi	r2, #8
+ 955 0122 194E     		ldrls	r6, .L146+20
+ 956 0124 B256     		ldrsbls	r2, [r6, r2]
+ 957              	.LVL88:
+ 958              	.LBB11:
+ 959              	.LBB12:
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 960              		.loc 1 164 0
+ 961 0126 5DB9     		cbnz	r5, .L104
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		/* If it is not exactly multiple of 16 then do +1 to it */
+ 962              		.loc 1 167 0
+ 963 0128 5343     		muls	r3, r2, r3
+ 964              	.LVL89:
+ 965 012a 0822     		movs	r2, #8
+ 966              	.LVL90:
+ 967 012c 93FBF2F3 		sdiv	r3, r3, r2
+ 968              	.LVL91:
+ 969 0130 1022     		movs	r2, #16
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			num_of_halfword = (num_of_halfword / 16) + 1;
+ 970              		.loc 1 169 0
+ 971 0132 13F00F0F 		tst	r3, #15
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		else
+ 972              		.loc 1 170 0
+ 973 0136 93FBF2F3 		sdiv	r3, r3, r2
+ 974              	.LVL92:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			num_of_halfword = (num_of_halfword / 16) + 1;
+ 975              		.loc 1 169 0
+ 976 013a 02D0     		beq	.L106
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		else
+ 977              		.loc 1 170 0
+ 978 013c 0133     		adds	r3, r3, #1
+ 979              	.LVL93:
+ 980 013e 00E0     		b	.L106
+ 981              	.LVL94:
+ 982              	.L104:
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 983              		.loc 1 178 0
+ 984 0140 DB10     		asrs	r3, r3, #3
+ 985              	.LVL95:
+ 986              	.L106:
+ 987              	.LBE12:
+ 988              	.LBE11:
+ 482:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 								opt->stream_mode);
+ 483:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	tmp |= (uint32_t)((opt->img_size.height << SHIFT_TO_BIT16) & L_HALF_DWORD_MASK);
+ 989              		.loc 1 483 0
+ 990 0142 228A     		ldrh	r2, [r4, #16]
+ 991 0144 43EA0243 		orr	r3, r3, r2, lsl #16
+ 992              	.LVL96:
+ 993 0148 104A     		ldr	r2, .L146+24
+ 994 014a 0244     		add	r2, r2, r0
+ 995              	.LVL97:
+ 996              	.L107:
+ 484:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 485:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	current_vc = 0;
+ 486:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	vc_option = opt->vc_option;
+ 487:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	while(vc_option)
+ 997              		.loc 1 487 0
+ 998 014c 59B1     		cbz	r1, .L145
+ 488:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 489:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		if(vc_option & 1)
+ 999              		.loc 1 489 0
+ 1000 014e CD07     		lsls	r5, r1, #31
+ 1001 0150 02F11002 		add	r2, r2, #16
+ 490:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 491:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			/*
+ 492:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			 * Configure destination address
+ 493:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			 */
+ 494:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			offset = current_vc * (VC1_DEST_REG - VC0_DEST_REG);
+ 495:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			WRITE_MIPI2AXI_REG(channel, VC0_DEST_REG + offset, opt->addr.dst_addr);
+ 496:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 497:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			/*
+ 498:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			 * Configure pixel (image size)
+ 499:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			 */
+ 500:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			offset = current_vc * (VC1_SIZE_REG - VC0_SIZE_REG);
+ 501:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			WRITE_MIPI2AXI_REG(channel, VC0_SIZE_REG + offset, tmp);
+ 502:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 503:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 504:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		vc_option >>= 1;
+ 1002              		.loc 1 504 0
+ 1003 0154 4FEA5101 		lsr	r1, r1, #1
+ 1004              	.LVL98:
+ 495:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 1005              		.loc 1 495 0
+ 1006 0158 42BF     		ittt	mi
+ 1007 015a A568     		ldrmi	r5, [r4, #8]
+ 1008 015c 42F8105C 		strmi	r5, [r2, #-16]
+ 1009              	.LVL99:
+ 501:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 1010              		.loc 1 501 0
+ 1011 0160 42F80C3C 		strmi	r3, [r2, #-12]
+ 1012 0164 F2E7     		b	.L107
+ 1013              	.L145:
+ 505:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc++;
+ 506:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 507:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 508:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/*
+ 509:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 * Configures source address
+ 510:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 */
+ 511:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, ALU_SRC_REG, opt->addr.alu_src_addr);
+ 1014              		.loc 1 511 0
+ 1015 0166 0A4A     		ldr	r2, .L146+28
+ 1016 0168 6168     		ldr	r1, [r4, #4]
+ 1017              	.LVL100:
+ 1018 016a 8150     		str	r1, [r0, r2]
+ 512:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 513:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/*
+ 514:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 * Configure ALU size
+ 515:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	 */
+ 516:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, ALU_SIZE_REG, tmp);
+ 1019              		.loc 1 516 0
+ 1020 016c 0432     		adds	r2, r2, #4
+ 1021 016e 8350     		str	r3, [r0, r2]
+ 1022 0170 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 1023              	.LVL101:
+ 1024              	.L147:
+ 1025              		.align	2
+ 1026              	.L146:
+ 1027 0174 00000000 		.word	.LANCHOR2
+ 1028 0178 00000000 		.word	assert_failed
+ 1029 017c 10700202 		.word	33714192
+ 1030 0180 00000000 		.word	.LANCHOR3
+ 1031 0184 1C700202 		.word	33714204
+ 1032 0188 00000000 		.word	.LANCHOR4
+ 1033 018c 04710202 		.word	33714436
+ 1034 0190 24700202 		.word	33714212
+ 1035 0194 18700202 		.word	33714200
+ 1036              		.cfi_endproc
+ 1037              	.LFE18:
+ 1039              		.section	.text.hal_mipi2axi_bypass_cfg,"ax",%progbits
+ 1040              		.align	1
+ 1041              		.global	hal_mipi2axi_bypass_cfg
+ 1042              		.thumb
+ 1043              		.thumb_func
+ 1045              	hal_mipi2axi_bypass_cfg:
+ 1046              	.LFB19:
+ 517:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 518:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 519:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 520:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 521:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 522:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_bypass_cfg(mipi2axi_channel_t channel,
+ 523:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							mipi2axi_vc_ch_t vc_option,
+ 524:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							mipi2axi_bypass_mode_t mode)
+ 525:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1047              		.loc 1 525 0
+ 1048              		.cfi_startproc
+ 1049              		@ args = 0, pretend = 0, frame = 0
+ 1050              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1051              	.LVL102:
+ 526:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 527:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1052              		.loc 1 527 0
+ 1053 0000 0528     		cmp	r0, #5
+ 525:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1054              		.loc 1 525 0
+ 1055 0002 70B5     		push	{r4, r5, r6, lr}
+ 1056              	.LCFI16:
+ 1057              		.cfi_def_cfa_offset 16
+ 1058              		.cfi_offset 4, -16
+ 1059              		.cfi_offset 5, -12
+ 1060              		.cfi_offset 6, -8
+ 1061              		.cfi_offset 14, -4
+ 525:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1062              		.loc 1 525 0
+ 1063 0004 0546     		mov	r5, r0
+ 1064 0006 0C46     		mov	r4, r1
+ 1065 0008 1646     		mov	r6, r2
+ 1066              		.loc 1 527 0
+ 1067 000a 04D9     		bls	.L149
+ 1068              		.loc 1 527 0 is_stmt 0 discriminator 1
+ 1069 000c 1548     		ldr	r0, .L160
+ 1070              	.LVL103:
+ 1071 000e 40F20F21 		movw	r1, #527
+ 1072              	.LVL104:
+ 1073 0012 154B     		ldr	r3, .L160+4
+ 1074 0014 9847     		blx	r3
+ 1075              	.LVL105:
+ 1076              	.L149:
+ 528:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_VC_CHANNEL(vc_option));
+ 1077              		.loc 1 528 0 is_stmt 1
+ 1078 0016 14F0F00F 		tst	r4, #240
+ 1079 001a 04D0     		beq	.L150
+ 1080              		.loc 1 528 0 is_stmt 0 discriminator 1
+ 1081 001c 1148     		ldr	r0, .L160
+ 1082 001e 4FF40471 		mov	r1, #528
+ 1083 0022 114B     		ldr	r3, .L160+4
+ 1084 0024 9847     		blx	r3
+ 1085              	.LVL106:
+ 1086              	.L150:
+ 529:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_BYPASS(mode));
+ 1087              		.loc 1 529 0 is_stmt 1
+ 1088 0026 032E     		cmp	r6, #3
+ 1089 0028 04D9     		bls	.L151
+ 1090              		.loc 1 529 0 is_stmt 0 discriminator 1
+ 1091 002a 0E48     		ldr	r0, .L160
+ 1092 002c 40F21121 		movw	r1, #529
+ 1093 0030 0D4B     		ldr	r3, .L160+4
+ 1094 0032 9847     		blx	r3
+ 1095              	.LVL107:
+ 1096              	.L151:
+ 530:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 531:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint8_t current_vc = 0;
+ 532:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t tmp = 0;
+ 533:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 534:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Choose virtual channel (just one channel will bypass) */
+ 535:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(vc_option & MIPI2AXI_VC0_CH)
+ 1097              		.loc 1 535 0 is_stmt 1
+ 1098 0034 E007     		lsls	r0, r4, #31
+ 1099 0036 09D4     		bmi	.L153
+ 536:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc = 0;
+ 537:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	else if(vc_option & MIPI2AXI_VC1_CH)
+ 1100              		.loc 1 537 0
+ 1101 0038 A107     		lsls	r1, r4, #30
+ 1102 003a 09D4     		bmi	.L154
+ 538:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc = 1;
+ 539:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	else if(vc_option & MIPI2AXI_VC2_CH)
+ 1103              		.loc 1 539 0
+ 1104 003c 6207     		lsls	r2, r4, #29
+ 1105 003e 09D4     		bmi	.L155
+ 540:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc = 2;
+ 541:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	else if(vc_option & MIPI2AXI_VC3_CH)
+ 542:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc = 3;
+ 1106              		.loc 1 542 0
+ 1107 0040 14F0080F 		tst	r4, #8
+ 1108 0044 0CBF     		ite	eq
+ 1109 0046 0023     		moveq	r3, #0
+ 1110 0048 0323     		movne	r3, #3
+ 1111 004a 04E0     		b	.L152
+ 1112              	.L153:
+ 536:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	else if(vc_option & MIPI2AXI_VC1_CH)
+ 1113              		.loc 1 536 0
+ 1114 004c 0023     		movs	r3, #0
+ 1115 004e 02E0     		b	.L152
+ 1116              	.L154:
+ 538:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc = 1;
+ 1117              		.loc 1 538 0
+ 1118 0050 0123     		movs	r3, #1
+ 1119 0052 00E0     		b	.L152
+ 1120              	.L155:
+ 540:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc = 2;
+ 1121              		.loc 1 540 0
+ 1122 0054 0223     		movs	r3, #2
+ 1123              	.L152:
+ 1124              	.LVL108:
+ 543:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 544:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	tmp = (current_vc << SHIFT_TO_BIT4) + mode;
+ 1125              		.loc 1 544 0
+ 1126 0056 06EB0316 		add	r6, r6, r3, lsl #4
+ 1127              	.LVL109:
+ 545:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, VC_BYPASS_REG, tmp);
+ 1128              		.loc 1 545 0
+ 1129 005a 2D03     		lsls	r5, r5, #12
+ 1130 005c 034B     		ldr	r3, .L160+8
+ 1131              	.LVL110:
+ 1132 005e EE50     		str	r6, [r5, r3]
+ 1133 0060 70BD     		pop	{r4, r5, r6, pc}
+ 1134              	.LVL111:
+ 1135              	.L161:
+ 1136 0062 00BF     		.align	2
+ 1137              	.L160:
+ 1138 0064 00000000 		.word	.LANCHOR5
+ 1139 0068 00000000 		.word	assert_failed
+ 1140 006c 60700202 		.word	33714272
+ 1141              		.cfi_endproc
+ 1142              	.LFE19:
+ 1144              		.section	.text.hal_mipi2axi_alu_cfg,"ax",%progbits
+ 1145              		.align	1
+ 1146              		.global	hal_mipi2axi_alu_cfg
+ 1147              		.thumb
+ 1148              		.thumb_func
+ 1150              	hal_mipi2axi_alu_cfg:
+ 1151              	.LFB20:
+ 546:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 547:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 548:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 549:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 550:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_alu_cfg(mipi2axi_channel_t channel,
+ 551:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							mipi2axi_alu_op_t alu_op,
+ 552:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							flag_status_t alu_ena)
+ 553:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1152              		.loc 1 553 0
+ 1153              		.cfi_startproc
+ 1154              		@ args = 0, pretend = 0, frame = 0
+ 1155              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1156              	.LVL112:
+ 554:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 555:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1157              		.loc 1 555 0
+ 1158 0000 0528     		cmp	r0, #5
+ 553:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1159              		.loc 1 553 0
+ 1160 0002 70B5     		push	{r4, r5, r6, lr}
+ 1161              	.LCFI17:
+ 1162              		.cfi_def_cfa_offset 16
+ 1163              		.cfi_offset 4, -16
+ 1164              		.cfi_offset 5, -12
+ 1165              		.cfi_offset 6, -8
+ 1166              		.cfi_offset 14, -4
+ 553:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1167              		.loc 1 553 0
+ 1168 0004 0446     		mov	r4, r0
+ 1169 0006 0E46     		mov	r6, r1
+ 1170 0008 1546     		mov	r5, r2
+ 1171              		.loc 1 555 0
+ 1172 000a 04D9     		bls	.L163
+ 1173              		.loc 1 555 0 is_stmt 0 discriminator 1
+ 1174 000c 0C48     		ldr	r0, .L166
+ 1175              	.LVL113:
+ 1176 000e 40F22B21 		movw	r1, #555
+ 1177              	.LVL114:
+ 1178 0012 0C4B     		ldr	r3, .L166+4
+ 1179 0014 9847     		blx	r3
+ 1180              	.LVL115:
+ 1181              	.L163:
+ 556:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_STATUS(alu_ena));
+ 1182              		.loc 1 556 0 is_stmt 1
+ 1183 0016 012D     		cmp	r5, #1
+ 1184 0018 04D9     		bls	.L164
+ 1185              		.loc 1 556 0 is_stmt 0 discriminator 1
+ 1186 001a 0948     		ldr	r0, .L166
+ 1187 001c 4FF40B71 		mov	r1, #556
+ 1188 0020 084B     		ldr	r3, .L166+4
+ 1189 0022 9847     		blx	r3
+ 1190              	.LVL116:
+ 1191              	.L164:
+ 557:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_ALU_OP(alu_op));
+ 1192              		.loc 1 557 0 is_stmt 1
+ 1193 0024 072E     		cmp	r6, #7
+ 1194 0026 04D9     		bls	.L165
+ 1195              		.loc 1 557 0 is_stmt 0 discriminator 1
+ 1196 0028 0548     		ldr	r0, .L166
+ 1197 002a 40F22D21 		movw	r1, #557
+ 1198 002e 054B     		ldr	r3, .L166+4
+ 1199 0030 9847     		blx	r3
+ 1200              	.LVL117:
+ 1201              	.L165:
+ 558:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 559:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t tmp = 0;
+ 560:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	tmp = (alu_op << SHIFT_TO_BIT16) + (alu_ena << SHIFT_TO_BIT0);
+ 1202              		.loc 1 560 0 is_stmt 1
+ 1203 0032 05EB0645 		add	r5, r5, r6, lsl #16
+ 1204              	.LVL118:
+ 561:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, ALU_OP_REG, tmp);
+ 1205              		.loc 1 561 0
+ 1206 0036 2403     		lsls	r4, r4, #12
+ 1207 0038 034B     		ldr	r3, .L166+8
+ 1208 003a E550     		str	r5, [r4, r3]
+ 1209 003c 70BD     		pop	{r4, r5, r6, pc}
+ 1210              	.LVL119:
+ 1211              	.L167:
+ 1212 003e 00BF     		.align	2
+ 1213              	.L166:
+ 1214 0040 00000000 		.word	.LANCHOR6
+ 1215 0044 00000000 		.word	assert_failed
+ 1216 0048 20700202 		.word	33714208
+ 1217              		.cfi_endproc
+ 1218              	.LFE20:
+ 1220              		.section	.text.hal_mipi2axi_frame_control_cfg,"ax",%progbits
+ 1221              		.align	1
+ 1222              		.global	hal_mipi2axi_frame_control_cfg
+ 1223              		.thumb
+ 1224              		.thumb_func
+ 1226              	hal_mipi2axi_frame_control_cfg:
+ 1227              	.LFB21:
+ 562:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 563:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 564:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 565:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_frame_control_cfg(mipi2axi_channel_t channel,
+ 566:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									mipi2axi_vc_ch_t vc_option,
+ 567:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									uint8_t frame_num,
+ 568:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 									flag_status_t frame_ena)
+ 569:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1228              		.loc 1 569 0
+ 1229              		.cfi_startproc
+ 1230              		@ args = 0, pretend = 0, frame = 0
+ 1231              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1232              	.LVL120:
+ 570:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 571:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1233              		.loc 1 571 0
+ 1234 0000 0528     		cmp	r0, #5
+ 569:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1235              		.loc 1 569 0
+ 1236 0002 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1237              	.LCFI18:
+ 1238              		.cfi_def_cfa_offset 24
+ 1239              		.cfi_offset 3, -24
+ 1240              		.cfi_offset 4, -20
+ 1241              		.cfi_offset 5, -16
+ 1242              		.cfi_offset 6, -12
+ 1243              		.cfi_offset 7, -8
+ 1244              		.cfi_offset 14, -4
+ 569:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1245              		.loc 1 569 0
+ 1246 0004 0646     		mov	r6, r0
+ 1247 0006 0C46     		mov	r4, r1
+ 1248 0008 1746     		mov	r7, r2
+ 1249 000a 1D46     		mov	r5, r3
+ 1250              		.loc 1 571 0
+ 1251 000c 04D9     		bls	.L169
+ 1252              		.loc 1 571 0 is_stmt 0 discriminator 1
+ 1253 000e 1248     		ldr	r0, .L182
+ 1254              	.LVL121:
+ 1255 0010 40F23B21 		movw	r1, #571
+ 1256              	.LVL122:
+ 1257 0014 114B     		ldr	r3, .L182+4
+ 1258              	.LVL123:
+ 1259 0016 9847     		blx	r3
+ 1260              	.LVL124:
+ 1261              	.L169:
+ 572:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_VC_CHANNEL(vc_option));
+ 1262              		.loc 1 572 0 is_stmt 1
+ 1263 0018 14F0F00F 		tst	r4, #240
+ 1264 001c 04D0     		beq	.L170
+ 1265              		.loc 1 572 0 is_stmt 0 discriminator 1
+ 1266 001e 0E48     		ldr	r0, .L182
+ 1267 0020 4FF40F71 		mov	r1, #572
+ 1268 0024 0D4B     		ldr	r3, .L182+4
+ 1269 0026 9847     		blx	r3
+ 1270              	.LVL125:
+ 1271              	.L170:
+ 573:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_STATUS(frame_ena));
+ 1272              		.loc 1 573 0 is_stmt 1
+ 1273 0028 012D     		cmp	r5, #1
+ 1274 002a 04D9     		bls	.L171
+ 1275              		.loc 1 573 0 is_stmt 0 discriminator 1
+ 1276 002c 0A48     		ldr	r0, .L182
+ 1277 002e 40F23D21 		movw	r1, #573
+ 1278 0032 0A4B     		ldr	r3, .L182+4
+ 1279 0034 9847     		blx	r3
+ 1280              	.LVL126:
+ 1281              	.L171:
+ 1282 0036 0A4B     		ldr	r3, .L182+8
+ 574:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 575:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint16_t reg_offset = 0;
+ 576:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t tmp = 0;
+ 577:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t current_vc = 0;
+ 578:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 579:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Scan all virtual channel selected */
+ 580:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	while(vc_option)
+ 581:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 582:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		if(vc_option & 1)
+ 583:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 584:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			/* Select register offset of virtual channel */
+ 585:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			reg_offset = current_vc * 0x10;
+ 586:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			tmp = (uint32_t)((frame_num << SHIFT_TO_BIT8) + (frame_ena << SHIFT_TO_BIT0));
+ 587:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			WRITE_MIPI2AXI_REG(channel, VC0_FRAME_SEL + reg_offset, tmp);
+ 1283              		.loc 1 587 0 is_stmt 1
+ 1284 0038 3603     		lsls	r6, r6, #12
+ 586:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			WRITE_MIPI2AXI_REG(channel, VC0_FRAME_SEL + reg_offset, tmp);
+ 1285              		.loc 1 586 0
+ 1286 003a 05EB0725 		add	r5, r5, r7, lsl #8
+ 1287 003e 3344     		add	r3, r3, r6
+ 1288              		.loc 1 587 0
+ 1289 0040 0021     		movs	r1, #0
+ 1290              	.LVL127:
+ 1291              	.L172:
+ 580:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 1292              		.loc 1 580 0
+ 1293 0042 3CB1     		cbz	r4, .L181
+ 582:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 1294              		.loc 1 582 0
+ 1295 0044 E207     		lsls	r2, r4, #31
+ 1296              	.LVL128:
+ 588:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 589:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		vc_option >>= 1;
+ 1297              		.loc 1 589 0
+ 1298 0046 4FEA5404 		lsr	r4, r4, #1
+ 1299              	.LVL129:
+ 587:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 1300              		.loc 1 587 0
+ 1301 004a 48BF     		it	mi
+ 1302 004c CD50     		strmi	r5, [r1, r3]
+ 1303 004e 1031     		adds	r1, r1, #16
+ 1304              	.LVL130:
+ 1305 0050 89B2     		uxth	r1, r1
+ 1306 0052 F6E7     		b	.L172
+ 1307              	.LVL131:
+ 1308              	.L181:
+ 590:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc++;
+ 591:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 592:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 1309              		.loc 1 592 0
+ 1310 0054 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1311              	.LVL132:
+ 1312              	.L183:
+ 1313 0056 00BF     		.align	2
+ 1314              	.L182:
+ 1315 0058 00000000 		.word	.LANCHOR7
+ 1316 005c 00000000 		.word	assert_failed
+ 1317 0060 00710202 		.word	33714432
+ 1318              		.cfi_endproc
+ 1319              	.LFE21:
+ 1321              		.section	.text.hal_mipi2axi_wrap_cfg,"ax",%progbits
+ 1322              		.align	1
+ 1323              		.global	hal_mipi2axi_wrap_cfg
+ 1324              		.thumb
+ 1325              		.thumb_func
+ 1327              	hal_mipi2axi_wrap_cfg:
+ 1328              	.LFB22:
+ 593:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 594:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_wrap_cfg(mipi2axi_channel_t channel,
+ 595:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							mipi2axi_vc_ch_t vc_option,
+ 596:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							uint16_t wrap_num,
+ 597:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							flag_status_t wrap_en)
+ 598:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 599:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1329              		.loc 1 599 0
+ 1330              		.cfi_startproc
+ 1331              		@ args = 0, pretend = 0, frame = 0
+ 1332              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1333              	.LVL133:
+ 600:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 601:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1334              		.loc 1 601 0
+ 1335 0000 0528     		cmp	r0, #5
+ 599:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1336              		.loc 1 599 0
+ 1337 0002 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1338              	.LCFI19:
+ 1339              		.cfi_def_cfa_offset 24
+ 1340              		.cfi_offset 3, -24
+ 1341              		.cfi_offset 4, -20
+ 1342              		.cfi_offset 5, -16
+ 1343              		.cfi_offset 6, -12
+ 1344              		.cfi_offset 7, -8
+ 1345              		.cfi_offset 14, -4
+ 599:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1346              		.loc 1 599 0
+ 1347 0004 0646     		mov	r6, r0
+ 1348 0006 0C46     		mov	r4, r1
+ 1349 0008 1746     		mov	r7, r2
+ 1350 000a 1D46     		mov	r5, r3
+ 1351              		.loc 1 601 0
+ 1352 000c 04D9     		bls	.L185
+ 1353              		.loc 1 601 0 is_stmt 0 discriminator 1
+ 1354 000e 1248     		ldr	r0, .L198
+ 1355              	.LVL134:
+ 1356 0010 40F25921 		movw	r1, #601
+ 1357              	.LVL135:
+ 1358 0014 114B     		ldr	r3, .L198+4
+ 1359              	.LVL136:
+ 1360 0016 9847     		blx	r3
+ 1361              	.LVL137:
+ 1362              	.L185:
+ 602:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_VC_CHANNEL(vc_option));
+ 1363              		.loc 1 602 0 is_stmt 1
+ 1364 0018 14F0F00F 		tst	r4, #240
+ 1365 001c 04D0     		beq	.L186
+ 1366              		.loc 1 602 0 is_stmt 0 discriminator 1
+ 1367 001e 0E48     		ldr	r0, .L198
+ 1368 0020 40F25A21 		movw	r1, #602
+ 1369 0024 0D4B     		ldr	r3, .L198+4
+ 1370 0026 9847     		blx	r3
+ 1371              	.LVL138:
+ 1372              	.L186:
+ 603:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_STATUS(wrap_en));
+ 1373              		.loc 1 603 0 is_stmt 1
+ 1374 0028 012D     		cmp	r5, #1
+ 1375 002a 04D9     		bls	.L187
+ 1376              		.loc 1 603 0 is_stmt 0 discriminator 1
+ 1377 002c 0A48     		ldr	r0, .L198
+ 1378 002e 40F25B21 		movw	r1, #603
+ 1379 0032 0A4B     		ldr	r3, .L198+4
+ 1380 0034 9847     		blx	r3
+ 1381              	.LVL139:
+ 1382              	.L187:
+ 1383 0036 0A4B     		ldr	r3, .L198+8
+ 604:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 605:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint16_t reg_offset = 0;
+ 606:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t tmp = 0;
+ 607:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t current_vc = 0;
+ 608:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 609:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Scan all virtual channel selected */
+ 610:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	while(vc_option)
+ 611:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 612:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		if(vc_option & 1)
+ 613:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 614:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			/* Select register offset of virtual channel */
+ 615:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			reg_offset = current_vc * (VC1_WRAP_REG - VC0_WRAP_REG);
+ 616:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			tmp = (uint32_t)((wrap_num << SHIFT_TO_BIT16) + (wrap_en << SHIFT_TO_BIT0));
+ 617:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			WRITE_MIPI2AXI_REG(channel, VC0_WRAP_REG + reg_offset, tmp);
+ 1384              		.loc 1 617 0 is_stmt 1
+ 1385 0038 3603     		lsls	r6, r6, #12
+ 616:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			WRITE_MIPI2AXI_REG(channel, VC0_WRAP_REG + reg_offset, tmp);
+ 1386              		.loc 1 616 0
+ 1387 003a 05EB0745 		add	r5, r5, r7, lsl #16
+ 1388 003e 3344     		add	r3, r3, r6
+ 1389              		.loc 1 617 0
+ 1390 0040 0021     		movs	r1, #0
+ 1391              	.LVL140:
+ 1392              	.L188:
+ 610:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 1393              		.loc 1 610 0
+ 1394 0042 3CB1     		cbz	r4, .L197
+ 612:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 1395              		.loc 1 612 0
+ 1396 0044 E207     		lsls	r2, r4, #31
+ 1397              	.LVL141:
+ 618:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 619:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		vc_option >>= 1;
+ 1398              		.loc 1 619 0
+ 1399 0046 4FEA5404 		lsr	r4, r4, #1
+ 1400              	.LVL142:
+ 617:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 1401              		.loc 1 617 0
+ 1402 004a 48BF     		it	mi
+ 1403 004c CD50     		strmi	r5, [r1, r3]
+ 1404 004e 1031     		adds	r1, r1, #16
+ 1405              	.LVL143:
+ 1406 0050 89B2     		uxth	r1, r1
+ 1407 0052 F6E7     		b	.L188
+ 1408              	.LVL144:
+ 1409              	.L197:
+ 620:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		current_vc++;
+ 621:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 622:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 1410              		.loc 1 622 0
+ 1411 0054 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1412              	.LVL145:
+ 1413              	.L199:
+ 1414 0056 00BF     		.align	2
+ 1415              	.L198:
+ 1416 0058 00000000 		.word	.LANCHOR8
+ 1417 005c 00000000 		.word	assert_failed
+ 1418 0060 0C710202 		.word	33714444
+ 1419              		.cfi_endproc
+ 1420              	.LFE22:
+ 1422              		.section	.text.hal_mipi2axi_vc_mapping,"ax",%progbits
+ 1423              		.align	1
+ 1424              		.global	hal_mipi2axi_vc_mapping
+ 1425              		.thumb
+ 1426              		.thumb_func
+ 1428              	hal_mipi2axi_vc_mapping:
+ 1429              	.LFB23:
+ 623:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 624:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_vc_mapping(mipi2axi_channel_t channel, vc_mapping_t vc_remap)
+ 625:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1430              		.loc 1 625 0
+ 1431              		.cfi_startproc
+ 1432              		@ args = 0, pretend = 0, frame = 0
+ 1433              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1434              	.LVL146:
+ 626:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 627:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1435              		.loc 1 627 0
+ 1436 0000 0528     		cmp	r0, #5
+ 625:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1437              		.loc 1 625 0
+ 1438 0002 38B5     		push	{r3, r4, r5, lr}
+ 1439              	.LCFI20:
+ 1440              		.cfi_def_cfa_offset 16
+ 1441              		.cfi_offset 3, -16
+ 1442              		.cfi_offset 4, -12
+ 1443              		.cfi_offset 5, -8
+ 1444              		.cfi_offset 14, -4
+ 625:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1445              		.loc 1 625 0
+ 1446 0004 0446     		mov	r4, r0
+ 1447 0006 0D46     		mov	r5, r1
+ 1448              		.loc 1 627 0
+ 1449 0008 04D9     		bls	.L201
+ 1450              		.loc 1 627 0 is_stmt 0 discriminator 1
+ 1451 000a 0848     		ldr	r0, .L206
+ 1452              	.LVL147:
+ 1453 000c 40F27321 		movw	r1, #627
+ 1454              	.LVL148:
+ 1455 0010 074B     		ldr	r3, .L206+4
+ 1456 0012 9847     		blx	r3
+ 1457              	.LVL149:
+ 1458              	.L201:
+ 628:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_VC_REMAP(vc_remap));
+ 1459              		.loc 1 628 0 is_stmt 1
+ 1460 0014 15F0F00F 		tst	r5, #240
+ 1461 0018 04D0     		beq	.L202
+ 1462              		.loc 1 628 0 is_stmt 0 discriminator 1
+ 1463 001a 0448     		ldr	r0, .L206
+ 1464 001c 4FF41D71 		mov	r1, #628
+ 1465 0020 034B     		ldr	r3, .L206+4
+ 1466 0022 9847     		blx	r3
+ 1467              	.LVL150:
+ 1468              	.L202:
+ 629:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 630:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, VC_REMAP_REG, vc_remap);
+ 1469              		.loc 1 630 0 is_stmt 1
+ 1470 0024 2403     		lsls	r4, r4, #12
+ 1471 0026 034B     		ldr	r3, .L206+8
+ 1472 0028 E550     		str	r5, [r4, r3]
+ 1473 002a 38BD     		pop	{r3, r4, r5, pc}
+ 1474              	.L207:
+ 1475              		.align	2
+ 1476              	.L206:
+ 1477 002c 00000000 		.word	.LANCHOR9
+ 1478 0030 00000000 		.word	assert_failed
+ 1479 0034 14700202 		.word	33714196
+ 1480              		.cfi_endproc
+ 1481              	.LFE23:
+ 1483              		.section	.text.hal_mipi2axi_set_tx_base_addr,"ax",%progbits
+ 1484              		.align	1
+ 1485              		.global	hal_mipi2axi_set_tx_base_addr
+ 1486              		.thumb
+ 1487              		.thumb_func
+ 1489              	hal_mipi2axi_set_tx_base_addr:
+ 1490              	.LFB24:
+ 631:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 632:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 633:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_set_tx_base_addr(mipi2axi_channel_t channel, uint32_t addr)
+ 634:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1491              		.loc 1 634 0
+ 1492              		.cfi_startproc
+ 1493              		@ args = 0, pretend = 0, frame = 0
+ 1494              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1495              	.LVL151:
+ 635:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 636:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1496              		.loc 1 636 0
+ 1497 0000 0528     		cmp	r0, #5
+ 634:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1498              		.loc 1 634 0
+ 1499 0002 38B5     		push	{r3, r4, r5, lr}
+ 1500              	.LCFI21:
+ 1501              		.cfi_def_cfa_offset 16
+ 1502              		.cfi_offset 3, -16
+ 1503              		.cfi_offset 4, -12
+ 1504              		.cfi_offset 5, -8
+ 1505              		.cfi_offset 14, -4
+ 634:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1506              		.loc 1 634 0
+ 1507 0004 0446     		mov	r4, r0
+ 1508 0006 0D46     		mov	r5, r1
+ 1509              		.loc 1 636 0
+ 1510 0008 04D9     		bls	.L209
+ 1511              		.loc 1 636 0 is_stmt 0 discriminator 1
+ 1512 000a 0448     		ldr	r0, .L210
+ 1513              	.LVL152:
+ 1514 000c 4FF41F71 		mov	r1, #636
+ 1515              	.LVL153:
+ 1516 0010 034B     		ldr	r3, .L210+4
+ 1517 0012 9847     		blx	r3
+ 1518              	.LVL154:
+ 1519              	.L209:
+ 637:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 638:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, MIPI_TX_BASE_REG, addr);
+ 1520              		.loc 1 638 0 is_stmt 1
+ 1521 0014 2403     		lsls	r4, r4, #12
+ 1522 0016 034B     		ldr	r3, .L210+8
+ 1523 0018 E550     		str	r5, [r4, r3]
+ 1524 001a 38BD     		pop	{r3, r4, r5, pc}
+ 1525              	.LVL155:
+ 1526              	.L211:
+ 1527              		.align	2
+ 1528              	.L210:
+ 1529 001c 00000000 		.word	.LANCHOR10
+ 1530 0020 00000000 		.word	assert_failed
+ 1531 0024 2C700202 		.word	33714220
+ 1532              		.cfi_endproc
+ 1533              	.LFE24:
+ 1535              		.section	.text.hal_mipi2axi_dma_cfg,"ax",%progbits
+ 1536              		.align	1
+ 1537              		.global	hal_mipi2axi_dma_cfg
+ 1538              		.thumb
+ 1539              		.thumb_func
+ 1541              	hal_mipi2axi_dma_cfg:
+ 1542              	.LFB25:
+ 639:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 640:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 641:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_dma_cfg(mipi2axi_channel_t channel,
+ 642:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							uint8_t write_abort_counter,
+ 643:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							uint8_t write_fifo_threshold)
+ 644:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1543              		.loc 1 644 0
+ 1544              		.cfi_startproc
+ 1545              		@ args = 0, pretend = 0, frame = 0
+ 1546              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1547              	.LVL156:
+ 645:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 646:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1548              		.loc 1 646 0
+ 1549 0000 0528     		cmp	r0, #5
+ 644:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1550              		.loc 1 644 0
+ 1551 0002 70B5     		push	{r4, r5, r6, lr}
+ 1552              	.LCFI22:
+ 1553              		.cfi_def_cfa_offset 16
+ 1554              		.cfi_offset 4, -16
+ 1555              		.cfi_offset 5, -12
+ 1556              		.cfi_offset 6, -8
+ 1557              		.cfi_offset 14, -4
+ 644:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1558              		.loc 1 644 0
+ 1559 0004 0546     		mov	r5, r0
+ 1560 0006 0E46     		mov	r6, r1
+ 1561 0008 1446     		mov	r4, r2
+ 1562              		.loc 1 646 0
+ 1563 000a 04D9     		bls	.L213
+ 1564              		.loc 1 646 0 is_stmt 0 discriminator 1
+ 1565 000c 0548     		ldr	r0, .L214
+ 1566              	.LVL157:
+ 1567 000e 40F28621 		movw	r1, #646
+ 1568              	.LVL158:
+ 1569 0012 054B     		ldr	r3, .L214+4
+ 1570 0014 9847     		blx	r3
+ 1571              	.LVL159:
+ 1572              	.L213:
+ 647:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 648:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t tmp = 0;
+ 649:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 650:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	tmp = (uint32_t)((write_abort_counter << SHIFT_TO_BIT16)
+ 651:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 					+ (write_fifo_threshold << SHIFT_TO_BIT8));
+ 1573              		.loc 1 651 0 is_stmt 1
+ 1574 0016 2402     		lsls	r4, r4, #8
+ 1575 0018 04EB0644 		add	r4, r4, r6, lsl #16
+ 1576              	.LVL160:
+ 652:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 653:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, RX_FIFO_DMA_REG, tmp);
+ 1577              		.loc 1 653 0
+ 1578 001c 2D03     		lsls	r5, r5, #12
+ 1579 001e 034B     		ldr	r3, .L214+8
+ 1580 0020 EC50     		str	r4, [r5, r3]
+ 1581 0022 70BD     		pop	{r4, r5, r6, pc}
+ 1582              	.LVL161:
+ 1583              	.L215:
+ 1584              		.align	2
+ 1585              	.L214:
+ 1586 0024 00000000 		.word	.LANCHOR11
+ 1587 0028 00000000 		.word	assert_failed
+ 1588 002c 54700202 		.word	33714260
+ 1589              		.cfi_endproc
+ 1590              	.LFE25:
+ 1592              		.section	.text.hal_mipi2axi_stop,"ax",%progbits
+ 1593              		.align	1
+ 1594              		.global	hal_mipi2axi_stop
+ 1595              		.thumb
+ 1596              		.thumb_func
+ 1598              	hal_mipi2axi_stop:
+ 1599              	.LFB26:
+ 654:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 655:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 656:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_stop(mipi2axi_channel_t channel)
+ 657:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1600              		.loc 1 657 0
+ 1601              		.cfi_startproc
+ 1602              		@ args = 0, pretend = 0, frame = 0
+ 1603              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1604              	.LVL162:
+ 658:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 659:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1605              		.loc 1 659 0
+ 1606 0000 0528     		cmp	r0, #5
+ 657:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1607              		.loc 1 657 0
+ 1608 0002 10B5     		push	{r4, lr}
+ 1609              	.LCFI23:
+ 1610              		.cfi_def_cfa_offset 8
+ 1611              		.cfi_offset 4, -8
+ 1612              		.cfi_offset 14, -4
+ 657:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1613              		.loc 1 657 0
+ 1614 0004 0446     		mov	r4, r0
+ 1615              		.loc 1 659 0
+ 1616 0006 04D9     		bls	.L217
+ 1617              		.loc 1 659 0 is_stmt 0 discriminator 1
+ 1618 0008 0448     		ldr	r0, .L218
+ 1619              	.LVL163:
+ 1620 000a 40F29321 		movw	r1, #659
+ 1621 000e 044B     		ldr	r3, .L218+4
+ 1622 0010 9847     		blx	r3
+ 1623              	.LVL164:
+ 1624              	.L217:
+ 660:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, READY_REG, DISABLE);
+ 1625              		.loc 1 660 0 is_stmt 1
+ 1626 0012 2403     		lsls	r4, r4, #12
+ 1627 0014 0022     		movs	r2, #0
+ 1628 0016 034B     		ldr	r3, .L218+8
+ 1629 0018 E250     		str	r2, [r4, r3]
+ 1630 001a 10BD     		pop	{r4, pc}
+ 1631              	.L219:
+ 1632              		.align	2
+ 1633              	.L218:
+ 1634 001c 00000000 		.word	.LANCHOR12
+ 1635 0020 00000000 		.word	assert_failed
+ 1636 0024 04700202 		.word	33714180
+ 1637              		.cfi_endproc
+ 1638              	.LFE26:
+ 1640              		.section	.text.hal_mipi2axi_start,"ax",%progbits
+ 1641              		.align	1
+ 1642              		.global	hal_mipi2axi_start
+ 1643              		.thumb
+ 1644              		.thumb_func
+ 1646              	hal_mipi2axi_start:
+ 1647              	.LFB27:
+ 661:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 662:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 663:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_start(mipi2axi_channel_t channel)
+ 664:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1648              		.loc 1 664 0
+ 1649              		.cfi_startproc
+ 1650              		@ args = 0, pretend = 0, frame = 0
+ 1651              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1652              	.LVL165:
+ 665:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 666:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1653              		.loc 1 666 0
+ 1654 0000 0528     		cmp	r0, #5
+ 664:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1655              		.loc 1 664 0
+ 1656 0002 10B5     		push	{r4, lr}
+ 1657              	.LCFI24:
+ 1658              		.cfi_def_cfa_offset 8
+ 1659              		.cfi_offset 4, -8
+ 1660              		.cfi_offset 14, -4
+ 664:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1661              		.loc 1 664 0
+ 1662 0004 0446     		mov	r4, r0
+ 1663              		.loc 1 666 0
+ 1664 0006 04D9     		bls	.L221
+ 1665              		.loc 1 666 0 is_stmt 0 discriminator 1
+ 1666 0008 0448     		ldr	r0, .L222
+ 1667              	.LVL166:
+ 1668 000a 40F29A21 		movw	r1, #666
+ 1669 000e 044B     		ldr	r3, .L222+4
+ 1670 0010 9847     		blx	r3
+ 1671              	.LVL167:
+ 1672              	.L221:
+ 667:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, READY_REG, ENABLE);
+ 1673              		.loc 1 667 0 is_stmt 1
+ 1674 0012 2403     		lsls	r4, r4, #12
+ 1675 0014 0122     		movs	r2, #1
+ 1676 0016 034B     		ldr	r3, .L222+8
+ 1677 0018 E250     		str	r2, [r4, r3]
+ 1678 001a 10BD     		pop	{r4, pc}
+ 1679              	.L223:
+ 1680              		.align	2
+ 1681              	.L222:
+ 1682 001c 00000000 		.word	.LANCHOR13
+ 1683 0020 00000000 		.word	assert_failed
+ 1684 0024 04700202 		.word	33714180
+ 1685              		.cfi_endproc
+ 1686              	.LFE27:
+ 1688              		.section	.text.hal_mipi2axi_irq_mask,"ax",%progbits
+ 1689              		.align	1
+ 1690              		.global	hal_mipi2axi_irq_mask
+ 1691              		.thumb
+ 1692              		.thumb_func
+ 1694              	hal_mipi2axi_irq_mask:
+ 1695              	.LFB28:
+ 668:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 669:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 670:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_irq_mask(mipi2axi_channel_t channel,
+ 671:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							mipi2axi_irq_mask_num_t irq_num,
+ 672:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							uint32_t irq_detail,
+ 673:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							uint8_t enable)
+ 674:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1696              		.loc 1 674 0
+ 1697              		.cfi_startproc
+ 1698              		@ args = 0, pretend = 0, frame = 0
+ 1699              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1700              	.LVL168:
+ 675:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 676:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1701              		.loc 1 676 0
+ 1702 0000 0528     		cmp	r0, #5
+ 674:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1703              		.loc 1 674 0
+ 1704 0002 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1705              	.LCFI25:
+ 1706              		.cfi_def_cfa_offset 24
+ 1707              		.cfi_offset 3, -24
+ 1708              		.cfi_offset 4, -20
+ 1709              		.cfi_offset 5, -16
+ 1710              		.cfi_offset 6, -12
+ 1711              		.cfi_offset 7, -8
+ 1712              		.cfi_offset 14, -4
+ 674:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	/* Check parameter */
+ 1713              		.loc 1 674 0
+ 1714 0004 0546     		mov	r5, r0
+ 1715 0006 0C46     		mov	r4, r1
+ 1716 0008 1646     		mov	r6, r2
+ 1717 000a 1F46     		mov	r7, r3
+ 1718              		.loc 1 676 0
+ 1719 000c 04D9     		bls	.L225
+ 1720              		.loc 1 676 0 is_stmt 0 discriminator 1
+ 1721 000e 1148     		ldr	r0, .L236
+ 1722              	.LVL169:
+ 1723 0010 4FF42971 		mov	r1, #676
+ 1724              	.LVL170:
+ 1725 0014 104B     		ldr	r3, .L236+4
+ 1726              	.LVL171:
+ 1727 0016 9847     		blx	r3
+ 1728              	.LVL172:
+ 1729              	.L225:
+ 677:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_IRQ_MASK_NUM(irq_num));
+ 1730              		.loc 1 677 0 is_stmt 1
+ 1731 0018 302C     		cmp	r4, #48
+ 1732 001a 06D0     		beq	.L226
+ 1733              		.loc 1 677 0 is_stmt 0 discriminator 1
+ 1734 001c 402C     		cmp	r4, #64
+ 1735 001e 04D0     		beq	.L226
+ 1736              		.loc 1 677 0 discriminator 2
+ 1737 0020 0C48     		ldr	r0, .L236
+ 1738 0022 40F2A521 		movw	r1, #677
+ 1739 0026 0C4B     		ldr	r3, .L236+4
+ 1740 0028 9847     		blx	r3
+ 1741              	.LVL173:
+ 1742              	.L226:
+ 678:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_STATUS(enable));
+ 1743              		.loc 1 678 0 is_stmt 1
+ 1744 002a 012F     		cmp	r7, #1
+ 1745 002c 04D9     		bls	.L227
+ 1746              		.loc 1 678 0 is_stmt 0 discriminator 1
+ 1747 002e 0948     		ldr	r0, .L236
+ 1748 0030 40F2A621 		movw	r1, #678
+ 1749 0034 084B     		ldr	r3, .L236+4
+ 1750 0036 9847     		blx	r3
+ 1751              	.LVL174:
+ 1752              	.L227:
+ 1753 0038 04F10071 		add	r1, r4, #33554432
+ 1754 003c 01F51C31 		add	r1, r1, #159744
+ 679:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 680:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	uint32_t interrupt_reg_val = READ_MIPI2AXI_REG(channel, irq_num);
+ 1755              		.loc 1 680 0 is_stmt 1
+ 1756 0040 2D03     		lsls	r5, r5, #12
+ 1757 0042 4B59     		ldr	r3, [r1, r5]
+ 1758              	.LVL175:
+ 681:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 682:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	if(enable)
+ 1759              		.loc 1 682 0
+ 1760 0044 17B1     		cbz	r7, .L228
+ 1761              	.LVL176:
+ 683:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 684:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		/* Enable interrupt by clear bit to 0 */
+ 685:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		irq_detail = ISR_DISABLE_ALL & (~(uint32_t)irq_detail);
+ 686:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		interrupt_reg_val &= irq_detail;
+ 1762              		.loc 1 686 0
+ 1763 0046 23EA0606 		bic	r6, r3, r6
+ 1764              	.LVL177:
+ 1765 004a 00E0     		b	.L229
+ 1766              	.LVL178:
+ 1767              	.L228:
+ 687:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 688:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	else
+ 689:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 690:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		/* Disable interrupt by set bit to 1 */
+ 691:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		interrupt_reg_val |= irq_detail;
+ 1768              		.loc 1 691 0
+ 1769 004c 1E43     		orrs	r6, r6, r3
+ 1770              	.LVL179:
+ 1771              	.L229:
+ 692:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 693:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI2AXI_REG(channel, irq_num, interrupt_reg_val);
+ 1772              		.loc 1 693 0
+ 1773 004e 4E51     		str	r6, [r1, r5]
+ 1774 0050 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1775              	.LVL180:
+ 1776              	.L237:
+ 1777 0052 00BF     		.align	2
+ 1778              	.L236:
+ 1779 0054 00000000 		.word	.LANCHOR14
+ 1780 0058 00000000 		.word	assert_failed
+ 1781              		.cfi_endproc
+ 1782              	.LFE28:
+ 1784              		.section	.text.hal_mipi2axi_irq_enable,"ax",%progbits
+ 1785              		.align	1
+ 1786              		.global	hal_mipi2axi_irq_enable
+ 1787              		.thumb
+ 1788              		.thumb_func
+ 1790              	hal_mipi2axi_irq_enable:
+ 1791              	.LFB29:
+ 694:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 695:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 696:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_irq_enable(mipi2axi_channel_t channel,
+ 697:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							mipi2axi_callback callback,
+ 698:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 							void *user_data)
+ 699:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1792              		.loc 1 699 0
+ 1793              		.cfi_startproc
+ 1794              		@ args = 0, pretend = 0, frame = 0
+ 1795              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1796              	.LVL181:
+ 700:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1797              		.loc 1 700 0
+ 1798 0000 0528     		cmp	r0, #5
+ 699:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1799              		.loc 1 699 0
+ 1800 0002 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 1801              	.LCFI26:
+ 1802              		.cfi_def_cfa_offset 24
+ 1803              		.cfi_offset 3, -24
+ 1804              		.cfi_offset 4, -20
+ 1805              		.cfi_offset 5, -16
+ 1806              		.cfi_offset 6, -12
+ 1807              		.cfi_offset 7, -8
+ 1808              		.cfi_offset 14, -4
+ 699:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1809              		.loc 1 699 0
+ 1810 0004 0446     		mov	r4, r0
+ 1811 0006 0F46     		mov	r7, r1
+ 1812 0008 1646     		mov	r6, r2
+ 1813              		.loc 1 700 0
+ 1814 000a 04D9     		bls	.L239
+ 1815              		.loc 1 700 0 is_stmt 0 discriminator 1
+ 1816 000c 2848     		ldr	r0, .L249
+ 1817              	.LVL182:
+ 1818 000e 4FF42F71 		mov	r1, #700
+ 1819              	.LVL183:
+ 1820 0012 284B     		ldr	r3, .L249+4
+ 1821 0014 9847     		blx	r3
+ 1822              	.LVL184:
+ 1823              	.L239:
+ 701:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	switch(channel)
+ 1824              		.loc 1 701 0 is_stmt 1
+ 1825 0016 052C     		cmp	r4, #5
+ 1826 0018 2ED8     		bhi	.L240
+ 1827 001a DFE804F0 		tbb	[pc, r4]
+ 1828              	.L242:
+ 1829 001e 03       		.byte	(.L241-.L242)/2
+ 1830 001f 0A       		.byte	(.L243-.L242)/2
+ 1831 0020 11       		.byte	(.L244-.L242)/2
+ 1832 0021 18       		.byte	(.L245-.L242)/2
+ 1833 0022 1F       		.byte	(.L246-.L242)/2
+ 1834 0023 26       		.byte	(.L247-.L242)/2
+ 1835              		.p2align 1
+ 1836              	.L241:
+ 702:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	{
+ 703:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case 0:
+ 704:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 705:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vic_register_irq(MIPI0_RX_IRQn, mipi2axi_irq_hdl_ins0);
+ 1837              		.loc 1 705 0
+ 1838 0024 2820     		movs	r0, #40
+ 1839 0026 2449     		ldr	r1, .L249+8
+ 1840 0028 244D     		ldr	r5, .L249+12
+ 1841 002a A847     		blx	r5
+ 1842              	.LVL185:
+ 706:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		    vic_register_irq(CSIH0_IRQn, rx_controller_intr_ins0);
+ 1843              		.loc 1 706 0
+ 1844 002c 2020     		movs	r0, #32
+ 1845 002e 2449     		ldr	r1, .L249+16
+ 1846 0030 21E0     		b	.L248
+ 1847              	.L243:
+ 707:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 708:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 709:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case 1:
+ 710:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 711:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vic_register_irq(MIPI1_RX_IRQn, mipi2axi_irq_hdl_ins1);
+ 1848              		.loc 1 711 0
+ 1849 0032 2920     		movs	r0, #41
+ 1850 0034 2349     		ldr	r1, .L249+20
+ 1851 0036 214D     		ldr	r5, .L249+12
+ 1852 0038 A847     		blx	r5
+ 1853              	.LVL186:
+ 712:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****             vic_register_irq(CSIH1_IRQn, rx_controller_intr_ins1);
+ 1854              		.loc 1 712 0
+ 1855 003a 2120     		movs	r0, #33
+ 1856 003c 2249     		ldr	r1, .L249+24
+ 1857 003e 1AE0     		b	.L248
+ 1858              	.L244:
+ 713:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 714:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 715:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case 2:
+ 716:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 717:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vic_register_irq(MIPI2_RX_IRQn, mipi2axi_irq_hdl_ins2);
+ 1859              		.loc 1 717 0
+ 1860 0040 2A20     		movs	r0, #42
+ 1861 0042 2249     		ldr	r1, .L249+28
+ 1862 0044 1D4D     		ldr	r5, .L249+12
+ 1863 0046 A847     		blx	r5
+ 1864              	.LVL187:
+ 718:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****             vic_register_irq(CSIH2_IRQn, rx_controller_intr_ins2);
+ 1865              		.loc 1 718 0
+ 1866 0048 2220     		movs	r0, #34
+ 1867 004a 2149     		ldr	r1, .L249+32
+ 1868 004c 13E0     		b	.L248
+ 1869              	.L245:
+ 719:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 720:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 721:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case 3:
+ 722:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 723:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vic_register_irq(MIPI3_RX_IRQn, mipi2axi_irq_hdl_ins3);
+ 1870              		.loc 1 723 0
+ 1871 004e 2B20     		movs	r0, #43
+ 1872 0050 2049     		ldr	r1, .L249+36
+ 1873 0052 1A4D     		ldr	r5, .L249+12
+ 1874 0054 A847     		blx	r5
+ 1875              	.LVL188:
+ 724:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****             vic_register_irq(CSIH3_IRQn, rx_controller_intr_ins3);
+ 1876              		.loc 1 724 0
+ 1877 0056 2320     		movs	r0, #35
+ 1878 0058 1F49     		ldr	r1, .L249+40
+ 1879 005a 0CE0     		b	.L248
+ 1880              	.L246:
+ 725:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 726:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 727:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case 4:
+ 728:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 729:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vic_register_irq(MIPI4_RX_IRQn, mipi2axi_irq_hdl_ins4);
+ 1881              		.loc 1 729 0
+ 1882 005c 2C20     		movs	r0, #44
+ 1883 005e 1F49     		ldr	r1, .L249+44
+ 1884 0060 164D     		ldr	r5, .L249+12
+ 1885 0062 A847     		blx	r5
+ 1886              	.LVL189:
+ 730:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****             vic_register_irq(CSIH4_IRQn, rx_controller_intr_ins4);
+ 1887              		.loc 1 730 0
+ 1888 0064 2420     		movs	r0, #36
+ 1889 0066 1E49     		ldr	r1, .L249+48
+ 1890 0068 05E0     		b	.L248
+ 1891              	.L247:
+ 731:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 732:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 733:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		case 5:
+ 734:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 735:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			vic_register_irq(MIPI5_RX_IRQn, mipi2axi_irq_hdl_ins5);
+ 1892              		.loc 1 735 0
+ 1893 006a 2D20     		movs	r0, #45
+ 1894 006c 1D49     		ldr	r1, .L249+52
+ 1895 006e 134D     		ldr	r5, .L249+12
+ 1896 0070 A847     		blx	r5
+ 1897              	.LVL190:
+ 736:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c ****             vic_register_irq(CSIH5_IRQn, rx_controller_intr_ins5);
+ 1898              		.loc 1 736 0
+ 1899 0072 1D49     		ldr	r1, .L249+56
+ 1900 0074 2520     		movs	r0, #37
+ 1901              	.L248:
+ 1902 0076 A847     		blx	r5
+ 1903              	.LVL191:
+ 1904              	.L240:
+ 737:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 738:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 739:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		default:
+ 740:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		{
+ 741:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 			break;
+ 742:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 		}
+ 743:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	}
+ 744:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 745:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(channel, 0xe4, 0xFFFFFFFF);
+ 1905              		.loc 1 745 0
+ 1906 0078 04F50053 		add	r3, r4, #8192
+ 1907 007c 1F33     		adds	r3, r3, #31
+ 1908 007e 4FF0FF32 		mov	r2, #-1
+ 1909 0082 1B03     		lsls	r3, r3, #12
+ 1910 0084 C3F8E420 		str	r2, [r3, #228]
+ 746:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 747:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(channel,0xf4, 0xFFFFFFFF);
+ 1911              		.loc 1 747 0
+ 1912 0088 C3F8F420 		str	r2, [r3, #244]
+ 748:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 749:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(channel,0x104, 0xFFFFFFFF);
+ 1913              		.loc 1 749 0
+ 1914 008c C3F80421 		str	r2, [r3, #260]
+ 750:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 751:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(channel,0x114, 0xFFFFFFFF);
+ 1915              		.loc 1 751 0
+ 1916 0090 C3F81421 		str	r2, [r3, #276]
+ 752:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 753:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(channel,0x124, 0xFFFFFFFF);
+ 1917              		.loc 1 753 0
+ 1918 0094 C3F82421 		str	r2, [r3, #292]
+ 754:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 755:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(channel,0x134, 0xFFFFFFFF);
+ 1919              		.loc 1 755 0
+ 1920 0098 C3F83421 		str	r2, [r3, #308]
+ 756:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 757:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	WRITE_MIPI_RX_REG(channel,0x144, 0xFFFFFFFF);
+ 1921              		.loc 1 757 0
+ 1922 009c C3F84421 		str	r2, [r3, #324]
+ 758:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 759:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	instances[channel].callback = callback;
+ 1923              		.loc 1 759 0
+ 1924 00a0 124B     		ldr	r3, .L249+60
+ 1925 00a2 43F83470 		str	r7, [r3, r4, lsl #3]
+ 760:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	instances[channel].user_data = user_data;
+ 1926              		.loc 1 760 0
+ 1927 00a6 03EBC404 		add	r4, r3, r4, lsl #3
+ 1928 00aa 6660     		str	r6, [r4, #4]
+ 1929 00ac F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 1930              	.LVL192:
+ 1931              	.L250:
+ 1932 00ae 00BF     		.align	2
+ 1933              	.L249:
+ 1934 00b0 00000000 		.word	.LANCHOR15
+ 1935 00b4 00000000 		.word	assert_failed
+ 1936 00b8 00000000 		.word	mipi2axi_irq_hdl_ins0
+ 1937 00bc 00000000 		.word	vic_register_irq
+ 1938 00c0 00000000 		.word	rx_controller_intr_ins0
+ 1939 00c4 00000000 		.word	mipi2axi_irq_hdl_ins1
+ 1940 00c8 00000000 		.word	rx_controller_intr_ins1
+ 1941 00cc 00000000 		.word	mipi2axi_irq_hdl_ins2
+ 1942 00d0 00000000 		.word	rx_controller_intr_ins2
+ 1943 00d4 00000000 		.word	mipi2axi_irq_hdl_ins3
+ 1944 00d8 00000000 		.word	rx_controller_intr_ins3
+ 1945 00dc 00000000 		.word	mipi2axi_irq_hdl_ins4
+ 1946 00e0 00000000 		.word	rx_controller_intr_ins4
+ 1947 00e4 00000000 		.word	mipi2axi_irq_hdl_ins5
+ 1948 00e8 00000000 		.word	rx_controller_intr_ins5
+ 1949 00ec 00000000 		.word	.LANCHOR0
+ 1950              		.cfi_endproc
+ 1951              	.LFE29:
+ 1953              		.section	.text.hal_mipi2axi_irq_disable,"ax",%progbits
+ 1954              		.align	1
+ 1955              		.global	hal_mipi2axi_irq_disable
+ 1956              		.thumb
+ 1957              		.thumb_func
+ 1959              	hal_mipi2axi_irq_disable:
+ 1960              	.LFB30:
+ 761:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** }
+ 762:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 
+ 763:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** void hal_mipi2axi_irq_disable(mipi2axi_channel_t channel)
+ 764:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** {
+ 1961              		.loc 1 764 0
+ 1962              		.cfi_startproc
+ 1963              		@ args = 0, pretend = 0, frame = 0
+ 1964              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1965              	.LVL193:
+ 765:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1966              		.loc 1 765 0
+ 1967 0000 0528     		cmp	r0, #5
+ 764:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1968              		.loc 1 764 0
+ 1969 0002 10B5     		push	{r4, lr}
+ 1970              	.LCFI27:
+ 1971              		.cfi_def_cfa_offset 8
+ 1972              		.cfi_offset 4, -8
+ 1973              		.cfi_offset 14, -4
+ 764:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	assert_param(IS_MIPI2AXI_CHANNEL(channel));
+ 1974              		.loc 1 764 0
+ 1975 0004 0446     		mov	r4, r0
+ 1976              		.loc 1 765 0
+ 1977 0006 04D9     		bls	.L252
+ 1978              		.loc 1 765 0 is_stmt 0 discriminator 1
+ 1979 0008 0848     		ldr	r0, .L253
+ 1980              	.LVL194:
+ 1981 000a 40F2FD21 		movw	r1, #765
+ 1982 000e 084B     		ldr	r3, .L253+4
+ 1983 0010 9847     		blx	r3
+ 1984              	.LVL195:
+ 1985              	.L252:
+ 766:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	vic_unregister_irq(MIPI0_RX_IRQn + channel);
+ 1986              		.loc 1 766 0 is_stmt 1
+ 1987 0012 04F12800 		add	r0, r4, #40
+ 1988 0016 074B     		ldr	r3, .L253+8
+ 1989 0018 C0B2     		uxtb	r0, r0
+ 1990 001a 9847     		blx	r3
+ 1991              	.LVL196:
+ 767:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	instances[channel].callback = NULL;
+ 1992              		.loc 1 767 0
+ 1993 001c 0648     		ldr	r0, .L253+12
+ 1994 001e 0023     		movs	r3, #0
+ 1995 0020 40F83430 		str	r3, [r0, r4, lsl #3]
+ 768:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_mipi2axi.c **** 	instances[channel].user_data = NULL;
+ 1996              		.loc 1 768 0
+ 1997 0024 00EBC400 		add	r0, r0, r4, lsl #3
+ 1998 0028 4360     		str	r3, [r0, #4]
+ 1999 002a 10BD     		pop	{r4, pc}
+ 2000              	.L254:
+ 2001              		.align	2
+ 2002              	.L253:
+ 2003 002c 00000000 		.word	.LANCHOR16
+ 2004 0030 00000000 		.word	assert_failed
+ 2005 0034 00000000 		.word	vic_unregister_irq
+ 2006 0038 00000000 		.word	.LANCHOR0
+ 2007              		.cfi_endproc
+ 2008              	.LFE30:
+ 2010              		.section	.rodata.__FUNCTION__.6601,"a",%progbits
+ 2011              		.set	.LANCHOR13,. + 0
+ 2014              	__FUNCTION__.6601:
+ 2015 0000 68616C5F 		.ascii	"hal_mipi2axi_start\000"
+ 2015      6D697069 
+ 2015      32617869 
+ 2015      5F737461 
+ 2015      727400
+ 2016              		.section	.rodata.__FUNCTION__.6515,"a",%progbits
+ 2017              		.set	.LANCHOR1,. + 0
+ 2020              	__FUNCTION__.6515:
+ 2021 0000 68616C5F 		.ascii	"hal_mipi2axi_init\000"
+ 2021      6D697069 
+ 2021      32617869 
+ 2021      5F696E69 
+ 2021      7400
+ 2022              		.section	.rodata.__FUNCTION__.6627,"a",%progbits
+ 2023              		.set	.LANCHOR16,. + 0
+ 2026              	__FUNCTION__.6627:
+ 2027 0000 68616C5F 		.ascii	"hal_mipi2axi_irq_disable\000"
+ 2027      6D697069 
+ 2027      32617869 
+ 2027      5F697271 
+ 2027      5F646973 
+ 2028              		.section	.bss.instances,"aw",%nobits
+ 2029              		.align	2
+ 2030              		.set	.LANCHOR0,. + 0
+ 2033              	instances:
+ 2034 0000 00000000 		.space	48
+ 2034      00000000 
+ 2034      00000000 
+ 2034      00000000 
+ 2034      00000000 
+ 2035              		.section	.rodata.__FUNCTION__.6581,"a",%progbits
+ 2036              		.set	.LANCHOR9,. + 0
+ 2039              	__FUNCTION__.6581:
+ 2040 0000 68616C5F 		.ascii	"hal_mipi2axi_vc_mapping\000"
+ 2040      6D697069 
+ 2040      32617869 
+ 2040      5F76635F 
+ 2040      6D617070 
+ 2041              		.section	.rodata.__FUNCTION__.6592,"a",%progbits
+ 2042              		.set	.LANCHOR11,. + 0
+ 2045              	__FUNCTION__.6592:
+ 2046 0000 68616C5F 		.ascii	"hal_mipi2axi_dma_cfg\000"
+ 2046      6D697069 
+ 2046      32617869 
+ 2046      5F646D61 
+ 2046      5F636667 
+ 2047              		.section	.rodata.__FUNCTION__.6520,"a",%progbits
+ 2048              		.set	.LANCHOR2,. + 0
+ 2051              	__FUNCTION__.6520:
+ 2052 0000 68616C5F 		.ascii	"hal_mipi2axi_set_stream_property\000"
+ 2052      6D697069 
+ 2052      32617869 
+ 2052      5F736574 
+ 2052      5F737472 
+ 2053              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 2054              	.LC0:
+ 2055 0000 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_MAIN: 0x%08x \015\012"
+ 2055      50492052 
+ 2055      585B2564 
+ 2055      5D206572 
+ 2055      726F7220 
+ 2056 002a 00       		.ascii	"\000"
+ 2057              	.LC1:
+ 2058 002b 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_PHY_FATAL: 0x%08x "
+ 2058      50492052 
+ 2058      585B2564 
+ 2058      5D206572 
+ 2058      726F7220 
+ 2059 0058 0D0A00   		.ascii	"\015\012\000"
+ 2060              	.LC2:
+ 2061 005b 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_PKT_FATAL: 0x%08x "
+ 2061      50492052 
+ 2061      585B2564 
+ 2061      5D206572 
+ 2061      726F7220 
+ 2062 0088 0D0A00   		.ascii	"\015\012\000"
+ 2063              	.LC3:
+ 2064 008b 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_FRAME_FATAL: 0x%08"
+ 2064      50492052 
+ 2064      585B2564 
+ 2064      5D206572 
+ 2064      726F7220 
+ 2065 00b8 78200D0A 		.ascii	"x \015\012\000"
+ 2065      00
+ 2066              	.LC4:
+ 2067 00bd 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_PHY: 0x%08x \015\012"
+ 2067      50492052 
+ 2067      585B2564 
+ 2067      5D206572 
+ 2067      726F7220 
+ 2068 00e6 00       		.ascii	"\000"
+ 2069              	.LC5:
+ 2070 00e7 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_PKT: 0x%08x \015\012"
+ 2070      50492052 
+ 2070      585B2564 
+ 2070      5D206572 
+ 2070      726F7220 
+ 2071 0110 00       		.ascii	"\000"
+ 2072              	.LC6:
+ 2073 0111 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_LINE: 0x%08x \015\012"
+ 2073      50492052 
+ 2073      585B2564 
+ 2073      5D206572 
+ 2073      726F7220 
+ 2074 013b 00       		.ascii	"\000"
+ 2075              	.LC7:
+ 2076 013c 0D0A4D49 		.ascii	"\015\012MIPI RX[%d] error INT_ST_IPI: 0x%08x \015\012"
+ 2076      50492052 
+ 2076      585B2564 
+ 2076      5D206572 
+ 2076      726F7220 
+ 2077 0165 00       		.ascii	"\000"
+ 2078              	.LC8:
+ 2079 0166 0D0A5258 		.ascii	"\015\012RX[%d] Error: 0x%x [ts: %d] \015\012\000"
+ 2079      5B25645D 
+ 2079      20457272 
+ 2079      6F723A20 
+ 2079      30782578 
+ 2080              		.section	.rodata.__FUNCTION__.6541,"a",%progbits
+ 2081              		.set	.LANCHOR5,. + 0
+ 2084              	__FUNCTION__.6541:
+ 2085 0000 68616C5F 		.ascii	"hal_mipi2axi_bypass_cfg\000"
+ 2085      6D697069 
+ 2085      32617869 
+ 2085      5F627970 
+ 2085      6173735F 
+ 2086              		.section	.rodata.__FUNCTION__.6586,"a",%progbits
+ 2087              		.set	.LANCHOR10,. + 0
+ 2090              	__FUNCTION__.6586:
+ 2091 0000 68616C5F 		.ascii	"hal_mipi2axi_set_tx_base_addr\000"
+ 2091      6D697069 
+ 2091      32617869 
+ 2091      5F736574 
+ 2091      5F74785F 
+ 2092              		.section	.rodata.CSWTCH.20,"a",%progbits
+ 2093              		.set	.LANCHOR3,. + 0
+ 2096              	CSWTCH.20:
+ 2097 0000 01       		.byte	1
+ 2098 0001 00       		.byte	0
+ 2099 0002 02       		.byte	2
+ 2100 0003 00       		.byte	0
+ 2101 0004 00       		.byte	0
+ 2102 0005 00       		.byte	0
+ 2103 0006 03       		.byte	3
+ 2104              		.section	.rodata.__FUNCTION__.6549,"a",%progbits
+ 2105              		.set	.LANCHOR6,. + 0
+ 2108              	__FUNCTION__.6549:
+ 2109 0000 68616C5F 		.ascii	"hal_mipi2axi_alu_cfg\000"
+ 2109      6D697069 
+ 2109      32617869 
+ 2109      5F616C75 
+ 2109      5F636667 
+ 2110              		.section	.rodata.__FUNCTION__.6597,"a",%progbits
+ 2111              		.set	.LANCHOR12,. + 0
+ 2114              	__FUNCTION__.6597:
+ 2115 0000 68616C5F 		.ascii	"hal_mipi2axi_stop\000"
+ 2115      6D697069 
+ 2115      32617869 
+ 2115      5F73746F 
+ 2115      7000
+ 2116              		.section	.rodata.__FUNCTION__.6615,"a",%progbits
+ 2117              		.set	.LANCHOR15,. + 0
+ 2120              	__FUNCTION__.6615:
+ 2121 0000 68616C5F 		.ascii	"hal_mipi2axi_irq_enable\000"
+ 2121      6D697069 
+ 2121      32617869 
+ 2121      5F697271 
+ 2121      5F656E61 
+ 2122              		.section	.rodata.__FUNCTION__.6557,"a",%progbits
+ 2123              		.set	.LANCHOR7,. + 0
+ 2126              	__FUNCTION__.6557:
+ 2127 0000 68616C5F 		.ascii	"hal_mipi2axi_frame_control_cfg\000"
+ 2127      6D697069 
+ 2127      32617869 
+ 2127      5F667261 
+ 2127      6D655F63 
+ 2128              		.section	.rodata.__FUNCTION__.6608,"a",%progbits
+ 2129              		.set	.LANCHOR14,. + 0
+ 2132              	__FUNCTION__.6608:
+ 2133 0000 68616C5F 		.ascii	"hal_mipi2axi_irq_mask\000"
+ 2133      6D697069 
+ 2133      32617869 
+ 2133      5F697271 
+ 2133      5F6D6173 
+ 2134              		.section	.rodata.CSWTCH.2,"a",%progbits
+ 2135              		.set	.LANCHOR4,. + 0
+ 2138              	CSWTCH.2:
+ 2139 0000 0A       		.byte	10
+ 2140 0001 0C       		.byte	12
+ 2141 0002 0E       		.byte	14
+ 2142              		.section	.rodata.__FUNCTION__.6570,"a",%progbits
+ 2143              		.set	.LANCHOR8,. + 0
+ 2146              	__FUNCTION__.6570:
+ 2147 0000 68616C5F 		.ascii	"hal_mipi2axi_wrap_cfg\000"
+ 2147      6D697069 
+ 2147      32617869 
+ 2147      5F777261 
+ 2147      705F6366 
+ 2148              		.text
+ 2149              	.Letext0:
+ 2150              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 2151              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 2152              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 2153              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_mipi2axi.h"
+ 2154              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_mipi2axi.c
+     /tmp/ccT6xbtd.s:19     .text.rx_controller_intr:00000000 $t
+     /tmp/ccT6xbtd.s:23     .text.rx_controller_intr:00000000 rx_controller_intr
+     /tmp/ccT6xbtd.s:145    .text.rx_controller_intr:0000007c $d
+     /tmp/ccT6xbtd.s:158    .text.rx_controller_intr_ins5:00000000 $t
+     /tmp/ccT6xbtd.s:162    .text.rx_controller_intr_ins5:00000000 rx_controller_intr_ins5
+     /tmp/ccT6xbtd.s:182    .text.rx_controller_intr_ins5:0000000c $d
+     /tmp/ccT6xbtd.s:187    .text.rx_controller_intr_ins4:00000000 $t
+     /tmp/ccT6xbtd.s:191    .text.rx_controller_intr_ins4:00000000 rx_controller_intr_ins4
+     /tmp/ccT6xbtd.s:211    .text.rx_controller_intr_ins4:0000000c $d
+     /tmp/ccT6xbtd.s:216    .text.rx_controller_intr_ins3:00000000 $t
+     /tmp/ccT6xbtd.s:220    .text.rx_controller_intr_ins3:00000000 rx_controller_intr_ins3
+     /tmp/ccT6xbtd.s:240    .text.rx_controller_intr_ins3:0000000c $d
+     /tmp/ccT6xbtd.s:245    .text.rx_controller_intr_ins2:00000000 $t
+     /tmp/ccT6xbtd.s:249    .text.rx_controller_intr_ins2:00000000 rx_controller_intr_ins2
+     /tmp/ccT6xbtd.s:269    .text.rx_controller_intr_ins2:0000000c $d
+     /tmp/ccT6xbtd.s:274    .text.rx_controller_intr_ins1:00000000 $t
+     /tmp/ccT6xbtd.s:278    .text.rx_controller_intr_ins1:00000000 rx_controller_intr_ins1
+     /tmp/ccT6xbtd.s:298    .text.rx_controller_intr_ins1:0000000c $d
+     /tmp/ccT6xbtd.s:303    .text.rx_controller_intr_ins0:00000000 $t
+     /tmp/ccT6xbtd.s:307    .text.rx_controller_intr_ins0:00000000 rx_controller_intr_ins0
+     /tmp/ccT6xbtd.s:327    .text.rx_controller_intr_ins0:0000000c $d
+     /tmp/ccT6xbtd.s:332    .text.mipi2axi_irq_hdl:00000000 $t
+     /tmp/ccT6xbtd.s:336    .text.mipi2axi_irq_hdl:00000000 mipi2axi_irq_hdl
+     /tmp/ccT6xbtd.s:410    .text.mipi2axi_irq_hdl:00000048 $d
+     /tmp/ccT6xbtd.s:420    .text.mipi2axi_irq_hdl_ins5:00000000 $t
+     /tmp/ccT6xbtd.s:424    .text.mipi2axi_irq_hdl_ins5:00000000 mipi2axi_irq_hdl_ins5
+     /tmp/ccT6xbtd.s:444    .text.mipi2axi_irq_hdl_ins5:0000000c $d
+     /tmp/ccT6xbtd.s:449    .text.mipi2axi_irq_hdl_ins4:00000000 $t
+     /tmp/ccT6xbtd.s:453    .text.mipi2axi_irq_hdl_ins4:00000000 mipi2axi_irq_hdl_ins4
+     /tmp/ccT6xbtd.s:473    .text.mipi2axi_irq_hdl_ins4:0000000c $d
+     /tmp/ccT6xbtd.s:478    .text.mipi2axi_irq_hdl_ins3:00000000 $t
+     /tmp/ccT6xbtd.s:482    .text.mipi2axi_irq_hdl_ins3:00000000 mipi2axi_irq_hdl_ins3
+     /tmp/ccT6xbtd.s:502    .text.mipi2axi_irq_hdl_ins3:0000000c $d
+     /tmp/ccT6xbtd.s:507    .text.mipi2axi_irq_hdl_ins2:00000000 $t
+     /tmp/ccT6xbtd.s:511    .text.mipi2axi_irq_hdl_ins2:00000000 mipi2axi_irq_hdl_ins2
+     /tmp/ccT6xbtd.s:531    .text.mipi2axi_irq_hdl_ins2:0000000c $d
+     /tmp/ccT6xbtd.s:536    .text.mipi2axi_irq_hdl_ins1:00000000 $t
+     /tmp/ccT6xbtd.s:540    .text.mipi2axi_irq_hdl_ins1:00000000 mipi2axi_irq_hdl_ins1
+     /tmp/ccT6xbtd.s:560    .text.mipi2axi_irq_hdl_ins1:0000000c $d
+     /tmp/ccT6xbtd.s:565    .text.mipi2axi_irq_hdl_ins0:00000000 $t
+     /tmp/ccT6xbtd.s:569    .text.mipi2axi_irq_hdl_ins0:00000000 mipi2axi_irq_hdl_ins0
+     /tmp/ccT6xbtd.s:589    .text.mipi2axi_irq_hdl_ins0:0000000c $d
+     /tmp/ccT6xbtd.s:594    .text.hal_mipi2axi_init:00000000 $t
+     /tmp/ccT6xbtd.s:599    .text.hal_mipi2axi_init:00000000 hal_mipi2axi_init
+     /tmp/ccT6xbtd.s:705    .text.hal_mipi2axi_init:00000064 $d
+     /tmp/ccT6xbtd.s:714    .text.hal_mipi2axi_set_stream_property:00000000 $t
+     /tmp/ccT6xbtd.s:719    .text.hal_mipi2axi_set_stream_property:00000000 hal_mipi2axi_set_stream_property
+     /tmp/ccT6xbtd.s:1027   .text.hal_mipi2axi_set_stream_property:00000174 $d
+     /tmp/ccT6xbtd.s:1040   .text.hal_mipi2axi_bypass_cfg:00000000 $t
+     /tmp/ccT6xbtd.s:1045   .text.hal_mipi2axi_bypass_cfg:00000000 hal_mipi2axi_bypass_cfg
+     /tmp/ccT6xbtd.s:1138   .text.hal_mipi2axi_bypass_cfg:00000064 $d
+     /tmp/ccT6xbtd.s:1145   .text.hal_mipi2axi_alu_cfg:00000000 $t
+     /tmp/ccT6xbtd.s:1150   .text.hal_mipi2axi_alu_cfg:00000000 hal_mipi2axi_alu_cfg
+     /tmp/ccT6xbtd.s:1214   .text.hal_mipi2axi_alu_cfg:00000040 $d
+     /tmp/ccT6xbtd.s:1221   .text.hal_mipi2axi_frame_control_cfg:00000000 $t
+     /tmp/ccT6xbtd.s:1226   .text.hal_mipi2axi_frame_control_cfg:00000000 hal_mipi2axi_frame_control_cfg
+     /tmp/ccT6xbtd.s:1315   .text.hal_mipi2axi_frame_control_cfg:00000058 $d
+     /tmp/ccT6xbtd.s:1322   .text.hal_mipi2axi_wrap_cfg:00000000 $t
+     /tmp/ccT6xbtd.s:1327   .text.hal_mipi2axi_wrap_cfg:00000000 hal_mipi2axi_wrap_cfg
+     /tmp/ccT6xbtd.s:1416   .text.hal_mipi2axi_wrap_cfg:00000058 $d
+     /tmp/ccT6xbtd.s:1423   .text.hal_mipi2axi_vc_mapping:00000000 $t
+     /tmp/ccT6xbtd.s:1428   .text.hal_mipi2axi_vc_mapping:00000000 hal_mipi2axi_vc_mapping
+     /tmp/ccT6xbtd.s:1477   .text.hal_mipi2axi_vc_mapping:0000002c $d
+     /tmp/ccT6xbtd.s:1484   .text.hal_mipi2axi_set_tx_base_addr:00000000 $t
+     /tmp/ccT6xbtd.s:1489   .text.hal_mipi2axi_set_tx_base_addr:00000000 hal_mipi2axi_set_tx_base_addr
+     /tmp/ccT6xbtd.s:1529   .text.hal_mipi2axi_set_tx_base_addr:0000001c $d
+     /tmp/ccT6xbtd.s:1536   .text.hal_mipi2axi_dma_cfg:00000000 $t
+     /tmp/ccT6xbtd.s:1541   .text.hal_mipi2axi_dma_cfg:00000000 hal_mipi2axi_dma_cfg
+     /tmp/ccT6xbtd.s:1586   .text.hal_mipi2axi_dma_cfg:00000024 $d
+     /tmp/ccT6xbtd.s:1593   .text.hal_mipi2axi_stop:00000000 $t
+     /tmp/ccT6xbtd.s:1598   .text.hal_mipi2axi_stop:00000000 hal_mipi2axi_stop
+     /tmp/ccT6xbtd.s:1634   .text.hal_mipi2axi_stop:0000001c $d
+     /tmp/ccT6xbtd.s:1641   .text.hal_mipi2axi_start:00000000 $t
+     /tmp/ccT6xbtd.s:1646   .text.hal_mipi2axi_start:00000000 hal_mipi2axi_start
+     /tmp/ccT6xbtd.s:1682   .text.hal_mipi2axi_start:0000001c $d
+     /tmp/ccT6xbtd.s:1689   .text.hal_mipi2axi_irq_mask:00000000 $t
+     /tmp/ccT6xbtd.s:1694   .text.hal_mipi2axi_irq_mask:00000000 hal_mipi2axi_irq_mask
+     /tmp/ccT6xbtd.s:1779   .text.hal_mipi2axi_irq_mask:00000054 $d
+     /tmp/ccT6xbtd.s:1785   .text.hal_mipi2axi_irq_enable:00000000 $t
+     /tmp/ccT6xbtd.s:1790   .text.hal_mipi2axi_irq_enable:00000000 hal_mipi2axi_irq_enable
+     /tmp/ccT6xbtd.s:1829   .text.hal_mipi2axi_irq_enable:0000001e $d
+     /tmp/ccT6xbtd.s:1835   .text.hal_mipi2axi_irq_enable:00000024 $t
+     /tmp/ccT6xbtd.s:1934   .text.hal_mipi2axi_irq_enable:000000b0 $d
+     /tmp/ccT6xbtd.s:1954   .text.hal_mipi2axi_irq_disable:00000000 $t
+     /tmp/ccT6xbtd.s:1959   .text.hal_mipi2axi_irq_disable:00000000 hal_mipi2axi_irq_disable
+     /tmp/ccT6xbtd.s:2003   .text.hal_mipi2axi_irq_disable:0000002c $d
+     /tmp/ccT6xbtd.s:2014   .rodata.__FUNCTION__.6601:00000000 __FUNCTION__.6601
+     /tmp/ccT6xbtd.s:2020   .rodata.__FUNCTION__.6515:00000000 __FUNCTION__.6515
+     /tmp/ccT6xbtd.s:2026   .rodata.__FUNCTION__.6627:00000000 __FUNCTION__.6627
+     /tmp/ccT6xbtd.s:2029   .bss.instances:00000000 $d
+     /tmp/ccT6xbtd.s:2033   .bss.instances:00000000 instances
+     /tmp/ccT6xbtd.s:2039   .rodata.__FUNCTION__.6581:00000000 __FUNCTION__.6581
+     /tmp/ccT6xbtd.s:2045   .rodata.__FUNCTION__.6592:00000000 __FUNCTION__.6592
+     /tmp/ccT6xbtd.s:2051   .rodata.__FUNCTION__.6520:00000000 __FUNCTION__.6520
+     /tmp/ccT6xbtd.s:2084   .rodata.__FUNCTION__.6541:00000000 __FUNCTION__.6541
+     /tmp/ccT6xbtd.s:2090   .rodata.__FUNCTION__.6586:00000000 __FUNCTION__.6586
+     /tmp/ccT6xbtd.s:2096   .rodata.CSWTCH.20:00000000 CSWTCH.20
+     /tmp/ccT6xbtd.s:2108   .rodata.__FUNCTION__.6549:00000000 __FUNCTION__.6549
+     /tmp/ccT6xbtd.s:2114   .rodata.__FUNCTION__.6597:00000000 __FUNCTION__.6597
+     /tmp/ccT6xbtd.s:2120   .rodata.__FUNCTION__.6615:00000000 __FUNCTION__.6615
+     /tmp/ccT6xbtd.s:2126   .rodata.__FUNCTION__.6557:00000000 __FUNCTION__.6557
+     /tmp/ccT6xbtd.s:2132   .rodata.__FUNCTION__.6608:00000000 __FUNCTION__.6608
+     /tmp/ccT6xbtd.s:2138   .rodata.CSWTCH.2:00000000 CSWTCH.2
+     /tmp/ccT6xbtd.s:2146   .rodata.__FUNCTION__.6570:00000000 __FUNCTION__.6570
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+printf
+xTaskGetTickCountFromISR
+assert_failed
+vic_register_irq
+vic_unregister_irq

@@ -1,0 +1,1801 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"hal_pwm.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.hal_pwm_isr,"ax",%progbits
+  17              		.align	2
+  19              	hal_pwm_isr:
+  20              	.LFB9:
+  21              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * Copyright (c) 2015,The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @file	hal_pwm.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @date	Nov-04-2015
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief   This file contains expand of hal_pwm
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #include "assert.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #include "board_config.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #include "cortex_r4.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #include "hal_vic.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #include "hal_pwm.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /** #ASIC Hardware target */
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Private define ------------------------------------------------------------*/
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH1_BASE			(PWM0_BASE + 0x000)
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH2_BASE			(PWM0_BASE + 0x100)
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH3_BASE			(PWM0_BASE + 0x200)
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH4_BASE			(PWM0_BASE + 0x300)
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH5_BASE			(PWM0_BASE + 0x400)
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH6_BASE			(PWM0_BASE + 0x500)
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH1_BASE			(PWM1_BASE + 0x000)
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH2_BASE			(PWM1_BASE + 0x100)
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH3_BASE			(PWM1_BASE + 0x200)
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH4_BASE			(PWM1_BASE + 0x300)
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH5_BASE			(PWM1_BASE + 0x400)
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH6_BASE			(PWM1_BASE + 0x500)
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief PWM address
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH1_ADDR			((pwm_reg_t *)(uint32_t)(PWM0_CH1_BASE))
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH2_ADDR			((pwm_reg_t *)(uint32_t)(PWM0_CH2_BASE))
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH3_ADDR			((pwm_reg_t *)(uint32_t)(PWM0_CH3_BASE))
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH4_ADDR			((pwm_reg_t *)(uint32_t)(PWM0_CH4_BASE))
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH5_ADDR			((pwm_reg_t *)(uint32_t)(PWM0_CH5_BASE))
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM0_CH6_ADDR			((pwm_reg_t *)(uint32_t)(PWM0_CH6_BASE))
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH1_ADDR			((pwm_reg_t *)(uint32_t)(PWM1_CH1_BASE))
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH2_ADDR			((pwm_reg_t *)(uint32_t)(PWM1_CH2_BASE))
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH3_ADDR			((pwm_reg_t *)(uint32_t)(PWM1_CH3_BASE))
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH4_ADDR			((pwm_reg_t *)(uint32_t)(PWM1_CH4_BASE))
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH5_ADDR			((pwm_reg_t *)(uint32_t)(PWM1_CH5_BASE))
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM1_CH6_ADDR			((pwm_reg_t *)(uint32_t)(PWM1_CH6_BASE))
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Definition of bits in Mode Register */
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM_MODE_PWMMODE_MASK			0x00000003
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM_MODE_CONTMMODEEN_MASK		0x00000010
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM_MODE_PATTERNMODEEN_MASK		0x00000100
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM_MODE_GPIO_CTRL_OFFSET		20
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define IS_PWM_CHANNEL(CHANNEL)		(((CHANNEL) >= PWM0_CH1) &&	\
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 									((CHANNEL) <= PWM1_CH6))
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define IS_PWM_ALIGN_MODE(MODE)		((MODE == PWM_ALIGN_LEFT) || \
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 									(MODE == PWM_ALIGN_RIGHT) ||\
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 									(MODE == PWM_ALIGN_CENTER))
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define IS_PWM_OUT_GEN_MODE(MODE)	((MODE == PWM_GPIO)	|| \
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 									(MODE == PWM_CONTINUOUS)	|| \
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 									(MODE == PWM_FIXED_PATTERNS))
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define IS_PWM_OUT_FREQ(FREQ)		((0 < FREQ) && (BOARD_PCLOCK >= FREQ))
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define IS_PWM_NUM_PAIRS(PAIRS)		(4 > PAIRS)
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define IS_PWM_DUTY_CYCLE(DUTY)		(101 > DUTY)
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define IS_PWM_IRQ_MODE(OUTMODE, IRQMODE)	\
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 							((IRQMODE == PWM_IRQ_ONE_PATTERN_GENERATED) || \
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 							((IRQMODE == PWM_IRQ_ALL_PATTERNS_GENERATED) && \
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 							(OUTMODE == PWM_FIXED_PATTERNS)))
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Parameter initialization for PWM as defaults. Input PWM port and channel */
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** #define PWM_INIT_DEFAULTS(p, n)		{ \
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										.pwmx = PWM##p##_CH##n##_ADDR, \
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										.align = PWM_ALIGN_LEFT, \
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										.mode = PWM_CONTINUOUS, \
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										.state = PWM_STOPPED, \
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										.is_irq_enabled = FALSE, \
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										.callback_handler = NULL \
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 									}
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Private typedef -----------------------------------------------------------*/
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief pwm_reg_sub_t
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** typedef struct pwm_reg_sub
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t DUTYV;			/* Duty-cycle Value Register */
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t NUMPV;			/* Number of Pulses Register */
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** } pwm_reg_sub_t;
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief pwm_reg_t
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * PWM registers structure
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** typedef struct pwm_reg
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_sub_t	PAIRS[3];	/* Pairs */
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t	NUMPATS;	/* Number of Patterns Register */
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t	ARLDV;		/* Auto Reload Register */
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t	MODE;		/* Mode Register */
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t	INTRSTAT;	/* Interrupt Status Register */
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t	INTREN;		/* Interrupt Enable Register */
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	__IO uint32_t	STATUS;		/* Status Register */
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** } pwm_reg_t;
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief pwm_state_t
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * PWM state machine
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** typedef enum pwm_state
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_STOPPED = 0,
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_STARTED
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** } pwm_state_t;
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** typedef struct pwm_dev
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_align_t	align;
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_mode_t	mode;
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_state_t	state;
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	bool		is_irq_enabled;
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	void		(*callback_handler)(void *param);
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	void		*cb_param;
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** } pwm_dev_t;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Private functions prototypes ----------------------------------------------*/
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* interrupt handlers */
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** static void hal_pwm_isr(int chid);
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** static void PWM0_IRQHandler(void);
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** static void PWM1_IRQHandler(void);
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Private variables ---------------------------------------------------------*/
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** static pwm_dev_t hw_pwm[] =
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(0, 1),
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(0, 2),
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(0, 3),
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(0, 4),
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(0, 5),
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(0, 6),
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(1, 1),
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(1, 2),
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(1, 3),
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(1, 4),
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(1, 5),
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	PWM_INIT_DEFAULTS(1, 6)
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** };
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Exported functions --------------------------------------------------------*/
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /*
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * hal_pwm_init
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function initializes independent pwm channel
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_init(hal_pwm_channel_t pwm_channel,
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 				hal_pwm_init_t *pwm_init_config, hal_pwm_output_t *pwm_value)
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t		*pwmx;
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_init_config);
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_ALIGN_MODE(pwm_init_config->align_mode));
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_OUT_GEN_MODE(pwm_init_config->output_gen_mode));
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwmx = hw_pwm[pwm_channel].pwmx;
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Set alignment mode */
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwmx->MODE = (pwmx->MODE & (~PWM_MODE_PWMMODE_MASK)) |
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 					pwm_init_config->align_mode;
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Store align mode */
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].align = pwm_init_config->align_mode;
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Store output generation mode */
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].mode = pwm_init_config->output_gen_mode;
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Set state machine to STOPPED */
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].state = PWM_STOPPED;
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Initialize the output values */
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hal_pwm_update(pwm_channel, pwm_value);
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /*
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * hal_pwm_start
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function starts independent pwm channel
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_start(hal_pwm_channel_t pwm_channel)
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t		*pwmx;
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwmx = hw_pwm[pwm_channel].pwmx;
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Update state machine */
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].state = PWM_STARTED;
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Set output generation mode and start generating PWM output signal */
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	if (PWM_CONTINUOUS == hw_pwm[pwm_channel].mode)
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Disable number of patterns mode */
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->MODE &= ~PWM_MODE_PATTERNMODEEN_MASK;
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Enable continuous mode */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->MODE |= PWM_MODE_CONTMMODEEN_MASK;
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else if (PWM_FIXED_PATTERNS == hw_pwm[pwm_channel].mode)
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Disable continuous mode */
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->MODE &= ~PWM_MODE_CONTMMODEEN_MASK;
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Enable number of patterns mode */
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->MODE |= PWM_MODE_PATTERNMODEEN_MASK;
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Disable continuous mode */
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->MODE &= ~PWM_MODE_CONTMMODEEN_MASK;
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Enable number of patterns mode */
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->MODE &= ~PWM_MODE_PATTERNMODEEN_MASK;
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /*
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * hal_pwm_stop
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function stops independent pwm channel
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_stop(hal_pwm_channel_t pwm_channel)
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Stop generating PWM output signal */
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->MODE &= (~PWM_MODE_CONTMMODEEN_MASK);
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->MODE &= (~PWM_MODE_PATTERNMODEEN_MASK);
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Update state machine */
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].state = PWM_STOPPED;
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * hal_pwm_update
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function updates period, duty cycle and num pulses for pwm channel
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_update(hal_pwm_channel_t pwm_channel, hal_pwm_output_t *pwm_value)
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint32_t period;
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint32_t duty_cycle;
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint8_t i;
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_value);
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_OUT_FREQ(pwm_value->freq));
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_NUM_PAIRS(pwm_value->pattern.num_pairs));
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	for (i = 0; i < pwm_value->pattern.num_pairs; i++)
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		assert_param(0 < pwm_value->pattern.pair[i].num_pulses);
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		assert_param(IS_PWM_DUTY_CYCLE(pwm_value->pattern.pair[i].duty));
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Configure frequency */
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	period = CLOCK_133MHZ / pwm_value->freq;
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	if (PWM_ALIGN_CENTER != hw_pwm[pwm_channel].align)
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->ARLDV = period - 1;
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->ARLDV = period >> 1;
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Configure patterns */
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	for (i = 0; i < pwm_value->pattern.num_pairs; i++)
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Duty cycle for pairs */
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		duty_cycle = (pwm_value->pattern.pair[i].duty * period) / 100;
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if (PWM_ALIGN_CENTER != hw_pwm[pwm_channel].align)
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			hw_pwm[pwm_channel].pwmx->PAIRS[i].DUTYV = duty_cycle;
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		else
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			hw_pwm[pwm_channel].pwmx->PAIRS[i].DUTYV = duty_cycle >> 1;
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* The number of pulses for pairs */
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->PAIRS[i].NUMPV =
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										pwm_value->pattern.pair[i].num_pulses;
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Disable the unused pairs */
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	for (; i < 3; i++)
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->PAIRS[i].NUMPV = 0;
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/*
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	 * Set the number of patterns
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	 * corresponding to the configured output generation mode
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	 */
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->NUMPATS =
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 				(hw_pwm[pwm_channel].mode == PWM_FIXED_PATTERNS) ?
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										pwm_value->num_patterns : 0;
+ 309:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Take effect if PWM channel is running */
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	if (PWM_STARTED == hw_pwm[pwm_channel].state)
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hal_pwm_start(pwm_channel);
+ 313:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 314:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+ 316:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief hal_pwm_enable_irq
+ 317:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function enables interrupt of independent pwm channel
+ 318:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 319:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_enable_irq(hal_pwm_channel_t pwm_channel,
+ 320:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 						hal_pwm_irq_t *pwm_intr_config)
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 322:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 324:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_intr_config);
+ 325:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****     //printf("hw_pwm[pwm_channel].mode: %d, pwm_intr_config->irq_mode: %d\n", hw_pwm[pwm_channel].m
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_IRQ_MODE(hw_pwm[pwm_channel].mode,
+ 327:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 					pwm_intr_config->irq_mode));
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_intr_config->callback_handler);
+ 329:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 330:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Set interrupt handler */
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].callback_handler = pwm_intr_config->callback_handler;
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].cb_param = pwm_intr_config->cb_param;
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].is_irq_enabled = TRUE;
+ 334:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Enable interrupt */
+ 335:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->INTREN = pwm_intr_config->irq_mode;
+ 336:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* register interrupt handler */
+ 337:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	if ((PWM0_CH1 <= pwm_channel) && (PWM0_CH6 >= pwm_channel))
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		vic_register_irq(PWM0_IRQn, PWM0_IRQHandler);
+ 339:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		vic_register_irq(PWM1_IRQn, PWM1_IRQHandler);
+ 341:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 342:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 343:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+ 344:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief hal_pwm_disable_irq
+ 345:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function disables interrupt of independent pwm channel
+ 346:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_disable_irq(hal_pwm_channel_t pwm_channel)
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint8_t		i;
+ 350:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 351:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 353:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 354:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Disable all interrupts */
+ 355:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->INTREN = 0;
+ 356:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* clear all pending interrupts */
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->INTRSTAT = 0xFFFFFFFF;
+ 358:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* clear interrupt handler */
+ 359:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].callback_handler = NULL;
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].is_irq_enabled = FALSE;
+ 361:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* unregister interrupt handler */
+ 362:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	if ((PWM0_CH1 <= pwm_channel) && (PWM0_CH6 >= pwm_channel))
+ 363:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 364:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		for (i = PWM0_CH1; i <= PWM0_CH6; i++)
+ 365:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			if (TRUE == hw_pwm[i].is_irq_enabled)
+ 366:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 				break;
+ 367:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if ((PWM0_CH6 + 1) == i)
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			vic_unregister_irq(PWM0_IRQn);
+ 369:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 370:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 371:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 372:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		for (i = PWM1_CH1; i <= PWM1_CH6; i++)
+ 373:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			if (TRUE == hw_pwm[i].is_irq_enabled)
+ 374:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 				break;
+ 375:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if ((PWM1_CH6 + 1) == i)
+ 376:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			vic_unregister_irq(PWM1_IRQn);
+ 377:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 378:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 379:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 380:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+ 381:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief hal_pwm_set_high
+ 382:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function set high for the pins hardware trigger
+ 383:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 384:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_set_high(hal_pwm_channel_t pwm_channel, hal_pwm_pin_t pin)
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 386:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 387:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 388:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 389:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 390:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 391:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwmx = hw_pwm[pwm_channel].pwmx;
+ 392:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 393:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hal_pwm_stop(pwm_channel);
+ 394:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* set pwm_p output value*/
+ 395:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwmx->MODE |= 1<<(PWM_MODE_GPIO_CTRL_OFFSET + pin);
+ 396:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 397:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 398:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /**
+ 399:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief hal_pwm_set_low
+ 400:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * The function set low for the pins hardware trigger
+ 401:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 402:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void hal_pwm_set_low(hal_pwm_channel_t pwm_channel, hal_pwm_pin_t pin)
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 404:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 405:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 406:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 407:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 408:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 409:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwmx = hw_pwm[pwm_channel].pwmx;
+ 410:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 411:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hal_pwm_stop(pwm_channel);
+ 412:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* set pwm_n output value*/
+ 413:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwmx->MODE &= ~(1<<(PWM_MODE_GPIO_CTRL_OFFSET + pin));
+ 414:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 415:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 416:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /* Private functions --------- ----------------------------------------------*/
+ 417:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 418:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /*
+ 419:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief hal_pwm_isr
+ 420:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * Internal PWM interrupt service routine
+ 421:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 422:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** static void hal_pwm_isr(int chid)
+ 423:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+  22              		.loc 1 423 0
+  23              		.cfi_startproc
+  24              		@ args = 0, pretend = 0, frame = 0
+  25              		@ frame_needed = 0, uses_anonymous_args = 0
+  26              		@ link register save eliminated.
+  27              	.LVL0:
+ 424:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx = hw_pwm[chid].pwmx;
+  28              		.loc 1 424 0
+  29 0000 28309FE5 		ldr	r3, .L5
+  30 0004 002293E7 		ldr	r2, [r3, r0, asl #4]
+  31              	.LVL1:
+ 425:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 426:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* check if ONE_PATTERN_GENERATED interrupt occurred */
+ 427:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	if (PWM_IRQ_ONE_PATTERN_GENERATED ==
+ 428:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 							(pwmx->INTRSTAT & PWM_IRQ_ONE_PATTERN_GENERATED))
+ 429:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 430:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Clear pending interrupt */
+ 431:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->INTRSTAT |= PWM_IRQ_ONE_PATTERN_GENERATED;
+ 432:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 433:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* if ALL_PATTERNS_GENERATED interrupt occurred */
+ 434:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 435:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 436:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Clear pending interrupt */
+ 437:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		pwmx->INTRSTAT |= PWM_IRQ_ALL_PATTERNS_GENERATED;
+ 438:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 439:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* call back to upper layer function */
+ 440:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[chid].callback_handler(hw_pwm[chid].cb_param);
+  32              		.loc 1 440 0
+  33 0008 000283E0 		add	r0, r3, r0, asl #4
+  34              	.LVL2:
+ 428:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+  35              		.loc 1 428 0
+  36 000c 241092E5 		ldr	r1, [r2, #36]
+  37              		.loc 1 440 0
+  38 0010 083090E5 		ldr	r3, [r0, #8]
+ 427:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 							(pwmx->INTRSTAT & PWM_IRQ_ONE_PATTERN_GENERATED))
+  39              		.loc 1 427 0
+  40 0014 010C11E3 		tst	r1, #256
+ 431:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+  41              		.loc 1 431 0
+  42 0018 241092E5 		ldr	r1, [r2, #36]
+  43              		.loc 1 440 0
+  44 001c 0C0090E5 		ldr	r0, [r0, #12]
+ 431:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+  45              		.loc 1 431 0
+  46 0020 011C8113 		orrne	r1, r1, #256
+ 437:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+  47              		.loc 1 437 0
+  48 0024 011A8103 		orreq	r1, r1, #4096
+  49 0028 241082E5 		str	r1, [r2, #36]
+  50              		.loc 1 440 0
+  51 002c 13FF2FE1 		bx	r3	@ indirect register sibling call
+  52              	.LVL3:
+  53              	.L6:
+  54              		.align	2
+  55              	.L5:
+  56 0030 00000000 		.word	.LANCHOR0
+  57              		.cfi_endproc
+  58              	.LFE9:
+  60              		.section	.text.PWM0_IRQHandler,"ax",%progbits
+  61              		.align	2
+  63              	PWM0_IRQHandler:
+  64              	.LFB10:
+ 441:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 442:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 443:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /*
+ 444:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief PWM0_IRQHandler
+ 445:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * Internal PWM0 interrupt handler
+ 446:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 447:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void PWM0_IRQHandler(void)
+ 448:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+  65              		.loc 1 448 0
+  66              		.cfi_startproc
+  67              		@ args = 0, pretend = 0, frame = 0
+  68              		@ frame_needed = 0, uses_anonymous_args = 0
+  69              	.LVL4:
+  70 0000 10402DE9 		stmfd	sp!, {r4, lr}
+  71              	.LCFI0:
+  72              		.cfi_def_cfa_offset 8
+  73              		.cfi_offset 4, -8
+  74              		.cfi_offset 14, -4
+ 449:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	int		i;
+ 450:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 451:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	for (i = PWM0_CH1; i <= PWM0_CH6; i++)
+  75              		.loc 1 451 0
+  76 0004 0040A0E3 		mov	r4, #0
+  77              	.LVL5:
+  78              	.L9:
+ 452:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 453:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if (0 != hw_pwm[i].pwmx->INTRSTAT)
+  79              		.loc 1 453 0
+  80 0008 24309FE5 		ldr	r3, .L16
+  81 000c 043293E7 		ldr	r3, [r3, r4, asl #4]
+  82 0010 243093E5 		ldr	r3, [r3, #36]
+  83 0014 000053E3 		cmp	r3, #0
+  84 0018 0100000A 		beq	.L8
+ 454:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			hal_pwm_isr(i);
+  85              		.loc 1 454 0
+  86 001c 0400A0E1 		mov	r0, r4
+  87 0020 FEFFFFEB 		bl	hal_pwm_isr
+  88              	.LVL6:
+  89              	.L8:
+ 451:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+  90              		.loc 1 451 0 discriminator 2
+  91 0024 014084E2 		add	r4, r4, #1
+  92              	.LVL7:
+  93 0028 060054E3 		cmp	r4, #6
+  94 002c F5FFFF1A 		bne	.L9
+ 455:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 456:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+  95              		.loc 1 456 0
+  96 0030 1080BDE8 		ldmfd	sp!, {r4, pc}
+  97              	.L17:
+  98              		.align	2
+  99              	.L16:
+ 100 0034 00000000 		.word	.LANCHOR0
+ 101              		.cfi_endproc
+ 102              	.LFE10:
+ 104              		.section	.text.PWM1_IRQHandler,"ax",%progbits
+ 105              		.align	2
+ 107              	PWM1_IRQHandler:
+ 108              	.LFB11:
+ 457:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 458:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** /*
+ 459:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * @brief PWM1_IRQHandler
+ 460:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  * Internal PWM1 interrupt handler
+ 461:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****  */
+ 462:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** void PWM1_IRQHandler(void)
+ 463:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** {
+ 109              		.loc 1 463 0
+ 110              		.cfi_startproc
+ 111              		@ args = 0, pretend = 0, frame = 0
+ 112              		@ frame_needed = 0, uses_anonymous_args = 0
+ 113              	.LVL8:
+ 114 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 115              	.LCFI1:
+ 116              		.cfi_def_cfa_offset 8
+ 117              		.cfi_offset 4, -8
+ 118              		.cfi_offset 14, -4
+ 464:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	int		i;
+ 465:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 466:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	for (i = PWM1_CH1; i <= PWM1_CH6; i++)
+ 119              		.loc 1 466 0
+ 120 0004 0640A0E3 		mov	r4, #6
+ 121              	.LVL9:
+ 122              	.L20:
+ 467:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 468:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if (0 != hw_pwm[i].pwmx->INTRSTAT)
+ 123              		.loc 1 468 0
+ 124 0008 24309FE5 		ldr	r3, .L26
+ 125 000c 043293E7 		ldr	r3, [r3, r4, asl #4]
+ 126 0010 243093E5 		ldr	r3, [r3, #36]
+ 127 0014 000053E3 		cmp	r3, #0
+ 128 0018 0100000A 		beq	.L19
+ 469:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			hal_pwm_isr(i);
+ 129              		.loc 1 469 0
+ 130 001c 0400A0E1 		mov	r0, r4
+ 131 0020 FEFFFFEB 		bl	hal_pwm_isr
+ 132              	.LVL10:
+ 133              	.L19:
+ 466:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 134              		.loc 1 466 0 discriminator 2
+ 135 0024 014084E2 		add	r4, r4, #1
+ 136              	.LVL11:
+ 137 0028 0C0054E3 		cmp	r4, #12
+ 138 002c F5FFFF1A 		bne	.L20
+ 470:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 471:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 139              		.loc 1 471 0
+ 140 0030 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 141              	.L27:
+ 142              		.align	2
+ 143              	.L26:
+ 144 0034 00000000 		.word	.LANCHOR0
+ 145              		.cfi_endproc
+ 146              	.LFE11:
+ 148              		.section	.text.hal_pwm_start,"ax",%progbits
+ 149              		.align	2
+ 150              		.global	hal_pwm_start
+ 152              	hal_pwm_start:
+ 153              	.LFB2:
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t		*pwmx;
+ 154              		.loc 1 204 0
+ 155              		.cfi_startproc
+ 156              		@ args = 0, pretend = 0, frame = 0
+ 157              		@ frame_needed = 0, uses_anonymous_args = 0
+ 158              	.LVL12:
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 159              		.loc 1 208 0
+ 160 0000 0B0050E3 		cmp	r0, #11
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t		*pwmx;
+ 161              		.loc 1 204 0
+ 162 0004 10402DE9 		stmfd	sp!, {r4, lr}
+ 163              	.LCFI2:
+ 164              		.cfi_def_cfa_offset 8
+ 165              		.cfi_offset 4, -8
+ 166              		.cfi_offset 14, -4
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t		*pwmx;
+ 167              		.loc 1 204 0
+ 168 0008 0040A0E1 		mov	r4, r0
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 169              		.loc 1 208 0
+ 170 000c 0200009A 		bls	.L29
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 171              		.loc 1 208 0 is_stmt 0 discriminator 1
+ 172 0010 60009FE5 		ldr	r0, .L35
+ 173              	.LVL13:
+ 174 0014 D010A0E3 		mov	r1, #208
+ 175 0018 FEFFFFEB 		bl	assert_failed
+ 176              	.LVL14:
+ 177              	.L29:
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 178              		.loc 1 211 0 is_stmt 1
+ 179 001c 58009FE5 		ldr	r0, .L35+4
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 180              		.loc 1 214 0
+ 181 0020 0120A0E3 		mov	r2, #1
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 182              		.loc 1 211 0
+ 183 0024 043290E7 		ldr	r3, [r0, r4, asl #4]
+ 184              	.LVL15:
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 185              		.loc 1 214 0
+ 186 0028 040280E0 		add	r0, r0, r4, asl #4
+ 187 002c 0620C0E5 		strb	r2, [r0, #6]
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 188              		.loc 1 217 0
+ 189 0030 0520D0E5 		ldrb	r2, [r0, #5]	@ zero_extendqisi2
+ 190 0034 010052E3 		cmp	r2, #1
+ 191 0038 0500001A 		bne	.L30
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Enable continuous mode */
+ 192              		.loc 1 220 0
+ 193 003c 202093E5 		ldr	r2, [r3, #32]
+ 194 0040 012CC2E3 		bic	r2, r2, #256
+ 195 0044 202083E5 		str	r2, [r3, #32]
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 196              		.loc 1 222 0
+ 197 0048 202093E5 		ldr	r2, [r3, #32]
+ 198 004c 102082E3 		orr	r2, r2, #16
+ 199 0050 060000EA 		b	.L34
+ 200              	.L30:
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 201              		.loc 1 224 0
+ 202 0054 020052E3 		cmp	r2, #2
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* Enable number of patterns mode */
+ 203              		.loc 1 227 0
+ 204 0058 202093E5 		ldr	r2, [r3, #32]
+ 205 005c 1020C2E3 		bic	r2, r2, #16
+ 206 0060 202083E5 		str	r2, [r3, #32]
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 207              		.loc 1 229 0
+ 208 0064 202093E5 		ldr	r2, [r3, #32]
+ 209 0068 012C8203 		orreq	r2, r2, #256
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 210              		.loc 1 236 0
+ 211 006c 012CC213 		bicne	r2, r2, #256
+ 212              	.L34:
+ 213 0070 202083E5 		str	r2, [r3, #32]
+ 214 0074 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 215              	.L36:
+ 216              		.align	2
+ 217              	.L35:
+ 218 0078 00000000 		.word	.LANCHOR1
+ 219 007c 00000000 		.word	.LANCHOR0
+ 220              		.cfi_endproc
+ 221              	.LFE2:
+ 223              		.section	.text.hal_pwm_stop,"ax",%progbits
+ 224              		.align	2
+ 225              		.global	hal_pwm_stop
+ 227              	hal_pwm_stop:
+ 228              	.LFB3:
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 229              		.loc 1 245 0
+ 230              		.cfi_startproc
+ 231              		@ args = 0, pretend = 0, frame = 0
+ 232              		@ frame_needed = 0, uses_anonymous_args = 0
+ 233              	.LVL16:
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 234              		.loc 1 247 0
+ 235 0000 0B0050E3 		cmp	r0, #11
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 236              		.loc 1 245 0
+ 237 0004 10402DE9 		stmfd	sp!, {r4, lr}
+ 238              	.LCFI3:
+ 239              		.cfi_def_cfa_offset 8
+ 240              		.cfi_offset 4, -8
+ 241              		.cfi_offset 14, -4
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 242              		.loc 1 245 0
+ 243 0008 0040A0E1 		mov	r4, r0
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 244              		.loc 1 247 0
+ 245 000c 0200009A 		bls	.L38
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 246              		.loc 1 247 0 is_stmt 0 discriminator 1
+ 247 0010 34009FE5 		ldr	r0, .L40
+ 248              	.LVL17:
+ 249 0014 F710A0E3 		mov	r1, #247
+ 250 0018 FEFFFFEB 		bl	assert_failed
+ 251              	.LVL18:
+ 252              	.L38:
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->MODE &= (~PWM_MODE_PATTERNMODEEN_MASK);
+ 253              		.loc 1 250 0 is_stmt 1
+ 254 001c 2C009FE5 		ldr	r0, .L40+4
+ 255 0020 043290E7 		ldr	r3, [r0, r4, asl #4]
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 256              		.loc 1 254 0
+ 257 0024 040280E0 		add	r0, r0, r4, asl #4
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].pwmx->MODE &= (~PWM_MODE_PATTERNMODEEN_MASK);
+ 258              		.loc 1 250 0
+ 259 0028 202093E5 		ldr	r2, [r3, #32]
+ 260 002c 1020C2E3 		bic	r2, r2, #16
+ 261 0030 202083E5 		str	r2, [r3, #32]
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 262              		.loc 1 251 0
+ 263 0034 202093E5 		ldr	r2, [r3, #32]
+ 264 0038 012CC2E3 		bic	r2, r2, #256
+ 265 003c 202083E5 		str	r2, [r3, #32]
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 266              		.loc 1 254 0
+ 267 0040 0030A0E3 		mov	r3, #0
+ 268 0044 0630C0E5 		strb	r3, [r0, #6]
+ 269 0048 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 270              	.L41:
+ 271              		.align	2
+ 272              	.L40:
+ 273 004c 00000000 		.word	.LANCHOR2
+ 274 0050 00000000 		.word	.LANCHOR0
+ 275              		.cfi_endproc
+ 276              	.LFE3:
+ 278              		.global	__aeabi_uidiv
+ 279              		.section	.text.hal_pwm_update,"ax",%progbits
+ 280              		.align	2
+ 281              		.global	hal_pwm_update
+ 283              	hal_pwm_update:
+ 284              	.LFB4:
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint32_t period;
+ 285              		.loc 1 262 0
+ 286              		.cfi_startproc
+ 287              		@ args = 0, pretend = 0, frame = 0
+ 288              		@ frame_needed = 0, uses_anonymous_args = 0
+ 289              	.LVL19:
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_value);
+ 290              		.loc 1 268 0
+ 291 0000 0B0050E3 		cmp	r0, #11
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint32_t period;
+ 292              		.loc 1 262 0
+ 293 0004 F84F2DE9 		stmfd	sp!, {r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 294              	.LCFI4:
+ 295              		.cfi_def_cfa_offset 40
+ 296              		.cfi_offset 3, -40
+ 297              		.cfi_offset 4, -36
+ 298              		.cfi_offset 5, -32
+ 299              		.cfi_offset 6, -28
+ 300              		.cfi_offset 7, -24
+ 301              		.cfi_offset 8, -20
+ 302              		.cfi_offset 9, -16
+ 303              		.cfi_offset 10, -12
+ 304              		.cfi_offset 11, -8
+ 305              		.cfi_offset 14, -4
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint32_t period;
+ 306              		.loc 1 262 0
+ 307 0008 0050A0E1 		mov	r5, r0
+ 308 000c 0140A0E1 		mov	r4, r1
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_value);
+ 309              		.loc 1 268 0
+ 310 0010 0200009A 		bls	.L43
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_value);
+ 311              		.loc 1 268 0 is_stmt 0 discriminator 1
+ 312 0014 84019FE5 		ldr	r0, .L66
+ 313              	.LVL20:
+ 314 0018 431FA0E3 		mov	r1, #268
+ 315              	.LVL21:
+ 316 001c FEFFFFEB 		bl	assert_failed
+ 317              	.LVL22:
+ 318              	.L43:
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_OUT_FREQ(pwm_value->freq));
+ 319              		.loc 1 269 0 is_stmt 1
+ 320 0020 000054E3 		cmp	r4, #0
+ 321 0024 0200001A 		bne	.L44
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_OUT_FREQ(pwm_value->freq));
+ 322              		.loc 1 269 0 is_stmt 0 discriminator 1
+ 323 0028 70019FE5 		ldr	r0, .L66
+ 324 002c 0D1100E3 		movw	r1, #269
+ 325 0030 FEFFFFEB 		bl	assert_failed
+ 326              	.LVL23:
+ 327              	.L44:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_NUM_PAIRS(pwm_value->pattern.num_pairs));
+ 328              		.loc 1 270 0 is_stmt 1
+ 329 0034 1C3094E5 		ldr	r3, [r4, #28]
+ 330 0038 64219FE5 		ldr	r2, .L66+4
+ 331 003c 013043E2 		sub	r3, r3, #1
+ 332 0040 020053E1 		cmp	r3, r2
+ 333 0044 0200009A 		bls	.L45
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_NUM_PAIRS(pwm_value->pattern.num_pairs));
+ 334              		.loc 1 270 0 is_stmt 0 discriminator 1
+ 335 0048 50019FE5 		ldr	r0, .L66
+ 336 004c 0E1100E3 		movw	r1, #270
+ 337 0050 FEFFFFEB 		bl	assert_failed
+ 338              	.LVL24:
+ 339              	.L45:
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	for (i = 0; i < pwm_value->pattern.num_pairs; i++)
+ 340              		.loc 1 271 0 is_stmt 1
+ 341 0054 1830D4E5 		ldrb	r3, [r4, #24]	@ zero_extendqisi2
+ 342 0058 030053E3 		cmp	r3, #3
+ 343 005c 0200009A 		bls	.L46
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	for (i = 0; i < pwm_value->pattern.num_pairs; i++)
+ 344              		.loc 1 271 0 is_stmt 0 discriminator 1
+ 345 0060 38019FE5 		ldr	r0, .L66
+ 346 0064 0F1100E3 		movw	r1, #271
+ 347 0068 FEFFFFEB 		bl	assert_failed
+ 348              	.LVL25:
+ 349              	.L46:
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint32_t period;
+ 350              		.loc 1 262 0 is_stmt 1 discriminator 1
+ 351 006c 0070A0E3 		mov	r7, #0
+ 352              	.L47:
+ 353              	.LVL26:
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 354              		.loc 1 272 0 discriminator 1
+ 355 0070 7760EFE6 		uxtb	r6, r7
+ 356 0074 1830D4E5 		ldrb	r3, [r4, #24]	@ zero_extendqisi2
+ 357 0078 060053E1 		cmp	r3, r6
+ 358 007c 0E00009A 		bls	.L64
+ 359 0080 863184E0 		add	r3, r4, r6, asl #3
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		assert_param(IS_PWM_DUTY_CYCLE(pwm_value->pattern.pair[i].duty));
+ 360              		.loc 1 274 0
+ 361 0084 043093E5 		ldr	r3, [r3, #4]
+ 362 0088 000053E3 		cmp	r3, #0
+ 363 008c 0200001A 		bne	.L48
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		assert_param(IS_PWM_DUTY_CYCLE(pwm_value->pattern.pair[i].duty));
+ 364              		.loc 1 274 0 is_stmt 0 discriminator 1
+ 365 0090 08019FE5 		ldr	r0, .L66
+ 366 0094 121100E3 		movw	r1, #274
+ 367 0098 FEFFFFEB 		bl	assert_failed
+ 368              	.LVL27:
+ 369              	.L48:
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 370              		.loc 1 275 0 is_stmt 1
+ 371 009c 8631D4E7 		ldrb	r3, [r4, r6, asl #3]	@ zero_extendqisi2
+ 372 00a0 640053E3 		cmp	r3, #100
+ 373 00a4 0200009A 		bls	.L49
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 374              		.loc 1 275 0 is_stmt 0 discriminator 1
+ 375 00a8 F0009FE5 		ldr	r0, .L66
+ 376 00ac 131100E3 		movw	r1, #275
+ 377 00b0 FEFFFFEB 		bl	assert_failed
+ 378              	.LVL28:
+ 379              	.L49:
+ 380 00b4 017087E2 		add	r7, r7, #1
+ 381              	.LVL29:
+ 382 00b8 ECFFFFEA 		b	.L47
+ 383              	.LVL30:
+ 384              	.L64:
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	if (PWM_ALIGN_CENTER != hw_pwm[pwm_channel].align)
+ 385              		.loc 1 279 0 is_stmt 1
+ 386 00bc 1C1094E5 		ldr	r1, [r4, #28]
+ 387 00c0 E0009FE5 		ldr	r0, .L66+8
+ 388 00c4 FEFFFFEB 		bl	__aeabi_uidiv
+ 389              	.LVL31:
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->ARLDV = period - 1;
+ 390              		.loc 1 280 0
+ 391 00c8 DC309FE5 		ldr	r3, .L66+12
+ 392 00cc 0512A0E1 		mov	r1, r5, asl #4
+ 393 00d0 012083E0 		add	r2, r3, r1
+ 394 00d4 0480D2E5 		ldrb	r8, [r2, #4]	@ zero_extendqisi2
+ 395 00d8 020058E3 		cmp	r8, #2
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 396              		.loc 1 281 0
+ 397 00dc 052293E7 		ldr	r2, [r3, r5, asl #4]
+ 398 00e0 01C04012 		subne	ip, r0, #1
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 399              		.loc 1 283 0
+ 400 00e4 A0C0A001 		moveq	ip, r0, lsr #1
+ 401 00e8 1CC082E5 		str	ip, [r2, #28]
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint32_t period;
+ 402              		.loc 1 262 0
+ 403 00ec 00C0A0E3 		mov	ip, #0
+ 404              	.LVL32:
+ 405              	.L53:
+ 406 00f0 7C20EFE6 		uxtb	r2, ip
+ 407              	.LVL33:
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 408              		.loc 1 286 0 discriminator 1
+ 409 00f4 18E0D4E5 		ldrb	lr, [r4, #24]	@ zero_extendqisi2
+ 410 00f8 02005EE1 		cmp	lr, r2
+ 411 00fc 1100009A 		bls	.L57
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if (PWM_ALIGN_CENTER != hw_pwm[pwm_channel].align)
+ 412              		.loc 1 289 0
+ 413 0100 8261D4E7 		ldrb	r6, [r4, r2, asl #3]	@ zero_extendqisi2
+ 414 0104 90060EE0 		mul	lr, r0, r6
+ 415 0108 A0609FE5 		ldr	r6, .L66+16
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			hw_pwm[pwm_channel].pwmx->PAIRS[i].DUTYV = duty_cycle;
+ 416              		.loc 1 290 0
+ 417 010c 020058E3 		cmp	r8, #2
+ 418 0110 8291A0E1 		mov	r9, r2, asl #3
+ 419 0114 09A084E0 		add	r10, r4, r9
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if (PWM_ALIGN_CENTER != hw_pwm[pwm_channel].align)
+ 420              		.loc 1 289 0
+ 421 0118 9E6687E0 		umull	r6, r7, lr, r6
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		else
+ 422              		.loc 1 291 0
+ 423 011c 05E293E7 		ldr	lr, [r3, r5, asl #4]
+ 424 0120 01C08CE2 		add	ip, ip, #1
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		if (PWM_ALIGN_CENTER != hw_pwm[pwm_channel].align)
+ 425              		.loc 1 289 0
+ 426 0124 A7B2A0E1 		mov	fp, r7, lsr #5
+ 427              	.LVL34:
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* The number of pulses for pairs */
+ 428              		.loc 1 293 0
+ 429 0128 2763A001 		moveq	r6, r7, lsr #6
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		else
+ 430              		.loc 1 291 0
+ 431 012c 82B18E17 		strne	fp, [lr, r2, asl #3]
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		/* The number of pulses for pairs */
+ 432              		.loc 1 293 0
+ 433 0130 82618E07 		streq	r6, [lr, r2, asl #3]
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										pwm_value->pattern.pair[i].num_pulses;
+ 434              		.loc 1 295 0
+ 435 0134 052293E7 		ldr	r2, [r3, r5, asl #4]
+ 436              	.LVL35:
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 437              		.loc 1 296 0
+ 438 0138 04E09AE5 		ldr	lr, [r10, #4]
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										pwm_value->pattern.pair[i].num_pulses;
+ 439              		.loc 1 295 0
+ 440 013c 092082E0 		add	r2, r2, r9
+ 441 0140 04E082E5 		str	lr, [r2, #4]
+ 442 0144 E9FFFFEA 		b	.L53
+ 443              	.LVL36:
+ 444              	.L57:
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->PAIRS[i].NUMPV = 0;
+ 445              		.loc 1 299 0 discriminator 1
+ 446 0148 020052E3 		cmp	r2, #2
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 447              		.loc 1 300 0 discriminator 1
+ 448 014c 050293E7 		ldr	r0, [r3, r5, asl #4]
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->PAIRS[i].NUMPV = 0;
+ 449              		.loc 1 299 0 discriminator 1
+ 450 0150 0500008A 		bhi	.L65
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 451              		.loc 1 300 0 discriminator 2
+ 452 0154 820180E0 		add	r0, r0, r2, asl #3
+ 453 0158 00C0A0E3 		mov	ip, #0
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->PAIRS[i].NUMPV = 0;
+ 454              		.loc 1 299 0 discriminator 2
+ 455 015c 012082E2 		add	r2, r2, #1
+ 456              	.LVL37:
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 457              		.loc 1 300 0 discriminator 2
+ 458 0160 04C080E5 		str	ip, [r0, #4]
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hw_pwm[pwm_channel].pwmx->PAIRS[i].NUMPV = 0;
+ 459              		.loc 1 299 0 discriminator 2
+ 460 0164 7220EFE6 		uxtb	r2, r2
+ 461              	.LVL38:
+ 462 0168 F6FFFFEA 		b	.L57
+ 463              	.L65:
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 										pwm_value->num_patterns : 0;
+ 464              		.loc 1 307 0
+ 465 016c 012083E0 		add	r2, r3, r1
+ 466              	.LVL39:
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 467              		.loc 1 308 0
+ 468 0170 0520D2E5 		ldrb	r2, [r2, #5]	@ zero_extendqisi2
+ 469 0174 020052E3 		cmp	r2, #2
+ 470 0178 0020A013 		movne	r2, #0
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hal_pwm_start(pwm_channel);
+ 471              		.loc 1 311 0
+ 472 017c 013083E0 		add	r3, r3, r1
+ 473 0180 0630D3E5 		ldrb	r3, [r3, #6]	@ zero_extendqisi2
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 474              		.loc 1 308 0
+ 475 0184 20209405 		ldreq	r2, [r4, #32]
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hal_pwm_start(pwm_channel);
+ 476              		.loc 1 311 0
+ 477 0188 010053E3 		cmp	r3, #1
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 				(hw_pwm[pwm_channel].mode == PWM_FIXED_PATTERNS) ?
+ 478              		.loc 1 306 0
+ 479 018c 182080E5 		str	r2, [r0, #24]
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		hal_pwm_start(pwm_channel);
+ 480              		.loc 1 311 0
+ 481 0190 F88FBD18 		ldmnefd	sp!, {r3, r4, r5, r6, r7, r8, r9, r10, fp, pc}
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 482              		.loc 1 312 0
+ 483 0194 0500A0E1 		mov	r0, r5
+ 313:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 484              		.loc 1 313 0
+ 485 0198 F84FBDE8 		ldmfd	sp!, {r3, r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 486              	.LCFI5:
+ 487              		.cfi_restore 14
+ 488              		.cfi_restore 11
+ 489              		.cfi_restore 10
+ 490              		.cfi_restore 9
+ 491              		.cfi_restore 8
+ 492              		.cfi_restore 7
+ 493              		.cfi_restore 6
+ 494              		.cfi_restore 5
+ 495              		.cfi_restore 4
+ 496              		.cfi_restore 3
+ 497              		.cfi_def_cfa_offset 0
+ 498              	.LVL40:
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 499              		.loc 1 312 0
+ 500 019c FEFFFFEA 		b	hal_pwm_start
+ 501              	.LVL41:
+ 502              	.L67:
+ 503              		.align	2
+ 504              	.L66:
+ 505 01a0 00000000 		.word	.LANCHOR3
+ 506 01a4 3FEFC41F 		.word	532999999
+ 507 01a8 406BED07 		.word	133000000
+ 508 01ac 00000000 		.word	.LANCHOR0
+ 509 01b0 1F85EB51 		.word	1374389535
+ 510              		.cfi_endproc
+ 511              	.LFE4:
+ 513              		.section	.text.hal_pwm_init,"ax",%progbits
+ 514              		.align	2
+ 515              		.global	hal_pwm_init
+ 517              	hal_pwm_init:
+ 518              	.LFB1:
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t		*pwmx;
+ 519              		.loc 1 174 0
+ 520              		.cfi_startproc
+ 521              		@ args = 0, pretend = 0, frame = 0
+ 522              		@ frame_needed = 0, uses_anonymous_args = 0
+ 523              	.LVL42:
+ 524 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 525              	.LCFI6:
+ 526              		.cfi_def_cfa_offset 16
+ 527              		.cfi_offset 4, -16
+ 528              		.cfi_offset 5, -12
+ 529              		.cfi_offset 6, -8
+ 530              		.cfi_offset 14, -4
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_ALIGN_MODE(pwm_init_config->align_mode));
+ 531              		.loc 1 178 0
+ 532 0004 005051E2 		subs	r5, r1, #0
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t		*pwmx;
+ 533              		.loc 1 174 0
+ 534 0008 0040A0E1 		mov	r4, r0
+ 535 000c 0260A0E1 		mov	r6, r2
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_ALIGN_MODE(pwm_init_config->align_mode));
+ 536              		.loc 1 178 0
+ 537 0010 0200001A 		bne	.L69
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_ALIGN_MODE(pwm_init_config->align_mode));
+ 538              		.loc 1 178 0 is_stmt 0 discriminator 1
+ 539 0014 8C009FE5 		ldr	r0, .L74
+ 540              	.LVL43:
+ 541 0018 B210A0E3 		mov	r1, #178
+ 542              	.LVL44:
+ 543 001c FEFFFFEB 		bl	assert_failed
+ 544              	.LVL45:
+ 545              	.L69:
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_OUT_GEN_MODE(pwm_init_config->output_gen_mode));
+ 546              		.loc 1 179 0 is_stmt 1
+ 547 0020 0030D5E5 		ldrb	r3, [r5]	@ zero_extendqisi2
+ 548 0024 020053E3 		cmp	r3, #2
+ 549 0028 0200009A 		bls	.L70
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_OUT_GEN_MODE(pwm_init_config->output_gen_mode));
+ 550              		.loc 1 179 0 is_stmt 0 discriminator 1
+ 551 002c 74009FE5 		ldr	r0, .L74
+ 552 0030 B310A0E3 		mov	r1, #179
+ 553 0034 FEFFFFEB 		bl	assert_failed
+ 554              	.LVL46:
+ 555              	.L70:
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 556              		.loc 1 180 0 is_stmt 1
+ 557 0038 0130D5E5 		ldrb	r3, [r5, #1]	@ zero_extendqisi2
+ 558 003c 020053E3 		cmp	r3, #2
+ 559 0040 0200009A 		bls	.L71
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(IS_PWM_CHANNEL(pwm_channel));
+ 560              		.loc 1 180 0 is_stmt 0 discriminator 1
+ 561 0044 5C009FE5 		ldr	r0, .L74
+ 562 0048 B410A0E3 		mov	r1, #180
+ 563 004c FEFFFFEB 		bl	assert_failed
+ 564              	.LVL47:
+ 565              	.L71:
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 566              		.loc 1 181 0 is_stmt 1
+ 567 0050 0B0054E3 		cmp	r4, #11
+ 568 0054 0200009A 		bls	.L72
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 569              		.loc 1 181 0 is_stmt 0 discriminator 1
+ 570 0058 48009FE5 		ldr	r0, .L74
+ 571 005c B510A0E3 		mov	r1, #181
+ 572 0060 FEFFFFEB 		bl	assert_failed
+ 573              	.LVL48:
+ 574              	.L72:
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 575              		.loc 1 184 0 is_stmt 1
+ 576 0064 40309FE5 		ldr	r3, .L74+4
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Store align mode */
+ 577              		.loc 1 188 0
+ 578 0068 0010D5E5 		ldrb	r1, [r5]	@ zero_extendqisi2
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 579              		.loc 1 184 0
+ 580 006c 040293E7 		ldr	r0, [r3, r4, asl #4]
+ 581              	.LVL49:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Store output generation mode */
+ 582              		.loc 1 190 0
+ 583 0070 043283E0 		add	r3, r3, r4, asl #4
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 					pwm_init_config->align_mode;
+ 584              		.loc 1 187 0
+ 585 0074 202090E5 		ldr	r2, [r0, #32]
+ 586 0078 0320C2E3 		bic	r2, r2, #3
+ 587 007c 022081E1 		orr	r2, r1, r2
+ 588 0080 202080E5 		str	r2, [r0, #32]
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Set state machine to STOPPED */
+ 589              		.loc 1 192 0
+ 590 0084 0120D5E5 		ldrb	r2, [r5, #1]	@ zero_extendqisi2
+ 591 0088 0520C3E5 		strb	r2, [r3, #5]
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Initialize the output values */
+ 592              		.loc 1 194 0
+ 593 008c 0020A0E3 		mov	r2, #0
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Store output generation mode */
+ 594              		.loc 1 190 0
+ 595 0090 0410C3E5 		strb	r1, [r3, #4]
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 596              		.loc 1 196 0
+ 597 0094 0400A0E1 		mov	r0, r4
+ 598              	.LVL50:
+ 599 0098 0610A0E1 		mov	r1, r6
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Initialize the output values */
+ 600              		.loc 1 194 0
+ 601 009c 0620C3E5 		strb	r2, [r3, #6]
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 602              		.loc 1 197 0
+ 603 00a0 7040BDE8 		ldmfd	sp!, {r4, r5, r6, lr}
+ 604              	.LCFI7:
+ 605              		.cfi_restore 14
+ 606              		.cfi_restore 6
+ 607              		.cfi_restore 5
+ 608              		.cfi_restore 4
+ 609              		.cfi_def_cfa_offset 0
+ 610              	.LVL51:
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 611              		.loc 1 196 0
+ 612 00a4 FEFFFFEA 		b	hal_pwm_update
+ 613              	.LVL52:
+ 614              	.L75:
+ 615              		.align	2
+ 616              	.L74:
+ 617 00a8 00000000 		.word	.LANCHOR4
+ 618 00ac 00000000 		.word	.LANCHOR0
+ 619              		.cfi_endproc
+ 620              	.LFE1:
+ 622              		.section	.text.hal_pwm_enable_irq,"ax",%progbits
+ 623              		.align	2
+ 624              		.global	hal_pwm_enable_irq
+ 626              	hal_pwm_enable_irq:
+ 627              	.LFB5:
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 628              		.loc 1 321 0
+ 629              		.cfi_startproc
+ 630              		@ args = 0, pretend = 0, frame = 0
+ 631              		@ frame_needed = 0, uses_anonymous_args = 0
+ 632              	.LVL53:
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_intr_config);
+ 633              		.loc 1 323 0
+ 634 0000 0B0050E3 		cmp	r0, #11
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 635              		.loc 1 321 0
+ 636 0004 F8402DE9 		stmfd	sp!, {r3, r4, r5, r6, r7, lr}
+ 637              	.LCFI8:
+ 638              		.cfi_def_cfa_offset 24
+ 639              		.cfi_offset 3, -24
+ 640              		.cfi_offset 4, -20
+ 641              		.cfi_offset 5, -16
+ 642              		.cfi_offset 6, -12
+ 643              		.cfi_offset 7, -8
+ 644              		.cfi_offset 14, -4
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Check parameters */
+ 645              		.loc 1 321 0
+ 646 0008 0060A0E1 		mov	r6, r0
+ 647 000c 0140A0E1 		mov	r4, r1
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_intr_config);
+ 648              		.loc 1 323 0
+ 649 0010 0200009A 		bls	.L77
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	assert_param(NULL != pwm_intr_config);
+ 650              		.loc 1 323 0 is_stmt 0 discriminator 1
+ 651 0014 AC009FE5 		ldr	r0, .L91
+ 652              	.LVL54:
+ 653 0018 431100E3 		movw	r1, #323
+ 654              	.LVL55:
+ 655 001c FEFFFFEB 		bl	assert_failed
+ 656              	.LVL56:
+ 657              	.L77:
+ 324:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****     //printf("hw_pwm[pwm_channel].mode: %d, pwm_intr_config->irq_mode: %d\n", hw_pwm[pwm_channel].m
+ 658              		.loc 1 324 0 is_stmt 1
+ 659 0020 000054E3 		cmp	r4, #0
+ 660 0024 0200001A 		bne	.L78
+ 324:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c ****     //printf("hw_pwm[pwm_channel].mode: %d, pwm_intr_config->irq_mode: %d\n", hw_pwm[pwm_channel].m
+ 661              		.loc 1 324 0 is_stmt 0 discriminator 1
+ 662 0028 98009FE5 		ldr	r0, .L91
+ 663 002c 511FA0E3 		mov	r1, #324
+ 664 0030 FEFFFFEB 		bl	assert_failed
+ 665              	.LVL57:
+ 666              	.L78:
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 					pwm_intr_config->irq_mode));
+ 667              		.loc 1 326 0 is_stmt 1
+ 668 0034 B030D4E1 		ldrh	r3, [r4]
+ 669 0038 010C53E3 		cmp	r3, #256
+ 670 003c 88709FE5 		ldr	r7, .L91+4
+ 671 0040 0652A0E1 		mov	r5, r6, asl #4
+ 672 0044 0800000A 		beq	.L79
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 					pwm_intr_config->irq_mode));
+ 673              		.loc 1 326 0 is_stmt 0 discriminator 1
+ 674 0048 010A53E3 		cmp	r3, #4096
+ 675 004c 0300001A 		bne	.L80
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 					pwm_intr_config->irq_mode));
+ 676              		.loc 1 326 0 discriminator 3
+ 677 0050 053087E0 		add	r3, r7, r5
+ 678 0054 0530D3E5 		ldrb	r3, [r3, #5]	@ zero_extendqisi2
+ 679 0058 020053E3 		cmp	r3, #2
+ 680 005c 0200000A 		beq	.L79
+ 681              	.L80:
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 					pwm_intr_config->irq_mode));
+ 682              		.loc 1 326 0 discriminator 4
+ 683 0060 60009FE5 		ldr	r0, .L91
+ 684 0064 471100E3 		movw	r1, #327
+ 685 0068 FEFFFFEB 		bl	assert_failed
+ 686              	.LVL58:
+ 687              	.L79:
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 688              		.loc 1 328 0 is_stmt 1
+ 689 006c 043094E5 		ldr	r3, [r4, #4]
+ 690 0070 000053E3 		cmp	r3, #0
+ 691 0074 0200001A 		bne	.L81
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 692              		.loc 1 328 0 is_stmt 0 discriminator 1
+ 693 0078 48009FE5 		ldr	r0, .L91
+ 694 007c 521FA0E3 		mov	r1, #328
+ 695 0080 FEFFFFEB 		bl	assert_failed
+ 696              	.LVL59:
+ 697              	.L81:
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].cb_param = pwm_intr_config->cb_param;
+ 698              		.loc 1 331 0 is_stmt 1
+ 699 0084 053087E0 		add	r3, r7, r5
+ 700 0088 042094E5 		ldr	r2, [r4, #4]
+ 337:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 		vic_register_irq(PWM0_IRQn, PWM0_IRQHandler);
+ 701              		.loc 1 337 0
+ 702 008c 050056E3 		cmp	r6, #5
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].cb_param = pwm_intr_config->cb_param;
+ 703              		.loc 1 331 0
+ 704 0090 082083E5 		str	r2, [r3, #8]
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 705              		.loc 1 338 0
+ 706 0094 0500A093 		movls	r0, #5
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].is_irq_enabled = TRUE;
+ 707              		.loc 1 332 0
+ 708 0098 082094E5 		ldr	r2, [r4, #8]
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 709              		.loc 1 340 0
+ 710 009c 0400A083 		movhi	r0, #4
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].is_irq_enabled = TRUE;
+ 711              		.loc 1 332 0
+ 712 00a0 0C2083E5 		str	r2, [r3, #12]
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Enable interrupt */
+ 713              		.loc 1 333 0
+ 714 00a4 0120A0E3 		mov	r2, #1
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	else
+ 715              		.loc 1 338 0
+ 716 00a8 20109F95 		ldrls	r1, .L91+8
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Enable interrupt */
+ 717              		.loc 1 333 0
+ 718 00ac 0720C3E5 		strb	r2, [r3, #7]
+ 335:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* register interrupt handler */
+ 719              		.loc 1 335 0
+ 720 00b0 B020D4E1 		ldrh	r2, [r4]
+ 721 00b4 063297E7 		ldr	r3, [r7, r6, asl #4]
+ 722 00b8 282083E5 		str	r2, [r3, #40]
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 723              		.loc 1 340 0
+ 724 00bc 10109F85 		ldrhi	r1, .L91+12
+ 341:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 725              		.loc 1 341 0
+ 726 00c0 F840BDE8 		ldmfd	sp!, {r3, r4, r5, r6, r7, lr}
+ 727              	.LCFI9:
+ 728              		.cfi_restore 14
+ 729              		.cfi_restore 7
+ 730              		.cfi_restore 6
+ 731              		.cfi_restore 5
+ 732              		.cfi_restore 4
+ 733              		.cfi_restore 3
+ 734              		.cfi_def_cfa_offset 0
+ 735              	.LVL60:
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 736              		.loc 1 340 0
+ 737 00c4 FEFFFFEA 		b	vic_register_irq
+ 738              	.LVL61:
+ 739              	.L92:
+ 740              		.align	2
+ 741              	.L91:
+ 742 00c8 00000000 		.word	.LANCHOR5
+ 743 00cc 00000000 		.word	.LANCHOR0
+ 744 00d0 00000000 		.word	PWM0_IRQHandler
+ 745 00d4 00000000 		.word	PWM1_IRQHandler
+ 746              		.cfi_endproc
+ 747              	.LFE5:
+ 749              		.section	.text.hal_pwm_disable_irq,"ax",%progbits
+ 750              		.align	2
+ 751              		.global	hal_pwm_disable_irq
+ 753              	hal_pwm_disable_irq:
+ 754              	.LFB6:
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint8_t		i;
+ 755              		.loc 1 348 0
+ 756              		.cfi_startproc
+ 757              		@ args = 0, pretend = 0, frame = 0
+ 758              		@ frame_needed = 0, uses_anonymous_args = 0
+ 759              	.LVL62:
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 760              		.loc 1 352 0
+ 761 0000 0B0050E3 		cmp	r0, #11
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint8_t		i;
+ 762              		.loc 1 348 0
+ 763 0004 10402DE9 		stmfd	sp!, {r4, lr}
+ 764              	.LCFI10:
+ 765              		.cfi_def_cfa_offset 8
+ 766              		.cfi_offset 4, -8
+ 767              		.cfi_offset 14, -4
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	uint8_t		i;
+ 768              		.loc 1 348 0
+ 769 0008 0040A0E1 		mov	r4, r0
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 770              		.loc 1 352 0
+ 771 000c 0200009A 		bls	.L94
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 772              		.loc 1 352 0 is_stmt 0 discriminator 1
+ 773 0010 7C009FE5 		ldr	r0, .L107
+ 774              	.LVL63:
+ 775 0014 161EA0E3 		mov	r1, #352
+ 776 0018 FEFFFFEB 		bl	assert_failed
+ 777              	.LVL64:
+ 778              	.L94:
+ 355:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* clear all pending interrupts */
+ 779              		.loc 1 355 0 is_stmt 1
+ 780 001c 74209FE5 		ldr	r2, .L107+4
+ 781 0020 0030A0E3 		mov	r3, #0
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* clear interrupt handler */
+ 782              		.loc 1 357 0
+ 783 0024 0000E0E3 		mvn	r0, #0
+ 362:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 784              		.loc 1 362 0
+ 785 0028 050054E3 		cmp	r4, #5
+ 355:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* clear all pending interrupts */
+ 786              		.loc 1 355 0
+ 787 002c 041292E7 		ldr	r1, [r2, r4, asl #4]
+ 788 0030 283081E5 		str	r3, [r1, #40]
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* clear interrupt handler */
+ 789              		.loc 1 357 0
+ 790 0034 240081E5 		str	r0, [r1, #36]
+ 359:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	hw_pwm[pwm_channel].is_irq_enabled = FALSE;
+ 791              		.loc 1 359 0
+ 792 0038 041282E0 		add	r1, r2, r4, asl #4
+ 793 003c 083081E5 		str	r3, [r1, #8]
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* unregister interrupt handler */
+ 794              		.loc 1 360 0
+ 795 0040 0730C1E5 		strb	r3, [r1, #7]
+ 362:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	{
+ 796              		.loc 1 362 0
+ 797 0044 0800008A 		bhi	.L95
+ 798              	.L97:
+ 799 0048 031082E0 		add	r1, r2, r3
+ 365:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 				break;
+ 800              		.loc 1 365 0
+ 801 004c 0710D1E5 		ldrb	r1, [r1, #7]	@ zero_extendqisi2
+ 802 0050 000051E3 		cmp	r1, #0
+ 803 0054 1080BD18 		ldmnefd	sp!, {r4, pc}
+ 804              	.LVL65:
+ 805 0058 103083E2 		add	r3, r3, #16
+ 364:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			if (TRUE == hw_pwm[i].is_irq_enabled)
+ 806              		.loc 1 364 0 discriminator 2
+ 807 005c 600053E3 		cmp	r3, #96
+ 808 0060 F8FFFF1A 		bne	.L97
+ 368:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 809              		.loc 1 368 0
+ 810 0064 0500A0E3 		mov	r0, #5
+ 811 0068 070000EA 		b	.L106
+ 812              	.L95:
+ 813 006c 031082E0 		add	r1, r2, r3
+ 373:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 				break;
+ 814              		.loc 1 373 0
+ 815 0070 6710D1E5 		ldrb	r1, [r1, #103]	@ zero_extendqisi2
+ 816 0074 000051E3 		cmp	r1, #0
+ 817 0078 1080BD18 		ldmnefd	sp!, {r4, pc}
+ 818 007c 103083E2 		add	r3, r3, #16
+ 372:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 			if (TRUE == hw_pwm[i].is_irq_enabled)
+ 819              		.loc 1 372 0 discriminator 2
+ 820 0080 600053E3 		cmp	r3, #96
+ 821 0084 F8FFFF1A 		bne	.L95
+ 376:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 822              		.loc 1 376 0
+ 823 0088 0400A0E3 		mov	r0, #4
+ 824              	.L106:
+ 378:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 825              		.loc 1 378 0
+ 826 008c 1040BDE8 		ldmfd	sp!, {r4, lr}
+ 827              	.LCFI11:
+ 828              		.cfi_restore 14
+ 829              		.cfi_restore 4
+ 830              		.cfi_def_cfa_offset 0
+ 376:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	}
+ 831              		.loc 1 376 0
+ 832 0090 FEFFFFEA 		b	vic_unregister_irq
+ 833              	.LVL66:
+ 834              	.L108:
+ 835              		.align	2
+ 836              	.L107:
+ 837 0094 00000000 		.word	.LANCHOR6
+ 838 0098 00000000 		.word	.LANCHOR0
+ 839              		.cfi_endproc
+ 840              	.LFE6:
+ 842              		.section	.text.hal_pwm_set_high,"ax",%progbits
+ 843              		.align	2
+ 844              		.global	hal_pwm_set_high
+ 846              	hal_pwm_set_high:
+ 847              	.LFB7:
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 848              		.loc 1 385 0
+ 849              		.cfi_startproc
+ 850              		@ args = 0, pretend = 0, frame = 0
+ 851              		@ frame_needed = 0, uses_anonymous_args = 0
+ 852              	.LVL67:
+ 389:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 853              		.loc 1 389 0
+ 854 0000 0B0050E3 		cmp	r0, #11
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 855              		.loc 1 385 0
+ 856 0004 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 857              	.LCFI12:
+ 858              		.cfi_def_cfa_offset 16
+ 859              		.cfi_offset 4, -16
+ 860              		.cfi_offset 5, -12
+ 861              		.cfi_offset 6, -8
+ 862              		.cfi_offset 14, -4
+ 385:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 863              		.loc 1 385 0
+ 864 0008 0050A0E1 		mov	r5, r0
+ 865 000c 0140A0E1 		mov	r4, r1
+ 389:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 866              		.loc 1 389 0
+ 867 0010 0200009A 		bls	.L110
+ 389:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 868              		.loc 1 389 0 is_stmt 0 discriminator 1
+ 869 0014 2C009FE5 		ldr	r0, .L112
+ 870              	.LVL68:
+ 871 0018 851100E3 		movw	r1, #389
+ 872              	.LVL69:
+ 873 001c FEFFFFEB 		bl	assert_failed
+ 874              	.LVL70:
+ 875              	.L110:
+ 391:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 876              		.loc 1 391 0 is_stmt 1
+ 877 0020 24309FE5 		ldr	r3, .L112+4
+ 393:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* set pwm_p output value*/
+ 878              		.loc 1 393 0
+ 879 0024 0500A0E1 		mov	r0, r5
+ 395:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 880              		.loc 1 395 0
+ 881 0028 144084E2 		add	r4, r4, #20
+ 391:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 882              		.loc 1 391 0
+ 883 002c 056293E7 		ldr	r6, [r3, r5, asl #4]
+ 884              	.LVL71:
+ 393:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* set pwm_p output value*/
+ 885              		.loc 1 393 0
+ 886 0030 FEFFFFEB 		bl	hal_pwm_stop
+ 887              	.LVL72:
+ 395:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 888              		.loc 1 395 0
+ 889 0034 0110A0E3 		mov	r1, #1
+ 890 0038 203096E5 		ldr	r3, [r6, #32]
+ 891 003c 111483E1 		orr	r1, r3, r1, asl r4
+ 892 0040 201086E5 		str	r1, [r6, #32]
+ 893 0044 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 894              	.L113:
+ 895              		.align	2
+ 896              	.L112:
+ 897 0048 00000000 		.word	.LANCHOR7
+ 898 004c 00000000 		.word	.LANCHOR0
+ 899              		.cfi_endproc
+ 900              	.LFE7:
+ 902              		.section	.text.hal_pwm_set_low,"ax",%progbits
+ 903              		.align	2
+ 904              		.global	hal_pwm_set_low
+ 906              	hal_pwm_set_low:
+ 907              	.LFB8:
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 908              		.loc 1 403 0
+ 909              		.cfi_startproc
+ 910              		@ args = 0, pretend = 0, frame = 0
+ 911              		@ frame_needed = 0, uses_anonymous_args = 0
+ 912              	.LVL73:
+ 407:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 913              		.loc 1 407 0
+ 914 0000 0B0050E3 		cmp	r0, #11
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 915              		.loc 1 403 0
+ 916 0004 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 917              	.LCFI13:
+ 918              		.cfi_def_cfa_offset 16
+ 919              		.cfi_offset 4, -16
+ 920              		.cfi_offset 5, -12
+ 921              		.cfi_offset 6, -8
+ 922              		.cfi_offset 14, -4
+ 403:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	pwm_reg_t	*pwmx;
+ 923              		.loc 1 403 0
+ 924 0008 0050A0E1 		mov	r5, r0
+ 925 000c 0140A0E1 		mov	r4, r1
+ 407:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 926              		.loc 1 407 0
+ 927 0010 0200009A 		bls	.L115
+ 407:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* Get PWM channel base address */
+ 928              		.loc 1 407 0 is_stmt 0 discriminator 1
+ 929 0014 2C009FE5 		ldr	r0, .L117
+ 930              	.LVL74:
+ 931 0018 971100E3 		movw	r1, #407
+ 932              	.LVL75:
+ 933 001c FEFFFFEB 		bl	assert_failed
+ 934              	.LVL76:
+ 935              	.L115:
+ 409:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 936              		.loc 1 409 0 is_stmt 1
+ 937 0020 24309FE5 		ldr	r3, .L117+4
+ 411:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* set pwm_n output value*/
+ 938              		.loc 1 411 0
+ 939 0024 0500A0E1 		mov	r0, r5
+ 413:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 940              		.loc 1 413 0
+ 941 0028 144084E2 		add	r4, r4, #20
+ 409:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 
+ 942              		.loc 1 409 0
+ 943 002c 056293E7 		ldr	r6, [r3, r5, asl #4]
+ 944              	.LVL77:
+ 411:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** 	/* set pwm_n output value*/
+ 945              		.loc 1 411 0
+ 946 0030 FEFFFFEB 		bl	hal_pwm_stop
+ 947              	.LVL78:
+ 413:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_pwm.c **** }
+ 948              		.loc 1 413 0
+ 949 0034 0110A0E3 		mov	r1, #1
+ 950 0038 203096E5 		ldr	r3, [r6, #32]
+ 951 003c 1114C3E1 		bic	r1, r3, r1, asl r4
+ 952 0040 201086E5 		str	r1, [r6, #32]
+ 953 0044 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 954              	.L118:
+ 955              		.align	2
+ 956              	.L117:
+ 957 0048 00000000 		.word	.LANCHOR8
+ 958 004c 00000000 		.word	.LANCHOR0
+ 959              		.cfi_endproc
+ 960              	.LFE8:
+ 962              		.section	.data.hw_pwm,"aw",%progbits
+ 963              		.align	2
+ 964              		.set	.LANCHOR0,. + 0
+ 967              	hw_pwm:
+ 968 0000 00900102 		.word	33656832
+ 969 0004 00       		.byte	0
+ 970 0005 01       		.byte	1
+ 971 0006 00       		.byte	0
+ 972 0007 00       		.byte	0
+ 973 0008 00000000 		.word	0
+ 974 000c 00000000 		.space	4
+ 975 0010 00910102 		.word	33657088
+ 976 0014 00       		.byte	0
+ 977 0015 01       		.byte	1
+ 978 0016 00       		.byte	0
+ 979 0017 00       		.byte	0
+ 980 0018 00000000 		.word	0
+ 981 001c 00000000 		.space	4
+ 982 0020 00920102 		.word	33657344
+ 983 0024 00       		.byte	0
+ 984 0025 01       		.byte	1
+ 985 0026 00       		.byte	0
+ 986 0027 00       		.byte	0
+ 987 0028 00000000 		.word	0
+ 988 002c 00000000 		.space	4
+ 989 0030 00930102 		.word	33657600
+ 990 0034 00       		.byte	0
+ 991 0035 01       		.byte	1
+ 992 0036 00       		.byte	0
+ 993 0037 00       		.byte	0
+ 994 0038 00000000 		.word	0
+ 995 003c 00000000 		.space	4
+ 996 0040 00940102 		.word	33657856
+ 997 0044 00       		.byte	0
+ 998 0045 01       		.byte	1
+ 999 0046 00       		.byte	0
+ 1000 0047 00       		.byte	0
+ 1001 0048 00000000 		.word	0
+ 1002 004c 00000000 		.space	4
+ 1003 0050 00950102 		.word	33658112
+ 1004 0054 00       		.byte	0
+ 1005 0055 01       		.byte	1
+ 1006 0056 00       		.byte	0
+ 1007 0057 00       		.byte	0
+ 1008 0058 00000000 		.word	0
+ 1009 005c 00000000 		.space	4
+ 1010 0060 00A00102 		.word	33660928
+ 1011 0064 00       		.byte	0
+ 1012 0065 01       		.byte	1
+ 1013 0066 00       		.byte	0
+ 1014 0067 00       		.byte	0
+ 1015 0068 00000000 		.word	0
+ 1016 006c 00000000 		.space	4
+ 1017 0070 00A10102 		.word	33661184
+ 1018 0074 00       		.byte	0
+ 1019 0075 01       		.byte	1
+ 1020 0076 00       		.byte	0
+ 1021 0077 00       		.byte	0
+ 1022 0078 00000000 		.word	0
+ 1023 007c 00000000 		.space	4
+ 1024 0080 00A20102 		.word	33661440
+ 1025 0084 00       		.byte	0
+ 1026 0085 01       		.byte	1
+ 1027 0086 00       		.byte	0
+ 1028 0087 00       		.byte	0
+ 1029 0088 00000000 		.word	0
+ 1030 008c 00000000 		.space	4
+ 1031 0090 00A30102 		.word	33661696
+ 1032 0094 00       		.byte	0
+ 1033 0095 01       		.byte	1
+ 1034 0096 00       		.byte	0
+ 1035 0097 00       		.byte	0
+ 1036 0098 00000000 		.word	0
+ 1037 009c 00000000 		.space	4
+ 1038 00a0 00A40102 		.word	33661952
+ 1039 00a4 00       		.byte	0
+ 1040 00a5 01       		.byte	1
+ 1041 00a6 00       		.byte	0
+ 1042 00a7 00       		.byte	0
+ 1043 00a8 00000000 		.word	0
+ 1044 00ac 00000000 		.space	4
+ 1045 00b0 00A50102 		.word	33662208
+ 1046 00b4 00       		.byte	0
+ 1047 00b5 01       		.byte	1
+ 1048 00b6 00       		.byte	0
+ 1049 00b7 00       		.byte	0
+ 1050 00b8 00000000 		.word	0
+ 1051 00bc 00000000 		.space	4
+ 1052              		.section	.rodata.__FUNCTION__.6361,"a",%progbits
+ 1053              		.set	.LANCHOR4,. + 0
+ 1056              	__FUNCTION__.6361:
+ 1057 0000 68616C5F 		.ascii	"hal_pwm_init\000"
+ 1057      70776D5F 
+ 1057      696E6974 
+ 1057      00
+ 1058              		.section	.rodata.__FUNCTION__.6409,"a",%progbits
+ 1059              		.set	.LANCHOR7,. + 0
+ 1062              	__FUNCTION__.6409:
+ 1063 0000 68616C5F 		.ascii	"hal_pwm_set_high\000"
+ 1063      70776D5F 
+ 1063      7365745F 
+ 1063      68696768 
+ 1063      00
+ 1064              		.section	.rodata.__FUNCTION__.6370,"a",%progbits
+ 1065              		.set	.LANCHOR2,. + 0
+ 1068              	__FUNCTION__.6370:
+ 1069 0000 68616C5F 		.ascii	"hal_pwm_stop\000"
+ 1069      70776D5F 
+ 1069      73746F70 
+ 1069      00
+ 1070              		.section	.rodata.__FUNCTION__.6366,"a",%progbits
+ 1071              		.set	.LANCHOR1,. + 0
+ 1074              	__FUNCTION__.6366:
+ 1075 0000 68616C5F 		.ascii	"hal_pwm_start\000"
+ 1075      70776D5F 
+ 1075      73746172 
+ 1075      7400
+ 1076              		.section	.rodata.__FUNCTION__.6378,"a",%progbits
+ 1077              		.set	.LANCHOR3,. + 0
+ 1080              	__FUNCTION__.6378:
+ 1081 0000 68616C5F 		.ascii	"hal_pwm_update\000"
+ 1081      70776D5F 
+ 1081      75706461 
+ 1081      746500
+ 1082              		.section	.rodata.__FUNCTION__.6415,"a",%progbits
+ 1083              		.set	.LANCHOR8,. + 0
+ 1086              	__FUNCTION__.6415:
+ 1087 0000 68616C5F 		.ascii	"hal_pwm_set_low\000"
+ 1087      70776D5F 
+ 1087      7365745F 
+ 1087      6C6F7700 
+ 1088              		.section	.rodata.__FUNCTION__.6392,"a",%progbits
+ 1089              		.set	.LANCHOR5,. + 0
+ 1092              	__FUNCTION__.6392:
+ 1093 0000 68616C5F 		.ascii	"hal_pwm_enable_irq\000"
+ 1093      70776D5F 
+ 1093      656E6162 
+ 1093      6C655F69 
+ 1093      727100
+ 1094              		.section	.rodata.__FUNCTION__.6397,"a",%progbits
+ 1095              		.set	.LANCHOR6,. + 0
+ 1098              	__FUNCTION__.6397:
+ 1099 0000 68616C5F 		.ascii	"hal_pwm_disable_irq\000"
+ 1099      70776D5F 
+ 1099      64697361 
+ 1099      626C655F 
+ 1099      69727100 
+ 1100              		.text
+ 1101              	.Letext0:
+ 1102              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1103              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1104              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 1105              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+ 1106              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_pwm.h"
+ 1107              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/common/assert.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_pwm.c
+     /tmp/ccN06k9U.s:17     .text.hal_pwm_isr:00000000 $a
+     /tmp/ccN06k9U.s:19     .text.hal_pwm_isr:00000000 hal_pwm_isr
+     /tmp/ccN06k9U.s:56     .text.hal_pwm_isr:00000030 $d
+     /tmp/ccN06k9U.s:61     .text.PWM0_IRQHandler:00000000 $a
+     /tmp/ccN06k9U.s:63     .text.PWM0_IRQHandler:00000000 PWM0_IRQHandler
+     /tmp/ccN06k9U.s:100    .text.PWM0_IRQHandler:00000034 $d
+     /tmp/ccN06k9U.s:105    .text.PWM1_IRQHandler:00000000 $a
+     /tmp/ccN06k9U.s:107    .text.PWM1_IRQHandler:00000000 PWM1_IRQHandler
+     /tmp/ccN06k9U.s:144    .text.PWM1_IRQHandler:00000034 $d
+     /tmp/ccN06k9U.s:149    .text.hal_pwm_start:00000000 $a
+     /tmp/ccN06k9U.s:152    .text.hal_pwm_start:00000000 hal_pwm_start
+     /tmp/ccN06k9U.s:218    .text.hal_pwm_start:00000078 $d
+     /tmp/ccN06k9U.s:224    .text.hal_pwm_stop:00000000 $a
+     /tmp/ccN06k9U.s:227    .text.hal_pwm_stop:00000000 hal_pwm_stop
+     /tmp/ccN06k9U.s:273    .text.hal_pwm_stop:0000004c $d
+     /tmp/ccN06k9U.s:280    .text.hal_pwm_update:00000000 $a
+     /tmp/ccN06k9U.s:283    .text.hal_pwm_update:00000000 hal_pwm_update
+     /tmp/ccN06k9U.s:505    .text.hal_pwm_update:000001a0 $d
+     /tmp/ccN06k9U.s:514    .text.hal_pwm_init:00000000 $a
+     /tmp/ccN06k9U.s:517    .text.hal_pwm_init:00000000 hal_pwm_init
+     /tmp/ccN06k9U.s:617    .text.hal_pwm_init:000000a8 $d
+     /tmp/ccN06k9U.s:623    .text.hal_pwm_enable_irq:00000000 $a
+     /tmp/ccN06k9U.s:626    .text.hal_pwm_enable_irq:00000000 hal_pwm_enable_irq
+     /tmp/ccN06k9U.s:742    .text.hal_pwm_enable_irq:000000c8 $d
+     /tmp/ccN06k9U.s:750    .text.hal_pwm_disable_irq:00000000 $a
+     /tmp/ccN06k9U.s:753    .text.hal_pwm_disable_irq:00000000 hal_pwm_disable_irq
+     /tmp/ccN06k9U.s:837    .text.hal_pwm_disable_irq:00000094 $d
+     /tmp/ccN06k9U.s:843    .text.hal_pwm_set_high:00000000 $a
+     /tmp/ccN06k9U.s:846    .text.hal_pwm_set_high:00000000 hal_pwm_set_high
+     /tmp/ccN06k9U.s:897    .text.hal_pwm_set_high:00000048 $d
+     /tmp/ccN06k9U.s:903    .text.hal_pwm_set_low:00000000 $a
+     /tmp/ccN06k9U.s:906    .text.hal_pwm_set_low:00000000 hal_pwm_set_low
+     /tmp/ccN06k9U.s:957    .text.hal_pwm_set_low:00000048 $d
+     /tmp/ccN06k9U.s:963    .data.hw_pwm:00000000 $d
+     /tmp/ccN06k9U.s:967    .data.hw_pwm:00000000 hw_pwm
+     /tmp/ccN06k9U.s:1056   .rodata.__FUNCTION__.6361:00000000 __FUNCTION__.6361
+     /tmp/ccN06k9U.s:1062   .rodata.__FUNCTION__.6409:00000000 __FUNCTION__.6409
+     /tmp/ccN06k9U.s:1068   .rodata.__FUNCTION__.6370:00000000 __FUNCTION__.6370
+     /tmp/ccN06k9U.s:1074   .rodata.__FUNCTION__.6366:00000000 __FUNCTION__.6366
+     /tmp/ccN06k9U.s:1080   .rodata.__FUNCTION__.6378:00000000 __FUNCTION__.6378
+     /tmp/ccN06k9U.s:1086   .rodata.__FUNCTION__.6415:00000000 __FUNCTION__.6415
+     /tmp/ccN06k9U.s:1092   .rodata.__FUNCTION__.6392:00000000 __FUNCTION__.6392
+     /tmp/ccN06k9U.s:1098   .rodata.__FUNCTION__.6397:00000000 __FUNCTION__.6397
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed
+__aeabi_uidiv
+vic_register_irq
+vic_unregister_irq

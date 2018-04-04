@@ -1,0 +1,1105 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"hal_cache.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.v7_maint_dcache_all,"ax",%progbits
+  17              		.align	2
+  19              	v7_maint_dcache_all:
+  20              	.LFB13:
+  21              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * @file    hal_cache.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * @date    Mar-15-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * @brief   ARMv7 cache managing
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #include "hal_cache.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** typedef	uint32_t u32;
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** typedef int32_t s32;
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CP15ISB asm volatile ("mcr     p15, 0, %0, c7, c5, 4" : : "r" (0))
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CP15DSB asm volatile ("mcr     p15, 0, %0, c7, c10, 4" : : "r" (0))
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_CSSELR_IND_DATA_UNIFIED		0
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CCSIDR_LINE_SIZE_MASK			0x7
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CCSIDR_LINE_SIZE_OFFSET			0
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CCSIDR_ASSOCIATIVITY_OFFSET		3
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CCSIDR_ASSOCIATIVITY_MASK		(0x3FF << 3)
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CCSIDR_NUM_SETS_OFFSET			13
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define CCSIDR_NUM_SETS_MASK			(0x7FFF << 13)
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_CLIDR_CTYPE_NO_CACHE              0
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_CLIDR_CTYPE_INSTRUCTION_ONLY      1
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_CLIDR_CTYPE_DATA_ONLY             2
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_CLIDR_CTYPE_INSTRUCTION_DATA      3
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_CLIDR_CTYPE_UNIFIED               4
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static inline s32 log_2_n_round_up(u32 n)
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	s32 log2n = -1;
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 temp = n;
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	while (temp)
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		log2n++;
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		temp >>= 1;
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	}
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	if (n & (n - 1))
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		return log2n + 1; /* not power of 2 - round up */
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	else
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		return log2n; /* power of 2 */
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /*  Stub implementations for outer cache operations */
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_inval_all(void) {}
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_flush_all(void) {}
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_inval_range(u32 start, u32 end) {}
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_flush_range(u32 start, u32 end) {}
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_enable(void) {}
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_DCACHE_INVAL_ALL		    1
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_DCACHE_CLEAN_INVAL_ALL	2
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_DCACHE_INVAL_RANGE	    3
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** #define ARMV7_DCACHE_CLEAN_INVAL_RANGE	4
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /*
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Write the level and type you want to Cache Size Selection Register(CSSELR)
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * to get size details from Current Cache Size ID Register(CCSIDR)
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  */
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void set_csselr(u32 level, u32 type)
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 csselr = level << 1 | type;
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Write to Cache Size Selection Register(CSSELR) */
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mcr p15, 2, %0, c0, c0, 0" : : "r" (csselr));
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static u32 get_ccsidr(void)
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 ccsidr;
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Read current CP15 Cache Size ID Register */
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mrc p15, 1, %0, c0, c0, 0" : "=r" (ccsidr));
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	return ccsidr;
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static u32 get_clidr(void)
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 clidr;
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Read current CP15 Cache Level ID Register */
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mrc p15,1,%0,c0,c0,1" : "=r" (clidr));
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	return clidr;
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static u32 get_log2_line_len(void)
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****     u32 ccsidr = get_ccsidr();
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****     u32 log2_line_len = ((ccsidr & CCSIDR_LINE_SIZE_MASK) >>
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****                 CCSIDR_LINE_SIZE_OFFSET) + 2;
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****     /* Converting from words to bytes */
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****     log2_line_len += 2;
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****     return log2_line_len;
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_inval_dcache_level_setway(u32 level, u32 num_sets,
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 					 u32 num_ways, u32 way_shift,
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 					 u32 log2_line_len)
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	int way, set;
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 setway;
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/*
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 * For optimal assembly code:
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 *	a. count down
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 *	b. have bigger loop inside
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 */
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	for (way = num_ways - 1; way >= 0 ; way--)
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		for (set = num_sets - 1; set >= 0; set--)
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		{
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			setway = (level << 1) | (set << log2_line_len) |
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 				 (way << way_shift);
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			/* Invalidate data/unified cache line by set/way */
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			asm volatile ("	mcr p15, 0, %0, c7, c6, 2"
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 					: : "r" (setway));
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		}
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	}
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* DSB to make sure the operation is complete */
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	CP15DSB;
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_clean_inval_dcache_level_setway(u32 level, u32 num_sets,
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 						   u32 num_ways, u32 way_shift,
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 						   u32 log2_line_len)
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	int way, set;
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 setway;
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/*
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 * For optimal assembly code:
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 *	a. count down
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 *	b. have bigger loop inside
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 */
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	for (way = num_ways - 1; way >= 0 ; way--)
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		for (set = num_sets - 1; set >= 0; set--)
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		{
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			setway = (level << 1) | (set << log2_line_len) |
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 				 (way << way_shift);
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			/*
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			 * Clean & Invalidate data/unified
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			 * cache line by set/way
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			 */
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			asm volatile ("	mcr p15, 0, %0, c7, c14, 2"
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 					: : "r" (setway));
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		}
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	}
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* DSB to make sure the operation is complete */
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	CP15DSB;
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_maint_dcache_level_setway(u32 level, u32 operation)
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 num_sets, num_ways, log2_line_len, log2_num_ways;
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 way_shift;
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 ccsidr = get_ccsidr();
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	set_csselr(level, ARMV7_CSSELR_IND_DATA_UNIFIED);
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	log2_line_len = get_log2_line_len();
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	num_ways  = ((ccsidr & CCSIDR_ASSOCIATIVITY_MASK) >>
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			CCSIDR_ASSOCIATIVITY_OFFSET) + 1;
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	num_sets  = ((ccsidr & CCSIDR_NUM_SETS_MASK) >>
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			CCSIDR_NUM_SETS_OFFSET) + 1;
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/*
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 * According to ARMv7 ARM number of sets and number of ways need
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 * not be a power of 2
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 */
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	log2_num_ways = log_2_n_round_up(num_ways);
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	way_shift = (32 - log2_num_ways);
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	if (operation == ARMV7_DCACHE_INVAL_ALL)
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		v7_inval_dcache_level_setway(level, num_sets, num_ways,
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 					  way_shift, log2_line_len);
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	else if (operation == ARMV7_DCACHE_CLEAN_INVAL_ALL)
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		v7_clean_inval_dcache_level_setway(level, num_sets, num_ways,
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 						   way_shift, log2_line_len);
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_maint_dcache_all(u32 operation)
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+  22              		.loc 1 199 0
+  23              		.cfi_startproc
+  24              		@ args = 0, pretend = 0, frame = 0
+  25              		@ frame_needed = 0, uses_anonymous_args = 0
+  26              	.LVL0:
+  27 0000 F0412DE9 		stmfd	sp!, {r4, r5, r6, r7, r8, lr}
+  28              	.LCFI0:
+  29              		.cfi_def_cfa_offset 24
+  30              		.cfi_offset 4, -24
+  31              		.cfi_offset 5, -20
+  32              		.cfi_offset 6, -16
+  33              		.cfi_offset 7, -12
+  34              		.cfi_offset 8, -8
+  35              		.cfi_offset 14, -4
+  36              	.LBB38:
+  37              	.LBB39:
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	return clidr;
+  38              		.loc 1 96 0
+  39              	@ 96 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+  40 0004 304F30EE 		mrc p15,1,r4,c0,c0,1
+  41              	@ 0 "" 2
+  42              	.LVL1:
+  43              	.LBE39:
+  44              	.LBE38:
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 level, cache_type, level_start_bit = 0;
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 clidr = get_clidr();
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	for (level = 0; level < 7; level++)
+  45              		.loc 1 203 0
+  46 0008 00C0A0E3 		mov	ip, #0
+  47              	.LVL2:
+  48              	.L10:
+  49 000c 8CE0A0E1 		mov	lr, ip, asl #1
+  50 0010 0C308EE0 		add	r3, lr, ip
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		cache_type = (clidr >> level_start_bit) & 0x7;
+  51              		.loc 1 205 0
+  52 0014 3433A0E1 		mov	r3, r4, lsr r3
+  53 0018 073003E2 		and	r3, r3, #7
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		if ((cache_type == ARMV7_CLIDR_CTYPE_DATA_ONLY) ||
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			(cache_type == ARMV7_CLIDR_CTYPE_INSTRUCTION_DATA) ||
+  54              		.loc 1 207 0
+  55 001c 023043E2 		sub	r3, r3, #2
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		if ((cache_type == ARMV7_CLIDR_CTYPE_DATA_ONLY) ||
+  56              		.loc 1 206 0
+  57 0020 020053E3 		cmp	r3, #2
+  58 0024 2600008A 		bhi	.L2
+  59              	.LVL3:
+  60              	.LBB40:
+  61              	.LBB41:
+  62              	.LBB42:
+  63              	.LBB43:
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	return ccsidr;
+  64              		.loc 1 87 0
+  65              	@ 87 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+  66 0028 101F30EE 		mrc p15, 1, r1, c0, c0, 0
+  67              	@ 0 "" 2
+  68              	.LVL4:
+  69              	.LBE43:
+  70              	.LBE42:
+  71              	.LBB44:
+  72              	.LBB45:
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+  73              		.loc 1 79 0
+  74              	@ 79 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+  75 002c 10EF40EE 		mcr p15, 2, lr, c0, c0, 0
+  76              	@ 0 "" 2
+  77              	.LBE45:
+  78              	.LBE44:
+  79              	.LBB46:
+  80              	.LBB47:
+  81              	.LBB48:
+  82              	.LBB49:
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	return ccsidr;
+  83              		.loc 1 87 0
+  84              	@ 87 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+  85 0030 105F30EE 		mrc p15, 1, r5, c0, c0, 0
+  86              	@ 0 "" 2
+  87              	.LVL5:
+  88              	.LBE49:
+  89              	.LBE48:
+  90              	.LBE47:
+  91              	.LBE46:
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			CCSIDR_ASSOCIATIVITY_OFFSET) + 1;
+  92              		.loc 1 179 0
+  93 0034 D131E9E7 		ubfx	r3, r1, #3, #10
+  94              	.LBB52:
+  95              	.LBB50:
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****                 CCSIDR_LINE_SIZE_OFFSET) + 2;
+  96              		.loc 1 104 0
+  97 0038 075005E2 		and	r5, r5, #7
+  98              	.LVL6:
+  99              	.LBE50:
+ 100              	.LBE52:
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			CCSIDR_ASSOCIATIVITY_OFFSET) + 1;
+ 101              		.loc 1 179 0
+ 102 003c 017083E2 		add	r7, r3, #1
+ 103              	.LBB53:
+ 104              	.LBB51:
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 105              		.loc 1 107 0
+ 106 0040 045085E2 		add	r5, r5, #4
+ 107              	.LVL7:
+ 108              	.LBE51:
+ 109              	.LBE53:
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			CCSIDR_NUM_SETS_OFFSET) + 1;
+ 110              		.loc 1 181 0
+ 111 0044 D116EEE7 		ubfx	r1, r1, #13, #15
+ 112              	.LVL8:
+ 113              	.LBB54:
+ 114              	.LBB55:
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 115              		.loc 1 42 0
+ 116 0048 0760A0E1 		mov	r6, r7
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 temp = n;
+ 117              		.loc 1 41 0
+ 118 004c 0020E0E3 		mvn	r2, #0
+ 119              	.LVL9:
+ 120              	.L3:
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 121              		.loc 1 44 0
+ 122 0050 A660B0E1 		movs	r6, r6, lsr #1
+ 123              	.LVL10:
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		temp >>= 1;
+ 124              		.loc 1 46 0
+ 125 0054 012082E2 		add	r2, r2, #1
+ 126              	.LVL11:
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 127              		.loc 1 44 0
+ 128 0058 FCFFFF1A 		bne	.L3
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		return log2n + 1; /* not power of 2 - round up */
+ 129              		.loc 1 50 0
+ 130 005c 030017E1 		tst	r7, r3
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	else
+ 131              		.loc 1 51 0
+ 132 0060 01208212 		addne	r2, r2, #1
+ 133              	.LVL12:
+ 134              	.LBE55:
+ 135              	.LBE54:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		v7_inval_dcache_level_setway(level, num_sets, num_ways,
+ 136              		.loc 1 190 0
+ 137 0064 010050E3 		cmp	r0, #1
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	if (operation == ARMV7_DCACHE_INVAL_ALL)
+ 138              		.loc 1 189 0
+ 139 0068 202062E2 		rsb	r2, r2, #32
+ 140              	.LVL13:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		v7_inval_dcache_level_setway(level, num_sets, num_ways,
+ 141              		.loc 1 190 0
+ 142 006c 0800001A 		bne	.L5
+ 143              	.LVL14:
+ 144              	.L7:
+ 145              	.LBB56:
+ 146              	.LBB57:
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		{
+ 147              		.loc 1 126 0
+ 148 0070 0160A0E1 		mov	r6, r1
+ 149              	.LVL15:
+ 150 0074 13828EE1 		orr	r8, lr, r3, asl r2
+ 151              	.LVL16:
+ 152              	.L6:
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 				 (way << way_shift);
+ 153              		.loc 1 128 0
+ 154 0078 167588E1 		orr	r7, r8, r6, asl r5
+ 155              	.LVL17:
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 					: : "r" (setway));
+ 156              		.loc 1 131 0
+ 157              	@ 131 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 158 007c 567F07EE 			mcr p15, 0, r7, c7, c6, 2
+ 159              	@ 0 "" 2
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		{
+ 160              		.loc 1 126 0
+ 161 0080 016056E2 		subs	r6, r6, #1
+ 162              	.LVL18:
+ 163 0084 FBFFFF2A 		bcs	.L6
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 164              		.loc 1 124 0
+ 165 0088 013053E2 		subs	r3, r3, #1
+ 166              	.LVL19:
+ 167 008c F7FFFF2A 		bcs	.L7
+ 168 0090 090000EA 		b	.L19
+ 169              	.LVL20:
+ 170              	.L5:
+ 171              	.LBE57:
+ 172              	.LBE56:
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		v7_clean_inval_dcache_level_setway(level, num_sets, num_ways,
+ 173              		.loc 1 193 0
+ 174 0094 020050E3 		cmp	r0, #2
+ 175 0098 0900001A 		bne	.L2
+ 176              	.LVL21:
+ 177              	.L9:
+ 178              	.LBB58:
+ 179              	.LBB59:
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		{
+ 180              		.loc 1 153 0
+ 181 009c 0160A0E1 		mov	r6, r1
+ 182              	.LVL22:
+ 183 00a0 13828EE1 		orr	r8, lr, r3, asl r2
+ 184              	.LVL23:
+ 185              	.L8:
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 				 (way << way_shift);
+ 186              		.loc 1 155 0
+ 187 00a4 167588E1 		orr	r7, r8, r6, asl r5
+ 188              	.LVL24:
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 					: : "r" (setway));
+ 189              		.loc 1 161 0
+ 190              	@ 161 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 191 00a8 5E7F07EE 			mcr p15, 0, r7, c7, c14, 2
+ 192              	@ 0 "" 2
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		{
+ 193              		.loc 1 153 0
+ 194 00ac 016056E2 		subs	r6, r6, #1
+ 195              	.LVL25:
+ 196 00b0 FBFFFF2A 		bcs	.L8
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 197              		.loc 1 151 0
+ 198 00b4 013053E2 		subs	r3, r3, #1
+ 199              	.LVL26:
+ 200 00b8 F7FFFF2A 		bcs	.L9
+ 201              	.LVL27:
+ 202              	.L19:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 203              		.loc 1 166 0
+ 204 00bc 0030A0E3 		mov	r3, #0
+ 205              	@ 166 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 206 00c0 9A3F07EE 		mcr     p15, 0, r3, c7, c10, 4
+ 207              	@ 0 "" 2
+ 208              	.LVL28:
+ 209              	.L2:
+ 210              	.LBE59:
+ 211              	.LBE58:
+ 212              	.LBE41:
+ 213              	.LBE40:
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 214              		.loc 1 203 0 discriminator 2
+ 215 00c4 01C08CE2 		add	ip, ip, #1
+ 216              	.LVL29:
+ 217 00c8 07005CE3 		cmp	ip, #7
+ 218 00cc CEFFFF1A 		bne	.L10
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			(cache_type == ARMV7_CLIDR_CTYPE_UNIFIED))
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			v7_maint_dcache_level_setway(level, operation);
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		level_start_bit += 3;
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	}
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 219              		.loc 1 212 0
+ 220 00d0 F081BDE8 		ldmfd	sp!, {r4, r5, r6, r7, r8, pc}
+ 221              		.cfi_endproc
+ 222              	.LFE13:
+ 224              		.section	.text.v7_outer_cache_inval_all,"ax",%progbits
+ 225              		.align	2
+ 226              		.global	v7_outer_cache_inval_all
+ 228              	v7_outer_cache_inval_all:
+ 229              	.LFB1:
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_flush_all(void) {}
+ 230              		.loc 1 58 0
+ 231              		.cfi_startproc
+ 232              		@ args = 0, pretend = 0, frame = 0
+ 233              		@ frame_needed = 0, uses_anonymous_args = 0
+ 234              		@ link register save eliminated.
+ 235 0000 1EFF2FE1 		bx	lr
+ 236              		.cfi_endproc
+ 237              	.LFE1:
+ 239              		.section	.text.v7_outer_cache_flush_all,"ax",%progbits
+ 240              		.align	2
+ 241              		.global	v7_outer_cache_flush_all
+ 243              	v7_outer_cache_flush_all:
+ 244              	.LFB2:
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_inval_range(u32 start, u32 end) {}
+ 245              		.loc 1 59 0
+ 246              		.cfi_startproc
+ 247              		@ args = 0, pretend = 0, frame = 0
+ 248              		@ frame_needed = 0, uses_anonymous_args = 0
+ 249              		@ link register save eliminated.
+ 250 0000 1EFF2FE1 		bx	lr
+ 251              		.cfi_endproc
+ 252              	.LFE2:
+ 254              		.section	.text.v7_outer_cache_inval_range,"ax",%progbits
+ 255              		.align	2
+ 256              		.global	v7_outer_cache_inval_range
+ 258              	v7_outer_cache_inval_range:
+ 259              	.LFB3:
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_flush_range(u32 start, u32 end) {}
+ 260              		.loc 1 60 0
+ 261              		.cfi_startproc
+ 262              		@ args = 0, pretend = 0, frame = 0
+ 263              		@ frame_needed = 0, uses_anonymous_args = 0
+ 264              		@ link register save eliminated.
+ 265              	.LVL30:
+ 266 0000 1EFF2FE1 		bx	lr
+ 267              		.cfi_endproc
+ 268              	.LFE3:
+ 270              		.section	.text.v7_outer_cache_flush_range,"ax",%progbits
+ 271              		.align	2
+ 272              		.global	v7_outer_cache_flush_range
+ 274              	v7_outer_cache_flush_range:
+ 275              	.LFB4:
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void v7_outer_cache_enable(void) {}
+ 276              		.loc 1 61 0
+ 277              		.cfi_startproc
+ 278              		@ args = 0, pretend = 0, frame = 0
+ 279              		@ frame_needed = 0, uses_anonymous_args = 0
+ 280              		@ link register save eliminated.
+ 281              	.LVL31:
+ 282 0000 1EFF2FE1 		bx	lr
+ 283              		.cfi_endproc
+ 284              	.LFE4:
+ 286              		.section	.text.v7_outer_cache_enable,"ax",%progbits
+ 287              		.align	2
+ 288              		.global	v7_outer_cache_enable
+ 290              	v7_outer_cache_enable:
+ 291              	.LFB5:
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 292              		.loc 1 62 0
+ 293              		.cfi_startproc
+ 294              		@ args = 0, pretend = 0, frame = 0
+ 295              		@ frame_needed = 0, uses_anonymous_args = 0
+ 296              		@ link register save eliminated.
+ 297 0000 1EFF2FE1 		bx	lr
+ 298              		.cfi_endproc
+ 299              	.LFE5:
+ 301              		.section	.text.get_cache_line_len,"ax",%progbits
+ 302              		.align	2
+ 303              		.global	get_cache_line_len
+ 305              	get_cache_line_len:
+ 306              	.LFB18:
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_dcache_clean_inval_range(u32 start, u32 stop, u32 line_len)
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 mva;
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Align start to cache line boundary */
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	start &= ~(line_len - 1);
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	for (mva = start; mva < stop; mva = mva + line_len)
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		/* DCCIMVAC - Clean & Invalidate data cache by MVA to PoC */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		asm volatile ("mcr p15, 0, %0, c7, c14, 1" : : "r" (mva));
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_dcache_inval_range(u32 start, u32 stop, u32 line_len)
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 mva;
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Align start to cache line boundary */
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	start &= ~(line_len - 1);
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	for (mva = start; mva < stop; mva = mva + line_len)
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		/* DCIMVAC - Invalidate data cache by MVA to PoC */
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		asm volatile ("mcr p15, 0, %0, c7, c6, 1" : : "r" (mva));
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	}
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_dcache_maint_range(u32 start, u32 stop, u32 range_op)
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	u32 line_len = get_cache_line_len();
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	switch (range_op)
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		case ARMV7_DCACHE_CLEAN_INVAL_RANGE:
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			v7_dcache_clean_inval_range(start, stop, line_len);
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			break;
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		case ARMV7_DCACHE_INVAL_RANGE:
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			v7_dcache_inval_range(start, stop, line_len);
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 			break;
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	}
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* DSB to make sure the operation is complete */
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	CP15DSB;
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /* Invalidate TLB */
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** static void v7_inval_tlb(void)
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire unified TLB */
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mcr p15, 0, %0, c8, c7, 0" : : "r" (0));
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire data TLB */
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mcr p15, 0, %0, c8, c6, 0" : : "r" (0));
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire instruction TLB */
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mcr p15, 0, %0, c8, c5, 0" : : "r" (0));
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Full system DSB - make sure that the invalidation is complete */
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	CP15DSB;
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Full system ISB - make sure the instruction stream sees it */
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	CP15ISB;
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** uint32_t get_cache_line_len(void)
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 307              		.loc 1 273 0
+ 308              		.cfi_startproc
+ 309              		@ args = 0, pretend = 0, frame = 0
+ 310              		@ frame_needed = 0, uses_anonymous_args = 0
+ 311              		@ link register save eliminated.
+ 312              	.LBB64:
+ 313              	.LBB65:
+ 314              	.LBB66:
+ 315              	.LBB67:
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	return ccsidr;
+ 316              		.loc 1 87 0
+ 317              	@ 87 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 318 0000 103F30EE 		mrc p15, 1, r3, c0, c0, 0
+ 319              	@ 0 "" 2
+ 320              	.LVL32:
+ 321              	.LBE67:
+ 322              	.LBE66:
+ 323              	.LBE65:
+ 324              	.LBE64:
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****     return 1 << get_log2_line_len();
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 325              		.loc 1 275 0
+ 326 0004 0100A0E3 		mov	r0, #1
+ 327              	.LBB69:
+ 328              	.LBB68:
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****                 CCSIDR_LINE_SIZE_OFFSET) + 2;
+ 329              		.loc 1 104 0
+ 330 0008 073003E2 		and	r3, r3, #7
+ 331              	.LVL33:
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 332              		.loc 1 107 0
+ 333 000c 043083E2 		add	r3, r3, #4
+ 334              	.LVL34:
+ 335              	.LBE68:
+ 336              	.LBE69:
+ 337              		.loc 1 275 0
+ 338 0010 1003A0E1 		mov	r0, r0, asl r3
+ 339 0014 1EFF2FE1 		bx	lr
+ 340              		.cfi_endproc
+ 341              	.LFE18:
+ 343              		.section	.text.invalidate_dcache_all,"ax",%progbits
+ 344              		.align	2
+ 345              		.global	invalidate_dcache_all
+ 347              	invalidate_dcache_all:
+ 348              	.LFB19:
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void invalidate_dcache_all(void)
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 349              		.loc 1 278 0
+ 350              		.cfi_startproc
+ 351              		@ args = 0, pretend = 0, frame = 0
+ 352              		@ frame_needed = 0, uses_anonymous_args = 0
+ 353              		@ link register save eliminated.
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_maint_dcache_all(ARMV7_DCACHE_INVAL_ALL);
+ 354              		.loc 1 279 0
+ 355 0000 0100A0E3 		mov	r0, #1
+ 356 0004 FEFFFFEA 		b	v7_maint_dcache_all
+ 357              	.LVL35:
+ 358              		.cfi_endproc
+ 359              	.LFE19:
+ 361              		.section	.text.flush_dcache_all,"ax",%progbits
+ 362              		.align	2
+ 363              		.global	flush_dcache_all
+ 365              	flush_dcache_all:
+ 366              	.LFB20:
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_outer_cache_inval_all();
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /*
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Performs a clean & invalidation of the entire data cache
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * at all levels
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  */
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void flush_dcache_all(void)
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 367              		.loc 1 289 0
+ 368              		.cfi_startproc
+ 369              		@ args = 0, pretend = 0, frame = 0
+ 370              		@ frame_needed = 0, uses_anonymous_args = 0
+ 371              		@ link register save eliminated.
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_maint_dcache_all(ARMV7_DCACHE_CLEAN_INVAL_ALL);
+ 372              		.loc 1 290 0
+ 373 0000 0200A0E3 		mov	r0, #2
+ 374 0004 FEFFFFEA 		b	v7_maint_dcache_all
+ 375              	.LVL36:
+ 376              		.cfi_endproc
+ 377              	.LFE20:
+ 379              		.section	.text.invalidate_dcache_range,"ax",%progbits
+ 380              		.align	2
+ 381              		.global	invalidate_dcache_range
+ 383              	invalidate_dcache_range:
+ 384              	.LFB21:
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_outer_cache_flush_all();
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /*
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Invalidates range in all levels of D-cache/unified cache used:
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Affects the range [start, stop - 1]
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  */
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void invalidate_dcache_range(unsigned long start, unsigned long stop)
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 385              		.loc 1 300 0
+ 386              		.cfi_startproc
+ 387              		@ args = 0, pretend = 0, frame = 0
+ 388              		@ frame_needed = 0, uses_anonymous_args = 0
+ 389              	.LVL37:
+ 390 0000 38402DE9 		stmfd	sp!, {r3, r4, r5, lr}
+ 391              	.LCFI1:
+ 392              		.cfi_def_cfa_offset 16
+ 393              		.cfi_offset 3, -16
+ 394              		.cfi_offset 4, -12
+ 395              		.cfi_offset 5, -8
+ 396              		.cfi_offset 14, -4
+ 397              		.loc 1 300 0
+ 398 0004 0040A0E1 		mov	r4, r0
+ 399              	.LVL38:
+ 400 0008 0150A0E1 		mov	r5, r1
+ 401              	.LBB74:
+ 402              	.LBB75:
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 403              		.loc 1 241 0
+ 404 000c FEFFFFEB 		bl	get_cache_line_len
+ 405              	.LVL39:
+ 406              	.LBB76:
+ 407              	.LBB77:
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 408              		.loc 1 230 0
+ 409 0010 003060E2 		rsb	r3, r0, #0
+ 410 0014 043003E0 		and	r3, r3, r4
+ 411              	.LVL40:
+ 412              	.L30:
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 413              		.loc 1 232 0
+ 414 0018 050053E1 		cmp	r3, r5
+ 415 001c 0200002A 		bcs	.L33
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	}
+ 416              		.loc 1 235 0
+ 417              	@ 235 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 418 0020 363F07EE 		mcr p15, 0, r3, c7, c6, 1
+ 419              	@ 0 "" 2
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	{
+ 420              		.loc 1 232 0
+ 421 0024 003083E0 		add	r3, r3, r0
+ 422              	.LVL41:
+ 423 0028 FAFFFFEA 		b	.L30
+ 424              	.L33:
+ 425              	.LBE77:
+ 426              	.LBE76:
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 427              		.loc 1 254 0
+ 428 002c 0030A0E3 		mov	r3, #0
+ 429              	.LVL42:
+ 430              	@ 254 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 431 0030 9A3F07EE 		mcr     p15, 0, r3, c7, c10, 4
+ 432              	@ 0 "" 2
+ 433              	.LVL43:
+ 434 0034 3880BDE8 		ldmfd	sp!, {r3, r4, r5, pc}
+ 435              	.LBE75:
+ 436              	.LBE74:
+ 437              		.cfi_endproc
+ 438              	.LFE21:
+ 440              		.section	.text.flush_dcache_range,"ax",%progbits
+ 441              		.align	2
+ 442              		.global	flush_dcache_range
+ 444              	flush_dcache_range:
+ 445              	.LFB22:
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_dcache_maint_range(start, stop, ARMV7_DCACHE_INVAL_RANGE);
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_outer_cache_inval_range(start, stop);
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /*
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Flush range(clean & invalidate) from all levels of D-cache/unified
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * cache used:
+ 309:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Affects the range [start, stop - 1]
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  */
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void flush_dcache_range(unsigned long start, unsigned long stop)
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 446              		.loc 1 312 0
+ 447              		.cfi_startproc
+ 448              		@ args = 0, pretend = 0, frame = 0
+ 449              		@ frame_needed = 0, uses_anonymous_args = 0
+ 450              	.LVL44:
+ 451 0000 38402DE9 		stmfd	sp!, {r3, r4, r5, lr}
+ 452              	.LCFI2:
+ 453              		.cfi_def_cfa_offset 16
+ 454              		.cfi_offset 3, -16
+ 455              		.cfi_offset 4, -12
+ 456              		.cfi_offset 5, -8
+ 457              		.cfi_offset 14, -4
+ 458              		.loc 1 312 0
+ 459 0004 0040A0E1 		mov	r4, r0
+ 460              	.LVL45:
+ 461 0008 0150A0E1 		mov	r5, r1
+ 462              	.LBB82:
+ 463              	.LBB83:
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 464              		.loc 1 241 0
+ 465 000c FEFFFFEB 		bl	get_cache_line_len
+ 466              	.LVL46:
+ 467              	.LBB84:
+ 468              	.LBB85:
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	for (mva = start; mva < stop; mva = mva + line_len)
+ 469              		.loc 1 219 0
+ 470 0010 003060E2 		rsb	r3, r0, #0
+ 471 0014 043003E0 		and	r3, r3, r4
+ 472              	.LVL47:
+ 473              	.L35:
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		/* DCCIMVAC - Clean & Invalidate data cache by MVA to PoC */
+ 474              		.loc 1 220 0
+ 475 0018 050053E1 		cmp	r3, r5
+ 476 001c 0200002A 		bcs	.L38
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 477              		.loc 1 222 0
+ 478              	@ 222 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 479 0020 3E3F07EE 		mcr p15, 0, r3, c7, c14, 1
+ 480              	@ 0 "" 2
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 		/* DCCIMVAC - Clean & Invalidate data cache by MVA to PoC */
+ 481              		.loc 1 220 0
+ 482 0024 003083E0 		add	r3, r3, r0
+ 483              	.LVL48:
+ 484 0028 FAFFFFEA 		b	.L35
+ 485              	.L38:
+ 486              	.LBE85:
+ 487              	.LBE84:
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 488              		.loc 1 254 0
+ 489 002c 0030A0E3 		mov	r3, #0
+ 490              	.LVL49:
+ 491              	@ 254 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 492 0030 9A3F07EE 		mcr     p15, 0, r3, c7, c10, 4
+ 493              	@ 0 "" 2
+ 494              	.LVL50:
+ 495 0034 3880BDE8 		ldmfd	sp!, {r3, r4, r5, pc}
+ 496              	.LBE83:
+ 497              	.LBE82:
+ 498              		.cfi_endproc
+ 499              	.LFE22:
+ 501              		.section	.text.arm_init_before_mmu,"ax",%progbits
+ 502              		.align	2
+ 503              		.global	arm_init_before_mmu
+ 505              	arm_init_before_mmu:
+ 506              	.LFB23:
+ 313:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_dcache_maint_range(start, stop, ARMV7_DCACHE_CLEAN_INVAL_RANGE);
+ 314:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_outer_cache_flush_range(start, stop);
+ 316:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 317:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 318:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void arm_init_before_mmu(void)
+ 319:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 507              		.loc 1 319 0
+ 508              		.cfi_startproc
+ 509              		@ args = 0, pretend = 0, frame = 0
+ 510              		@ frame_needed = 0, uses_anonymous_args = 0
+ 511 0000 08402DE9 		stmfd	sp!, {r3, lr}
+ 512              	.LCFI3:
+ 513              		.cfi_def_cfa_offset 8
+ 514              		.cfi_offset 3, -8
+ 515              		.cfi_offset 14, -4
+ 320:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_outer_cache_enable();
+ 321:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	invalidate_dcache_all();
+ 516              		.loc 1 321 0
+ 517 0004 FEFFFFEB 		bl	invalidate_dcache_all
+ 518              	.LVL51:
+ 519              	.LBB88:
+ 520              	.LBB89:
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire data TLB */
+ 521              		.loc 1 261 0
+ 522 0008 0030A0E3 		mov	r3, #0
+ 523              	@ 261 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 524 000c 173F08EE 		mcr p15, 0, r3, c8, c7, 0
+ 525              	@ 0 "" 2
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire instruction TLB */
+ 526              		.loc 1 263 0
+ 527              	@ 263 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 528 0010 163F08EE 		mcr p15, 0, r3, c8, c6, 0
+ 529              	@ 0 "" 2
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Full system DSB - make sure that the invalidation is complete */
+ 530              		.loc 1 265 0
+ 531              	@ 265 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 532 0014 153F08EE 		mcr p15, 0, r3, c8, c5, 0
+ 533              	@ 0 "" 2
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Full system ISB - make sure the instruction stream sees it */
+ 534              		.loc 1 267 0
+ 535              	@ 267 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 536 0018 9A3F07EE 		mcr     p15, 0, r3, c7, c10, 4
+ 537              	@ 0 "" 2
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 538              		.loc 1 269 0
+ 539              	@ 269 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 540 001c 953F07EE 		mcr     p15, 0, r3, c7, c5, 4
+ 541              	@ 0 "" 2
+ 542 0020 0880BDE8 		ldmfd	sp!, {r3, pc}
+ 543              	.LBE89:
+ 544              	.LBE88:
+ 545              		.cfi_endproc
+ 546              	.LFE23:
+ 548              		.section	.text.mmu_page_table_flush,"ax",%progbits
+ 549              		.align	2
+ 550              		.global	mmu_page_table_flush
+ 552              	mmu_page_table_flush:
+ 553              	.LFB24:
+ 322:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_inval_tlb();
+ 323:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 324:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 325:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void mmu_page_table_flush(unsigned long start, unsigned long stop)
+ 326:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 554              		.loc 1 326 0
+ 555              		.cfi_startproc
+ 556              		@ args = 0, pretend = 0, frame = 0
+ 557              		@ frame_needed = 0, uses_anonymous_args = 0
+ 558              	.LVL52:
+ 559 0000 08402DE9 		stmfd	sp!, {r3, lr}
+ 560              	.LCFI4:
+ 561              		.cfi_def_cfa_offset 8
+ 562              		.cfi_offset 3, -8
+ 563              		.cfi_offset 14, -4
+ 327:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	flush_dcache_range(start, stop);
+ 564              		.loc 1 327 0
+ 565 0004 FEFFFFEB 		bl	flush_dcache_range
+ 566              	.LVL53:
+ 567              	.LBB92:
+ 568              	.LBB93:
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire data TLB */
+ 569              		.loc 1 261 0
+ 570 0008 0030A0E3 		mov	r3, #0
+ 571              	@ 261 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 572 000c 173F08EE 		mcr p15, 0, r3, c8, c7, 0
+ 573              	@ 0 "" 2
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire instruction TLB */
+ 574              		.loc 1 263 0
+ 575              	@ 263 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 576 0010 163F08EE 		mcr p15, 0, r3, c8, c6, 0
+ 577              	@ 0 "" 2
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Full system DSB - make sure that the invalidation is complete */
+ 578              		.loc 1 265 0
+ 579              	@ 265 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 580 0014 153F08EE 		mcr p15, 0, r3, c8, c5, 0
+ 581              	@ 0 "" 2
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Full system ISB - make sure the instruction stream sees it */
+ 582              		.loc 1 267 0
+ 583              	@ 267 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 584 0018 9A3F07EE 		mcr     p15, 0, r3, c7, c10, 4
+ 585              	@ 0 "" 2
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 586              		.loc 1 269 0
+ 587              	@ 269 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 588 001c 953F07EE 		mcr     p15, 0, r3, c7, c5, 4
+ 589              	@ 0 "" 2
+ 590 0020 0880BDE8 		ldmfd	sp!, {r3, pc}
+ 591              	.LBE93:
+ 592              	.LBE92:
+ 593              		.cfi_endproc
+ 594              	.LFE24:
+ 596              		.section	.text.flush_cache,"ax",%progbits
+ 597              		.align	2
+ 598              		.global	flush_cache
+ 600              	flush_cache:
+ 601              	.LFB25:
+ 328:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	v7_inval_tlb();
+ 329:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 330:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 331:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /*
+ 332:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Flush range from all levels of d-cache/unified-cache used:
+ 333:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Affects the range [start, start + size - 1]
+ 334:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  */
+ 335:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void flush_cache(uint32_t start, uint32_t size)
+ 336:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 602              		.loc 1 336 0
+ 603              		.cfi_startproc
+ 604              		@ args = 0, pretend = 0, frame = 0
+ 605              		@ frame_needed = 0, uses_anonymous_args = 0
+ 606              		@ link register save eliminated.
+ 607              	.LVL54:
+ 337:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	flush_dcache_range(start, start + size);
+ 608              		.loc 1 337 0
+ 609 0000 011080E0 		add	r1, r0, r1
+ 610              	.LVL55:
+ 611 0004 FEFFFFEA 		b	flush_dcache_range
+ 612              	.LVL56:
+ 613              		.cfi_endproc
+ 614              	.LFE25:
+ 616              		.section	.text.invalidate_cache,"ax",%progbits
+ 617              		.align	2
+ 618              		.global	invalidate_cache
+ 620              	invalidate_cache:
+ 621              	.LFB26:
+ 338:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 339:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 340:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /*
+ 341:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Invalidate range from all levels of d-cache/unified-cache used:
+ 342:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  * Affects the range [start, start + size - 1]
+ 343:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c ****  */
+ 344:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void invalidate_cache(uint32_t start, uint32_t size)
+ 345:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 622              		.loc 1 345 0
+ 623              		.cfi_startproc
+ 624              		@ args = 0, pretend = 0, frame = 0
+ 625              		@ frame_needed = 0, uses_anonymous_args = 0
+ 626              		@ link register save eliminated.
+ 627              	.LVL57:
+ 346:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	invalidate_dcache_range(start, start + size);
+ 628              		.loc 1 346 0
+ 629 0000 011080E0 		add	r1, r0, r1
+ 630              	.LVL58:
+ 631 0004 FEFFFFEA 		b	invalidate_dcache_range
+ 632              	.LVL59:
+ 633              		.cfi_endproc
+ 634              	.LFE26:
+ 636              		.section	.text.invalidate_icache_all,"ax",%progbits
+ 637              		.align	2
+ 638              		.global	invalidate_icache_all
+ 640              	invalidate_icache_all:
+ 641              	.LFB27:
+ 347:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** }
+ 348:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 349:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 350:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** /* Invalidate entire I-cache and branch predictor array */
+ 351:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** void invalidate_icache_all(void)
+ 352:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** {
+ 642              		.loc 1 352 0
+ 643              		.cfi_startproc
+ 644              		@ args = 0, pretend = 0, frame = 0
+ 645              		@ frame_needed = 0, uses_anonymous_args = 0
+ 646              		@ link register save eliminated.
+ 353:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/*
+ 354:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 * Invalidate all instruction caches to PoU.
+ 355:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 * Also flushes branch target cache.
+ 356:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	 */
+ 357:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mcr p15, 0, %0, c7, c5, 0" : : "r" (0));
+ 647              		.loc 1 357 0
+ 648 0000 0030A0E3 		mov	r3, #0
+ 649              	@ 357 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 650 0004 153F07EE 		mcr p15, 0, r3, c7, c5, 0
+ 651              	@ 0 "" 2
+ 358:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 359:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Invalidate entire branch predictor array */
+ 360:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	asm volatile ("mcr p15, 0, %0, c7, c5, 6" : : "r" (0));
+ 652              		.loc 1 360 0
+ 653              	@ 360 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 654 0008 D53F07EE 		mcr p15, 0, r3, c7, c5, 6
+ 655              	@ 0 "" 2
+ 361:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 362:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* Full system DSB - make sure that the invalidation is complete */
+ 363:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	CP15DSB;
+ 656              		.loc 1 363 0
+ 657              	@ 363 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 658 000c 9A3F07EE 		mcr     p15, 0, r3, c7, c10, 4
+ 659              	@ 0 "" 2
+ 364:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 
+ 365:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	/* ISB - make sure the instruction stream sees it */
+ 366:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c **** 	CP15ISB;
+ 660              		.loc 1 366 0
+ 661              	@ 366 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_cache.c" 1
+ 662 0010 953F07EE 		mcr     p15, 0, r3, c7, c5, 4
+ 663              	@ 0 "" 2
+ 664 0014 1EFF2FE1 		bx	lr
+ 665              		.cfi_endproc
+ 666              	.LFE27:
+ 668              		.text
+ 669              	.Letext0:
+ 670              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 671              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_cache.c
+     /tmp/ccCXZFIg.s:17     .text.v7_maint_dcache_all:00000000 $a
+     /tmp/ccCXZFIg.s:19     .text.v7_maint_dcache_all:00000000 v7_maint_dcache_all
+     /tmp/ccCXZFIg.s:225    .text.v7_outer_cache_inval_all:00000000 $a
+     /tmp/ccCXZFIg.s:228    .text.v7_outer_cache_inval_all:00000000 v7_outer_cache_inval_all
+     /tmp/ccCXZFIg.s:240    .text.v7_outer_cache_flush_all:00000000 $a
+     /tmp/ccCXZFIg.s:243    .text.v7_outer_cache_flush_all:00000000 v7_outer_cache_flush_all
+     /tmp/ccCXZFIg.s:255    .text.v7_outer_cache_inval_range:00000000 $a
+     /tmp/ccCXZFIg.s:258    .text.v7_outer_cache_inval_range:00000000 v7_outer_cache_inval_range
+     /tmp/ccCXZFIg.s:271    .text.v7_outer_cache_flush_range:00000000 $a
+     /tmp/ccCXZFIg.s:274    .text.v7_outer_cache_flush_range:00000000 v7_outer_cache_flush_range
+     /tmp/ccCXZFIg.s:287    .text.v7_outer_cache_enable:00000000 $a
+     /tmp/ccCXZFIg.s:290    .text.v7_outer_cache_enable:00000000 v7_outer_cache_enable
+     /tmp/ccCXZFIg.s:302    .text.get_cache_line_len:00000000 $a
+     /tmp/ccCXZFIg.s:305    .text.get_cache_line_len:00000000 get_cache_line_len
+     /tmp/ccCXZFIg.s:344    .text.invalidate_dcache_all:00000000 $a
+     /tmp/ccCXZFIg.s:347    .text.invalidate_dcache_all:00000000 invalidate_dcache_all
+     /tmp/ccCXZFIg.s:362    .text.flush_dcache_all:00000000 $a
+     /tmp/ccCXZFIg.s:365    .text.flush_dcache_all:00000000 flush_dcache_all
+     /tmp/ccCXZFIg.s:380    .text.invalidate_dcache_range:00000000 $a
+     /tmp/ccCXZFIg.s:383    .text.invalidate_dcache_range:00000000 invalidate_dcache_range
+     /tmp/ccCXZFIg.s:441    .text.flush_dcache_range:00000000 $a
+     /tmp/ccCXZFIg.s:444    .text.flush_dcache_range:00000000 flush_dcache_range
+     /tmp/ccCXZFIg.s:502    .text.arm_init_before_mmu:00000000 $a
+     /tmp/ccCXZFIg.s:505    .text.arm_init_before_mmu:00000000 arm_init_before_mmu
+     /tmp/ccCXZFIg.s:549    .text.mmu_page_table_flush:00000000 $a
+     /tmp/ccCXZFIg.s:552    .text.mmu_page_table_flush:00000000 mmu_page_table_flush
+     /tmp/ccCXZFIg.s:597    .text.flush_cache:00000000 $a
+     /tmp/ccCXZFIg.s:600    .text.flush_cache:00000000 flush_cache
+     /tmp/ccCXZFIg.s:617    .text.invalidate_cache:00000000 $a
+     /tmp/ccCXZFIg.s:620    .text.invalidate_cache:00000000 invalidate_cache
+     /tmp/ccCXZFIg.s:637    .text.invalidate_icache_all:00000000 $a
+     /tmp/ccCXZFIg.s:640    .text.invalidate_icache_all:00000000 invalidate_icache_all
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

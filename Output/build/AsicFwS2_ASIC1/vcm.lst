@@ -1,0 +1,1774 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"vcm.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.vcm_init,"ax",%progbits
+  19              		.align	1
+  20              		.global	vcm_init
+  21              		.thumb
+  22              		.thumb_func
+  24              	vcm_init:
+  25              	.LFB3:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @file    vcm.c
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @author  The LightCo
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @version V2.0.0
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @date    Jun-07-2016
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @brief   This file contain definition for the vcm_t object and its APIs.
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  *		Every API will receive at least the id parameter which is the camera
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  *		id of the camera that contain VCM object. User should ensure that
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  *		the camera has been initialized before passing its id to VCM API.
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "std_type.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "assert.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "os.h"
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "log.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "i2cm.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "eeprom.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "lcc_system.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "af_lens_calib.h"
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #include "vcm.h"
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /* Private define ------------------------------------------------------------*/
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #define SLOGF_ID			SLOG_ID_VCM_DRIVER
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** #define VCM_HARD_STOP_BUFFER 512
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /* Global variable -----------------------------------------------------------*/
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /* Private typedef -----------------------------------------------------------*/
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /*
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @brief interp_type_t
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * Interpolate type
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  */
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** typedef enum interp_type
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	INTERP_TYPE_NONE = 0,
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	INTERP_TYPE_FLOAT = 1,
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	INTERP_TYPE_MAX
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** } interp_type_t;
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /*
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @brief float_point_t
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * A point structure which x,y is float
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  */
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** typedef struct float_point
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	float x;
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	float y;
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** } float_point_t;
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /*
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @brief interp_table_t
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * Interpolate table
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  */
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** typedef struct interp_table
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	void *table;
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	unsigned int size;
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	interp_type_t datatype;
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** } interp_table_t;
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /*
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @brief af_data_t
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * Data used for auto focus calculation
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  */
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** typedef struct af_data
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_calib_point_t  af_calib_points[NUM_CALIB_POINTS];
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_calib_t  af_calib;
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     int16_t hard_stop_inf;
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     int16_t hard_stop_macro;
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     uint8_t is_valid;	/* AF data is valid or not */
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t is_on;		/* VCM module has initialized or not */
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** } af_data_t;
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /* Private functions implementation ------------------------------------------*/
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /*
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @brief read_eeprom
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * A wrapper function to read camera EEPROM
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  */
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** static uint8_t read_eeprom(i2c_t chid, uint16_t addr, void *val, uint8_t dm)
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t len = 1;
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(dm == WORD_ADDR16)
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		len = 2;
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	eeprom_read(chid, addr, len, val);
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /*
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * @brief init_af_data
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  * Initialize AF data for focusing operation
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****  */
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** static int init_af_data(vcm_t *vcm)
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	int ret = 0;
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(!vcm->af_data)
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		SLOGF(SLOG_DEBUG, "Initialize AF data for i2c channel %d", vcm->i2c);
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		vcm->af_data = assert_malloc(vcm->af_data, sizeof(af_data_t));
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		memset(vcm->af_data, 0x00, sizeof(af_data_t));
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	af_data_t *info = (af_data_t *)vcm->af_data;
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(info && info->is_on && info->is_valid)
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return 1;
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint16_t read_buf;
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	ret |= read_eeprom(vcm->i2c, EEPROM_AF_HARD_STOP_MACRO,
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	                   &read_buf, WORD_ADDR16);
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->hard_stop_macro = __builtin_bswap16(read_buf);
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     ret |= read_eeprom(vcm->i2c, EEPROM_AF_HARD_STOP_INF,
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****                         &read_buf, WORD_ADDR16);
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->hard_stop_inf = __builtin_bswap16(read_buf);
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	ret |= read_eeprom(vcm->i2c, EEPROM_AF_POS_MACRO,
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 						&read_buf, WORD_ADDR16);
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->af_calib_points[0].hallcode = __builtin_bswap16(read_buf);
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	ret |= read_eeprom(vcm->i2c, EEPROM_AF_POS_INF,
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 						&read_buf, WORD_ADDR16);
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->af_calib_points[1].hallcode = __builtin_bswap16(read_buf);
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->af_calib_points[0].object_distance_mm = 100;
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->af_calib_points[1].object_distance_mm = 5000;
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Macro distance: %d", info->af_calib_points[0].object_distance_mm);
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Infinity distance: %d", info->af_calib_points[1].object_distance_mm);
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Macro position: %d", info->af_calib_points[0].hallcode);
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Infinity position: %d", info->af_calib_points[1].hallcode);
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Hard stop macro: %d", info->hard_stop_macro);
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     SLOGF(SLOG_DEBUG, "Hard stop infinity: %d", info->hard_stop_inf);
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->af_calib.focal_length_mm = 3.68f;
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->af_calib.calib_point_arr = info->af_calib_points;
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->af_calib.num_calib_points = NUM_CALIB_POINTS;
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->is_valid = 1;
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->is_on = 1;
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return (ret == 0);
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** /* Exported functions ------------------------------------------------------- */
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_init(vcm_t *vcm)
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+  27              		.loc 1 144 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 8
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 2DE9F043 		push	{r4, r5, r6, r7, r8, r9, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 28
+  35              		.cfi_offset 4, -28
+  36              		.cfi_offset 5, -24
+  37              		.cfi_offset 6, -20
+  38              		.cfi_offset 7, -16
+  39              		.cfi_offset 8, -12
+  40              		.cfi_offset 9, -8
+  41              		.cfi_offset 14, -4
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t cver = 0;
+  42              		.loc 1 145 0
+  43 0004 0023     		movs	r3, #0
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t cver = 0;
+  44              		.loc 1 144 0
+  45 0006 85B0     		sub	sp, sp, #20
+  46              	.LCFI1:
+  47              		.cfi_def_cfa_offset 48
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t byte_data;
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint32_t cnt = 0;
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	assert_param(NULL != vcm);
+  48              		.loc 1 149 0
+  49 0008 0546     		mov	r5, r0
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t byte_data;
+  50              		.loc 1 145 0
+  51 000a 8DF80C30 		strb	r3, [sp, #12]
+  52              	.LVL1:
+  53              		.loc 1 149 0
+  54 000e 18B9     		cbnz	r0, .L2
+  55              		.loc 1 149 0 is_stmt 0 discriminator 1
+  56 0010 6848     		ldr	r0, .L32
+  57              	.LVL2:
+  58 0012 9521     		movs	r1, #149
+  59 0014 684B     		ldr	r3, .L32+4
+  60 0016 9847     		blx	r3
+  61              	.LVL3:
+  62              	.L2:
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	af_data_t *afdata = (af_data_t *)vcm->af_data;
+  63              		.loc 1 151 0 is_stmt 1
+  64 0018 AB68     		ldr	r3, [r5, #8]
+  65              	.LVL4:
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(afdata && afdata->is_on)
+  66              		.loc 1 152 0
+  67 001a 43B1     		cbz	r3, .L3
+  68              		.loc 1 152 0 is_stmt 0 discriminator 1
+  69 001c 5B7E     		ldrb	r3, [r3, #25]	@ zero_extendqisi2
+  70              	.LVL5:
+  71 001e 33B1     		cbz	r3, .L3
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		SLOGF(SLOG_INFO, "VCM already initialized");
+  72              		.loc 1 154 0 is_stmt 1
+  73 0020 2520     		movs	r0, #37
+  74 0022 0821     		movs	r1, #8
+  75 0024 654A     		ldr	r2, .L32+8
+  76 0026 664B     		ldr	r3, .L32+12
+  77 0028 9847     		blx	r3
+  78              	.LVL6:
+  79              	.L29:
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_OK;
+  80              		.loc 1 155 0
+  81 002a 0020     		movs	r0, #0
+  82 002c BEE0     		b	.L27
+  83              	.LVL7:
+  84              	.L3:
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.read(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_CVER_REG, &cver);
+  85              		.loc 1 158 0
+  86 002e 654C     		ldr	r4, .L32+16
+  87 0030 03AB     		add	r3, sp, #12
+  88 0032 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+  89 0034 0021     		movs	r1, #0
+  90 0036 0093     		str	r3, [sp]
+  91              	.LVL8:
+  92 0038 7222     		movs	r2, #114
+  93 003a F023     		movs	r3, #240
+  94 003c E668     		ldr	r6, [r4, #12]
+  95 003e B047     		blx	r6
+  96              	.LVL9:
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(cver != VCM_CHIP_VERSION)
+  97              		.loc 1 159 0
+  98 0040 9DF80C30 		ldrb	r3, [sp, #12]	@ zero_extendqisi2
+  99 0044 422B     		cmp	r3, #66
+ 100 0046 06D0     		beq	.L5
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		SLOGF(SLOG_ERROR, "Unsupported VCM chip version");
+ 101              		.loc 1 161 0
+ 102 0048 2520     		movs	r0, #37
+ 103 004a 0221     		movs	r1, #2
+ 104 004c 5E4A     		ldr	r2, .L32+20
+ 105 004e 5C4B     		ldr	r3, .L32+12
+ 106 0050 9847     		blx	r3
+ 107              	.LVL10:
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_INVALID_CVER;
+ 108              		.loc 1 162 0
+ 109 0052 0320     		movs	r0, #3
+ 110 0054 AAE0     		b	.L27
+ 111              	.L5:
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	byte_data = 0x01;
+ 112              		.loc 1 164 0
+ 113 0056 04AE     		add	r6, sp, #16
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.write(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_AWDLCTRL_REG, &byte_data);
+ 114              		.loc 1 165 0
+ 115 0058 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.write(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_AWDLCTRL_REG, &byte_data);
+ 116              		.loc 1 164 0
+ 117 005a 0123     		movs	r3, #1
+ 118              		.loc 1 165 0
+ 119 005c 0021     		movs	r1, #0
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.write(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_AWDLCTRL_REG, &byte_data);
+ 120              		.loc 1 164 0
+ 121 005e 06F8033D 		strb	r3, [r6, #-3]!
+ 122              		.loc 1 165 0
+ 123 0062 7222     		movs	r2, #114
+ 124 0064 E023     		movs	r3, #224
+ 125 0066 0096     		str	r6, [sp]
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.read(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_AWDLCTRL_REG, &byte_data);
+ 126              		.loc 1 167 0
+ 127 0068 4FF01409 		mov	r9, #20
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 128              		.loc 1 165 0
+ 129 006c 2769     		ldr	r7, [r4, #16]
+ 130 006e B847     		blx	r7
+ 131              	.LVL11:
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 132              		.loc 1 166 0
+ 133 0070 DFF89481 		ldr	r8, .L32+84
+ 134 0074 0520     		movs	r0, #5
+ 135 0076 C047     		blx	r8
+ 136              	.LVL12:
+ 137              		.loc 1 167 0
+ 138 0078 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 139 007a 0021     		movs	r1, #0
+ 140 007c 0096     		str	r6, [sp]
+ 141 007e 7222     		movs	r2, #114
+ 142 0080 E023     		movs	r3, #224
+ 143 0082 E768     		ldr	r7, [r4, #12]
+ 144 0084 B847     		blx	r7
+ 145              	.LVL13:
+ 146              	.L6:
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	while(cnt < VCM_OP_MAX_TRY_CNT && byte_data != 0x00)
+ 147              		.loc 1 168 0 discriminator 1
+ 148 0086 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 149 008a 93B1     		cbz	r3, .L31
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		vTaskDelay(5);
+ 150              		.loc 1 170 0
+ 151 008c 0520     		movs	r0, #5
+ 152 008e C047     		blx	r8
+ 153              	.LVL14:
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		cnt++;
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		i2cm.read(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_AWDLCTRL_REG, &byte_data);
+ 154              		.loc 1 172 0
+ 155 0090 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 156 0092 0021     		movs	r1, #0
+ 157 0094 0096     		str	r6, [sp]
+ 158 0096 7222     		movs	r2, #114
+ 159 0098 E768     		ldr	r7, [r4, #12]
+ 160 009a E023     		movs	r3, #224
+ 161 009c B847     		blx	r7
+ 162              	.LVL15:
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 163              		.loc 1 168 0
+ 164 009e B9F10109 		subs	r9, r9, #1
+ 165              	.LVL16:
+ 166 00a2 F0D1     		bne	.L6
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	/* Check time out condition */
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(cnt == VCM_OP_MAX_TRY_CNT)
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		SLOGF(SLOG_ERROR, "Downloading timeout");
+ 167              		.loc 1 178 0
+ 168 00a4 2520     		movs	r0, #37
+ 169 00a6 0221     		movs	r1, #2
+ 170 00a8 484A     		ldr	r2, .L32+24
+ 171 00aa 454B     		ldr	r3, .L32+12
+ 172 00ac 9847     		blx	r3
+ 173              	.LVL17:
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_OP_TIMEOUT;
+ 174              		.loc 1 179 0
+ 175 00ae 0220     		movs	r0, #2
+ 176 00b0 7CE0     		b	.L27
+ 177              	.L31:
+ 178              	.LVL18:
+ 179              	.LBB13:
+ 180              	.LBB14:
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 181              		.loc 1 101 0
+ 182 00b2 AB68     		ldr	r3, [r5, #8]
+ 183 00b4 424E     		ldr	r6, .L32+12
+ 184 00b6 A3B9     		cbnz	r3, .L14
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		vcm->af_data = assert_malloc(vcm->af_data, sizeof(af_data_t));
+ 185              		.loc 1 103 0
+ 186 00b8 2520     		movs	r0, #37
+ 187 00ba 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+ 188 00bc 1021     		movs	r1, #16
+ 189 00be 444A     		ldr	r2, .L32+28
+ 190 00c0 B047     		blx	r6
+ 191              	.LVL19:
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		memset(vcm->af_data, 0x00, sizeof(af_data_t));
+ 192              		.loc 1 104 0
+ 193 00c2 1C20     		movs	r0, #28
+ 194 00c4 4349     		ldr	r1, .L32+32
+ 195 00c6 6822     		movs	r2, #104
+ 196 00c8 434B     		ldr	r3, .L32+36
+ 197 00ca 9847     		blx	r3
+ 198              	.LVL20:
+ 199 00cc A860     		str	r0, [r5, #8]
+ 200 00ce 18B9     		cbnz	r0, .L10
+ 201 00d0 4048     		ldr	r0, .L32+32
+ 202 00d2 6821     		movs	r1, #104
+ 203 00d4 414B     		ldr	r3, .L32+40
+ 204 00d6 9847     		blx	r3
+ 205              	.LVL21:
+ 206              	.L10:
+ 207 00d8 A860     		str	r0, [r5, #8]
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 208              		.loc 1 105 0
+ 209 00da 0021     		movs	r1, #0
+ 210 00dc 1C22     		movs	r2, #28
+ 211 00de 404B     		ldr	r3, .L32+44
+ 212 00e0 9847     		blx	r3
+ 213              	.LVL22:
+ 214              	.L14:
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(info && info->is_on && info->is_valid)
+ 215              		.loc 1 108 0
+ 216 00e2 AC68     		ldr	r4, [r5, #8]
+ 217              	.LVL23:
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return 1;
+ 218              		.loc 1 109 0
+ 219 00e4 24B1     		cbz	r4, .L11
+ 220 00e6 637E     		ldrb	r3, [r4, #25]	@ zero_extendqisi2
+ 221 00e8 13B1     		cbz	r3, .L11
+ 222 00ea 237E     		ldrb	r3, [r4, #24]	@ zero_extendqisi2
+ 223 00ec 002B     		cmp	r3, #0
+ 224 00ee 56D1     		bne	.L12
+ 225              	.L11:
+ 226              	.LVL24:
+ 227              	.LBB15:
+ 228              	.LBB16:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+ 229              		.loc 1 89 0
+ 230 00f0 3C4F     		ldr	r7, .L32+48
+ 231 00f2 2B21     		movs	r1, #43
+ 232 00f4 0222     		movs	r2, #2
+ 233 00f6 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 234 00f8 0DF10E03 		add	r3, sp, #14
+ 235              	.LVL25:
+ 236 00fc B847     		blx	r7
+ 237              	.LVL26:
+ 238              	.LBE16:
+ 239              	.LBE15:
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     ret |= read_eeprom(vcm->i2c, EEPROM_AF_HARD_STOP_INF,
+ 240              		.loc 1 115 0
+ 241 00fe BDF80E30 		ldrh	r3, [sp, #14]
+ 242 0102 5BBA     		rev16	r3, r3
+ 243              	.LBB17:
+ 244              	.LBB18:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+ 245              		.loc 1 89 0
+ 246 0104 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 247 0106 2D21     		movs	r1, #45
+ 248              	.LBE18:
+ 249              	.LBE17:
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     ret |= read_eeprom(vcm->i2c, EEPROM_AF_HARD_STOP_INF,
+ 250              		.loc 1 115 0
+ 251 0108 E382     		strh	r3, [r4, #22]	@ movhi
+ 252              	.LVL27:
+ 253              	.LBB20:
+ 254              	.LBB19:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+ 255              		.loc 1 89 0
+ 256 010a 0222     		movs	r2, #2
+ 257 010c 0DF10E03 		add	r3, sp, #14
+ 258              	.LVL28:
+ 259 0110 B847     		blx	r7
+ 260              	.LVL29:
+ 261              	.LBE19:
+ 262              	.LBE20:
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	ret |= read_eeprom(vcm->i2c, EEPROM_AF_POS_MACRO,
+ 263              		.loc 1 118 0
+ 264 0112 BDF80E30 		ldrh	r3, [sp, #14]
+ 265 0116 5BBA     		rev16	r3, r3
+ 266              	.LBB21:
+ 267              	.LBB22:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+ 268              		.loc 1 89 0
+ 269 0118 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 270 011a 2521     		movs	r1, #37
+ 271              	.LBE22:
+ 272              	.LBE21:
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	ret |= read_eeprom(vcm->i2c, EEPROM_AF_POS_MACRO,
+ 273              		.loc 1 118 0
+ 274 011c A382     		strh	r3, [r4, #20]	@ movhi
+ 275              	.LVL30:
+ 276              	.LBB24:
+ 277              	.LBB23:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+ 278              		.loc 1 89 0
+ 279 011e 0222     		movs	r2, #2
+ 280 0120 0DF10E03 		add	r3, sp, #14
+ 281              	.LVL31:
+ 282 0124 B847     		blx	r7
+ 283              	.LVL32:
+ 284              	.LBE23:
+ 285              	.LBE24:
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	ret |= read_eeprom(vcm->i2c, EEPROM_AF_POS_INF,
+ 286              		.loc 1 121 0
+ 287 0126 BDF80E30 		ldrh	r3, [sp, #14]
+ 288 012a 5BBA     		rev16	r3, r3
+ 289              	.LBB25:
+ 290              	.LBB26:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+ 291              		.loc 1 89 0
+ 292 012c 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 293 012e 2721     		movs	r1, #39
+ 294              	.LBE26:
+ 295              	.LBE25:
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	ret |= read_eeprom(vcm->i2c, EEPROM_AF_POS_INF,
+ 296              		.loc 1 121 0
+ 297 0130 6380     		strh	r3, [r4, #2]	@ movhi
+ 298              	.LVL33:
+ 299              	.LBB28:
+ 300              	.LBB27:
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return 0;
+ 301              		.loc 1 89 0
+ 302 0132 0222     		movs	r2, #2
+ 303 0134 0DF10E03 		add	r3, sp, #14
+ 304              	.LVL34:
+ 305 0138 B847     		blx	r7
+ 306              	.LVL35:
+ 307              	.LBE27:
+ 308              	.LBE28:
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->af_calib_points[0].object_distance_mm = 100;
+ 309              		.loc 1 124 0
+ 310 013a BDF80E30 		ldrh	r3, [sp, #14]
+ 311 013e 5BBA     		rev16	r3, r3
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Macro distance: %d", info->af_calib_points[0].object_distance_mm);
+ 312              		.loc 1 126 0
+ 313 0140 41F28832 		movw	r2, #5000
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Infinity distance: %d", info->af_calib_points[1].object_distance_mm);
+ 314              		.loc 1 127 0
+ 315 0144 2520     		movs	r0, #37
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->af_calib_points[0].object_distance_mm = 100;
+ 316              		.loc 1 124 0
+ 317 0146 E380     		strh	r3, [r4, #6]	@ movhi
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->af_calib_points[1].object_distance_mm = 5000;
+ 318              		.loc 1 125 0
+ 319 0148 6423     		movs	r3, #100
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Macro distance: %d", info->af_calib_points[0].object_distance_mm);
+ 320              		.loc 1 126 0
+ 321 014a A280     		strh	r2, [r4, #4]	@ movhi
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Infinity distance: %d", info->af_calib_points[1].object_distance_mm);
+ 322              		.loc 1 127 0
+ 323 014c 1021     		movs	r1, #16
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->af_calib_points[1].object_distance_mm = 5000;
+ 324              		.loc 1 125 0
+ 325 014e 2380     		strh	r3, [r4]	@ movhi
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Infinity distance: %d", info->af_calib_points[1].object_distance_mm);
+ 326              		.loc 1 127 0
+ 327 0150 254A     		ldr	r2, .L32+52
+ 328 0152 B047     		blx	r6
+ 329              	.LVL36:
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Macro position: %d", info->af_calib_points[0].hallcode);
+ 330              		.loc 1 128 0
+ 331 0154 2520     		movs	r0, #37
+ 332 0156 1021     		movs	r1, #16
+ 333 0158 A388     		ldrh	r3, [r4, #4]
+ 334 015a 244A     		ldr	r2, .L32+56
+ 335 015c B047     		blx	r6
+ 336              	.LVL37:
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Infinity position: %d", info->af_calib_points[1].hallcode);
+ 337              		.loc 1 129 0
+ 338 015e 2520     		movs	r0, #37
+ 339 0160 1021     		movs	r1, #16
+ 340 0162 B4F90230 		ldrsh	r3, [r4, #2]
+ 341 0166 224A     		ldr	r2, .L32+60
+ 342 0168 B047     		blx	r6
+ 343              	.LVL38:
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_DEBUG, "Hard stop macro: %d", info->hard_stop_macro);
+ 344              		.loc 1 130 0
+ 345 016a 2520     		movs	r0, #37
+ 346 016c 1021     		movs	r1, #16
+ 347 016e B4F90630 		ldrsh	r3, [r4, #6]
+ 348 0172 204A     		ldr	r2, .L32+64
+ 349 0174 B047     		blx	r6
+ 350              	.LVL39:
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     SLOGF(SLOG_DEBUG, "Hard stop infinity: %d", info->hard_stop_inf);
+ 351              		.loc 1 131 0
+ 352 0176 2520     		movs	r0, #37
+ 353 0178 1021     		movs	r1, #16
+ 354 017a B4F91630 		ldrsh	r3, [r4, #22]
+ 355 017e 1E4A     		ldr	r2, .L32+68
+ 356 0180 B047     		blx	r6
+ 357              	.LVL40:
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->af_calib.focal_length_mm = 3.68f;
+ 358              		.loc 1 132 0
+ 359 0182 B4F91430 		ldrsh	r3, [r4, #20]
+ 360 0186 2520     		movs	r0, #37
+ 361 0188 1021     		movs	r1, #16
+ 362 018a 1C4A     		ldr	r2, .L32+72
+ 363 018c B047     		blx	r6
+ 364              	.LVL41:
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->af_calib.calib_point_arr = info->af_calib_points;
+ 365              		.loc 1 133 0
+ 366 018e 1C4B     		ldr	r3, .L32+76
+ 367 0190 2361     		str	r3, [r4, #16]	@ float
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->is_valid = 1;
+ 368              		.loc 1 135 0
+ 369 0192 0223     		movs	r3, #2
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	info->af_calib.num_calib_points = NUM_CALIB_POINTS;
+ 370              		.loc 1 134 0
+ 371 0194 A460     		str	r4, [r4, #8]
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->is_valid = 1;
+ 372              		.loc 1 135 0
+ 373 0196 2373     		strb	r3, [r4, #12]
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     info->is_on = 1;
+ 374              		.loc 1 136 0
+ 375 0198 0123     		movs	r3, #1
+ 376 019a 2376     		strb	r3, [r4, #24]
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 377              		.loc 1 137 0
+ 378 019c 6376     		strb	r3, [r4, #25]
+ 379              	.LVL42:
+ 380              	.L12:
+ 381              	.LBE14:
+ 382              	.LBE13:
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(!init_af_data(vcm))
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		SLOGF(SLOG_ERROR, "AF data can't be initialized");
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_ERROR;
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vcm->target_hall_code = 0;
+ 383              		.loc 1 186 0
+ 384 019e 0024     		movs	r4, #0
+ 385              	.LVL43:
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_INFO, "VCM initialize done");
+ 386              		.loc 1 187 0
+ 387 01a0 2520     		movs	r0, #37
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	SLOGF(SLOG_INFO, "VCM initialize done");
+ 388              		.loc 1 186 0
+ 389 01a2 6C83     		strh	r4, [r5, #26]	@ movhi
+ 390              		.loc 1 187 0
+ 391 01a4 0821     		movs	r1, #8
+ 392 01a6 174A     		ldr	r2, .L32+80
+ 393 01a8 B047     		blx	r6
+ 394              	.LVL44:
+ 395 01aa 3EE7     		b	.L29
+ 396              	.LVL45:
+ 397              	.L27:
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return VCM_OK;
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 398              		.loc 1 189 0
+ 399 01ac 05B0     		add	sp, sp, #20
+ 400              	.LCFI2:
+ 401              		.cfi_def_cfa_offset 28
+ 402              		@ sp needed
+ 403 01ae BDE8F083 		pop	{r4, r5, r6, r7, r8, r9, pc}
+ 404              	.LVL46:
+ 405              	.L33:
+ 406 01b2 00BF     		.align	2
+ 407              	.L32:
+ 408 01b4 00000000 		.word	.LANCHOR0
+ 409 01b8 00000000 		.word	assert_failed
+ 410 01bc 00000000 		.word	.LC0
+ 411 01c0 00000000 		.word	slogf
+ 412 01c4 00000000 		.word	i2cm
+ 413 01c8 18000000 		.word	.LC1
+ 414 01cc EC000000 		.word	.LC10
+ 415 01d0 35000000 		.word	.LC2
+ 416 01d4 00000000 		.word	.LANCHOR1
+ 417 01d8 00000000 		.word	pvPortMalloc1
+ 418 01dc 00000000 		.word	malloc_failed
+ 419 01e0 00000000 		.word	memset
+ 420 01e4 00000000 		.word	eeprom_read
+ 421 01e8 5B000000 		.word	.LC3
+ 422 01ec 6E000000 		.word	.LC4
+ 423 01f0 84000000 		.word	.LC5
+ 424 01f4 97000000 		.word	.LC6
+ 425 01f8 AD000000 		.word	.LC7
+ 426 01fc C1000000 		.word	.LC8
+ 427 0200 1F856B40 		.word	1080788255
+ 428 0204 D8000000 		.word	.LC9
+ 429 0208 00000000 		.word	vTaskDelay
+ 430              		.cfi_endproc
+ 431              	.LFE3:
+ 433              		.section	.text.vcm_deinit,"ax",%progbits
+ 434              		.align	1
+ 435              		.global	vcm_deinit
+ 436              		.thumb
+ 437              		.thumb_func
+ 439              	vcm_deinit:
+ 440              	.LFB4:
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_deinit(vcm_t *vcm)
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 441              		.loc 1 192 0
+ 442              		.cfi_startproc
+ 443              		@ args = 0, pretend = 0, frame = 0
+ 444              		@ frame_needed = 0, uses_anonymous_args = 0
+ 445              	.LVL47:
+ 446 0000 10B5     		push	{r4, lr}
+ 447              	.LCFI3:
+ 448              		.cfi_def_cfa_offset 8
+ 449              		.cfi_offset 4, -8
+ 450              		.cfi_offset 14, -4
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	assert_param(NULL != vcm);
+ 451              		.loc 1 193 0
+ 452 0002 0446     		mov	r4, r0
+ 453 0004 18B9     		cbnz	r0, .L35
+ 454              		.loc 1 193 0 is_stmt 0 discriminator 1
+ 455 0006 0648     		ldr	r0, .L38
+ 456              	.LVL48:
+ 457 0008 C121     		movs	r1, #193
+ 458 000a 064B     		ldr	r3, .L38+4
+ 459 000c 9847     		blx	r3
+ 460              	.LVL49:
+ 461              	.L35:
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 462              		.loc 1 195 0 is_stmt 1
+ 463 000e A368     		ldr	r3, [r4, #8]
+ 464              	.LVL50:
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if (NULL == afdata)
+ 465              		.loc 1 196 0
+ 466 0010 1BB1     		cbz	r3, .L37
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_INVALID_ARG;
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	afdata->is_on = 0;
+ 467              		.loc 1 199 0
+ 468 0012 0020     		movs	r0, #0
+ 469 0014 5876     		strb	r0, [r3, #25]
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	afdata->is_valid = 0;
+ 470              		.loc 1 200 0
+ 471 0016 1876     		strb	r0, [r3, #24]
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return VCM_OK;
+ 472              		.loc 1 201 0
+ 473 0018 10BD     		pop	{r4, pc}
+ 474              	.LVL51:
+ 475              	.L37:
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_INVALID_ARG;
+ 476              		.loc 1 197 0
+ 477 001a 0420     		movs	r0, #4
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 478              		.loc 1 202 0
+ 479 001c 10BD     		pop	{r4, pc}
+ 480              	.LVL52:
+ 481              	.L39:
+ 482 001e 00BF     		.align	2
+ 483              	.L38:
+ 484 0020 00000000 		.word	.LANCHOR2
+ 485 0024 00000000 		.word	assert_failed
+ 486              		.cfi_endproc
+ 487              	.LFE4:
+ 489              		.section	.text.vcm_get_status,"ax",%progbits
+ 490              		.align	1
+ 491              		.global	vcm_get_status
+ 492              		.thumb
+ 493              		.thumb_func
+ 495              	vcm_get_status:
+ 496              	.LFB5:
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** int vcm_get_status(vcm_t *vcm)
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 497              		.loc 1 205 0
+ 498              		.cfi_startproc
+ 499              		@ args = 0, pretend = 0, frame = 0
+ 500              		@ frame_needed = 0, uses_anonymous_args = 0
+ 501              	.LVL53:
+ 502 0000 10B5     		push	{r4, lr}
+ 503              	.LCFI4:
+ 504              		.cfi_def_cfa_offset 8
+ 505              		.cfi_offset 4, -8
+ 506              		.cfi_offset 14, -4
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	assert_param(NULL != vcm);
+ 507              		.loc 1 206 0
+ 508 0002 0446     		mov	r4, r0
+ 509 0004 18B9     		cbnz	r0, .L41
+ 510              		.loc 1 206 0 is_stmt 0 discriminator 1
+ 511 0006 0548     		ldr	r0, .L44
+ 512              	.LVL54:
+ 513 0008 CE21     		movs	r1, #206
+ 514 000a 054B     		ldr	r3, .L44+4
+ 515 000c 9847     		blx	r3
+ 516              	.LVL55:
+ 517              	.L41:
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 518              		.loc 1 208 0 is_stmt 1
+ 519 000e A368     		ldr	r3, [r4, #8]
+ 520              	.LVL56:
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if (NULL == afdata)
+ 521              		.loc 1 209 0
+ 522 0010 0BB1     		cbz	r3, .L43
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_INVALID_ARG;
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return afdata->is_on;
+ 523              		.loc 1 212 0
+ 524 0012 587E     		ldrb	r0, [r3, #25]	@ zero_extendqisi2
+ 525 0014 10BD     		pop	{r4, pc}
+ 526              	.LVL57:
+ 527              	.L43:
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_INVALID_ARG;
+ 528              		.loc 1 210 0
+ 529 0016 0420     		movs	r0, #4
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 530              		.loc 1 213 0
+ 531 0018 10BD     		pop	{r4, pc}
+ 532              	.LVL58:
+ 533              	.L45:
+ 534 001a 00BF     		.align	2
+ 535              	.L44:
+ 536 001c 00000000 		.word	.LANCHOR3
+ 537 0020 00000000 		.word	assert_failed
+ 538              		.cfi_endproc
+ 539              	.LFE5:
+ 541              		.section	.text.vcm_get_hard_stop_hall,"ax",%progbits
+ 542              		.align	1
+ 543              		.global	vcm_get_hard_stop_hall
+ 544              		.thumb
+ 545              		.thumb_func
+ 547              	vcm_get_hard_stop_hall:
+ 548              	.LFB6:
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_get_hard_stop_hall(vcm_t *vcm, int16_t* hall_min, int16_t* hall_max)
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 549              		.loc 1 216 0
+ 550              		.cfi_startproc
+ 551              		@ args = 0, pretend = 0, frame = 0
+ 552              		@ frame_needed = 0, uses_anonymous_args = 0
+ 553              	.LVL59:
+ 554 0000 08B5     		push	{r3, lr}
+ 555              	.LCFI5:
+ 556              		.cfi_def_cfa_offset 8
+ 557              		.cfi_offset 3, -8
+ 558              		.cfi_offset 14, -4
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 559              		.loc 1 217 0
+ 560 0002 8368     		ldr	r3, [r0, #8]
+ 561              	.LVL60:
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (NULL == afdata)
+ 562              		.loc 1 218 0
+ 563 0004 33B9     		cbnz	r3, .L47
+ 564              	.LVL61:
+ 565              	.LBB31:
+ 566              	.LBB32:
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     {
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         SLOGF(SLOG_ERROR, "Invalid VCM data");
+ 567              		.loc 1 220 0
+ 568 0006 2520     		movs	r0, #37
+ 569              	.LVL62:
+ 570 0008 0221     		movs	r1, #2
+ 571              	.LVL63:
+ 572 000a 074A     		ldr	r2, .L49
+ 573              	.LVL64:
+ 574 000c 074B     		ldr	r3, .L49+4
+ 575              	.LVL65:
+ 576 000e 9847     		blx	r3
+ 577              	.LVL66:
+ 578 0010 0420     		movs	r0, #4
+ 579 0012 08BD     		pop	{r3, pc}
+ 580              	.LVL67:
+ 581              	.L47:
+ 582              	.LBE32:
+ 583              	.LBE31:
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         return VCM_INVALID_ARG;
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     }
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     *hall_min = afdata->hard_stop_macro + VCM_HARD_STOP_BUFFER;
+ 584              		.loc 1 223 0
+ 585 0014 D88A     		ldrh	r0, [r3, #22]
+ 586              	.LVL68:
+ 587 0016 00F50070 		add	r0, r0, #512
+ 588 001a 0880     		strh	r0, [r1]	@ movhi
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     *hall_max = afdata->hard_stop_inf - VCM_HARD_STOP_BUFFER;
+ 589              		.loc 1 224 0
+ 590 001c 9B8A     		ldrh	r3, [r3, #20]
+ 591              	.LVL69:
+ 592 001e A3F50073 		sub	r3, r3, #512
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     return VCM_OK;
+ 593              		.loc 1 225 0
+ 594 0022 0020     		movs	r0, #0
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     *hall_max = afdata->hard_stop_inf - VCM_HARD_STOP_BUFFER;
+ 595              		.loc 1 224 0
+ 596 0024 1380     		strh	r3, [r2]	@ movhi
+ 226:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 597              		.loc 1 226 0
+ 598 0026 08BD     		pop	{r3, pc}
+ 599              	.L50:
+ 600              		.align	2
+ 601              	.L49:
+ 602 0028 00010000 		.word	.LC11
+ 603 002c 00000000 		.word	slogf
+ 604              		.cfi_endproc
+ 605              	.LFE6:
+ 607              		.section	.text.vcm_get_hall,"ax",%progbits
+ 608              		.align	1
+ 609              		.global	vcm_get_hall
+ 610              		.thumb
+ 611              		.thumb_func
+ 613              	vcm_get_hall:
+ 614              	.LFB8:
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_goto_hall(vcm_t *vcm, int16_t hall)
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t bdata = 0;
+ 231:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t hall_value[2];
+ 232:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	int16_t real_hall;
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint32_t cnt = 0;
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	assert_param(NULL != vcm);
+ 236:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	int16_t hall_min;
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	int16_t hall_max;
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vcm_return_t ret = vcm_get_hard_stop_hall(vcm, &hall_min, &hall_max);
+ 240:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if (VCM_OK != ret)
+ 241:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	    return ret;
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall = CLAMP(hall, hall_min, hall_max);
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall &= 0xFFF0;
+ 244:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vcm->target_hall_code = hall;
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall_value[0] = hall >> 8;
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall_value[1] = hall;
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.write(vcm->i2c, WORD_ADDR8, VCM_SLAVE_ADDR, VCM_STMVENDH_REG, hall_value);
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.read(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_MSSET_REG, &bdata);
+ 250:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	while((bdata & VCM_MSSET_CHTGST) == VCM_MSSET_CHTGST
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 							&& cnt < VCM_OP_MAX_TRY_CNT)
+ 253:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		vTaskDelay(3);
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		i2cm.read(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_MSSET_REG, &bdata);
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		cnt++;
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 259:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     vcm_get_hall(vcm, &real_hall);
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     SLOGF(SLOG_INFO, "VCM i2c channel %d finished moving. Request: %d. Current: %d", (int)vcm->i2c,
+ 261:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(cnt == VCM_OP_MAX_TRY_CNT)
+ 262:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 263:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		SLOGF(SLOG_ERROR, "VCM moving time out");
+ 264:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_OP_TIMEOUT;
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 266:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return VCM_OK;
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 269:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 270:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_get_hall(vcm_t *vcm, int16_t *hall)
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 615              		.loc 1 272 0
+ 616              		.cfi_startproc
+ 617              		@ args = 0, pretend = 0, frame = 8
+ 618              		@ frame_needed = 0, uses_anonymous_args = 0
+ 619              	.LVL70:
+ 620 0000 30B5     		push	{r4, r5, lr}
+ 621              	.LCFI6:
+ 622              		.cfi_def_cfa_offset 12
+ 623              		.cfi_offset 4, -12
+ 624              		.cfi_offset 5, -8
+ 625              		.cfi_offset 14, -4
+ 626 0002 0C46     		mov	r4, r1
+ 627 0004 85B0     		sub	sp, sp, #20
+ 628              	.LCFI7:
+ 629              		.cfi_def_cfa_offset 32
+ 273:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t bdata[2];
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vcm_return_t ret = VCM_OK;
+ 275:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm_error_t i2c_ret = I2CM_ERROR_NONE;
+ 276:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 277:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	assert_param(NULL != vcm);
+ 630              		.loc 1 277 0
+ 631 0006 0546     		mov	r5, r0
+ 632 0008 20B9     		cbnz	r0, .L52
+ 633              		.loc 1 277 0 is_stmt 0 discriminator 1
+ 634 000a 1248     		ldr	r0, .L57
+ 635              	.LVL71:
+ 636 000c 40F21511 		movw	r1, #277
+ 637              	.LVL72:
+ 638 0010 114B     		ldr	r3, .L57+4
+ 639 0012 9847     		blx	r3
+ 640              	.LVL73:
+ 641              	.L52:
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if (NULL == hall)
+ 642              		.loc 1 278 0 is_stmt 1
+ 643 0014 D4B1     		cbz	r4, .L56
+ 644              	.LVL74:
+ 645              	.LBB36:
+ 646              	.LBB37:
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_INVALID_ARG;
+ 280:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2c_ret = i2cm.read(vcm->i2c,
+ 647              		.loc 1 281 0
+ 648 0016 03AB     		add	r3, sp, #12
+ 649 0018 2878     		ldrb	r0, [r5]	@ zero_extendqisi2
+ 650 001a 0221     		movs	r1, #2
+ 651 001c 0093     		str	r3, [sp]
+ 652 001e 7222     		movs	r2, #114
+ 653 0020 0E4B     		ldr	r3, .L57+8
+ 654 0022 DD68     		ldr	r5, [r3, #12]
+ 655              	.LVL75:
+ 656 0024 3C23     		movs	r3, #60
+ 657 0026 A847     		blx	r5
+ 658              	.LVL76:
+ 282:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 						WORD_ADDR8,
+ 283:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 						VCM_SLAVE_ADDR,
+ 284:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 						VCM_ADOFFSET_REG,
+ 285:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 						bdata);
+ 286:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(I2CM_ERROR_TRANSCEIVED == i2c_ret)
+ 659              		.loc 1 286 0
+ 660 0028 0728     		cmp	r0, #7
+ 661 002a 08D1     		bne	.L54
+ 662              	.LVL77:
+ 663              	.LBB38:
+ 287:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 288:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		uint16_t uhall = bdata[0];
+ 289:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		uhall = (uhall << 8) | bdata[1];
+ 664              		.loc 1 289 0
+ 665 002c 9DF80C20 		ldrb	r2, [sp, #12]	@ zero_extendqisi2
+ 666 0030 9DF80D30 		ldrb	r3, [sp, #13]	@ zero_extendqisi2
+ 667 0034 43EA0223 		orr	r3, r3, r2, lsl #8
+ 668              	.LBE38:
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm_error_t i2c_ret = I2CM_ERROR_NONE;
+ 669              		.loc 1 274 0
+ 670 0038 0020     		movs	r0, #0
+ 671              	.LVL78:
+ 672              	.LBB39:
+ 290:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		*hall = (uhall < 0x8000u) ? uhall : (uhall - 65536);
+ 673              		.loc 1 290 0
+ 674 003a 2380     		strh	r3, [r4]	@ movhi
+ 675 003c 07E0     		b	.L53
+ 676              	.LVL79:
+ 677              	.L54:
+ 678              	.LBE39:
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 292:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	else
+ 293:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 294:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		SLOGF(SLOG_ERROR, "Timeout when reading hall code");
+ 679              		.loc 1 294 0
+ 680 003e 2520     		movs	r0, #37
+ 681              	.LVL80:
+ 682 0040 0221     		movs	r1, #2
+ 683 0042 074A     		ldr	r2, .L57+12
+ 684 0044 074B     		ldr	r3, .L57+16
+ 685 0046 9847     		blx	r3
+ 686              	.LVL81:
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		ret = VCM_OP_TIMEOUT;
+ 687              		.loc 1 295 0
+ 688 0048 0220     		movs	r0, #2
+ 689              	.LVL82:
+ 690 004a 00E0     		b	.L53
+ 691              	.LVL83:
+ 692              	.L56:
+ 693              	.LBE37:
+ 694              	.LBE36:
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 695              		.loc 1 279 0
+ 696 004c 0420     		movs	r0, #4
+ 697              	.LVL84:
+ 698              	.L53:
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 297:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return ret;
+ 298:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 699              		.loc 1 298 0
+ 700 004e 05B0     		add	sp, sp, #20
+ 701              	.LCFI8:
+ 702              		.cfi_def_cfa_offset 12
+ 703              		@ sp needed
+ 704 0050 30BD     		pop	{r4, r5, pc}
+ 705              	.LVL85:
+ 706              	.L58:
+ 707 0052 00BF     		.align	2
+ 708              	.L57:
+ 709 0054 00000000 		.word	.LANCHOR4
+ 710 0058 00000000 		.word	assert_failed
+ 711 005c 00000000 		.word	i2cm
+ 712 0060 11010000 		.word	.LC12
+ 713 0064 00000000 		.word	slogf
+ 714              		.cfi_endproc
+ 715              	.LFE8:
+ 717              		.section	.text.vcm_goto_hall,"ax",%progbits
+ 718              		.align	1
+ 719              		.global	vcm_goto_hall
+ 720              		.thumb
+ 721              		.thumb_func
+ 723              	vcm_goto_hall:
+ 724              	.LFB7:
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t bdata = 0;
+ 725              		.loc 1 229 0
+ 726              		.cfi_startproc
+ 727              		@ args = 0, pretend = 0, frame = 16
+ 728              		@ frame_needed = 0, uses_anonymous_args = 0
+ 729              	.LVL86:
+ 730 0000 2DE9F046 		push	{r4, r5, r6, r7, r9, r10, lr}
+ 731              	.LCFI9:
+ 732              		.cfi_def_cfa_offset 28
+ 733              		.cfi_offset 4, -28
+ 734              		.cfi_offset 5, -24
+ 735              		.cfi_offset 6, -20
+ 736              		.cfi_offset 7, -16
+ 737              		.cfi_offset 9, -12
+ 738              		.cfi_offset 10, -8
+ 739              		.cfi_offset 14, -4
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t hall_value[2];
+ 740              		.loc 1 230 0
+ 741 0004 0023     		movs	r3, #0
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t bdata = 0;
+ 742              		.loc 1 229 0
+ 743 0006 87B0     		sub	sp, sp, #28
+ 744              	.LCFI10:
+ 745              		.cfi_def_cfa_offset 56
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t bdata = 0;
+ 746              		.loc 1 229 0
+ 747 0008 0D46     		mov	r5, r1
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 748              		.loc 1 235 0
+ 749 000a 0746     		mov	r7, r0
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	uint8_t hall_value[2];
+ 750              		.loc 1 230 0
+ 751 000c 8DF80F30 		strb	r3, [sp, #15]
+ 752              	.LVL87:
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 753              		.loc 1 235 0
+ 754 0010 18B9     		cbnz	r0, .L60
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 755              		.loc 1 235 0 is_stmt 0 discriminator 1
+ 756 0012 3348     		ldr	r0, .L70
+ 757              	.LVL88:
+ 758 0014 EB21     		movs	r1, #235
+ 759              	.LVL89:
+ 760 0016 334B     		ldr	r3, .L70+4
+ 761 0018 9847     		blx	r3
+ 762              	.LVL90:
+ 763              	.L60:
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if (VCM_OK != ret)
+ 764              		.loc 1 239 0 is_stmt 1
+ 765 001a 3846     		mov	r0, r7
+ 766 001c 05A9     		add	r1, sp, #20
+ 767 001e 0DF11602 		add	r2, sp, #22
+ 768 0022 314B     		ldr	r3, .L70+8
+ 769 0024 9847     		blx	r3
+ 770              	.LVL91:
+ 240:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	    return ret;
+ 771              		.loc 1 240 0
+ 772 0026 0446     		mov	r4, r0
+ 773 0028 0028     		cmp	r0, #0
+ 774 002a 56D1     		bne	.L61
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall &= 0xFFF0;
+ 775              		.loc 1 242 0
+ 776 002c BDF91430 		ldrsh	r3, [sp, #20]
+ 777 0030 9D42     		cmp	r5, r3
+ 778 0032 B8BF     		it	lt
+ 779 0034 1D46     		movlt	r5, r3
+ 780 0036 BDF91630 		ldrsh	r3, [sp, #22]
+ 781 003a 9D42     		cmp	r5, r3
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 782              		.loc 1 247 0
+ 783 003c 3878     		ldrb	r0, [r7]	@ zero_extendqisi2
+ 784              	.LVL92:
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall &= 0xFFF0;
+ 785              		.loc 1 242 0
+ 786 003e A8BF     		it	ge
+ 787 0040 1D46     		movge	r5, r3
+ 788              	.LVL93:
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 789              		.loc 1 247 0
+ 790 0042 0221     		movs	r1, #2
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vcm->target_hall_code = hall;
+ 791              		.loc 1 243 0
+ 792 0044 25F00F05 		bic	r5, r5, #15
+ 793              	.LVL94:
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 794              		.loc 1 247 0
+ 795 0048 DFF8B0A0 		ldr	r10, .L70+28
+ 796 004c 7222     		movs	r2, #114
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall_value[1] = hall;
+ 797              		.loc 1 245 0
+ 798 004e 2B12     		asrs	r3, r5, #8
+ 244:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall_value[0] = hall >> 8;
+ 799              		.loc 1 244 0
+ 800 0050 7D83     		strh	r5, [r7, #26]	@ movhi
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	hall_value[1] = hall;
+ 801              		.loc 1 245 0
+ 802 0052 8DF81030 		strb	r3, [sp, #16]
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 803              		.loc 1 247 0
+ 804 0056 04AB     		add	r3, sp, #16
+ 805 0058 DAF81060 		ldr	r6, [r10, #16]
+ 806 005c 0093     		str	r3, [sp]
+ 807 005e A023     		movs	r3, #160
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.write(vcm->i2c, WORD_ADDR8, VCM_SLAVE_ADDR, VCM_STMVENDH_REG, hall_value);
+ 808              		.loc 1 246 0
+ 809 0060 8DF81150 		strb	r5, [sp, #17]
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	vTaskDelay(5);
+ 810              		.loc 1 247 0
+ 811 0064 B047     		blx	r6
+ 812              	.LVL95:
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	i2cm.read(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_MSSET_REG, &bdata);
+ 813              		.loc 1 248 0
+ 814 0066 DFF89890 		ldr	r9, .L70+32
+ 815 006a 0520     		movs	r0, #5
+ 816 006c C847     		blx	r9
+ 817              	.LVL96:
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 818              		.loc 1 249 0
+ 819 006e 0DF10F03 		add	r3, sp, #15
+ 820 0072 3878     		ldrb	r0, [r7]	@ zero_extendqisi2
+ 821 0074 2146     		mov	r1, r4
+ 822 0076 0093     		str	r3, [sp]
+ 823 0078 7222     		movs	r2, #114
+ 824 007a 8F23     		movs	r3, #143
+ 825 007c DAF80C60 		ldr	r6, [r10, #12]
+ 826 0080 B047     		blx	r6
+ 827              	.LVL97:
+ 828              	.L62:
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 							&& cnt < VCM_OP_MAX_TRY_CNT)
+ 829              		.loc 1 251 0
+ 830 0082 9DF80F30 		ldrb	r3, [sp, #15]	@ zero_extendqisi2
+ 831 0086 DB07     		lsls	r3, r3, #31
+ 832 0088 0FD5     		bpl	.L63
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 833              		.loc 1 252 0
+ 834 008a 142C     		cmp	r4, #20
+ 835 008c 0DD0     		beq	.L63
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		i2cm.read(vcm->i2c, BYTE_ADDR8, VCM_SLAVE_ADDR, VCM_MSSET_REG, &bdata);
+ 836              		.loc 1 254 0
+ 837 008e 0320     		movs	r0, #3
+ 838 0090 C847     		blx	r9
+ 839              	.LVL98:
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		cnt++;
+ 840              		.loc 1 255 0
+ 841 0092 0DF10F03 		add	r3, sp, #15
+ 842 0096 3878     		ldrb	r0, [r7]	@ zero_extendqisi2
+ 843 0098 0021     		movs	r1, #0
+ 844 009a 0093     		str	r3, [sp]
+ 845 009c 7222     		movs	r2, #114
+ 846 009e 8F23     		movs	r3, #143
+ 847 00a0 DAF80C60 		ldr	r6, [r10, #12]
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 848              		.loc 1 256 0
+ 849 00a4 0134     		adds	r4, r4, #1
+ 850              	.LVL99:
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		cnt++;
+ 851              		.loc 1 255 0
+ 852 00a6 B047     		blx	r6
+ 853              	.LVL100:
+ 854 00a8 EBE7     		b	.L62
+ 855              	.L63:
+ 259:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     SLOGF(SLOG_INFO, "VCM i2c channel %d finished moving. Request: %d. Current: %d", (int)vcm->i2c,
+ 856              		.loc 1 259 0
+ 857 00aa 0DF11201 		add	r1, sp, #18
+ 858 00ae 0F4B     		ldr	r3, .L70+12
+ 859 00b0 3846     		mov	r0, r7
+ 860 00b2 9847     		blx	r3
+ 861              	.LVL101:
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if(cnt == VCM_OP_MAX_TRY_CNT)
+ 862              		.loc 1 260 0
+ 863 00b4 3B78     		ldrb	r3, [r7]	@ zero_extendqisi2
+ 864 00b6 BDF91220 		ldrsh	r2, [sp, #18]
+ 865 00ba 0095     		str	r5, [sp]
+ 866 00bc 0192     		str	r2, [sp, #4]
+ 867 00be 2520     		movs	r0, #37
+ 868 00c0 0821     		movs	r1, #8
+ 869 00c2 0B4A     		ldr	r2, .L70+16
+ 870 00c4 0B4D     		ldr	r5, .L70+20
+ 871              	.LVL102:
+ 872 00c6 A847     		blx	r5
+ 873              	.LVL103:
+ 261:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	{
+ 874              		.loc 1 261 0
+ 875 00c8 142C     		cmp	r4, #20
+ 876 00ca 05D1     		bne	.L66
+ 263:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 		return VCM_OP_TIMEOUT;
+ 877              		.loc 1 263 0
+ 878 00cc 2520     		movs	r0, #37
+ 879 00ce 0221     		movs	r1, #2
+ 880 00d0 094A     		ldr	r2, .L70+24
+ 881 00d2 A847     		blx	r5
+ 882              	.LVL104:
+ 264:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	}
+ 883              		.loc 1 264 0
+ 884 00d4 0220     		movs	r0, #2
+ 885 00d6 00E0     		b	.L61
+ 886              	.L66:
+ 266:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 887              		.loc 1 266 0
+ 888 00d8 0020     		movs	r0, #0
+ 889              	.LVL105:
+ 890              	.L61:
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 891              		.loc 1 267 0
+ 892 00da 07B0     		add	sp, sp, #28
+ 893              	.LCFI11:
+ 894              		.cfi_def_cfa_offset 28
+ 895              		@ sp needed
+ 896 00dc BDE8F086 		pop	{r4, r5, r6, r7, r9, r10, pc}
+ 897              	.LVL106:
+ 898              	.L71:
+ 899              		.align	2
+ 900              	.L70:
+ 901 00e0 00000000 		.word	.LANCHOR5
+ 902 00e4 00000000 		.word	assert_failed
+ 903 00e8 00000000 		.word	vcm_get_hard_stop_hall
+ 904 00ec 00000000 		.word	vcm_get_hall
+ 905 00f0 30010000 		.word	.LC13
+ 906 00f4 00000000 		.word	slogf
+ 907 00f8 6D010000 		.word	.LC14
+ 908 00fc 00000000 		.word	i2cm
+ 909 0100 00000000 		.word	vTaskDelay
+ 910              		.cfi_endproc
+ 911              	.LFE7:
+ 913              		.section	.text.vcm_object_distance_to_hallcode,"ax",%progbits
+ 914              		.align	1
+ 915              		.global	vcm_object_distance_to_hallcode
+ 916              		.thumb
+ 917              		.thumb_func
+ 919              	vcm_object_distance_to_hallcode:
+ 920              	.LFB9:
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_object_distance_to_hallcode(const vcm_t *vcm, uint32_t distance, int16_t *hallcode
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 921              		.loc 1 301 0
+ 922              		.cfi_startproc
+ 923              		@ args = 0, pretend = 0, frame = 0
+ 924              		@ frame_needed = 0, uses_anonymous_args = 0
+ 925              	.LVL107:
+ 302:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 926              		.loc 1 302 0
+ 927 0000 8068     		ldr	r0, [r0, #8]
+ 928              	.LVL108:
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 929              		.loc 1 301 0
+ 930 0002 10B5     		push	{r4, lr}
+ 931              	.LCFI12:
+ 932              		.cfi_def_cfa_offset 8
+ 933              		.cfi_offset 4, -8
+ 934              		.cfi_offset 14, -4
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 935              		.loc 1 301 0
+ 936 0004 1446     		mov	r4, r2
+ 303:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (NULL == afdata)
+ 937              		.loc 1 303 0
+ 938 0006 C0B1     		cbz	r0, .L77
+ 304:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         return VCM_INVALID_ARG;
+ 305:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (!afdata->is_on || !afdata->is_valid)
+ 939              		.loc 1 305 0
+ 940 0008 437E     		ldrb	r3, [r0, #25]	@ zero_extendqisi2
+ 941 000a 0BB1     		cbz	r3, .L74
+ 942              		.loc 1 305 0 is_stmt 0 discriminator 1
+ 943 000c 037E     		ldrb	r3, [r0, #24]	@ zero_extendqisi2
+ 944 000e 33B9     		cbnz	r3, .L75
+ 945              	.L74:
+ 946              	.LVL109:
+ 947              	.LBB42:
+ 948              	.LBB43:
+ 306:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     {
+ 307:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         SLOGF(SLOG_ERROR, "AF data is not valid");
+ 949              		.loc 1 307 0 is_stmt 1
+ 950 0010 2520     		movs	r0, #37
+ 951              	.LVL110:
+ 952 0012 0221     		movs	r1, #2
+ 953              	.LVL111:
+ 954 0014 0A4A     		ldr	r2, .L81
+ 955              	.LVL112:
+ 956 0016 0B4B     		ldr	r3, .L81+4
+ 957 0018 9847     		blx	r3
+ 958              	.LVL113:
+ 959 001a 0120     		movs	r0, #1
+ 960 001c 10BD     		pop	{r4, pc}
+ 961              	.LVL114:
+ 962              	.L75:
+ 963              	.LBE43:
+ 964              	.LBE42:
+ 308:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         return VCM_ERROR;
+ 309:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     }
+ 310:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 311:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (distance >= 65535)
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         distance = 65535;
+ 965              		.loc 1 312 0
+ 966 001e 4FF6FE72 		movw	r2, #65534
+ 967              	.LVL115:
+ 968 0022 4FF6FF73 		movw	r3, #65535
+ 313:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     *hallcode = object_distance_to_hallcode(&afdata->af_calib, distance);
+ 969              		.loc 1 313 0
+ 970 0026 0830     		adds	r0, r0, #8
+ 971              	.LVL116:
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     *hallcode = object_distance_to_hallcode(&afdata->af_calib, distance);
+ 972              		.loc 1 312 0
+ 973 0028 9142     		cmp	r1, r2
+ 974 002a 88BF     		it	hi
+ 975 002c 1946     		movhi	r1, r3
+ 976              	.LVL117:
+ 977              		.loc 1 313 0
+ 978 002e 064B     		ldr	r3, .L81+8
+ 979 0030 89B2     		uxth	r1, r1
+ 980 0032 9847     		blx	r3
+ 981              	.LVL118:
+ 982 0034 2080     		strh	r0, [r4]	@ movhi
+ 314:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     return VCM_OK;
+ 983              		.loc 1 314 0
+ 984 0036 0020     		movs	r0, #0
+ 985 0038 10BD     		pop	{r4, pc}
+ 986              	.LVL119:
+ 987              	.L77:
+ 304:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (!afdata->is_on || !afdata->is_valid)
+ 988              		.loc 1 304 0
+ 989 003a 0420     		movs	r0, #4
+ 990              	.LVL120:
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 991              		.loc 1 315 0
+ 992 003c 10BD     		pop	{r4, pc}
+ 993              	.L82:
+ 994 003e 00BF     		.align	2
+ 995              	.L81:
+ 996 0040 81010000 		.word	.LC15
+ 997 0044 00000000 		.word	slogf
+ 998 0048 00000000 		.word	object_distance_to_hallcode
+ 999              		.cfi_endproc
+ 1000              	.LFE9:
+ 1002              		.section	.text.vcm_focus_distance,"ax",%progbits
+ 1003              		.align	1
+ 1004              		.global	vcm_focus_distance
+ 1005              		.thumb
+ 1006              		.thumb_func
+ 1008              	vcm_focus_distance:
+ 1009              	.LFB10:
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_focus_distance(vcm_t *vcm, uint32_t distance)
+ 318:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 1010              		.loc 1 318 0
+ 1011              		.cfi_startproc
+ 1012              		@ args = 0, pretend = 0, frame = 8
+ 1013              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1014              	.LVL121:
+ 1015 0000 37B5     		push	{r0, r1, r2, r4, r5, lr}
+ 1016              	.LCFI13:
+ 1017              		.cfi_def_cfa_offset 24
+ 1018              		.cfi_offset 4, -12
+ 1019              		.cfi_offset 5, -8
+ 1020              		.cfi_offset 14, -4
+ 1021              		.loc 1 318 0
+ 1022 0002 0D46     		mov	r5, r1
+ 319:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	assert_param(NULL != vcm);
+ 1023              		.loc 1 319 0
+ 1024 0004 0446     		mov	r4, r0
+ 1025 0006 20B9     		cbnz	r0, .L84
+ 1026              		.loc 1 319 0 is_stmt 0 discriminator 1
+ 1027 0008 0A48     		ldr	r0, .L87
+ 1028              	.LVL122:
+ 1029 000a 40F23F11 		movw	r1, #319
+ 1030              	.LVL123:
+ 1031 000e 0A4B     		ldr	r3, .L87+4
+ 1032 0010 9847     		blx	r3
+ 1033              	.LVL124:
+ 1034              	.L84:
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     int16_t daccode = 0;
+ 1035              		.loc 1 320 0 is_stmt 1
+ 1036 0012 0023     		movs	r3, #0
+ 1037 0014 02AA     		add	r2, sp, #8
+ 321:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     vcm_return_t ret = vcm_object_distance_to_hallcode(vcm, distance, &daccode);
+ 1038              		.loc 1 321 0
+ 1039 0016 2046     		mov	r0, r4
+ 1040 0018 2946     		mov	r1, r5
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     int16_t daccode = 0;
+ 1041              		.loc 1 320 0
+ 1042 001a 22F8023D 		strh	r3, [r2, #-2]!	@ movhi
+ 1043              		.loc 1 321 0
+ 1044 001e 074B     		ldr	r3, .L87+8
+ 1045 0020 9847     		blx	r3
+ 1046              	.LVL125:
+ 322:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	if (ret != VCM_OK)
+ 1047              		.loc 1 322 0
+ 1048 0022 20B9     		cbnz	r0, .L85
+ 323:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	    return ret;
+ 324:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 	return vcm_goto_hall(vcm, daccode);
+ 1049              		.loc 1 324 0
+ 1050 0024 2046     		mov	r0, r4
+ 1051              	.LVL126:
+ 1052 0026 BDF90610 		ldrsh	r1, [sp, #6]
+ 1053 002a 054B     		ldr	r3, .L87+12
+ 1054 002c 9847     		blx	r3
+ 1055              	.LVL127:
+ 1056              	.L85:
+ 325:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 1057              		.loc 1 325 0
+ 1058 002e 03B0     		add	sp, sp, #12
+ 1059              	.LCFI14:
+ 1060              		.cfi_def_cfa_offset 12
+ 1061              		@ sp needed
+ 1062 0030 30BD     		pop	{r4, r5, pc}
+ 1063              	.LVL128:
+ 1064              	.L88:
+ 1065 0032 00BF     		.align	2
+ 1066              	.L87:
+ 1067 0034 00000000 		.word	.LANCHOR6
+ 1068 0038 00000000 		.word	assert_failed
+ 1069 003c 00000000 		.word	vcm_object_distance_to_hallcode
+ 1070 0040 00000000 		.word	vcm_goto_hall
+ 1071              		.cfi_endproc
+ 1072              	.LFE10:
+ 1074              		.section	.text.vcm_hallcode_to_object_distance,"ax",%progbits
+ 1075              		.align	1
+ 1076              		.global	vcm_hallcode_to_object_distance
+ 1077              		.thumb
+ 1078              		.thumb_func
+ 1080              	vcm_hallcode_to_object_distance:
+ 1081              	.LFB11:
+ 326:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 327:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** vcm_return_t vcm_hallcode_to_object_distance(const vcm_t *vcm, int16_t hallcode, uint32_t *distance
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** {
+ 1082              		.loc 1 328 0
+ 1083              		.cfi_startproc
+ 1084              		@ args = 0, pretend = 0, frame = 0
+ 1085              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1086              	.LVL129:
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 1087              		.loc 1 329 0
+ 1088 0000 8068     		ldr	r0, [r0, #8]
+ 1089              	.LVL130:
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 1090              		.loc 1 328 0
+ 1091 0002 10B5     		push	{r4, lr}
+ 1092              	.LCFI15:
+ 1093              		.cfi_def_cfa_offset 8
+ 1094              		.cfi_offset 4, -8
+ 1095              		.cfi_offset 14, -4
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     af_data_t *afdata = (af_data_t *)vcm->af_data;
+ 1096              		.loc 1 328 0
+ 1097 0004 1446     		mov	r4, r2
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (NULL == afdata)
+ 1098              		.loc 1 330 0
+ 1099 0006 80B1     		cbz	r0, .L93
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         return VCM_INVALID_ARG;
+ 332:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (!afdata->is_on || !afdata->is_valid)
+ 1100              		.loc 1 332 0
+ 1101 0008 437E     		ldrb	r3, [r0, #25]	@ zero_extendqisi2
+ 1102 000a 0BB1     		cbz	r3, .L91
+ 1103              		.loc 1 332 0 is_stmt 0 discriminator 1
+ 1104 000c 037E     		ldrb	r3, [r0, #24]	@ zero_extendqisi2
+ 1105 000e 33B9     		cbnz	r3, .L92
+ 1106              	.L91:
+ 333:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     {
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         SLOGF(SLOG_ERROR, "AF data is not valid");
+ 1107              		.loc 1 334 0 is_stmt 1
+ 1108 0010 2520     		movs	r0, #37
+ 1109              	.LVL131:
+ 1110 0012 0221     		movs	r1, #2
+ 1111              	.LVL132:
+ 1112 0014 064A     		ldr	r2, .L97
+ 1113              	.LVL133:
+ 1114 0016 074B     		ldr	r3, .L97+4
+ 1115 0018 9847     		blx	r3
+ 1116              	.LVL134:
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****         return VCM_ERROR;
+ 1117              		.loc 1 335 0
+ 1118 001a 0120     		movs	r0, #1
+ 1119 001c 10BD     		pop	{r4, pc}
+ 1120              	.LVL135:
+ 1121              	.L92:
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     }
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** 
+ 338:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     *distance = hallcode_to_object_distance(&afdata->af_calib, hallcode);
+ 1122              		.loc 1 338 0
+ 1123 001e 064B     		ldr	r3, .L97+8
+ 1124 0020 0830     		adds	r0, r0, #8
+ 1125              	.LVL136:
+ 1126 0022 9847     		blx	r3
+ 1127              	.LVL137:
+ 1128 0024 2060     		str	r0, [r4]
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     return VCM_OK;
+ 1129              		.loc 1 339 0
+ 1130 0026 0020     		movs	r0, #0
+ 1131 0028 10BD     		pop	{r4, pc}
+ 1132              	.LVL138:
+ 1133              	.L93:
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c ****     if (!afdata->is_on || !afdata->is_valid)
+ 1134              		.loc 1 331 0
+ 1135 002a 0420     		movs	r0, #4
+ 1136              	.LVL139:
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/vcm.c **** }
+ 1137              		.loc 1 340 0
+ 1138 002c 10BD     		pop	{r4, pc}
+ 1139              	.L98:
+ 1140 002e 00BF     		.align	2
+ 1141              	.L97:
+ 1142 0030 81010000 		.word	.LC15
+ 1143 0034 00000000 		.word	slogf
+ 1144 0038 00000000 		.word	hallcode_to_object_distance
+ 1145              		.cfi_endproc
+ 1146              	.LFE11:
+ 1148              		.section	.rodata.__FUNCTION__.8967,"a",%progbits
+ 1149              		.set	.LANCHOR5,. + 0
+ 1152              	__FUNCTION__.8967:
+ 1153 0000 76636D5F 		.ascii	"vcm_goto_hall\000"
+ 1153      676F746F 
+ 1153      5F68616C 
+ 1153      6C00
+ 1154              		.section	.rodata.__FUNCTION__.8981,"a",%progbits
+ 1155              		.set	.LANCHOR4,. + 0
+ 1158              	__FUNCTION__.8981:
+ 1159 0000 76636D5F 		.ascii	"vcm_get_hall\000"
+ 1159      6765745F 
+ 1159      68616C6C 
+ 1159      00
+ 1160              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 1161              	.LC0:
+ 1162 0000 56434D20 		.ascii	"VCM already initialized\000"
+ 1162      616C7265 
+ 1162      61647920 
+ 1162      696E6974 
+ 1162      69616C69 
+ 1163              	.LC1:
+ 1164 0018 556E7375 		.ascii	"Unsupported VCM chip version\000"
+ 1164      70706F72 
+ 1164      74656420 
+ 1164      56434D20 
+ 1164      63686970 
+ 1165              	.LC2:
+ 1166 0035 496E6974 		.ascii	"Initialize AF data for i2c channel %d\000"
+ 1166      69616C69 
+ 1166      7A652041 
+ 1166      46206461 
+ 1166      74612066 
+ 1167              	.LC3:
+ 1168 005b 4D616372 		.ascii	"Macro distance: %d\000"
+ 1168      6F206469 
+ 1168      7374616E 
+ 1168      63653A20 
+ 1168      256400
+ 1169              	.LC4:
+ 1170 006e 496E6669 		.ascii	"Infinity distance: %d\000"
+ 1170      6E697479 
+ 1170      20646973 
+ 1170      74616E63 
+ 1170      653A2025 
+ 1171              	.LC5:
+ 1172 0084 4D616372 		.ascii	"Macro position: %d\000"
+ 1172      6F20706F 
+ 1172      73697469 
+ 1172      6F6E3A20 
+ 1172      256400
+ 1173              	.LC6:
+ 1174 0097 496E6669 		.ascii	"Infinity position: %d\000"
+ 1174      6E697479 
+ 1174      20706F73 
+ 1174      6974696F 
+ 1174      6E3A2025 
+ 1175              	.LC7:
+ 1176 00ad 48617264 		.ascii	"Hard stop macro: %d\000"
+ 1176      2073746F 
+ 1176      70206D61 
+ 1176      63726F3A 
+ 1176      20256400 
+ 1177              	.LC8:
+ 1178 00c1 48617264 		.ascii	"Hard stop infinity: %d\000"
+ 1178      2073746F 
+ 1178      7020696E 
+ 1178      66696E69 
+ 1178      74793A20 
+ 1179              	.LC9:
+ 1180 00d8 56434D20 		.ascii	"VCM initialize done\000"
+ 1180      696E6974 
+ 1180      69616C69 
+ 1180      7A652064 
+ 1180      6F6E6500 
+ 1181              	.LC10:
+ 1182 00ec 446F776E 		.ascii	"Downloading timeout\000"
+ 1182      6C6F6164 
+ 1182      696E6720 
+ 1182      74696D65 
+ 1182      6F757400 
+ 1183              	.LC11:
+ 1184 0100 496E7661 		.ascii	"Invalid VCM data\000"
+ 1184      6C696420 
+ 1184      56434D20 
+ 1184      64617461 
+ 1184      00
+ 1185              	.LC12:
+ 1186 0111 54696D65 		.ascii	"Timeout when reading hall code\000"
+ 1186      6F757420 
+ 1186      7768656E 
+ 1186      20726561 
+ 1186      64696E67 
+ 1187              	.LC13:
+ 1188 0130 56434D20 		.ascii	"VCM i2c channel %d finished moving. Request: %d. Cu"
+ 1188      69326320 
+ 1188      6368616E 
+ 1188      6E656C20 
+ 1188      25642066 
+ 1189 0163 7272656E 		.ascii	"rrent: %d\000"
+ 1189      743A2025 
+ 1189      6400
+ 1190              	.LC14:
+ 1191 016d 56434D20 		.ascii	"VCM moving time out\000"
+ 1191      6D6F7669 
+ 1191      6E672074 
+ 1191      696D6520 
+ 1191      6F757400 
+ 1192              	.LC15:
+ 1193 0181 41462064 		.ascii	"AF data is not valid\000"
+ 1193      61746120 
+ 1193      6973206E 
+ 1193      6F742076 
+ 1193      616C6964 
+ 1194              		.section	.rodata.__FUNCTION__.8951,"a",%progbits
+ 1195              		.set	.LANCHOR3,. + 0
+ 1198              	__FUNCTION__.8951:
+ 1199 0000 76636D5F 		.ascii	"vcm_get_status\000"
+ 1199      6765745F 
+ 1199      73746174 
+ 1199      757300
+ 1200              		.section	.rodata.__FUNCTION__.8993,"a",%progbits
+ 1201              		.set	.LANCHOR6,. + 0
+ 1204              	__FUNCTION__.8993:
+ 1205 0000 76636D5F 		.ascii	"vcm_focus_distance\000"
+ 1205      666F6375 
+ 1205      735F6469 
+ 1205      7374616E 
+ 1205      636500
+ 1206              		.section	.rodata.__FUNCTION__.8929,"a",%progbits
+ 1207              		.set	.LANCHOR1,. + 0
+ 1210              	__FUNCTION__.8929:
+ 1211 0000 696E6974 		.ascii	"init_af_data\000"
+ 1211      5F61665F 
+ 1211      64617461 
+ 1211      00
+ 1212              		.section	.rodata.__FUNCTION__.8938,"a",%progbits
+ 1213              		.set	.LANCHOR0,. + 0
+ 1216              	__FUNCTION__.8938:
+ 1217 0000 76636D5F 		.ascii	"vcm_init\000"
+ 1217      696E6974 
+ 1217      00
+ 1218              		.section	.rodata.__FUNCTION__.8946,"a",%progbits
+ 1219              		.set	.LANCHOR2,. + 0
+ 1222              	__FUNCTION__.8946:
+ 1223 0000 76636D5F 		.ascii	"vcm_deinit\000"
+ 1223      6465696E 
+ 1223      697400
+ 1224              		.text
+ 1225              	.Letext0:
+ 1226              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1227              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1228              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 1229              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 1230              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 1231              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 1232              		.file 8 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/vcm.h"
+ 1233              		.file 9 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cm.h"
+ 1234              		.file 10 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/af_lens_calib.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 vcm.c
+     /tmp/ccaWIG2D.s:19     .text.vcm_init:00000000 $t
+     /tmp/ccaWIG2D.s:24     .text.vcm_init:00000000 vcm_init
+     /tmp/ccaWIG2D.s:408    .text.vcm_init:000001b4 $d
+     /tmp/ccaWIG2D.s:434    .text.vcm_deinit:00000000 $t
+     /tmp/ccaWIG2D.s:439    .text.vcm_deinit:00000000 vcm_deinit
+     /tmp/ccaWIG2D.s:484    .text.vcm_deinit:00000020 $d
+     /tmp/ccaWIG2D.s:490    .text.vcm_get_status:00000000 $t
+     /tmp/ccaWIG2D.s:495    .text.vcm_get_status:00000000 vcm_get_status
+     /tmp/ccaWIG2D.s:536    .text.vcm_get_status:0000001c $d
+     /tmp/ccaWIG2D.s:542    .text.vcm_get_hard_stop_hall:00000000 $t
+     /tmp/ccaWIG2D.s:547    .text.vcm_get_hard_stop_hall:00000000 vcm_get_hard_stop_hall
+     /tmp/ccaWIG2D.s:602    .text.vcm_get_hard_stop_hall:00000028 $d
+     /tmp/ccaWIG2D.s:608    .text.vcm_get_hall:00000000 $t
+     /tmp/ccaWIG2D.s:613    .text.vcm_get_hall:00000000 vcm_get_hall
+     /tmp/ccaWIG2D.s:709    .text.vcm_get_hall:00000054 $d
+     /tmp/ccaWIG2D.s:718    .text.vcm_goto_hall:00000000 $t
+     /tmp/ccaWIG2D.s:723    .text.vcm_goto_hall:00000000 vcm_goto_hall
+     /tmp/ccaWIG2D.s:901    .text.vcm_goto_hall:000000e0 $d
+     /tmp/ccaWIG2D.s:914    .text.vcm_object_distance_to_hallcode:00000000 $t
+     /tmp/ccaWIG2D.s:919    .text.vcm_object_distance_to_hallcode:00000000 vcm_object_distance_to_hallcode
+     /tmp/ccaWIG2D.s:996    .text.vcm_object_distance_to_hallcode:00000040 $d
+     /tmp/ccaWIG2D.s:1003   .text.vcm_focus_distance:00000000 $t
+     /tmp/ccaWIG2D.s:1008   .text.vcm_focus_distance:00000000 vcm_focus_distance
+     /tmp/ccaWIG2D.s:1067   .text.vcm_focus_distance:00000034 $d
+     /tmp/ccaWIG2D.s:1075   .text.vcm_hallcode_to_object_distance:00000000 $t
+     /tmp/ccaWIG2D.s:1080   .text.vcm_hallcode_to_object_distance:00000000 vcm_hallcode_to_object_distance
+     /tmp/ccaWIG2D.s:1142   .text.vcm_hallcode_to_object_distance:00000030 $d
+     /tmp/ccaWIG2D.s:1152   .rodata.__FUNCTION__.8967:00000000 __FUNCTION__.8967
+     /tmp/ccaWIG2D.s:1158   .rodata.__FUNCTION__.8981:00000000 __FUNCTION__.8981
+     /tmp/ccaWIG2D.s:1198   .rodata.__FUNCTION__.8951:00000000 __FUNCTION__.8951
+     /tmp/ccaWIG2D.s:1204   .rodata.__FUNCTION__.8993:00000000 __FUNCTION__.8993
+     /tmp/ccaWIG2D.s:1210   .rodata.__FUNCTION__.8929:00000000 __FUNCTION__.8929
+     /tmp/ccaWIG2D.s:1216   .rodata.__FUNCTION__.8938:00000000 __FUNCTION__.8938
+     /tmp/ccaWIG2D.s:1222   .rodata.__FUNCTION__.8946:00000000 __FUNCTION__.8946
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed
+slogf
+i2cm
+pvPortMalloc1
+malloc_failed
+memset
+eeprom_read
+vTaskDelay
+object_distance_to_hallcode
+hallcode_to_object_distance

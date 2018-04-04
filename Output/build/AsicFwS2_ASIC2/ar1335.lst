@@ -1,0 +1,4100 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"ar1335.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	resolution_testing_reg_array
+  19              		.global	config_1920x1080_30fps_mipi_1200Mbs
+  20              		.global	config_3840x2160_30fps_mipi_1200Mbs
+  21              		.global	config_2048x1536_30fps_mipi_1200Mbs
+  22              		.global	config_13MP_1200Mbs_size
+  23              		.global	config_4208x3120_30fps_mipi_1200Mbs
+  24              		.global	config_4160x3120_30fps_mipi_1200Mbs
+  25              		.global	config_2048x1536_18fps_mipi_400Mbs
+  26              		.global	config_13MP_400Mbs_size
+  27              		.global	config_4208x3120_10fps_mipi_400Mbs
+  28              		.global	config_4160x3120_10fps_mipi_400Mbs
+  29              		.global	config_new_1080p
+  30              		.global	num_of_lane
+  31              		.global	power_up
+  32              		.global	output_1920x1080_30fps
+  33              		.global	output_3840x2160_30fps
+  34              		.global	output_4208x3120_30fps
+  35              		.global	output_4160x3120_30fps
+  36              		.global	output_4208x3120_10fps
+  37              		.global	output_4160x3120_10fps
+  38              		.global	output_4160x3120_10fps_4208x3120
+  39              		.global	output_2048x1536_30fps
+  40              		.global	output_2048x1536_18fps
+  41              		.global	mipi_timing_220_110
+  42              		.global	mipi_timing_220_40_1
+  43              		.global	mipi_timing_220_40_2
+  44              		.global	mipi_timing_220_40
+  45              		.global	pll_220_110
+  46              		.global	fll_600
+  47              		.global	mipi_timing_600
+  48              		.global	pll_220_110_600
+  49              		.global	fll_1000
+  50              		.global	mipi_timing_1000
+  51              		.global	pll_220_110_1000
+  52              		.global	pll_220_40_1
+  53              		.global	pll_220_40
+  54              		.global	corrections_recommended
+  55              		.global	pan_defect_correction_size
+  56              		.global	defect_correction_panchromatic
+  57              		.global	defect_correction_size
+  58              		.global	defect_correction
+  59              		.global	stream_types_size
+  60              		.global	stream_types
+  61              		.global	cam_open_default_size
+  62              		.global	cam_open_default
+  63              		.global	output_800Mbs
+  64              		.global	mipi_800Mbs
+  65              		.global	pll_800Mbps
+  66              		.global	output_1200Mbs
+  67              		.global	mipi_1200Mbs
+  68              		.global	pll_1200Mbps
+  69              		.global	res13_4208_3120_recommended
+  70              		.global	analog_setup_recommended
+  71              		.global	stream_4k_cinema
+  72              		.global	stream_4k_uhd
+  73              		.global	stream_720p_60fps_LP
+  74              		.global	stream_720p_60fps_LP_custom
+  75              		.global	stream_720p_30fps_LP
+  76              		.global	stream_720p_60fps_HQ
+  77              		.global	stream_720p_60fps_HQ_custom
+  78              		.global	stream_720p_30fps_HQ
+  79              		.global	stream_1080p_60fps_LP
+  80              		.global	stream_1080p_60fps_LP_custom
+  81              		.global	stream_1080p_30fps_LP
+  82              		.global	stream_3M_30fps_LP
+  83              		.global	stream_1080p_60fps_HQ
+  84              		.global	stream_1080p_60fps_HQ_custom
+  85              		.global	stream_1080p_30fps_HQ
+  86              		.global	stream_3M_30fps_HQ
+  87              		.global	stream_13m_15fps
+  88              		.global	stream_13m_15fps_custom
+  89              		.global	stream_13m_24fps
+  90              		.global	stream_13m_24fps_custom
+  91              		.global	stream_13m_30fps
+  92              		.global	stream_13m_30fps_custom
+  93              		.global	stream_13m_30fps_DPCM8
+  94              		.global	stream_13m_30fps_border
+  95              		.global	res4KCinema_testing_recommended
+  96              		.global	res4KUHD_testing_recommended
+  97              		.global	res3M_testing_recommended
+  98              		.global	res720_testing_recommended
+  99              		.global	res1080_testing_recommended
+ 100              		.global	res13M_testing_recommended
+ 101              		.global	analog_setup_recommended_1
+ 102              		.global	res4k_4096_2160_reg_array_1
+ 103              		.global	res4k_4096_2160_reg_array_0
+ 104              		.global	res4k_3840_2160_reg_array_1
+ 105              		.global	res4k_3840_2160_reg_array_0
+ 106              		.global	res720_3840_2160_Ybin3_Xbin3_reg_array_1
+ 107              		.global	res720_3840_2160_Ybin3_Xbin3_reg_array_0
+ 108              		.global	res720_3840_2160_Yskip3_XScale3_reg_array_1
+ 109              		.global	res720_3840_2160_Yskip3_XScale3_reg_array_0
+ 110              		.global	res1080_3840_2160_Ybin2_XBin2_reg_array_1
+ 111              		.global	res1080_3840_2160_Ybin2_XBin2_reg_array_0
+ 112              		.global	res3_4208_3120_Ybin2_XBin2_reg_array_1
+ 113              		.global	res3_4208_3120_Ybin2_XBin2_reg_array_0
+ 114              		.global	res1080_3840_2160_Ybin2_Xscale2_reg_array_1
+ 115              		.global	res1080_3840_2160_Ybin2_Xscale2_reg_array_0
+ 116              		.global	res3_4208_3120_Ybin2_Xscale2_reg_array_1
+ 117              		.global	res3_4208_3120_Ybin2_Xscale2_reg_array_0
+ 118              		.global	res13_4208_3120_reg_array_1
+ 119              		.global	res13_4208_3120_reg_array_0
+ 120              		.global	res13_4208_3120_DPCM8_reg_array_1
+ 121              		.global	res13_4208_3120_DPCM8_reg_array_0
+ 122              		.global	res13_4224_3136_border_reg_array_1
+ 123              		.global	res13_4224_3136_border_reg_array_0
+ 124              		.global	res13_4208_3120_recommended_1
+ 125              		.global	res13_4208_3120_recommended_0
+ 126              		.global	defect_correction_3
+ 127              		.global	defect_correction_2
+ 128              		.global	defect_correction_1
+ 129              		.global	defect_correction_0
+ 130              		.global	pll_setup_recommended
+ 131              		.global	pll_setup_880M_1
+ 132              		.global	pll_setup_880M_0
+ 133              		.global	pll_setup_880M_DPCM8_1
+ 134              		.global	pll_setup_880M_DPCM8_0
+ 135              		.global	pll_setup_max_1
+ 136              		.global	pll_setup_max_0
+ 137              		.global	mipi_timing_recommended
+ 138              		.global	mipi_timing_880M_DPCM8
+ 139              		.global	mipi_timing_880M
+ 140              		.global	mipi_timing_max
+ 141              		.global	analog_setup_recommended_0
+ 142              		.global	pixel_timing_recommended
+ 143              		.global	correction_recommend
+ 144              		.global	reset_reg_array
+ 145              		.global	iso_table_size
+ 146              		.global	iso_table
+ 147              		.global	slave_mode_disable_reg_array
+ 148              		.global	slave_mode_enable_reg_array
+ 149              		.global	slave_mode_control_reg_array
+ 150              		.global	groupoff_reg_array
+ 151              		.global	groupon_reg_array
+ 152              		.global	stop_reg_array
+ 153              		.global	analog_control_reset
+ 154              		.global	analog_control_off
+ 155              		.global	analog_control_on
+ 156              		.global	enable_streaming
+ 157              		.global	start_reg_array
+ 158              		.section	.data.defect_correction_1,"aw",%progbits
+ 159              		.align	1
+ 162              	defect_correction_1:
+ 163 0000 003F     		.short	16128
+ 164 0002 4F00     		.short	79
+ 165 0004 023F     		.short	16130
+ 166 0006 2501     		.short	293
+ 167 0008 043F     		.short	16132
+ 168 000a 2000     		.short	32
+ 169 000c 063F     		.short	16134
+ 170 000e 4000     		.short	64
+ 171 0010 083F     		.short	16136
+ 172 0012 7000     		.short	112
+ 173 0014 0A3F     		.short	16138
+ 174 0016 0101     		.short	257
+ 175 0018 0C3F     		.short	16140
+ 176 001a 0203     		.short	770
+ 177              		.section	.data.defect_correction_0,"aw",%progbits
+ 178              		.align	1
+ 181              	defect_correction_0:
+ 182 0000 FE30     		.short	12542
+ 183 0002 1000     		.short	16
+ 184 0004 E031     		.short	12768
+ 185 0006 8107     		.short	1921
+ 186 0008 1E3F     		.short	16158
+ 187 000a 2200     		.short	34
+ 188              		.section	.data.defect_correction_3,"aw",%progbits
+ 189              		.align	1
+ 192              	defect_correction_3:
+ 193 0000 403F     		.short	16192
+ 194 0002 1115     		.short	5393
+ 195 0004 423F     		.short	16194
+ 196 0006 1115     		.short	5393
+ 197 0008 443F     		.short	16196
+ 198 000a 0707     		.short	1799
+ 199              		.section	.data.defect_correction_2,"aw",%progbits
+ 200              		.align	1
+ 203              	defect_correction_2:
+ 204 0000 103F     		.short	16144
+ 205 0002 0505     		.short	1285
+ 206 0004 123F     		.short	16146
+ 207 0006 0303     		.short	771
+ 208 0008 143F     		.short	16148
+ 209 000a 0101     		.short	257
+ 210 000c 163F     		.short	16150
+ 211 000e 1E01     		.short	286
+ 212 0010 183F     		.short	16152
+ 213 0012 1E01     		.short	286
+ 214 0014 1A3F     		.short	16154
+ 215 0016 FF01     		.short	511
+ 216              		.section	.data.config_13MP_400Mbs_size,"aw",%progbits
+ 217              		.align	2
+ 220              	config_13MP_400Mbs_size:
+ 221 0000 07000000 		.word	7
+ 222              		.section	.data.stream_720p_30fps_HQ,"aw",%progbits
+ 223              		.align	2
+ 226              	stream_720p_30fps_HQ:
+ 227 0000 00000000 		.word	mipi_timing_880M
+ 228 0004 0700     		.short	7
+ 229 0006 0200     		.short	2
+ 230 0008 00       		.byte	0
+ 231 0009 000000   		.space	3
+ 232 000c 00000000 		.word	pll_setup_880M_0
+ 233 0010 0600     		.short	6
+ 234 0012 0200     		.short	2
+ 235 0014 00       		.byte	0
+ 236 0015 000000   		.space	3
+ 237 0018 00000000 		.word	pll_setup_880M_1
+ 238 001c 0200     		.short	2
+ 239 001e 0200     		.short	2
+ 240 0020 01       		.byte	1
+ 241 0021 000000   		.space	3
+ 242 0024 00000000 		.word	res720_3840_2160_Yskip3_XScale3_reg_array_0
+ 243 0028 0800     		.short	8
+ 244 002a 0200     		.short	2
+ 245 002c 00       		.byte	0
+ 246 002d 000000   		.space	3
+ 247 0030 00000000 		.word	res720_3840_2160_Yskip3_XScale3_reg_array_1
+ 248 0034 0700     		.short	7
+ 249 0036 0200     		.short	2
+ 250 0038 01       		.byte	1
+ 251 0039 000000   		.space	3
+ 252 003c 00000000 		.word	defect_correction_0
+ 253 0040 0300     		.short	3
+ 254 0042 0200     		.short	2
+ 255 0044 01       		.byte	1
+ 256 0045 000000   		.space	3
+ 257 0048 00000000 		.word	defect_correction_1
+ 258 004c 0700     		.short	7
+ 259 004e 0200     		.short	2
+ 260 0050 00       		.byte	0
+ 261 0051 000000   		.space	3
+ 262 0054 00000000 		.word	defect_correction_2
+ 263 0058 0600     		.short	6
+ 264 005a 0200     		.short	2
+ 265 005c 00       		.byte	0
+ 266 005d 000000   		.space	3
+ 267 0060 00000000 		.word	defect_correction_3
+ 268 0064 0300     		.short	3
+ 269 0066 0200     		.short	2
+ 270 0068 00       		.byte	0
+ 271 0069 000000   		.space	3
+ 272              		.section	.data.slave_mode_enable_reg_array,"aw",%progbits
+ 273              		.align	1
+ 276              	slave_mode_enable_reg_array:
+ 277 0000 5831     		.short	12632
+ 278 0002 00A0     		.short	-24576
+ 279              		.section	.data.pll_setup_880M_0,"aw",%progbits
+ 280              		.align	1
+ 283              	pll_setup_880M_0:
+ 284 0000 0003     		.short	768
+ 285 0002 0400     		.short	4
+ 286 0004 0203     		.short	770
+ 287 0006 0100     		.short	1
+ 288 0008 0403     		.short	772
+ 289 000a 0505     		.short	1285
+ 290 000c 0603     		.short	774
+ 291 000e B0B0     		.short	-20304
+ 292 0010 0803     		.short	776
+ 293 0012 0A00     		.short	10
+ 294 0014 0A03     		.short	778
+ 295 0016 0100     		.short	1
+ 296              		.section	.data.pll_setup_880M_1,"aw",%progbits
+ 297              		.align	1
+ 300              	pll_setup_880M_1:
+ 301 0000 1201     		.short	274
+ 302 0002 0A0A     		.short	2570
+ 303 0004 1630     		.short	12310
+ 304 0006 0101     		.short	257
+ 305              		.section	.data.res1080_testing_recommended,"aw",%progbits
+ 306              		.align	1
+ 309              	res1080_testing_recommended:
+ 310 0000 4403     		.short	836
+ 311 0002 C800     		.short	200
+ 312 0004 4803     		.short	840
+ 313 0006 C50F     		.short	4037
+ 314 0008 4603     		.short	838
+ 315 000a F001     		.short	496
+ 316 000c 4A03     		.short	842
+ 317 000e 5D0A     		.short	2653
+ 318 0010 4C03     		.short	844
+ 319 0012 8007     		.short	1920
+ 320 0014 4E03     		.short	846
+ 321 0016 3804     		.short	1080
+ 322 0018 4030     		.short	12352
+ 323 001a C308     		.short	2243
+ 324 001c 7231     		.short	12658
+ 325 001e 2602     		.short	550
+ 326 0020 7A31     		.short	12666
+ 327 0022 6E51     		.short	20846
+ 328 0024 3C3F     		.short	16188
+ 329 0026 0300     		.short	3
+ 330 0028 0004     		.short	1024
+ 331 002a 0000     		.short	0
+ 332 002c 0404     		.short	1028
+ 333 002e 1000     		.short	16
+ 334 0030 4203     		.short	834
+ 335 0032 0012     		.short	4608
+ 336 0034 4003     		.short	832
+ 337 0036 6E0C     		.short	3182
+ 338 0038 0202     		.short	514
+ 339 003a 6E0C     		.short	3182
+ 340              		.section	.data.res3_4208_3120_Ybin2_XBin2_reg_array_0,"aw",%progbits
+ 341              		.align	1
+ 344              	res3_4208_3120_Ybin2_XBin2_reg_array_0:
+ 345 0000 4403     		.short	836
+ 346 0002 1000     		.short	16
+ 347 0004 4603     		.short	838
+ 348 0006 1000     		.short	16
+ 349 0008 4803     		.short	840
+ 350 000a 7D10     		.short	4221
+ 351 000c 4A03     		.short	842
+ 352 000e 3D0C     		.short	3133
+ 353 0010 4C03     		.short	844
+ 354 0012 3808     		.short	2104
+ 355 0014 4E03     		.short	846
+ 356 0016 1806     		.short	1560
+ 357              		.section	.data.resolution_testing_reg_array,"aw",%progbits
+ 358              		.align	2
+ 361              	resolution_testing_reg_array:
+ 362 0000 00000000 		.word	output_4160x3120_30fps
+ 363 0004 1000     		.short	16
+ 364 0006 0200     		.short	2
+ 365 0008 01       		.byte	1
+ 366 0009 000000   		.space	3
+ 367 000c 00000000 		.word	output_2048x1536_30fps
+ 368 0010 1100     		.short	17
+ 369 0012 0200     		.short	2
+ 370 0014 01       		.byte	1
+ 371 0015 000000   		.space	3
+ 372 0018 00000000 		.word	output_3840x2160_30fps
+ 373 001c 1000     		.short	16
+ 374 001e 0200     		.short	2
+ 375 0020 01       		.byte	1
+ 376 0021 000000   		.space	3
+ 377 0024 00000000 		.word	output_1920x1080_30fps
+ 378 0028 1100     		.short	17
+ 379 002a 0200     		.short	2
+ 380 002c 01       		.byte	1
+ 381 002d 000000   		.space	3
+ 382 0030 00000000 		.word	output_4208x3120_30fps
+ 383 0034 1000     		.short	16
+ 384 0036 0200     		.short	2
+ 385 0038 01       		.byte	1
+ 386 0039 000000   		.space	3
+ 387              		.section	.data.res3_4208_3120_Ybin2_XBin2_reg_array_1,"aw",%progbits
+ 388              		.align	1
+ 391              	res3_4208_3120_Ybin2_XBin2_reg_array_1:
+ 392 0000 4030     		.short	12352
+ 393 0002 C308     		.short	2243
+ 394 0004 7231     		.short	12658
+ 395 0006 2602     		.short	550
+ 396 0008 7A31     		.short	12666
+ 397 000a 6E51     		.short	20846
+ 398 000c 3C3F     		.short	16188
+ 399 000e 0300     		.short	3
+ 400 0010 0004     		.short	1024
+ 401 0012 0000     		.short	0
+ 402 0014 0404     		.short	1028
+ 403 0016 1000     		.short	16
+ 404              		.section	.data.stream_720p_30fps_LP,"aw",%progbits
+ 405              		.align	2
+ 408              	stream_720p_30fps_LP:
+ 409 0000 00000000 		.word	mipi_timing_880M
+ 410 0004 0700     		.short	7
+ 411 0006 0200     		.short	2
+ 412 0008 00       		.byte	0
+ 413 0009 000000   		.space	3
+ 414 000c 00000000 		.word	pll_setup_880M_0
+ 415 0010 0600     		.short	6
+ 416 0012 0200     		.short	2
+ 417 0014 00       		.byte	0
+ 418 0015 000000   		.space	3
+ 419 0018 00000000 		.word	pll_setup_880M_1
+ 420 001c 0200     		.short	2
+ 421 001e 0200     		.short	2
+ 422 0020 01       		.byte	1
+ 423 0021 000000   		.space	3
+ 424 0024 00000000 		.word	res720_3840_2160_Ybin3_Xbin3_reg_array_0
+ 425 0028 0800     		.short	8
+ 426 002a 0200     		.short	2
+ 427 002c 00       		.byte	0
+ 428 002d 000000   		.space	3
+ 429 0030 00000000 		.word	res720_3840_2160_Ybin3_Xbin3_reg_array_1
+ 430 0034 0700     		.short	7
+ 431 0036 0200     		.short	2
+ 432 0038 01       		.byte	1
+ 433 0039 000000   		.space	3
+ 434 003c 00000000 		.word	defect_correction_0
+ 435 0040 0300     		.short	3
+ 436 0042 0200     		.short	2
+ 437 0044 01       		.byte	1
+ 438 0045 000000   		.space	3
+ 439 0048 00000000 		.word	defect_correction_1
+ 440 004c 0700     		.short	7
+ 441 004e 0200     		.short	2
+ 442 0050 00       		.byte	0
+ 443 0051 000000   		.space	3
+ 444 0054 00000000 		.word	defect_correction_2
+ 445 0058 0600     		.short	6
+ 446 005a 0200     		.short	2
+ 447 005c 00       		.byte	0
+ 448 005d 000000   		.space	3
+ 449 0060 00000000 		.word	defect_correction_3
+ 450 0064 0300     		.short	3
+ 451 0066 0200     		.short	2
+ 452 0068 00       		.byte	0
+ 453 0069 000000   		.space	3
+ 454              		.section	.data.mipi_timing_220_110,"aw",%progbits
+ 455              		.align	1
+ 458              	mipi_timing_220_110:
+ 459 0000 B031     		.short	12720
+ 460 0002 6400     		.short	100
+ 461 0004 B231     		.short	12722
+ 462 0006 2D00     		.short	45
+ 463 0008 B431     		.short	12724
+ 464 000a 9253     		.short	21394
+ 465 000c B631     		.short	12726
+ 466 000e CA53     		.short	21450
+ 467 0010 B831     		.short	12728
+ 468 0012 2324     		.short	9251
+ 469 0014 BA31     		.short	12730
+ 470 0016 701C     		.short	7280
+ 471 0018 BC31     		.short	12732
+ 472 001a 8B86     		.short	-31093
+ 473              		.section	.data.config_4160x3120_10fps_mipi_400Mbs,"aw",%progbits
+ 474              		.align	2
+ 477              	config_4160x3120_10fps_mipi_400Mbs:
+ 478 0000 00000000 		.word	power_up
+ 479 0004 0200     		.short	2
+ 480 0006 0100     		.short	1
+ 481 0008 01       		.byte	1
+ 482 0009 000000   		.space	3
+ 483 000c 00000000 		.word	corrections_recommended
+ 484 0010 0B00     		.short	11
+ 485 0012 0200     		.short	2
+ 486 0014 01       		.byte	1
+ 487 0015 000000   		.space	3
+ 488 0018 00000000 		.word	pll_220_40
+ 489 001c 0600     		.short	6
+ 490 001e 0200     		.short	2
+ 491 0020 01       		.byte	1
+ 492 0021 000000   		.space	3
+ 493 0024 00000000 		.word	pixel_timing_recommended
+ 494 0028 DB00     		.short	219
+ 495 002a 0200     		.short	2
+ 496 002c 01       		.byte	1
+ 497 002d 000000   		.space	3
+ 498 0030 00000000 		.word	analog_setup_recommended
+ 499 0034 1200     		.short	18
+ 500 0036 0200     		.short	2
+ 501 0038 01       		.byte	1
+ 502 0039 000000   		.space	3
+ 503 003c 00000000 		.word	mipi_timing_220_40
+ 504 0040 0700     		.short	7
+ 505 0042 0200     		.short	2
+ 506 0044 01       		.byte	1
+ 507 0045 000000   		.space	3
+ 508 0048 00000000 		.word	output_4160x3120_10fps
+ 509 004c 1000     		.short	16
+ 510 004e 0200     		.short	2
+ 511 0050 01       		.byte	1
+ 512 0051 000000   		.space	3
+ 513              		.section	.data.mipi_timing_220_40_1,"aw",%progbits
+ 514              		.align	1
+ 517              	mipi_timing_220_40_1:
+ 518 0000 B031     		.short	12720
+ 519 0002 3100     		.short	49
+ 520 0004 B231     		.short	12722
+ 521 0006 1E00     		.short	30
+ 522 0008 B431     		.short	12724
+ 523 000a 8811     		.short	4488
+ 524 000c B631     		.short	12726
+ 525 000e 6411     		.short	4452
+ 526 0010 B831     		.short	12728
+ 527 0012 120C     		.short	3090
+ 528 0014 BA31     		.short	12730
+ 529 0016 280C     		.short	3112
+ 530 0018 BC31     		.short	12732
+ 531 001a 8482     		.short	-32124
+ 532              		.section	.data.mipi_timing_220_40_2,"aw",%progbits
+ 533              		.align	1
+ 536              	mipi_timing_220_40_2:
+ 537 0000 B031     		.short	12720
+ 538 0002 3100     		.short	49
+ 539 0004 B231     		.short	12722
+ 540 0006 1E00     		.short	30
+ 541 0008 B431     		.short	12724
+ 542 000a 8811     		.short	4488
+ 543 000c B631     		.short	12726
+ 544 000e 2A14     		.short	5162
+ 545 0010 B831     		.short	12728
+ 546 0012 1324     		.short	9235
+ 547 0014 BA31     		.short	12730
+ 548 0016 701C     		.short	7280
+ 549 0018 BC31     		.short	12732
+ 550 001a 8B86     		.short	-31093
+ 551              		.section	.data.analog_control_off,"aw",%progbits
+ 552              		.align	1
+ 555              	analog_control_off:
+ 556 0000 3C3F     		.short	16188
+ 557 0002 0200     		.short	2
+ 558 0004 E03F     		.short	16352
+ 559 0006 0100     		.short	1
+ 560              		.section	.data.pll_220_40,"aw",%progbits
+ 561              		.align	1
+ 564              	pll_220_40:
+ 565 0000 0003     		.short	768
+ 566 0002 0500     		.short	5
+ 567 0004 0203     		.short	770
+ 568 0006 0100     		.short	1
+ 569 0008 0403     		.short	772
+ 570 000a 0102     		.short	513
+ 571 000c 0603     		.short	774
+ 572 000e 2E21     		.short	8494
+ 573 0010 0803     		.short	776
+ 574 0012 0A00     		.short	10
+ 575 0014 0A03     		.short	778
+ 576 0016 0100     		.short	1
+ 577              		.section	.data.fll_1000,"aw",%progbits
+ 578              		.align	1
+ 581              	fll_1000:
+ 582 0000 4203     		.short	834
+ 583 0002 8C13     		.short	5004
+ 584 0004 4003     		.short	832
+ 585 0006 4E0C     		.short	3150
+ 586              		.section	.data.res4KCinema_testing_recommended,"aw",%progbits
+ 587              		.align	1
+ 590              	res4KCinema_testing_recommended:
+ 591 0000 4403     		.short	836
+ 592 0002 4800     		.short	72
+ 593 0004 4803     		.short	840
+ 594 0006 4710     		.short	4167
+ 595 0008 4603     		.short	838
+ 596 000a F001     		.short	496
+ 597 000c 4A03     		.short	842
+ 598 000e 5F0A     		.short	2655
+ 599 0010 4C03     		.short	844
+ 600 0012 0010     		.short	4096
+ 601 0014 4E03     		.short	846
+ 602 0016 7008     		.short	2160
+ 603 0018 4030     		.short	12352
+ 604 001a 4100     		.short	65
+ 605 001c 7231     		.short	12658
+ 606 001e 0602     		.short	518
+ 607 0020 7A31     		.short	12666
+ 608 0022 6E41     		.short	16750
+ 609 0024 3C3F     		.short	16188
+ 610 0026 0300     		.short	3
+ 611 0028 4203     		.short	834
+ 612 002a 1215     		.short	5394
+ 613 002c 4003     		.short	832
+ 614 002e 7E08     		.short	2174
+ 615 0030 0202     		.short	514
+ 616 0032 AF08     		.short	2223
+ 617              		.section	.data.mipi_timing_recommended,"aw",%progbits
+ 618              		.align	1
+ 621              	mipi_timing_recommended:
+ 622 0000 B031     		.short	12720
+ 623 0002 3100     		.short	49
+ 624 0004 B231     		.short	12722
+ 625 0006 1E00     		.short	30
+ 626 0008 B431     		.short	12724
+ 627 000a 8811     		.short	4488
+ 628 000c B631     		.short	12726
+ 629 000e 6511     		.short	4453
+ 630 0010 B831     		.short	12728
+ 631 0012 1210     		.short	4114
+ 632 0014 BA31     		.short	12730
+ 633 0016 280C     		.short	3112
+ 634 0018 BC31     		.short	12732
+ 635 001a 8482     		.short	-32124
+ 636              		.section	.data.reset_reg_array,"aw",%progbits
+ 637              		.align	1
+ 640              	reset_reg_array:
+ 641 0000 3C3F     		.short	16188
+ 642 0002 0300     		.short	3
+ 643 0004 1A30     		.short	12314
+ 644 0006 1C00     		.short	28
+ 645 0008 1A30     		.short	12314
+ 646 000a 1C02     		.short	540
+ 647              		.section	.data.output_800Mbs,"aw",%progbits
+ 648              		.align	1
+ 651              	output_800Mbs:
+ 652 0000 4203     		.short	834
+ 653 0002 3012     		.short	4656
+ 654 0004 4003     		.short	832
+ 655 0006 4E0C     		.short	3150
+ 656              		.section	.data.output_2048x1536_30fps,"aw",%progbits
+ 657              		.align	1
+ 660              	output_2048x1536_30fps:
+ 661 0000 4403     		.short	836
+ 662 0002 4800     		.short	72
+ 663 0004 4803     		.short	840
+ 664 0006 4710     		.short	4167
+ 665 0008 4603     		.short	838
+ 666 000a 2800     		.short	40
+ 667 000c 4A03     		.short	842
+ 668 000e 250C     		.short	3109
+ 669 0010 4C03     		.short	844
+ 670 0012 0008     		.short	2048
+ 671 0014 4E03     		.short	846
+ 672 0016 0006     		.short	1536
+ 673 0018 4030     		.short	12352
+ 674 001a 4300     		.short	67
+ 675 001c 1201     		.short	274
+ 676 001e 0A0A     		.short	2570
+ 677 0020 4203     		.short	834
+ 678 0022 0412     		.short	4612
+ 679 0024 4003     		.short	832
+ 680 0026 760C     		.short	3190
+ 681 0028 0202     		.short	514
+ 682 002a B80B     		.short	3000
+ 683 002c 7231     		.short	12658
+ 684 002e 0602     		.short	518
+ 685 0030 7A31     		.short	12666
+ 686 0032 6E51     		.short	20846
+ 687 0034 3C3F     		.short	16188
+ 688 0036 0300     		.short	3
+ 689 0038 0004     		.short	1024
+ 690 003a 0100     		.short	1
+ 691 003c 0404     		.short	1028
+ 692 003e 2000     		.short	32
+ 693 0040 6E30     		.short	12398
+ 694 0042 9090     		.short	-28528
+ 695              		.section	.data.res4k_4096_2160_reg_array_0,"aw",%progbits
+ 696              		.align	1
+ 699              	res4k_4096_2160_reg_array_0:
+ 700 0000 4003     		.short	832
+ 701 0002 7E08     		.short	2174
+ 702 0004 4203     		.short	834
+ 703 0006 1215     		.short	5394
+ 704 0008 4403     		.short	836
+ 705 000a 4800     		.short	72
+ 706 000c 4603     		.short	838
+ 707 000e F001     		.short	496
+ 708 0010 4803     		.short	840
+ 709 0012 4710     		.short	4167
+ 710 0014 4A03     		.short	842
+ 711 0016 5F0A     		.short	2655
+ 712 0018 4C03     		.short	844
+ 713 001a 0010     		.short	4096
+ 714 001c 4E03     		.short	846
+ 715 001e 7008     		.short	2160
+ 716              		.section	.data.res4k_4096_2160_reg_array_1,"aw",%progbits
+ 717              		.align	1
+ 720              	res4k_4096_2160_reg_array_1:
+ 721 0000 4030     		.short	12352
+ 722 0002 4100     		.short	65
+ 723 0004 7231     		.short	12658
+ 724 0006 0602     		.short	518
+ 725 0008 7A31     		.short	12666
+ 726 000a 6E41     		.short	16750
+ 727 000c 3C3F     		.short	16188
+ 728 000e 0300     		.short	3
+ 729 0010 0202     		.short	514
+ 730 0012 AF08     		.short	2223
+ 731              		.section	.data.pll_220_110_600,"aw",%progbits
+ 732              		.align	1
+ 735              	pll_220_110_600:
+ 736 0000 0003     		.short	768
+ 737 0002 0500     		.short	5
+ 738 0004 0203     		.short	770
+ 739 0006 0100     		.short	1
+ 740 0008 0403     		.short	772
+ 741 000a 0101     		.short	257
+ 742 000c 0603     		.short	774
+ 743 000e 2E19     		.short	6446
+ 744 0010 0803     		.short	776
+ 745 0012 0A00     		.short	10
+ 746 0014 0A03     		.short	778
+ 747 0016 0100     		.short	1
+ 748              		.section	.data.pll_setup_880M_DPCM8_0,"aw",%progbits
+ 749              		.align	1
+ 752              	pll_setup_880M_DPCM8_0:
+ 753 0000 0003     		.short	768
+ 754 0002 0400     		.short	4
+ 755 0004 0203     		.short	770
+ 756 0006 0100     		.short	1
+ 757 0008 0403     		.short	772
+ 758 000a 0505     		.short	1285
+ 759 000c 0603     		.short	774
+ 760 000e B0B0     		.short	-20304
+ 761 0010 0803     		.short	776
+ 762 0012 0800     		.short	8
+ 763 0014 0A03     		.short	778
+ 764 0016 0100     		.short	1
+ 765              		.section	.data.corrections_recommended,"aw",%progbits
+ 766              		.align	1
+ 769              	corrections_recommended:
+ 770 0000 4230     		.short	12354
+ 771 0002 0410     		.short	4100
+ 772 0004 D230     		.short	12498
+ 773 0006 2001     		.short	288
+ 774 0008 D430     		.short	12500
+ 775 000a 0000     		.short	0
+ 776 000c 9030     		.short	12432
+ 777 000e 0000     		.short	0
+ 778 0010 FC30     		.short	12540
+ 779 0012 6000     		.short	96
+ 780 0014 FE30     		.short	12542
+ 781 0016 6000     		.short	96
+ 782 0018 E031     		.short	12768
+ 783 001a 8107     		.short	1921
+ 784 001c 8031     		.short	12672
+ 785 001e 3494     		.short	-27596
+ 786 0020 7C31     		.short	12668
+ 787 0022 F4EF     		.short	-4108
+ 788 0024 EE30     		.short	12526
+ 789 0026 3E61     		.short	24894
+ 790 0028 2C3F     		.short	16172
+ 791 002a 2844     		.short	17448
+ 792              		.section	.data.num_of_lane,"aw",%progbits
+ 793              		.align	1
+ 796              	num_of_lane:
+ 797 0000 AE31     		.short	12718
+ 798 0002 0402     		.short	516
+ 799              		.section	.data.res3_4208_3120_Ybin2_Xscale2_reg_array_0,"aw",%progbits
+ 800              		.align	1
+ 803              	res3_4208_3120_Ybin2_Xscale2_reg_array_0:
+ 804 0000 4003     		.short	832
+ 805 0002 6E0C     		.short	3182
+ 806 0004 4203     		.short	834
+ 807 0006 0012     		.short	4608
+ 808 0008 4403     		.short	836
+ 809 000a 1000     		.short	16
+ 810 000c 4603     		.short	838
+ 811 000e 1000     		.short	16
+ 812 0010 4803     		.short	840
+ 813 0012 7D10     		.short	4221
+ 814 0014 4A03     		.short	842
+ 815 0016 3D0C     		.short	3133
+ 816 0018 4C03     		.short	844
+ 817 001a 3808     		.short	2104
+ 818 001c 4E03     		.short	846
+ 819 001e 1806     		.short	1560
+ 820              		.section	.data.analog_control_on,"aw",%progbits
+ 821              		.align	1
+ 824              	analog_control_on:
+ 825 0000 3C3F     		.short	16188
+ 826 0002 0300     		.short	3
+ 827              		.section	.data.stream_1080p_60fps_LP_custom,"aw",%progbits
+ 828              		.align	1
+ 831              	stream_1080p_60fps_LP_custom:
+ 832 0000 4203     		.short	834
+ 833 0002 0012     		.short	4608
+ 834 0004 4003     		.short	832
+ 835 0006 3606     		.short	1590
+ 836 0008 0202     		.short	514
+ 837 000a 3606     		.short	1590
+ 838              		.section	.data.mipi_timing_600,"aw",%progbits
+ 839              		.align	1
+ 842              	mipi_timing_600:
+ 843 0000 B031     		.short	12720
+ 844 0002 3C00     		.short	60
+ 845 0004 B231     		.short	12722
+ 846 0006 2200     		.short	34
+ 847 0008 B431     		.short	12724
+ 848 000a 0A22     		.short	8714
+ 849 000c B631     		.short	12726
+ 850 000e 0622     		.short	8710
+ 851 0010 B831     		.short	12728
+ 852 0012 1214     		.short	5138
+ 853 0014 BA31     		.short	12730
+ 854 0016 4110     		.short	4161
+ 855 0018 BC31     		.short	12732
+ 856 001a 8683     		.short	-31866
+ 857              		.section	.data.slave_mode_disable_reg_array,"aw",%progbits
+ 858              		.align	1
+ 861              	slave_mode_disable_reg_array:
+ 862 0000 5831     		.short	12632
+ 863 0002 0000     		.short	0
+ 864              		.section	.data.groupon_reg_array,"aw",%progbits
+ 865              		.align	1
+ 868              	groupon_reg_array:
+ 869 0000 0401     		.short	260
+ 870 0002 0100     		.short	1
+ 871              		.section	.data.res13_4208_3120_reg_array_0,"aw",%progbits
+ 872              		.align	1
+ 875              	res13_4208_3120_reg_array_0:
+ 876 0000 4003     		.short	832
+ 877 0002 4E0C     		.short	3150
+ 878 0004 4203     		.short	834
+ 879 0006 3012     		.short	4656
+ 880 0008 4403     		.short	836
+ 881 000a 1000     		.short	16
+ 882 000c 4603     		.short	838
+ 883 000e 1000     		.short	16
+ 884 0010 4803     		.short	840
+ 885 0012 7F10     		.short	4223
+ 886 0014 4A03     		.short	842
+ 887 0016 3F0C     		.short	3135
+ 888 0018 4C03     		.short	844
+ 889 001a 7010     		.short	4208
+ 890 001c 4E03     		.short	846
+ 891 001e 300C     		.short	3120
+ 892              		.section	.data.config_2048x1536_30fps_mipi_1200Mbs,"aw",%progbits
+ 893              		.align	2
+ 896              	config_2048x1536_30fps_mipi_1200Mbs:
+ 897 0000 00000000 		.word	power_up
+ 898 0004 0200     		.short	2
+ 899 0006 0100     		.short	1
+ 900 0008 01       		.byte	1
+ 901 0009 000000   		.space	3
+ 902 000c 00000000 		.word	corrections_recommended
+ 903 0010 0B00     		.short	11
+ 904 0012 0200     		.short	2
+ 905 0014 01       		.byte	1
+ 906 0015 000000   		.space	3
+ 907 0018 00000000 		.word	pll_220_110
+ 908 001c 0600     		.short	6
+ 909 001e 0200     		.short	2
+ 910 0020 01       		.byte	1
+ 911 0021 000000   		.space	3
+ 912 0024 00000000 		.word	pixel_timing_recommended
+ 913 0028 DB00     		.short	219
+ 914 002a 0200     		.short	2
+ 915 002c 01       		.byte	1
+ 916 002d 000000   		.space	3
+ 917 0030 00000000 		.word	analog_setup_recommended
+ 918 0034 1200     		.short	18
+ 919 0036 0200     		.short	2
+ 920 0038 01       		.byte	1
+ 921 0039 000000   		.space	3
+ 922 003c 00000000 		.word	mipi_timing_220_110
+ 923 0040 0700     		.short	7
+ 924 0042 0200     		.short	2
+ 925 0044 01       		.byte	1
+ 926 0045 000000   		.space	3
+ 927 0048 00000000 		.word	output_2048x1536_30fps
+ 928 004c 1100     		.short	17
+ 929 004e 0200     		.short	2
+ 930 0050 01       		.byte	1
+ 931 0051 000000   		.space	3
+ 932 0054 00000000 		.word	defect_correction
+ 933 0058 1200     		.short	18
+ 934 005a 0200     		.short	2
+ 935 005c 01       		.byte	1
+ 936 005d 000000   		.space	3
+ 937              		.section	.data.res13_4208_3120_recommended_0,"aw",%progbits
+ 938              		.align	1
+ 941              	res13_4208_3120_recommended_0:
+ 942 0000 4003     		.short	832
+ 943 0002 4E0C     		.short	3150
+ 944 0004 4203     		.short	834
+ 945 0006 D413     		.short	5076
+ 946 0008 4403     		.short	836
+ 947 000a 1000     		.short	16
+ 948 000c 4603     		.short	838
+ 949 000e 1000     		.short	16
+ 950 0010 4803     		.short	840
+ 951 0012 7F10     		.short	4223
+ 952 0014 4A03     		.short	842
+ 953 0016 3F0C     		.short	3135
+ 954 0018 4C03     		.short	844
+ 955 001a 7010     		.short	4208
+ 956 001c 4E03     		.short	846
+ 957 001e 300C     		.short	3120
+ 958              		.section	.data.analog_control_reset,"aw",%progbits
+ 959              		.align	1
+ 962              	analog_control_reset:
+ 963 0000 E03F     		.short	16352
+ 964 0002 0000     		.short	0
+ 965              		.section	.data.power_up,"aw",%progbits
+ 966              		.align	1
+ 969              	power_up:
+ 970 0000 0001     		.short	256
+ 971 0002 0100     		.short	1
+ 972 0004 0001     		.short	256
+ 973 0006 0000     		.short	0
+ 974              		.section	.data.res1080_3840_2160_Ybin2_Xscale2_reg_array_0,"aw",%progbits
+ 975              		.align	1
+ 978              	res1080_3840_2160_Ybin2_Xscale2_reg_array_0:
+ 979 0000 4003     		.short	832
+ 980 0002 6E0C     		.short	3182
+ 981 0004 4203     		.short	834
+ 982 0006 0012     		.short	4608
+ 983 0008 4403     		.short	836
+ 984 000a C800     		.short	200
+ 985 000c 4603     		.short	838
+ 986 000e F001     		.short	496
+ 987 0010 4803     		.short	840
+ 988 0012 C70F     		.short	4039
+ 989 0014 4A03     		.short	842
+ 990 0016 5D0A     		.short	2653
+ 991 0018 4C03     		.short	844
+ 992 001a 8007     		.short	1920
+ 993 001c 4E03     		.short	846
+ 994 001e 3804     		.short	1080
+ 995              		.section	.data.res1080_3840_2160_Ybin2_Xscale2_reg_array_1,"aw",%progbits
+ 996              		.align	1
+ 999              	res1080_3840_2160_Ybin2_Xscale2_reg_array_1:
+ 1000 0000 4030     		.short	12352
+ 1001 0002 4300     		.short	67
+ 1002 0004 7231     		.short	12658
+ 1003 0006 0602     		.short	518
+ 1004 0008 7A31     		.short	12666
+ 1005 000a 6E51     		.short	20846
+ 1006 000c 3C3F     		.short	16188
+ 1007 000e 0300     		.short	3
+ 1008 0010 0004     		.short	1024
+ 1009 0012 0100     		.short	1
+ 1010 0014 0404     		.short	1028
+ 1011 0016 2000     		.short	32
+ 1012 0018 0202     		.short	514
+ 1013 001a 6E0C     		.short	3182
+ 1014              		.section	.data.stop_reg_array,"aw",%progbits
+ 1015              		.align	1
+ 1018              	stop_reg_array:
+ 1019 0000 0001     		.short	256
+ 1020 0002 0000     		.short	0
+ 1021              		.section	.data.mipi_timing_max,"aw",%progbits
+ 1022              		.align	1
+ 1025              	mipi_timing_max:
+ 1026 0000 B031     		.short	12720
+ 1027 0002 5800     		.short	88
+ 1028 0004 B231     		.short	12722
+ 1029 0006 2C00     		.short	44
+ 1030 0008 B431     		.short	12724
+ 1031 000a D023     		.short	9168
+ 1032 000c B631     		.short	12726
+ 1033 000e 0A14     		.short	5130
+ 1034 0010 B831     		.short	12728
+ 1035 0012 1324     		.short	9235
+ 1036 0014 BA31     		.short	12730
+ 1037 0016 701C     		.short	7280
+ 1038 0018 BC31     		.short	12732
+ 1039 001a 0B86     		.short	-31221
+ 1040              		.section	.data.cam_open_default_size,"aw",%progbits
+ 1041              		.align	2
+ 1044              	cam_open_default_size:
+ 1045 0000 09000000 		.word	9
+ 1046              		.section	.data.pll_220_110,"aw",%progbits
+ 1047              		.align	1
+ 1050              	pll_220_110:
+ 1051 0000 0003     		.short	768
+ 1052 0002 0500     		.short	5
+ 1053 0004 0203     		.short	770
+ 1054 0006 0100     		.short	1
+ 1055 0008 0403     		.short	772
+ 1056 000a 0101     		.short	257
+ 1057 000c 0603     		.short	774
+ 1058 000e 2E2E     		.short	11822
+ 1059 0010 0803     		.short	776
+ 1060 0012 0A00     		.short	10
+ 1061 0014 0A03     		.short	778
+ 1062 0016 0100     		.short	1
+ 1063              		.section	.data.output_4160x3120_30fps,"aw",%progbits
+ 1064              		.align	1
+ 1067              	output_4160x3120_30fps:
+ 1068 0000 4403     		.short	836
+ 1069 0002 2800     		.short	40
+ 1070 0004 4803     		.short	840
+ 1071 0006 6710     		.short	4199
+ 1072 0008 4603     		.short	838
+ 1073 000a 1000     		.short	16
+ 1074 000c 4A03     		.short	842
+ 1075 000e 3F0C     		.short	3135
+ 1076 0010 4C03     		.short	844
+ 1077 0012 4010     		.short	4160
+ 1078 0014 4E03     		.short	846
+ 1079 0016 300C     		.short	3120
+ 1080 0018 4030     		.short	12352
+ 1081 001a 4100     		.short	65
+ 1082 001c 1201     		.short	274
+ 1083 001e 0A0A     		.short	2570
+ 1084 0020 4203     		.short	834
+ 1085 0022 0412     		.short	4612
+ 1086 0024 4003     		.short	832
+ 1087 0026 760C     		.short	3190
+ 1088 0028 0202     		.short	514
+ 1089 002a B80B     		.short	3000
+ 1090 002c 7231     		.short	12658
+ 1091 002e 0602     		.short	518
+ 1092 0030 7A31     		.short	12666
+ 1093 0032 6E41     		.short	16750
+ 1094 0034 3C3F     		.short	16188
+ 1095 0036 0300     		.short	3
+ 1096 0038 0004     		.short	1024
+ 1097 003a 0000     		.short	0
+ 1098 003c 0404     		.short	1028
+ 1099 003e 1000     		.short	16
+ 1100              		.section	.data.defect_correction,"aw",%progbits
+ 1101              		.align	1
+ 1104              	defect_correction:
+ 1105 0000 E031     		.short	12768
+ 1106 0002 8107     		.short	1921
+ 1107 0004 003F     		.short	16128
+ 1108 0006 4F00     		.short	79
+ 1109 0008 023F     		.short	16130
+ 1110 000a 2501     		.short	293
+ 1111 000c 043F     		.short	16132
+ 1112 000e 2000     		.short	32
+ 1113 0010 063F     		.short	16134
+ 1114 0012 4000     		.short	64
+ 1115 0014 083F     		.short	16136
+ 1116 0016 7000     		.short	112
+ 1117 0018 0A3F     		.short	16138
+ 1118 001a 0101     		.short	257
+ 1119 001c 0C3F     		.short	16140
+ 1120 001e 0203     		.short	770
+ 1121 0020 1E3F     		.short	16158
+ 1122 0022 2200     		.short	34
+ 1123 0024 1A3F     		.short	16154
+ 1124 0026 FF01     		.short	511
+ 1125 0028 143F     		.short	16148
+ 1126 002a 0101     		.short	257
+ 1127 002c 443F     		.short	16196
+ 1128 002e 0707     		.short	1799
+ 1129 0030 183F     		.short	16152
+ 1130 0032 1E01     		.short	286
+ 1131 0034 123F     		.short	16146
+ 1132 0036 0303     		.short	771
+ 1133 0038 423F     		.short	16194
+ 1134 003a 1115     		.short	5393
+ 1135 003c 163F     		.short	16150
+ 1136 003e 1E01     		.short	286
+ 1137 0040 103F     		.short	16144
+ 1138 0042 0505     		.short	1285
+ 1139 0044 403F     		.short	16192
+ 1140 0046 1115     		.short	5393
+ 1141              		.section	.data.stream_13m_30fps_custom,"aw",%progbits
+ 1142              		.align	1
+ 1145              	stream_13m_30fps_custom:
+ 1146 0000 4203     		.short	834
+ 1147 0002 3012     		.short	4656
+ 1148 0004 4003     		.short	832
+ 1149 0006 4E0C     		.short	3150
+ 1150 0008 0202     		.short	514
+ 1151 000a 2E0C     		.short	3118
+ 1152              		.section	.data.pll_800Mbps,"aw",%progbits
+ 1153              		.align	1
+ 1156              	pll_800Mbps:
+ 1157 0000 0003     		.short	768
+ 1158 0002 0500     		.short	5
+ 1159 0004 0203     		.short	770
+ 1160 0006 0100     		.short	1
+ 1161 0008 0403     		.short	772
+ 1162 000a 0101     		.short	257
+ 1163 000c 0603     		.short	774
+ 1164 000e 2C20     		.short	8236
+ 1165 0010 0803     		.short	776
+ 1166 0012 0A00     		.short	10
+ 1167 0014 0A03     		.short	778
+ 1168 0016 0100     		.short	1
+ 1169 0018 1201     		.short	274
+ 1170 001a 0A0A     		.short	2570
+ 1171              		.section	.data.stream_13m_15fps,"aw",%progbits
+ 1172              		.align	2
+ 1175              	stream_13m_15fps:
+ 1176 0000 00000000 		.word	mipi_timing_880M
+ 1177 0004 0700     		.short	7
+ 1178 0006 0200     		.short	2
+ 1179 0008 00       		.byte	0
+ 1180 0009 000000   		.space	3
+ 1181 000c 00000000 		.word	pll_setup_880M_0
+ 1182 0010 0600     		.short	6
+ 1183 0012 0200     		.short	2
+ 1184 0014 00       		.byte	0
+ 1185 0015 000000   		.space	3
+ 1186 0018 00000000 		.word	pll_setup_880M_1
+ 1187 001c 0200     		.short	2
+ 1188 001e 0200     		.short	2
+ 1189 0020 01       		.byte	1
+ 1190 0021 000000   		.space	3
+ 1191 0024 00000000 		.word	res13_4208_3120_reg_array_0
+ 1192 0028 0800     		.short	8
+ 1193 002a 0200     		.short	2
+ 1194 002c 00       		.byte	0
+ 1195 002d 000000   		.space	3
+ 1196 0030 00000000 		.word	res13_4208_3120_reg_array_1
+ 1197 0034 0600     		.short	6
+ 1198 0036 0200     		.short	2
+ 1199 0038 01       		.byte	1
+ 1200 0039 000000   		.space	3
+ 1201 003c 00000000 		.word	defect_correction_0
+ 1202 0040 0300     		.short	3
+ 1203 0042 0200     		.short	2
+ 1204 0044 01       		.byte	1
+ 1205 0045 000000   		.space	3
+ 1206 0048 00000000 		.word	defect_correction_1
+ 1207 004c 0700     		.short	7
+ 1208 004e 0200     		.short	2
+ 1209 0050 00       		.byte	0
+ 1210 0051 000000   		.space	3
+ 1211 0054 00000000 		.word	defect_correction_2
+ 1212 0058 0600     		.short	6
+ 1213 005a 0200     		.short	2
+ 1214 005c 00       		.byte	0
+ 1215 005d 000000   		.space	3
+ 1216 0060 00000000 		.word	defect_correction_3
+ 1217 0064 0300     		.short	3
+ 1218 0066 0200     		.short	2
+ 1219 0068 00       		.byte	0
+ 1220 0069 000000   		.space	3
+ 1221 006c 00000000 		.word	stream_13m_15fps_custom
+ 1222 0070 0300     		.short	3
+ 1223 0072 0200     		.short	2
+ 1224 0074 01       		.byte	1
+ 1225 0075 000000   		.space	3
+ 1226              		.section	.data.cam_open_default,"aw",%progbits
+ 1227              		.align	2
+ 1230              	cam_open_default:
+ 1231 0000 00000000 		.word	start_reg_array
+ 1232 0004 0100     		.short	1
+ 1233 0006 0100     		.short	1
+ 1234 0008 01       		.byte	1
+ 1235 0009 000000   		.space	3
+ 1236 000c 00000000 		.word	stop_reg_array
+ 1237 0010 0100     		.short	1
+ 1238 0012 0100     		.short	1
+ 1239 0014 01       		.byte	1
+ 1240 0015 000000   		.space	3
+ 1241 0018 00000000 		.word	correction_recommend
+ 1242 001c 0B00     		.short	11
+ 1243 001e 0200     		.short	2
+ 1244 0020 01       		.byte	1
+ 1245 0021 000000   		.space	3
+ 1246 0024 00000000 		.word	pll_800Mbps
+ 1247 0028 0700     		.short	7
+ 1248 002a 0200     		.short	2
+ 1249 002c 01       		.byte	1
+ 1250 002d 000000   		.space	3
+ 1251 0030 00000000 		.word	pixel_timing_recommended
+ 1252 0034 DB00     		.short	219
+ 1253 0036 0200     		.short	2
+ 1254 0038 01       		.byte	1
+ 1255 0039 000000   		.space	3
+ 1256 003c 00000000 		.word	analog_setup_recommended
+ 1257 0040 1200     		.short	18
+ 1258 0042 0200     		.short	2
+ 1259 0044 01       		.byte	1
+ 1260 0045 000000   		.space	3
+ 1261 0048 00000000 		.word	mipi_800Mbs
+ 1262 004c 0700     		.short	7
+ 1263 004e 0200     		.short	2
+ 1264 0050 01       		.byte	1
+ 1265 0051 000000   		.space	3
+ 1266 0054 00000000 		.word	res13_4208_3120_recommended
+ 1267 0058 1000     		.short	16
+ 1268 005a 0200     		.short	2
+ 1269 005c 01       		.byte	1
+ 1270 005d 000000   		.space	3
+ 1271 0060 00000000 		.word	output_800Mbs
+ 1272 0064 0200     		.short	2
+ 1273 0066 0200     		.short	2
+ 1274 0068 01       		.byte	1
+ 1275 0069 000000   		.space	3
+ 1276              		.section	.data.analog_setup_recommended_0,"aw",%progbits
+ 1277              		.align	1
+ 1280              	analog_setup_recommended_0:
+ 1281 0000 B63E     		.short	16054
+ 1282 0002 4D00     		.short	77
+ 1283 0004 BC3E     		.short	16060
+ 1284 0006 06AA     		.short	-22010
+ 1285              		.section	.data.config_4208x3120_30fps_mipi_1200Mbs,"aw",%progbits
+ 1286              		.align	2
+ 1289              	config_4208x3120_30fps_mipi_1200Mbs:
+ 1290 0000 00000000 		.word	power_up
+ 1291 0004 0200     		.short	2
+ 1292 0006 0100     		.short	1
+ 1293 0008 01       		.byte	1
+ 1294 0009 000000   		.space	3
+ 1295 000c 00000000 		.word	corrections_recommended
+ 1296 0010 0B00     		.short	11
+ 1297 0012 0200     		.short	2
+ 1298 0014 01       		.byte	1
+ 1299 0015 000000   		.space	3
+ 1300 0018 00000000 		.word	pll_220_110
+ 1301 001c 0600     		.short	6
+ 1302 001e 0200     		.short	2
+ 1303 0020 01       		.byte	1
+ 1304 0021 000000   		.space	3
+ 1305 0024 00000000 		.word	pixel_timing_recommended
+ 1306 0028 DB00     		.short	219
+ 1307 002a 0200     		.short	2
+ 1308 002c 01       		.byte	1
+ 1309 002d 000000   		.space	3
+ 1310 0030 00000000 		.word	analog_setup_recommended
+ 1311 0034 1200     		.short	18
+ 1312 0036 0200     		.short	2
+ 1313 0038 01       		.byte	1
+ 1314 0039 000000   		.space	3
+ 1315 003c 00000000 		.word	mipi_timing_220_110
+ 1316 0040 0700     		.short	7
+ 1317 0042 0200     		.short	2
+ 1318 0044 01       		.byte	1
+ 1319 0045 000000   		.space	3
+ 1320 0048 00000000 		.word	output_4208x3120_30fps
+ 1321 004c 1000     		.short	16
+ 1322 004e 0200     		.short	2
+ 1323 0050 01       		.byte	1
+ 1324 0051 000000   		.space	3
+ 1325              		.section	.data.mipi_800Mbs,"aw",%progbits
+ 1326              		.align	1
+ 1329              	mipi_800Mbs:
+ 1330 0000 B031     		.short	12720
+ 1331 0002 4800     		.short	72
+ 1332 0004 B231     		.short	12722
+ 1333 0006 2600     		.short	38
+ 1334 0008 B431     		.short	12724
+ 1335 000a 0E13     		.short	4878
+ 1336 000c B631     		.short	12726
+ 1337 000e E812     		.short	4840
+ 1338 0010 B831     		.short	12728
+ 1339 0012 121C     		.short	7186
+ 1340 0014 BA31     		.short	12730
+ 1341 0016 5214     		.short	5202
+ 1342 0018 BC31     		.short	12732
+ 1343 001a 8884     		.short	-31608
+ 1344              		.section	.data.defect_correction_panchromatic,"aw",%progbits
+ 1345              		.align	1
+ 1348              	defect_correction_panchromatic:
+ 1349 0000 E031     		.short	12768
+ 1350 0002 8107     		.short	1921
+ 1351 0004 003F     		.short	16128
+ 1352 0006 4F00     		.short	79
+ 1353 0008 023F     		.short	16130
+ 1354 000a 2501     		.short	293
+ 1355 000c 043F     		.short	16132
+ 1356 000e 2000     		.short	32
+ 1357 0010 063F     		.short	16134
+ 1358 0012 4000     		.short	64
+ 1359 0014 083F     		.short	16136
+ 1360 0016 7000     		.short	112
+ 1361 0018 0A3F     		.short	16138
+ 1362 001a 0101     		.short	257
+ 1363 001c 0C3F     		.short	16140
+ 1364 001e 0203     		.short	770
+ 1365 0020 1E3F     		.short	16158
+ 1366 0022 2200     		.short	34
+ 1367 0024 1A3F     		.short	16154
+ 1368 0026 0301     		.short	259
+ 1369 0028 143F     		.short	16148
+ 1370 002a 0101     		.short	257
+ 1371 002c 443F     		.short	16196
+ 1372 002e 0707     		.short	1799
+ 1373 0030 183F     		.short	16152
+ 1374 0032 0301     		.short	259
+ 1375 0034 123F     		.short	16146
+ 1376 0036 0303     		.short	771
+ 1377 0038 423F     		.short	16194
+ 1378 003a 1115     		.short	5393
+ 1379 003c 163F     		.short	16150
+ 1380 003e 0301     		.short	259
+ 1381 0040 103F     		.short	16144
+ 1382 0042 0505     		.short	1285
+ 1383 0044 403F     		.short	16192
+ 1384 0046 1115     		.short	5393
+ 1385              		.section	.data.res13_4224_3136_border_reg_array_0,"aw",%progbits
+ 1386              		.align	1
+ 1389              	res13_4224_3136_border_reg_array_0:
+ 1390 0000 4003     		.short	832
+ 1391 0002 520C     		.short	3154
+ 1392 0004 4203     		.short	834
+ 1393 0006 3012     		.short	4656
+ 1394 0008 4403     		.short	836
+ 1395 000a 0800     		.short	8
+ 1396 000c 4603     		.short	838
+ 1397 000e 0800     		.short	8
+ 1398 0010 4803     		.short	840
+ 1399 0012 8710     		.short	4231
+ 1400 0014 4A03     		.short	842
+ 1401 0016 470C     		.short	3143
+ 1402 0018 4C03     		.short	844
+ 1403 001a 8010     		.short	4224
+ 1404 001c 4E03     		.short	846
+ 1405 001e 400C     		.short	3136
+ 1406              		.section	.data.res13_4224_3136_border_reg_array_1,"aw",%progbits
+ 1407              		.align	1
+ 1410              	res13_4224_3136_border_reg_array_1:
+ 1411 0000 4030     		.short	12352
+ 1412 0002 4100     		.short	65
+ 1413 0004 7231     		.short	12658
+ 1414 0006 0602     		.short	518
+ 1415 0008 7A31     		.short	12666
+ 1416 000a 6E41     		.short	16750
+ 1417 000c 3C3F     		.short	16188
+ 1418 000e 0300     		.short	3
+ 1419 0010 0202     		.short	514
+ 1420 0012 2E0C     		.short	3118
+ 1421              		.section	.data.res4KUHD_testing_recommended,"aw",%progbits
+ 1422              		.align	1
+ 1425              	res4KUHD_testing_recommended:
+ 1426 0000 4403     		.short	836
+ 1427 0002 C800     		.short	200
+ 1428 0004 4803     		.short	840
+ 1429 0006 C70F     		.short	4039
+ 1430 0008 4603     		.short	838
+ 1431 000a F001     		.short	496
+ 1432 000c 4A03     		.short	842
+ 1433 000e 5F0A     		.short	2655
+ 1434 0010 4C03     		.short	844
+ 1435 0012 000F     		.short	3840
+ 1436 0014 4E03     		.short	846
+ 1437 0016 7008     		.short	2160
+ 1438 0018 4030     		.short	12352
+ 1439 001a 4100     		.short	65
+ 1440 001c 7231     		.short	12658
+ 1441 001e 0602     		.short	518
+ 1442 0020 7A31     		.short	12666
+ 1443 0022 6E41     		.short	16750
+ 1444 0024 3C3F     		.short	16188
+ 1445 0026 0300     		.short	3
+ 1446 0028 4203     		.short	834
+ 1447 002a 1215     		.short	5394
+ 1448 002c 4003     		.short	832
+ 1449 002e 7E08     		.short	2174
+ 1450 0030 0202     		.short	514
+ 1451 0032 AF08     		.short	2223
+ 1452              		.section	.data.pixel_timing_recommended,"aw",%progbits
+ 1453              		.align	1
+ 1456              	pixel_timing_recommended:
+ 1457 0000 003D     		.short	15616
+ 1458 0002 4604     		.short	1094
+ 1459 0004 023D     		.short	15618
+ 1460 0006 664C     		.short	19558
+ 1461 0008 043D     		.short	15620
+ 1462 000a FFFF     		.short	-1
+ 1463 000c 063D     		.short	15622
+ 1464 000e FFFF     		.short	-1
+ 1465 0010 083D     		.short	15624
+ 1466 0012 405E     		.short	24128
+ 1467 0014 0A3D     		.short	15626
+ 1468 0016 4611     		.short	4422
+ 1469 0018 0C3D     		.short	15628
+ 1470 001a 415D     		.short	23873
+ 1471 001c 0E3D     		.short	15630
+ 1472 001e 8810     		.short	4232
+ 1473 0020 103D     		.short	15632
+ 1474 0022 4283     		.short	-31934
+ 1475 0024 123D     		.short	15634
+ 1476 0026 C000     		.short	192
+ 1477 0028 143D     		.short	15636
+ 1478 002a 8055     		.short	21888
+ 1479 002c 163D     		.short	15638
+ 1480 002e 835B     		.short	23427
+ 1481 0030 183D     		.short	15640
+ 1482 0032 8460     		.short	24708
+ 1483 0034 1A3D     		.short	15642
+ 1484 0036 8D5A     		.short	23181
+ 1485 0038 1C3D     		.short	15644
+ 1486 003a C000     		.short	192
+ 1487 003c 1E3D     		.short	15646
+ 1488 003e 4283     		.short	-31934
+ 1489 0040 203D     		.short	15648
+ 1490 0042 5A92     		.short	-28070
+ 1491 0044 223D     		.short	15650
+ 1492 0046 6486     		.short	-31132
+ 1493 0048 243D     		.short	15652
+ 1494 004a 3010     		.short	4144
+ 1495 004c 263D     		.short	15654
+ 1496 004e 1C80     		.short	-32740
+ 1497 0050 283D     		.short	15656
+ 1498 0052 A000     		.short	160
+ 1499 0054 2A3D     		.short	15658
+ 1500 0056 B056     		.short	22192
+ 1501 0058 2C3D     		.short	15660
+ 1502 005a 8857     		.short	22408
+ 1503 005c 2E3D     		.short	15662
+ 1504 005e 5051     		.short	20816
+ 1505 0060 303D     		.short	15664
+ 1506 0062 4D82     		.short	-32179
+ 1507 0064 323D     		.short	15666
+ 1508 0066 588D     		.short	-29352
+ 1509 0068 343D     		.short	15668
+ 1510 006a D258     		.short	22738
+ 1511 006c 363D     		.short	15670
+ 1512 006e 8A43     		.short	17290
+ 1513 0070 383D     		.short	15672
+ 1514 0072 9245     		.short	17810
+ 1515 0074 3A3D     		.short	15674
+ 1516 0076 8A45     		.short	17802
+ 1517 0078 3C3D     		.short	15676
+ 1518 007a 8943     		.short	17289
+ 1519 007c 3E3D     		.short	15678
+ 1520 007e FF51     		.short	20991
+ 1521 0080 403D     		.short	15680
+ 1522 0082 5184     		.short	-31663
+ 1523 0084 423D     		.short	15682
+ 1524 0086 1084     		.short	-31728
+ 1525 0088 443D     		.short	15684
+ 1526 008a 880C     		.short	3208
+ 1527 008c 463D     		.short	15686
+ 1528 008e 5959     		.short	22873
+ 1529 0090 483D     		.short	15688
+ 1530 0092 5F8A     		.short	-30113
+ 1531 0094 4A3D     		.short	15690
+ 1532 0096 42DA     		.short	-9662
+ 1533 0098 4C3D     		.short	15692
+ 1534 009a 6193     		.short	-27807
+ 1535 009c 4E3D     		.short	15694
+ 1536 009e 6282     		.short	-32158
+ 1537 00a0 503D     		.short	15696
+ 1538 00a2 4283     		.short	-31934
+ 1539 00a4 523D     		.short	15698
+ 1540 00a6 1080     		.short	-32752
+ 1541 00a8 543D     		.short	15700
+ 1542 00aa 41C0     		.short	-16319
+ 1543 00ac 563D     		.short	15702
+ 1544 00ae FF64     		.short	25855
+ 1545 00b0 583D     		.short	15704
+ 1546 00b2 B7FF     		.short	-73
+ 1547 00b4 5A3D     		.short	15706
+ 1548 00b6 8140     		.short	16513
+ 1549 00b8 5C3D     		.short	15708
+ 1550 00ba 8040     		.short	16512
+ 1551 00bc 5E3D     		.short	15710
+ 1552 00be 8041     		.short	16768
+ 1553 00c0 603D     		.short	15712
+ 1554 00c2 8042     		.short	17024
+ 1555 00c4 623D     		.short	15714
+ 1556 00c6 8D43     		.short	17293
+ 1557 00c8 643D     		.short	15716
+ 1558 00ca BA44     		.short	17594
+ 1559 00cc 663D     		.short	15718
+ 1560 00ce 8844     		.short	17544
+ 1561 00d0 683D     		.short	15720
+ 1562 00d2 8043     		.short	17280
+ 1563 00d4 6A3D     		.short	15722
+ 1564 00d6 4142     		.short	16961
+ 1565 00d8 6C3D     		.short	15724
+ 1566 00da 4081     		.short	-32448
+ 1567 00dc 6E3D     		.short	15726
+ 1568 00de 4082     		.short	-32192
+ 1569 00e0 703D     		.short	15728
+ 1570 00e2 4180     		.short	-32703
+ 1571 00e4 723D     		.short	15730
+ 1572 00e6 4280     		.short	-32702
+ 1573 00e8 743D     		.short	15732
+ 1574 00ea 4380     		.short	-32701
+ 1575 00ec 763D     		.short	15734
+ 1576 00ee 448D     		.short	-29372
+ 1577 00f0 783D     		.short	15736
+ 1578 00f2 44BA     		.short	-17852
+ 1579 00f4 7A3D     		.short	15738
+ 1580 00f6 5E87     		.short	-30882
+ 1581 00f8 7C3D     		.short	15740
+ 1582 00fa 5443     		.short	17236
+ 1583 00fc 7E3D     		.short	15742
+ 1584 00fe 4142     		.short	16961
+ 1585 0100 803D     		.short	15744
+ 1586 0102 4081     		.short	-32448
+ 1587 0104 823D     		.short	15746
+ 1588 0106 2081     		.short	-32480
+ 1589 0108 843D     		.short	15748
+ 1590 010a 8128     		.short	10369
+ 1591 010c 863D     		.short	15750
+ 1592 010e 2660     		.short	24614
+ 1593 0110 883D     		.short	15752
+ 1594 0112 5580     		.short	-32683
+ 1595 0114 8A3D     		.short	15754
+ 1596 0116 7080     		.short	-32656
+ 1597 0118 8C3D     		.short	15756
+ 1598 011a 4080     		.short	-32704
+ 1599 011c 8E3D     		.short	15758
+ 1600 011e 814C     		.short	19585
+ 1601 0120 903D     		.short	15760
+ 1602 0122 C345     		.short	17859
+ 1603 0124 923D     		.short	15762
+ 1604 0126 8145     		.short	17793
+ 1605 0128 943D     		.short	15764
+ 1606 012a 404C     		.short	19520
+ 1607 012c 963D     		.short	15766
+ 1608 012e 7080     		.short	-32656
+ 1609 0130 983D     		.short	15768
+ 1610 0132 4080     		.short	-32704
+ 1611 0134 9A3D     		.short	15770
+ 1612 0136 854C     		.short	19589
+ 1613 0138 9C3D     		.short	15772
+ 1614 013a A86C     		.short	27816
+ 1615 013c 9E3D     		.short	15774
+ 1616 013e 8C6C     		.short	27788
+ 1617 0140 A03D     		.short	15776
+ 1618 0142 0E00     		.short	14
+ 1619 0144 A23D     		.short	15778
+ 1620 0146 44BE     		.short	-16828
+ 1621 0148 A43D     		.short	15780
+ 1622 014a 4488     		.short	-30652
+ 1623 014c A63D     		.short	15782
+ 1624 014e 78BC     		.short	-17288
+ 1625 0150 A83D     		.short	15784
+ 1626 0152 0009     		.short	2304
+ 1627 0154 AA3D     		.short	15786
+ 1628 0156 0489     		.short	-30460
+ 1629 0158 AC3D     		.short	15788
+ 1630 015a 8080     		.short	-32640
+ 1631 015c AE3D     		.short	15790
+ 1632 015e 4002     		.short	576
+ 1633 0160 B03D     		.short	15792
+ 1634 0162 0986     		.short	-31223
+ 1635 0164 B23D     		.short	15794
+ 1636 0166 8E00     		.short	142
+ 1637 0168 B43D     		.short	15796
+ 1638 016a 0009     		.short	2304
+ 1639 016c B63D     		.short	15798
+ 1640 016e 0280     		.short	-32766
+ 1641 0170 B83D     		.short	15800
+ 1642 0172 8040     		.short	16512
+ 1643 0174 BA3D     		.short	15802
+ 1644 0176 8004     		.short	1152
+ 1645 0178 BC3D     		.short	15804
+ 1646 017a 7C88     		.short	-30596
+ 1647 017c BE3D     		.short	15806
+ 1648 017e 86AA     		.short	-21882
+ 1649 0180 C03D     		.short	15808
+ 1650 0182 0009     		.short	2304
+ 1651 0184 C23D     		.short	15810
+ 1652 0186 7A87     		.short	-30854
+ 1653 0188 C43D     		.short	15812
+ 1654 018a 0E00     		.short	14
+ 1655 018c C63D     		.short	15814
+ 1656 018e 79C3     		.short	-15495
+ 1657 0190 C83D     		.short	15816
+ 1658 0192 404C     		.short	19520
+ 1659 0194 CA3D     		.short	15818
+ 1660 0196 70BF     		.short	-16528
+ 1661 0198 CC3D     		.short	15820
+ 1662 019a 405E     		.short	24128
+ 1663 019c CE3D     		.short	15822
+ 1664 019e 4E11     		.short	4430
+ 1665 01a0 D03D     		.short	15824
+ 1666 01a2 415D     		.short	23873
+ 1667 01a4 D23D     		.short	15826
+ 1668 01a6 8353     		.short	21379
+ 1669 01a8 D43D     		.short	15828
+ 1670 01aa 0042     		.short	16896
+ 1671 01ac D63D     		.short	15830
+ 1672 01ae 55C0     		.short	-16299
+ 1673 01b0 D83D     		.short	15832
+ 1674 01b2 00A4     		.short	-23552
+ 1675 01b4 DA3D     		.short	15834
+ 1676 01b6 83C0     		.short	-16253
+ 1677 01b8 DC3D     		.short	15836
+ 1678 01ba 8842     		.short	17032
+ 1679 01bc DE3D     		.short	15838
+ 1680 01be 8360     		.short	24707
+ 1681 01c0 E03D     		.short	15840
+ 1682 01c2 805B     		.short	23424
+ 1683 01c4 E23D     		.short	15842
+ 1684 01c6 645A     		.short	23140
+ 1685 01c8 E43D     		.short	15844
+ 1686 01ca 3010     		.short	4144
+ 1687 01cc E63D     		.short	15846
+ 1688 01ce 1C80     		.short	-32740
+ 1689 01d0 E83D     		.short	15848
+ 1690 01d2 A500     		.short	165
+ 1691 01d4 EA3D     		.short	15850
+ 1692 01d6 9756     		.short	22167
+ 1693 01d8 EC3D     		.short	15852
+ 1694 01da A557     		.short	22437
+ 1695 01dc EE3D     		.short	15854
+ 1696 01de 8051     		.short	20864
+ 1697 01e0 F03D     		.short	15856
+ 1698 01e2 5A50     		.short	20570
+ 1699 01e4 F23D     		.short	15858
+ 1700 01e6 4D81     		.short	-32435
+ 1701 01e8 F43D     		.short	15860
+ 1702 01ea 5883     		.short	-31912
+ 1703 01ec F63D     		.short	15862
+ 1704 01ee 5880     		.short	-32680
+ 1705 01f0 F83D     		.short	15864
+ 1706 01f2 43A9     		.short	-22205
+ 1707 01f4 FA3D     		.short	15866
+ 1708 01f6 4583     		.short	-31931
+ 1709 01f8 FC3D     		.short	15868
+ 1710 01fa 45B0     		.short	-20411
+ 1711 01fc FE3D     		.short	15870
+ 1712 01fe 4383     		.short	-31933
+ 1713 0200 003E     		.short	15872
+ 1714 0202 51A3     		.short	-23727
+ 1715 0204 023E     		.short	15874
+ 1716 0206 51E2     		.short	-7599
+ 1717 0208 043E     		.short	15876
+ 1718 020a 598C     		.short	-29607
+ 1719 020c 063E     		.short	15878
+ 1720 020e 5980     		.short	-32679
+ 1721 0210 083E     		.short	15880
+ 1722 0212 5F8A     		.short	-30113
+ 1723 0214 0A3E     		.short	15882
+ 1724 0216 7CEC     		.short	-4996
+ 1725 0218 0C3E     		.short	15884
+ 1726 021a 84CC     		.short	-13180
+ 1727 021c 0E3E     		.short	15886
+ 1728 021e 8261     		.short	24962
+ 1729 0220 103E     		.short	15888
+ 1730 0222 8362     		.short	25219
+ 1731 0224 123E     		.short	15890
+ 1732 0226 8342     		.short	17027
+ 1733 0228 143E     		.short	15892
+ 1734 022a CC10     		.short	4300
+ 1735 022c 163E     		.short	15894
+ 1736 022e 9664     		.short	25750
+ 1737 0230 183E     		.short	15896
+ 1738 0232 8142     		.short	17025
+ 1739 0234 1A3E     		.short	15898
+ 1740 0236 BB41     		.short	16827
+ 1741 0238 1C3E     		.short	15900
+ 1742 023a 8240     		.short	16514
+ 1743 023c 1E3E     		.short	15902
+ 1744 023e 7E40     		.short	16510
+ 1745 0240 203E     		.short	15904
+ 1746 0242 41CC     		.short	-13247
+ 1747 0244 223E     		.short	15906
+ 1748 0246 4280     		.short	-32702
+ 1749 0248 243E     		.short	15908
+ 1750 024a 4380     		.short	-32701
+ 1751 024c 263E     		.short	15910
+ 1752 024e 0083     		.short	-32000
+ 1753 0250 283E     		.short	15912
+ 1754 0252 88C0     		.short	-16248
+ 1755 0254 2A3E     		.short	15914
+ 1756 0256 BA44     		.short	17594
+ 1757 0258 2C3E     		.short	15916
+ 1758 025a 8844     		.short	17544
+ 1759 025c 2E3E     		.short	15918
+ 1760 025e C800     		.short	200
+ 1761 0260 303E     		.short	15920
+ 1762 0262 4280     		.short	-32702
+ 1763 0264 323E     		.short	15922
+ 1764 0266 8141     		.short	16769
+ 1765 0268 343E     		.short	15924
+ 1766 026a 8240     		.short	16514
+ 1767 026c 363E     		.short	15926
+ 1768 026e 8040     		.short	16512
+ 1769 0270 383E     		.short	15928
+ 1770 0272 8041     		.short	16768
+ 1771 0274 3A3E     		.short	15930
+ 1772 0276 8042     		.short	17024
+ 1773 0278 3C3E     		.short	15932
+ 1774 027a 8343     		.short	17283
+ 1775 027c 3E3E     		.short	15934
+ 1776 027e C000     		.short	192
+ 1777 0280 403E     		.short	15936
+ 1778 0282 4488     		.short	-30652
+ 1779 0284 423E     		.short	15938
+ 1780 0286 44BA     		.short	-17852
+ 1781 0288 443E     		.short	15940
+ 1782 028a 0088     		.short	-30720
+ 1783 028c 463E     		.short	15942
+ 1784 028e 80C8     		.short	-14208
+ 1785 0290 483E     		.short	15944
+ 1786 0292 4142     		.short	16961
+ 1787 0294 4A3E     		.short	15946
+ 1788 0296 4082     		.short	-32192
+ 1789 0298 4C3E     		.short	15948
+ 1790 029a 4081     		.short	-32448
+ 1791 029c 4E3E     		.short	15950
+ 1792 029e 4180     		.short	-32703
+ 1793 02a0 503E     		.short	15952
+ 1794 02a2 4280     		.short	-32702
+ 1795 02a4 523E     		.short	15954
+ 1796 02a6 4380     		.short	-32701
+ 1797 02a8 543E     		.short	15956
+ 1798 02aa 0083     		.short	-32000
+ 1799 02ac 563E     		.short	15958
+ 1800 02ae 88C0     		.short	-16248
+ 1801 02b0 583E     		.short	15960
+ 1802 02b2 BA44     		.short	17594
+ 1803 02b4 5A3E     		.short	15962
+ 1804 02b6 8844     		.short	17544
+ 1805 02b8 5C3E     		.short	15964
+ 1806 02ba C800     		.short	200
+ 1807 02bc 5E3E     		.short	15966
+ 1808 02be 4280     		.short	-32702
+ 1809 02c0 603E     		.short	15968
+ 1810 02c2 8141     		.short	16769
+ 1811 02c4 623E     		.short	15970
+ 1812 02c6 8240     		.short	16514
+ 1813 02c8 643E     		.short	15972
+ 1814 02ca 8040     		.short	16512
+ 1815 02cc 663E     		.short	15974
+ 1816 02ce 8041     		.short	16768
+ 1817 02d0 683E     		.short	15976
+ 1818 02d2 8042     		.short	17024
+ 1819 02d4 6A3E     		.short	15978
+ 1820 02d6 8343     		.short	17283
+ 1821 02d8 6C3E     		.short	15980
+ 1822 02da C000     		.short	192
+ 1823 02dc 6E3E     		.short	15982
+ 1824 02de 4488     		.short	-30652
+ 1825 02e0 703E     		.short	15984
+ 1826 02e2 44BA     		.short	-17852
+ 1827 02e4 723E     		.short	15986
+ 1828 02e6 0088     		.short	-30720
+ 1829 02e8 743E     		.short	15988
+ 1830 02ea 80C8     		.short	-14208
+ 1831 02ec 763E     		.short	15990
+ 1832 02ee 4142     		.short	16961
+ 1833 02f0 783E     		.short	15992
+ 1834 02f2 4081     		.short	-32448
+ 1835 02f4 7A3E     		.short	15994
+ 1836 02f6 5E9F     		.short	-24738
+ 1837 02f8 7C3E     		.short	15996
+ 1838 02fa 548A     		.short	-30124
+ 1839 02fc 7E3E     		.short	15998
+ 1840 02fe 2086     		.short	-31200
+ 1841 0300 803E     		.short	16000
+ 1842 0302 8128     		.short	10369
+ 1843 0304 823E     		.short	16002
+ 1844 0306 2660     		.short	24614
+ 1845 0308 843E     		.short	16004
+ 1846 030a 5580     		.short	-32683
+ 1847 030c 863E     		.short	16006
+ 1848 030e 7080     		.short	-32656
+ 1849 0310 883E     		.short	16008
+ 1850 0312 0000     		.short	0
+ 1851 0314 8A3E     		.short	16010
+ 1852 0316 0000     		.short	0
+ 1853 0318 8C3E     		.short	16012
+ 1854 031a 0000     		.short	0
+ 1855 031c 8E3E     		.short	16014
+ 1856 031e 0000     		.short	0
+ 1857 0320 903E     		.short	16016
+ 1858 0322 0000     		.short	0
+ 1859 0324 923E     		.short	16018
+ 1860 0326 0000     		.short	0
+ 1861 0328 943E     		.short	16020
+ 1862 032a 0000     		.short	0
+ 1863 032c 963E     		.short	16022
+ 1864 032e 0000     		.short	0
+ 1865 0330 983E     		.short	16024
+ 1866 0332 0000     		.short	0
+ 1867 0334 9A3E     		.short	16026
+ 1868 0336 0000     		.short	0
+ 1869 0338 9C3E     		.short	16028
+ 1870 033a 0000     		.short	0
+ 1871 033c 9E3E     		.short	16030
+ 1872 033e 0000     		.short	0
+ 1873 0340 A03E     		.short	16032
+ 1874 0342 0000     		.short	0
+ 1875 0344 A23E     		.short	16034
+ 1876 0346 0000     		.short	0
+ 1877 0348 A43E     		.short	16036
+ 1878 034a 0000     		.short	0
+ 1879 034c A63E     		.short	16038
+ 1880 034e 0000     		.short	0
+ 1881 0350 A83E     		.short	16040
+ 1882 0352 0000     		.short	0
+ 1883 0354 AA3E     		.short	16042
+ 1884 0356 0000     		.short	0
+ 1885 0358 AC3E     		.short	16044
+ 1886 035a 0000     		.short	0
+ 1887 035c AE3E     		.short	16046
+ 1888 035e 0000     		.short	0
+ 1889 0360 B03E     		.short	16048
+ 1890 0362 0000     		.short	0
+ 1891 0364 B23E     		.short	16050
+ 1892 0366 0000     		.short	0
+ 1893 0368 B43E     		.short	16052
+ 1894 036a 0000     		.short	0
+ 1895              		.section	.data.stream_1080p_60fps_HQ_custom,"aw",%progbits
+ 1896              		.align	1
+ 1899              	stream_1080p_60fps_HQ_custom:
+ 1900 0000 4003     		.short	832
+ 1901 0002 3606     		.short	1590
+ 1902 0004 0202     		.short	514
+ 1903 0006 3606     		.short	1590
+ 1904              		.section	.data.res720_3840_2160_Ybin3_Xbin3_reg_array_1,"aw",%progbits
+ 1905              		.align	1
+ 1908              	res720_3840_2160_Ybin3_Xbin3_reg_array_1:
+ 1909 0000 4030     		.short	12352
+ 1910 0002 4509     		.short	2373
+ 1911 0004 7231     		.short	12658
+ 1912 0006 2602     		.short	550
+ 1913 0008 7A31     		.short	12666
+ 1914 000a 6E51     		.short	20846
+ 1915 000c 3C3F     		.short	16188
+ 1916 000e 0300     		.short	3
+ 1917 0010 0004     		.short	1024
+ 1918 0012 0000     		.short	0
+ 1919 0014 0404     		.short	1028
+ 1920 0016 1000     		.short	16
+ 1921 0018 0202     		.short	514
+ 1922 001a 4F0C     		.short	3151
+ 1923              		.section	.data.stream_13m_24fps_custom,"aw",%progbits
+ 1924              		.align	1
+ 1927              	stream_13m_24fps_custom:
+ 1928 0000 4203     		.short	834
+ 1929 0002 5C16     		.short	5724
+ 1930 0004 4003     		.short	832
+ 1931 0006 800C     		.short	3200
+ 1932 0008 0202     		.short	514
+ 1933 000a 500C     		.short	3152
+ 1934              		.section	.data.res13_4208_3120_recommended,"aw",%progbits
+ 1935              		.align	1
+ 1938              	res13_4208_3120_recommended:
+ 1939 0000 4403     		.short	836
+ 1940 0002 1000     		.short	16
+ 1941 0004 4803     		.short	840
+ 1942 0006 7F10     		.short	4223
+ 1943 0008 4603     		.short	838
+ 1944 000a 1000     		.short	16
+ 1945 000c 4A03     		.short	842
+ 1946 000e 3F0C     		.short	3135
+ 1947 0010 4C03     		.short	844
+ 1948 0012 7010     		.short	4208
+ 1949 0014 4E03     		.short	846
+ 1950 0016 300C     		.short	3120
+ 1951 0018 4030     		.short	12352
+ 1952 001a 4100     		.short	65
+ 1953 001c 1201     		.short	274
+ 1954 001e 0A0A     		.short	2570
+ 1955 0020 7231     		.short	12658
+ 1956 0022 0602     		.short	518
+ 1957 0024 7A31     		.short	12666
+ 1958 0026 6E41     		.short	16750
+ 1959 0028 3C3F     		.short	16188
+ 1960 002a 0300     		.short	3
+ 1961 002c 4203     		.short	834
+ 1962 002e D413     		.short	5076
+ 1963 0030 4003     		.short	832
+ 1964 0032 4E0C     		.short	3150
+ 1965 0034 0202     		.short	514
+ 1966 0036 4D0C     		.short	3149
+ 1967 0038 0004     		.short	1024
+ 1968 003a 0000     		.short	0
+ 1969 003c 0404     		.short	1028
+ 1970 003e 1000     		.short	16
+ 1971              		.section	.data.mipi_timing_880M_DPCM8,"aw",%progbits
+ 1972              		.align	1
+ 1975              	mipi_timing_880M_DPCM8:
+ 1976 0000 B031     		.short	12720
+ 1977 0002 5C00     		.short	92
+ 1978 0004 B231     		.short	12722
+ 1979 0006 2E00     		.short	46
+ 1980 0008 B431     		.short	12724
+ 1981 000a 1224     		.short	9234
+ 1982 000c B631     		.short	12726
+ 1983 000e 2A14     		.short	5162
+ 1984 0010 B831     		.short	12728
+ 1985 0012 1324     		.short	9235
+ 1986 0014 BA31     		.short	12730
+ 1987 0016 721C     		.short	7282
+ 1988 0018 BC31     		.short	12732
+ 1989 001a 0B86     		.short	-31221
+ 1990              		.section	.data.analog_setup_recommended_1,"aw",%progbits
+ 1991              		.align	1
+ 1994              	analog_setup_recommended_1:
+ 1995 0000 C03E     		.short	16064
+ 1996 0002 022E     		.short	11778
+ 1997 0004 C23E     		.short	16066
+ 1998 0006 0077     		.short	30464
+ 1999 0008 C43E     		.short	16068
+ 2000 000a 081C     		.short	7176
+ 2001 000c C63E     		.short	16070
+ 2002 000e 44EA     		.short	-5564
+ 2003 0010 C83E     		.short	16072
+ 2004 0012 0F0F     		.short	3855
+ 2005 0014 CA3E     		.short	16074
+ 2006 0016 4A0F     		.short	3914
+ 2007 0018 CC3E     		.short	16076
+ 2008 001a 0607     		.short	1798
+ 2009 001c CE3E     		.short	16078
+ 2010 001e 3B44     		.short	17467
+ 2011 0020 D03E     		.short	16080
+ 2012 0022 F012     		.short	4848
+ 2013 0024 D23E     		.short	16082
+ 2014 0026 3900     		.short	57
+ 2015 0028 D43E     		.short	16084
+ 2016 002a 2F86     		.short	-31185
+ 2017 002c D63E     		.short	16086
+ 2018 002e 8040     		.short	16512
+ 2019 0030 D83E     		.short	16088
+ 2020 0032 2305     		.short	1315
+ 2021 0034 DA3E     		.short	16090
+ 2022 0036 AAF8     		.short	-1878
+ 2023 0038 DC3E     		.short	16092
+ 2024 003a 7850     		.short	20600
+ 2025 003c DE3E     		.short	16094
+ 2026 003e 0550     		.short	20485
+ 2027              		.section	.data.stream_13m_24fps,"aw",%progbits
+ 2028              		.align	2
+ 2031              	stream_13m_24fps:
+ 2032 0000 00000000 		.word	mipi_timing_880M
+ 2033 0004 0700     		.short	7
+ 2034 0006 0200     		.short	2
+ 2035 0008 00       		.byte	0
+ 2036 0009 000000   		.space	3
+ 2037 000c 00000000 		.word	pll_setup_880M_0
+ 2038 0010 0600     		.short	6
+ 2039 0012 0200     		.short	2
+ 2040 0014 00       		.byte	0
+ 2041 0015 000000   		.space	3
+ 2042 0018 00000000 		.word	pll_setup_880M_1
+ 2043 001c 0200     		.short	2
+ 2044 001e 0200     		.short	2
+ 2045 0020 01       		.byte	1
+ 2046 0021 000000   		.space	3
+ 2047 0024 00000000 		.word	res13_4208_3120_reg_array_0
+ 2048 0028 0800     		.short	8
+ 2049 002a 0200     		.short	2
+ 2050 002c 00       		.byte	0
+ 2051 002d 000000   		.space	3
+ 2052 0030 00000000 		.word	res13_4208_3120_reg_array_1
+ 2053 0034 0600     		.short	6
+ 2054 0036 0200     		.short	2
+ 2055 0038 01       		.byte	1
+ 2056 0039 000000   		.space	3
+ 2057 003c 00000000 		.word	defect_correction_0
+ 2058 0040 0300     		.short	3
+ 2059 0042 0200     		.short	2
+ 2060 0044 01       		.byte	1
+ 2061 0045 000000   		.space	3
+ 2062 0048 00000000 		.word	defect_correction_1
+ 2063 004c 0700     		.short	7
+ 2064 004e 0200     		.short	2
+ 2065 0050 00       		.byte	0
+ 2066 0051 000000   		.space	3
+ 2067 0054 00000000 		.word	defect_correction_2
+ 2068 0058 0600     		.short	6
+ 2069 005a 0200     		.short	2
+ 2070 005c 00       		.byte	0
+ 2071 005d 000000   		.space	3
+ 2072 0060 00000000 		.word	defect_correction_3
+ 2073 0064 0300     		.short	3
+ 2074 0066 0200     		.short	2
+ 2075 0068 00       		.byte	0
+ 2076 0069 000000   		.space	3
+ 2077 006c 00000000 		.word	stream_13m_24fps_custom
+ 2078 0070 0300     		.short	3
+ 2079 0072 0200     		.short	2
+ 2080 0074 01       		.byte	1
+ 2081 0075 000000   		.space	3
+ 2082              		.section	.data.slave_mode_control_reg_array,"aw",%progbits
+ 2083              		.align	1
+ 2086              	slave_mode_control_reg_array:
+ 2087 0000 1A30     		.short	12314
+ 2088 0002 1803     		.short	792
+ 2089 0004 2630     		.short	12326
+ 2090 0006 7FFD     		.short	-641
+ 2091 0008 5831     		.short	12632
+ 2092 000a 00A0     		.short	-24576
+ 2093 000c 1A30     		.short	12314
+ 2094 000e 1C03     		.short	796
+ 2095              		.section	.data.iso_table_size,"aw",%progbits
+ 2096              		.align	2
+ 2099              	iso_table_size:
+ 2100 0000 06000000 		.word	6
+ 2101              		.section	.data.output_4208x3120_10fps,"aw",%progbits
+ 2102              		.align	1
+ 2105              	output_4208x3120_10fps:
+ 2106 0000 4403     		.short	836
+ 2107 0002 1000     		.short	16
+ 2108 0004 4803     		.short	840
+ 2109 0006 7F10     		.short	4223
+ 2110 0008 4603     		.short	838
+ 2111 000a 1000     		.short	16
+ 2112 000c 4A03     		.short	842
+ 2113 000e 3F0C     		.short	3135
+ 2114 0010 4C03     		.short	844
+ 2115 0012 7010     		.short	4208
+ 2116 0014 4E03     		.short	846
+ 2117 0016 300C     		.short	3120
+ 2118 0018 4030     		.short	12352
+ 2119 001a 4100     		.short	65
+ 2120 001c 1201     		.short	274
+ 2121 001e 0A0A     		.short	2570
+ 2122 0020 4203     		.short	834
+ 2123 0022 2430     		.short	12324
+ 2124 0024 4003     		.short	832
+ 2125 0026 FE0D     		.short	3582
+ 2126 0028 0202     		.short	514
+ 2127 002a 980C     		.short	3224
+ 2128 002c 7231     		.short	12658
+ 2129 002e 0602     		.short	518
+ 2130 0030 7A31     		.short	12666
+ 2131 0032 6E41     		.short	16750
+ 2132 0034 3C3F     		.short	16188
+ 2133 0036 0300     		.short	3
+ 2134 0038 0004     		.short	1024
+ 2135 003a 0000     		.short	0
+ 2136 003c 0404     		.short	1028
+ 2137 003e 1000     		.short	16
+ 2138              		.section	.data.res720_3840_2160_Yskip3_XScale3_reg_array_0,"aw",%progbits
+ 2139              		.align	1
+ 2142              	res720_3840_2160_Yskip3_XScale3_reg_array_0:
+ 2143 0000 4003     		.short	832
+ 2144 0002 6E0C     		.short	3182
+ 2145 0004 4203     		.short	834
+ 2146 0006 0012     		.short	4608
+ 2147 0008 4403     		.short	836
+ 2148 000a C800     		.short	200
+ 2149 000c 4603     		.short	838
+ 2150 000e F001     		.short	496
+ 2151 0010 4803     		.short	840
+ 2152 0012 C70F     		.short	4039
+ 2153 0014 4A03     		.short	842
+ 2154 0016 5B0A     		.short	2651
+ 2155 0018 4C03     		.short	844
+ 2156 001a 0005     		.short	1280
+ 2157 001c 4E03     		.short	846
+ 2158 001e D002     		.short	720
+ 2159              		.section	.data.output_4160x3120_10fps_4208x3120,"aw",%progbits
+ 2160              		.align	1
+ 2163              	output_4160x3120_10fps_4208x3120:
+ 2164 0000 4403     		.short	836
+ 2165 0002 1000     		.short	16
+ 2166 0004 4803     		.short	840
+ 2167 0006 7F10     		.short	4223
+ 2168 0008 4603     		.short	838
+ 2169 000a 1000     		.short	16
+ 2170 000c 4A03     		.short	842
+ 2171 000e 3F0C     		.short	3135
+ 2172 0010 4C03     		.short	844
+ 2173 0012 7010     		.short	4208
+ 2174 0014 4E03     		.short	846
+ 2175 0016 300C     		.short	3120
+ 2176 0018 4030     		.short	12352
+ 2177 001a 4100     		.short	65
+ 2178 001c 1201     		.short	274
+ 2179 001e 0A0A     		.short	2570
+ 2180 0020 4203     		.short	834
+ 2181 0022 2431     		.short	12580
+ 2182 0024 4003     		.short	832
+ 2183 0026 FE0D     		.short	3582
+ 2184 0028 0202     		.short	514
+ 2185 002a 980C     		.short	3224
+ 2186 002c 7231     		.short	12658
+ 2187 002e 0602     		.short	518
+ 2188 0030 7A31     		.short	12666
+ 2189 0032 6E41     		.short	16750
+ 2190 0034 3C3F     		.short	16188
+ 2191 0036 0300     		.short	3
+ 2192 0038 0004     		.short	1024
+ 2193 003a 0000     		.short	0
+ 2194 003c 0404     		.short	1028
+ 2195 003e 1000     		.short	16
+ 2196              		.section	.data.output_3840x2160_30fps,"aw",%progbits
+ 2197              		.align	1
+ 2200              	output_3840x2160_30fps:
+ 2201 0000 4403     		.short	836
+ 2202 0002 C800     		.short	200
+ 2203 0004 4803     		.short	840
+ 2204 0006 C70F     		.short	4039
+ 2205 0008 4603     		.short	838
+ 2206 000a F001     		.short	496
+ 2207 000c 4A03     		.short	842
+ 2208 000e 5F0A     		.short	2655
+ 2209 0010 4C03     		.short	844
+ 2210 0012 000F     		.short	3840
+ 2211 0014 4E03     		.short	846
+ 2212 0016 7008     		.short	2160
+ 2213 0018 4030     		.short	12352
+ 2214 001a 4100     		.short	65
+ 2215 001c 1201     		.short	274
+ 2216 001e 0A0A     		.short	2570
+ 2217 0020 4203     		.short	834
+ 2218 0022 0412     		.short	4612
+ 2219 0024 4003     		.short	832
+ 2220 0026 760C     		.short	3190
+ 2221 0028 0202     		.short	514
+ 2222 002a B80B     		.short	3000
+ 2223 002c 7231     		.short	12658
+ 2224 002e 0602     		.short	518
+ 2225 0030 7A31     		.short	12666
+ 2226 0032 6E41     		.short	16750
+ 2227 0034 3C3F     		.short	16188
+ 2228 0036 0300     		.short	3
+ 2229 0038 0004     		.short	1024
+ 2230 003a 0000     		.short	0
+ 2231 003c 0404     		.short	1028
+ 2232 003e 1000     		.short	16
+ 2233              		.section	.data.analog_setup_recommended,"aw",%progbits
+ 2234              		.align	1
+ 2237              	analog_setup_recommended:
+ 2238 0000 B63E     		.short	16054
+ 2239 0002 4D00     		.short	77
+ 2240 0004 BC3E     		.short	16060
+ 2241 0006 06AA     		.short	-22010
+ 2242 0008 C03E     		.short	16064
+ 2243 000a 022E     		.short	11778
+ 2244 000c C23E     		.short	16066
+ 2245 000e 0077     		.short	30464
+ 2246 0010 C43E     		.short	16068
+ 2247 0012 081C     		.short	7176
+ 2248 0014 C63E     		.short	16070
+ 2249 0016 44EA     		.short	-5564
+ 2250 0018 C83E     		.short	16072
+ 2251 001a 0F0F     		.short	3855
+ 2252 001c CA3E     		.short	16074
+ 2253 001e 4A0F     		.short	3914
+ 2254 0020 CC3E     		.short	16076
+ 2255 0022 0607     		.short	1798
+ 2256 0024 CE3E     		.short	16078
+ 2257 0026 3B44     		.short	17467
+ 2258 0028 D03E     		.short	16080
+ 2259 002a F012     		.short	4848
+ 2260 002c D23E     		.short	16082
+ 2261 002e 3900     		.short	57
+ 2262 0030 D43E     		.short	16084
+ 2263 0032 2F86     		.short	-31185
+ 2264 0034 D63E     		.short	16086
+ 2265 0036 8040     		.short	16512
+ 2266 0038 D83E     		.short	16088
+ 2267 003a 2305     		.short	1315
+ 2268 003c DA3E     		.short	16090
+ 2269 003e AAF8     		.short	-1878
+ 2270 0040 DC3E     		.short	16092
+ 2271 0042 7850     		.short	20600
+ 2272 0044 DE3E     		.short	16094
+ 2273 0046 0550     		.short	20485
+ 2274              		.section	.data.output_2048x1536_18fps,"aw",%progbits
+ 2275              		.align	1
+ 2278              	output_2048x1536_18fps:
+ 2279 0000 4403     		.short	836
+ 2280 0002 4800     		.short	72
+ 2281 0004 4803     		.short	840
+ 2282 0006 4710     		.short	4167
+ 2283 0008 4603     		.short	838
+ 2284 000a 2800     		.short	40
+ 2285 000c 4A03     		.short	842
+ 2286 000e 250C     		.short	3109
+ 2287 0010 4C03     		.short	844
+ 2288 0012 0008     		.short	2048
+ 2289 0014 4E03     		.short	846
+ 2290 0016 0006     		.short	1536
+ 2291 0018 4030     		.short	12352
+ 2292 001a 4300     		.short	67
+ 2293 001c 1201     		.short	274
+ 2294 001e 0A0A     		.short	2570
+ 2295 0020 4203     		.short	834
+ 2296 0022 2419     		.short	6436
+ 2297 0024 4003     		.short	832
+ 2298 0026 E20E     		.short	3810
+ 2299 0028 0202     		.short	514
+ 2300 002a 980C     		.short	3224
+ 2301 002c 7231     		.short	12658
+ 2302 002e 0602     		.short	518
+ 2303 0030 7A31     		.short	12666
+ 2304 0032 6E51     		.short	20846
+ 2305 0034 3C3F     		.short	16188
+ 2306 0036 0300     		.short	3
+ 2307 0038 0004     		.short	1024
+ 2308 003a 0100     		.short	1
+ 2309 003c 0404     		.short	1028
+ 2310 003e 2000     		.short	32
+ 2311 0040 6E30     		.short	12398
+ 2312 0042 9090     		.short	-28528
+ 2313              		.section	.data.stream_1080p_30fps_HQ,"aw",%progbits
+ 2314              		.align	2
+ 2317              	stream_1080p_30fps_HQ:
+ 2318 0000 00000000 		.word	mipi_timing_880M
+ 2319 0004 0700     		.short	7
+ 2320 0006 0200     		.short	2
+ 2321 0008 00       		.byte	0
+ 2322 0009 000000   		.space	3
+ 2323 000c 00000000 		.word	pll_setup_880M_0
+ 2324 0010 0600     		.short	6
+ 2325 0012 0200     		.short	2
+ 2326 0014 00       		.byte	0
+ 2327 0015 000000   		.space	3
+ 2328 0018 00000000 		.word	pll_setup_880M_1
+ 2329 001c 0200     		.short	2
+ 2330 001e 0200     		.short	2
+ 2331 0020 01       		.byte	1
+ 2332 0021 000000   		.space	3
+ 2333 0024 00000000 		.word	res1080_3840_2160_Ybin2_Xscale2_reg_array_0
+ 2334 0028 0800     		.short	8
+ 2335 002a 0200     		.short	2
+ 2336 002c 00       		.byte	0
+ 2337 002d 000000   		.space	3
+ 2338 0030 00000000 		.word	res1080_3840_2160_Ybin2_Xscale2_reg_array_1
+ 2339 0034 0700     		.short	7
+ 2340 0036 0200     		.short	2
+ 2341 0038 01       		.byte	1
+ 2342 0039 000000   		.space	3
+ 2343 003c 00000000 		.word	defect_correction_0
+ 2344 0040 0300     		.short	3
+ 2345 0042 0200     		.short	2
+ 2346 0044 01       		.byte	1
+ 2347 0045 000000   		.space	3
+ 2348 0048 00000000 		.word	defect_correction_1
+ 2349 004c 0700     		.short	7
+ 2350 004e 0200     		.short	2
+ 2351 0050 00       		.byte	0
+ 2352 0051 000000   		.space	3
+ 2353 0054 00000000 		.word	defect_correction_2
+ 2354 0058 0600     		.short	6
+ 2355 005a 0200     		.short	2
+ 2356 005c 00       		.byte	0
+ 2357 005d 000000   		.space	3
+ 2358 0060 00000000 		.word	defect_correction_3
+ 2359 0064 0300     		.short	3
+ 2360 0066 0200     		.short	2
+ 2361 0068 00       		.byte	0
+ 2362 0069 000000   		.space	3
+ 2363              		.section	.data.res1080_3840_2160_Ybin2_XBin2_reg_array_0,"aw",%progbits
+ 2364              		.align	1
+ 2367              	res1080_3840_2160_Ybin2_XBin2_reg_array_0:
+ 2368 0000 4003     		.short	832
+ 2369 0002 6E0C     		.short	3182
+ 2370 0004 4203     		.short	834
+ 2371 0006 0012     		.short	4608
+ 2372 0008 4403     		.short	836
+ 2373 000a C800     		.short	200
+ 2374 000c 4603     		.short	838
+ 2375 000e F001     		.short	496
+ 2376 0010 4803     		.short	840
+ 2377 0012 C50F     		.short	4037
+ 2378 0014 4A03     		.short	842
+ 2379 0016 5D0A     		.short	2653
+ 2380 0018 4C03     		.short	844
+ 2381 001a 8007     		.short	1920
+ 2382 001c 4E03     		.short	846
+ 2383 001e 3804     		.short	1080
+ 2384              		.section	.data.res1080_3840_2160_Ybin2_XBin2_reg_array_1,"aw",%progbits
+ 2385              		.align	1
+ 2388              	res1080_3840_2160_Ybin2_XBin2_reg_array_1:
+ 2389 0000 4030     		.short	12352
+ 2390 0002 C308     		.short	2243
+ 2391 0004 7231     		.short	12658
+ 2392 0006 2602     		.short	550
+ 2393 0008 7A31     		.short	12666
+ 2394 000a 6E51     		.short	20846
+ 2395 000c 3C3F     		.short	16188
+ 2396 000e 0300     		.short	3
+ 2397 0010 0004     		.short	1024
+ 2398 0012 0000     		.short	0
+ 2399 0014 0404     		.short	1028
+ 2400 0016 1000     		.short	16
+ 2401 0018 0202     		.short	514
+ 2402 001a 6E0C     		.short	3182
+ 2403              		.section	.data.pll_setup_880M_DPCM8_1,"aw",%progbits
+ 2404              		.align	1
+ 2407              	pll_setup_880M_DPCM8_1:
+ 2408 0000 1201     		.short	274
+ 2409 0002 080A     		.short	2568
+ 2410 0004 1630     		.short	12310
+ 2411 0006 0101     		.short	257
+ 2412              		.section	.data.stream_1080p_60fps_HQ,"aw",%progbits
+ 2413              		.align	2
+ 2416              	stream_1080p_60fps_HQ:
+ 2417 0000 00000000 		.word	mipi_timing_880M
+ 2418 0004 0700     		.short	7
+ 2419 0006 0200     		.short	2
+ 2420 0008 00       		.byte	0
+ 2421 0009 000000   		.space	3
+ 2422 000c 00000000 		.word	pll_setup_880M_0
+ 2423 0010 0600     		.short	6
+ 2424 0012 0200     		.short	2
+ 2425 0014 00       		.byte	0
+ 2426 0015 000000   		.space	3
+ 2427 0018 00000000 		.word	pll_setup_880M_1
+ 2428 001c 0200     		.short	2
+ 2429 001e 0200     		.short	2
+ 2430 0020 01       		.byte	1
+ 2431 0021 000000   		.space	3
+ 2432 0024 00000000 		.word	res1080_3840_2160_Ybin2_Xscale2_reg_array_0
+ 2433 0028 0800     		.short	8
+ 2434 002a 0200     		.short	2
+ 2435 002c 00       		.byte	0
+ 2436 002d 000000   		.space	3
+ 2437 0030 00000000 		.word	res1080_3840_2160_Ybin2_Xscale2_reg_array_1
+ 2438 0034 0700     		.short	7
+ 2439 0036 0200     		.short	2
+ 2440 0038 01       		.byte	1
+ 2441 0039 000000   		.space	3
+ 2442 003c 00000000 		.word	defect_correction_0
+ 2443 0040 0300     		.short	3
+ 2444 0042 0200     		.short	2
+ 2445 0044 01       		.byte	1
+ 2446 0045 000000   		.space	3
+ 2447 0048 00000000 		.word	defect_correction_1
+ 2448 004c 0700     		.short	7
+ 2449 004e 0200     		.short	2
+ 2450 0050 00       		.byte	0
+ 2451 0051 000000   		.space	3
+ 2452 0054 00000000 		.word	defect_correction_2
+ 2453 0058 0600     		.short	6
+ 2454 005a 0200     		.short	2
+ 2455 005c 00       		.byte	0
+ 2456 005d 000000   		.space	3
+ 2457 0060 00000000 		.word	defect_correction_3
+ 2458 0064 0300     		.short	3
+ 2459 0066 0200     		.short	2
+ 2460 0068 00       		.byte	0
+ 2461 0069 000000   		.space	3
+ 2462 006c 00000000 		.word	stream_1080p_60fps_HQ_custom
+ 2463 0070 0200     		.short	2
+ 2464 0072 0200     		.short	2
+ 2465 0074 01       		.byte	1
+ 2466 0075 000000   		.space	3
+ 2467              		.section	.data.res13_4208_3120_DPCM8_reg_array_0,"aw",%progbits
+ 2468              		.align	1
+ 2471              	res13_4208_3120_DPCM8_reg_array_0:
+ 2472 0000 4003     		.short	832
+ 2473 0002 4E0C     		.short	3150
+ 2474 0004 4203     		.short	834
+ 2475 0006 3012     		.short	4656
+ 2476 0008 4403     		.short	836
+ 2477 000a 1000     		.short	16
+ 2478 000c 4603     		.short	838
+ 2479 000e 1000     		.short	16
+ 2480 0010 4803     		.short	840
+ 2481 0012 7F10     		.short	4223
+ 2482 0014 4A03     		.short	842
+ 2483 0016 3F0C     		.short	3135
+ 2484 0018 4C03     		.short	844
+ 2485 001a 7010     		.short	4208
+ 2486 001c 4E03     		.short	846
+ 2487 001e 300C     		.short	3120
+ 2488              		.section	.data.res13_4208_3120_DPCM8_reg_array_1,"aw",%progbits
+ 2489              		.align	1
+ 2492              	res13_4208_3120_DPCM8_reg_array_1:
+ 2493 0000 4030     		.short	12352
+ 2494 0002 4100     		.short	65
+ 2495 0004 1201     		.short	274
+ 2496 0006 080A     		.short	2568
+ 2497 0008 7231     		.short	12658
+ 2498 000a 0602     		.short	518
+ 2499 000c 7A31     		.short	12666
+ 2500 000e 6E41     		.short	16750
+ 2501 0010 3C3F     		.short	16188
+ 2502 0012 0300     		.short	3
+ 2503 0014 0202     		.short	514
+ 2504 0016 3C0C     		.short	3132
+ 2505              		.section	.data.mipi_1200Mbs,"aw",%progbits
+ 2506              		.align	1
+ 2509              	mipi_1200Mbs:
+ 2510 0000 B031     		.short	12720
+ 2511 0002 5800     		.short	88
+ 2512 0004 B231     		.short	12722
+ 2513 0006 2C00     		.short	44
+ 2514 0008 B431     		.short	12724
+ 2515 000a D023     		.short	9168
+ 2516 000c B631     		.short	12726
+ 2517 000e 0A14     		.short	5130
+ 2518 0010 B831     		.short	12728
+ 2519 0012 1324     		.short	9235
+ 2520 0014 BA31     		.short	12730
+ 2521 0016 701C     		.short	7280
+ 2522 0018 BC31     		.short	12732
+ 2523 001a 0B86     		.short	-31221
+ 2524              		.section	.data.output_1920x1080_30fps,"aw",%progbits
+ 2525              		.align	1
+ 2528              	output_1920x1080_30fps:
+ 2529 0000 4403     		.short	836
+ 2530 0002 C800     		.short	200
+ 2531 0004 4803     		.short	840
+ 2532 0006 C70F     		.short	4039
+ 2533 0008 4603     		.short	838
+ 2534 000a F001     		.short	496
+ 2535 000c 4A03     		.short	842
+ 2536 000e 5D0A     		.short	2653
+ 2537 0010 4C03     		.short	844
+ 2538 0012 8007     		.short	1920
+ 2539 0014 4E03     		.short	846
+ 2540 0016 3804     		.short	1080
+ 2541 0018 4030     		.short	12352
+ 2542 001a 4300     		.short	67
+ 2543 001c 1201     		.short	274
+ 2544 001e 0A0A     		.short	2570
+ 2545 0020 4203     		.short	834
+ 2546 0022 0412     		.short	4612
+ 2547 0024 4003     		.short	832
+ 2548 0026 760C     		.short	3190
+ 2549 0028 0202     		.short	514
+ 2550 002a B80B     		.short	3000
+ 2551 002c 7231     		.short	12658
+ 2552 002e 0602     		.short	518
+ 2553 0030 7A31     		.short	12666
+ 2554 0032 6E41     		.short	16750
+ 2555 0034 3C3F     		.short	16188
+ 2556 0036 0300     		.short	3
+ 2557 0038 0004     		.short	1024
+ 2558 003a 0100     		.short	1
+ 2559 003c 0404     		.short	1028
+ 2560 003e 2000     		.short	32
+ 2561 0040 6E30     		.short	12398
+ 2562 0042 9090     		.short	-28528
+ 2563              		.section	.data.stream_1080p_30fps_LP,"aw",%progbits
+ 2564              		.align	2
+ 2567              	stream_1080p_30fps_LP:
+ 2568 0000 00000000 		.word	mipi_timing_880M
+ 2569 0004 0700     		.short	7
+ 2570 0006 0200     		.short	2
+ 2571 0008 00       		.byte	0
+ 2572 0009 000000   		.space	3
+ 2573 000c 00000000 		.word	pll_setup_880M_0
+ 2574 0010 0600     		.short	6
+ 2575 0012 0200     		.short	2
+ 2576 0014 00       		.byte	0
+ 2577 0015 000000   		.space	3
+ 2578 0018 00000000 		.word	pll_setup_880M_1
+ 2579 001c 0200     		.short	2
+ 2580 001e 0200     		.short	2
+ 2581 0020 01       		.byte	1
+ 2582 0021 000000   		.space	3
+ 2583 0024 00000000 		.word	res1080_3840_2160_Ybin2_XBin2_reg_array_0
+ 2584 0028 0800     		.short	8
+ 2585 002a 0200     		.short	2
+ 2586 002c 00       		.byte	0
+ 2587 002d 000000   		.space	3
+ 2588 0030 00000000 		.word	res1080_3840_2160_Ybin2_XBin2_reg_array_1
+ 2589 0034 0700     		.short	7
+ 2590 0036 0200     		.short	2
+ 2591 0038 01       		.byte	1
+ 2592 0039 000000   		.space	3
+ 2593 003c 00000000 		.word	defect_correction_0
+ 2594 0040 0300     		.short	3
+ 2595 0042 0200     		.short	2
+ 2596 0044 01       		.byte	1
+ 2597 0045 000000   		.space	3
+ 2598 0048 00000000 		.word	defect_correction_1
+ 2599 004c 0700     		.short	7
+ 2600 004e 0200     		.short	2
+ 2601 0050 00       		.byte	0
+ 2602 0051 000000   		.space	3
+ 2603 0054 00000000 		.word	defect_correction_2
+ 2604 0058 0600     		.short	6
+ 2605 005a 0200     		.short	2
+ 2606 005c 00       		.byte	0
+ 2607 005d 000000   		.space	3
+ 2608 0060 00000000 		.word	defect_correction_3
+ 2609 0064 0300     		.short	3
+ 2610 0066 0200     		.short	2
+ 2611 0068 00       		.byte	0
+ 2612 0069 000000   		.space	3
+ 2613              		.section	.data.config_new_1080p,"aw",%progbits
+ 2614              		.align	1
+ 2617              	config_new_1080p:
+ 2618 0000 4403     		.short	836
+ 2619 0002 C800     		.short	200
+ 2620 0004 4803     		.short	840
+ 2621 0006 C70F     		.short	4039
+ 2622 0008 4603     		.short	838
+ 2623 000a F001     		.short	496
+ 2624 000c 4A03     		.short	842
+ 2625 000e 5D0A     		.short	2653
+ 2626 0010 4C03     		.short	844
+ 2627 0012 8007     		.short	1920
+ 2628 0014 4E03     		.short	846
+ 2629 0016 3804     		.short	1080
+ 2630 0018 4030     		.short	12352
+ 2631 001a 4300     		.short	67
+ 2632 001c 7231     		.short	12658
+ 2633 001e 0602     		.short	518
+ 2634 0020 7A31     		.short	12666
+ 2635 0022 6E51     		.short	20846
+ 2636 0024 3C3F     		.short	16188
+ 2637 0026 0300     		.short	3
+ 2638 0028 0004     		.short	1024
+ 2639 002a 0100     		.short	1
+ 2640 002c 0404     		.short	1028
+ 2641 002e 2000     		.short	32
+ 2642 0030 4203     		.short	834
+ 2643 0032 7C18     		.short	6268
+ 2644 0034 4003     		.short	832
+ 2645 0036 841B     		.short	7044
+ 2646 0038 0202     		.short	514
+ 2647 003a C20D     		.short	3522
+ 2648              		.section	.data.pan_defect_correction_size,"aw",%progbits
+ 2649              		.align	2
+ 2652              	pan_defect_correction_size:
+ 2653 0000 12000000 		.word	18
+ 2654              		.section	.data.stream_1080p_60fps_LP,"aw",%progbits
+ 2655              		.align	2
+ 2658              	stream_1080p_60fps_LP:
+ 2659 0000 00000000 		.word	mipi_timing_880M
+ 2660 0004 0700     		.short	7
+ 2661 0006 0200     		.short	2
+ 2662 0008 00       		.byte	0
+ 2663 0009 000000   		.space	3
+ 2664 000c 00000000 		.word	pll_setup_880M_0
+ 2665 0010 0600     		.short	6
+ 2666 0012 0200     		.short	2
+ 2667 0014 00       		.byte	0
+ 2668 0015 000000   		.space	3
+ 2669 0018 00000000 		.word	pll_setup_880M_1
+ 2670 001c 0200     		.short	2
+ 2671 001e 0200     		.short	2
+ 2672 0020 01       		.byte	1
+ 2673 0021 000000   		.space	3
+ 2674 0024 00000000 		.word	res1080_3840_2160_Ybin2_XBin2_reg_array_0
+ 2675 0028 0800     		.short	8
+ 2676 002a 0200     		.short	2
+ 2677 002c 00       		.byte	0
+ 2678 002d 000000   		.space	3
+ 2679 0030 00000000 		.word	res1080_3840_2160_Ybin2_XBin2_reg_array_1
+ 2680 0034 0700     		.short	7
+ 2681 0036 0200     		.short	2
+ 2682 0038 01       		.byte	1
+ 2683 0039 000000   		.space	3
+ 2684 003c 00000000 		.word	defect_correction_0
+ 2685 0040 0300     		.short	3
+ 2686 0042 0200     		.short	2
+ 2687 0044 01       		.byte	1
+ 2688 0045 000000   		.space	3
+ 2689 0048 00000000 		.word	defect_correction_1
+ 2690 004c 0700     		.short	7
+ 2691 004e 0200     		.short	2
+ 2692 0050 00       		.byte	0
+ 2693 0051 000000   		.space	3
+ 2694 0054 00000000 		.word	defect_correction_2
+ 2695 0058 0600     		.short	6
+ 2696 005a 0200     		.short	2
+ 2697 005c 00       		.byte	0
+ 2698 005d 000000   		.space	3
+ 2699 0060 00000000 		.word	defect_correction_3
+ 2700 0064 0300     		.short	3
+ 2701 0066 0200     		.short	2
+ 2702 0068 00       		.byte	0
+ 2703 0069 000000   		.space	3
+ 2704 006c 00000000 		.word	stream_1080p_60fps_LP_custom
+ 2705 0070 0300     		.short	3
+ 2706 0072 0200     		.short	2
+ 2707 0074 01       		.byte	1
+ 2708 0075 000000   		.space	3
+ 2709              		.section	.data.stream_3M_30fps_HQ,"aw",%progbits
+ 2710              		.align	2
+ 2713              	stream_3M_30fps_HQ:
+ 2714 0000 00000000 		.word	mipi_timing_880M
+ 2715 0004 0700     		.short	7
+ 2716 0006 0200     		.short	2
+ 2717 0008 00       		.byte	0
+ 2718 0009 000000   		.space	3
+ 2719 000c 00000000 		.word	pll_setup_880M_0
+ 2720 0010 0600     		.short	6
+ 2721 0012 0200     		.short	2
+ 2722 0014 00       		.byte	0
+ 2723 0015 000000   		.space	3
+ 2724 0018 00000000 		.word	pll_setup_880M_1
+ 2725 001c 0200     		.short	2
+ 2726 001e 0200     		.short	2
+ 2727 0020 01       		.byte	1
+ 2728 0021 000000   		.space	3
+ 2729 0024 00000000 		.word	res3_4208_3120_Ybin2_Xscale2_reg_array_0
+ 2730 0028 0800     		.short	8
+ 2731 002a 0200     		.short	2
+ 2732 002c 00       		.byte	0
+ 2733 002d 000000   		.space	3
+ 2734 0030 00000000 		.word	res3_4208_3120_Ybin2_Xscale2_reg_array_1
+ 2735 0034 0700     		.short	7
+ 2736 0036 0200     		.short	2
+ 2737 0038 00       		.byte	0
+ 2738 0039 000000   		.space	3
+ 2739 003c 00000000 		.word	defect_correction_0
+ 2740 0040 0300     		.short	3
+ 2741 0042 0200     		.short	2
+ 2742 0044 01       		.byte	1
+ 2743 0045 000000   		.space	3
+ 2744 0048 00000000 		.word	defect_correction_1
+ 2745 004c 0700     		.short	7
+ 2746 004e 0200     		.short	2
+ 2747 0050 00       		.byte	0
+ 2748 0051 000000   		.space	3
+ 2749 0054 00000000 		.word	defect_correction_2
+ 2750 0058 0600     		.short	6
+ 2751 005a 0200     		.short	2
+ 2752 005c 00       		.byte	0
+ 2753 005d 000000   		.space	3
+ 2754 0060 00000000 		.word	defect_correction_3
+ 2755 0064 0300     		.short	3
+ 2756 0066 0200     		.short	2
+ 2757 0068 00       		.byte	0
+ 2758 0069 000000   		.space	3
+ 2759              		.section	.data.config_13MP_1200Mbs_size,"aw",%progbits
+ 2760              		.align	2
+ 2763              	config_13MP_1200Mbs_size:
+ 2764 0000 07000000 		.word	7
+ 2765              		.section	.data.res720_testing_recommended,"aw",%progbits
+ 2766              		.align	1
+ 2769              	res720_testing_recommended:
+ 2770 0000 4403     		.short	836
+ 2771 0002 C800     		.short	200
+ 2772 0004 4803     		.short	840
+ 2773 0006 C30F     		.short	4035
+ 2774 0008 4603     		.short	838
+ 2775 000a F001     		.short	496
+ 2776 000c 4A03     		.short	842
+ 2777 000e 5B0A     		.short	2651
+ 2778 0010 4C03     		.short	844
+ 2779 0012 0005     		.short	1280
+ 2780 0014 4E03     		.short	846
+ 2781 0016 D002     		.short	720
+ 2782 0018 4030     		.short	12352
+ 2783 001a 4509     		.short	2373
+ 2784 001c 7231     		.short	12658
+ 2785 001e 2602     		.short	550
+ 2786 0020 7A31     		.short	12666
+ 2787 0022 6E51     		.short	20846
+ 2788 0024 3C3F     		.short	16188
+ 2789 0026 0300     		.short	3
+ 2790 0028 0004     		.short	1024
+ 2791 002a 0000     		.short	0
+ 2792 002c 0404     		.short	1028
+ 2793 002e 1000     		.short	16
+ 2794 0030 4203     		.short	834
+ 2795 0032 0012     		.short	4608
+ 2796 0034 4003     		.short	832
+ 2797 0036 6E0C     		.short	3182
+ 2798 0038 0202     		.short	514
+ 2799 003a 4F0C     		.short	3151
+ 2800              		.section	.data.mipi_timing_880M,"aw",%progbits
+ 2801              		.align	1
+ 2804              	mipi_timing_880M:
+ 2805 0000 B031     		.short	12720
+ 2806 0002 4D00     		.short	77
+ 2807 0004 B231     		.short	12722
+ 2808 0006 2800     		.short	40
+ 2809 0008 B431     		.short	12724
+ 2810 000a 0E23     		.short	8974
+ 2811 000c B631     		.short	12726
+ 2812 000e 4813     		.short	4936
+ 2813 0010 B831     		.short	12728
+ 2814 0012 121C     		.short	7186
+ 2815 0014 BA31     		.short	12730
+ 2816 0016 5B18     		.short	6235
+ 2817 0018 BC31     		.short	12732
+ 2818 001a 0985     		.short	-31479
+ 2819              		.section	.data.res13M_testing_recommended,"aw",%progbits
+ 2820              		.align	1
+ 2823              	res13M_testing_recommended:
+ 2824 0000 4403     		.short	836
+ 2825 0002 1000     		.short	16
+ 2826 0004 4803     		.short	840
+ 2827 0006 7F10     		.short	4223
+ 2828 0008 4603     		.short	838
+ 2829 000a 1000     		.short	16
+ 2830 000c 4A03     		.short	842
+ 2831 000e 3F0C     		.short	3135
+ 2832 0010 4C03     		.short	844
+ 2833 0012 7010     		.short	4208
+ 2834 0014 4E03     		.short	846
+ 2835 0016 300C     		.short	3120
+ 2836 0018 4030     		.short	12352
+ 2837 001a 4100     		.short	65
+ 2838 001c 1201     		.short	274
+ 2839 001e 0A0A     		.short	2570
+ 2840 0020 1201     		.short	274
+ 2841 0022 0A0A     		.short	2570
+ 2842 0024 7231     		.short	12658
+ 2843 0026 0602     		.short	518
+ 2844 0028 7A31     		.short	12666
+ 2845 002a 6E41     		.short	16750
+ 2846 002c 3C3F     		.short	16188
+ 2847 002e 0300     		.short	3
+ 2848 0030 4203     		.short	834
+ 2849 0032 3012     		.short	4656
+ 2850 0034 4003     		.short	832
+ 2851 0036 4E0C     		.short	3150
+ 2852 0038 0202     		.short	514
+ 2853 003a 3C0C     		.short	3132
+ 2854              		.section	.data.stream_4k_uhd,"aw",%progbits
+ 2855              		.align	2
+ 2858              	stream_4k_uhd:
+ 2859 0000 00000000 		.word	mipi_timing_recommended
+ 2860 0004 0700     		.short	7
+ 2861 0006 0200     		.short	2
+ 2862 0008 00       		.byte	0
+ 2863 0009 000000   		.space	3
+ 2864 000c 00000000 		.word	pll_setup_recommended
+ 2865 0010 0600     		.short	6
+ 2866 0012 0200     		.short	2
+ 2867 0014 00       		.byte	0
+ 2868 0015 000000   		.space	3
+ 2869 0018 00000000 		.word	res4k_3840_2160_reg_array_0
+ 2870 001c 0800     		.short	8
+ 2871 001e 0200     		.short	2
+ 2872 0020 00       		.byte	0
+ 2873 0021 000000   		.space	3
+ 2874 0024 00000000 		.word	res4k_3840_2160_reg_array_1
+ 2875 0028 0500     		.short	5
+ 2876 002a 0200     		.short	2
+ 2877 002c 01       		.byte	1
+ 2878 002d 000000   		.space	3
+ 2879 0030 00000000 		.word	defect_correction_0
+ 2880 0034 0300     		.short	3
+ 2881 0036 0200     		.short	2
+ 2882 0038 01       		.byte	1
+ 2883 0039 000000   		.space	3
+ 2884 003c 00000000 		.word	defect_correction_1
+ 2885 0040 0700     		.short	7
+ 2886 0042 0200     		.short	2
+ 2887 0044 00       		.byte	0
+ 2888 0045 000000   		.space	3
+ 2889 0048 00000000 		.word	defect_correction_2
+ 2890 004c 0600     		.short	6
+ 2891 004e 0200     		.short	2
+ 2892 0050 00       		.byte	0
+ 2893 0051 000000   		.space	3
+ 2894 0054 00000000 		.word	defect_correction_3
+ 2895 0058 0300     		.short	3
+ 2896 005a 0200     		.short	2
+ 2897 005c 00       		.byte	0
+ 2898 005d 000000   		.space	3
+ 2899              		.section	.data.output_4160x3120_10fps,"aw",%progbits
+ 2900              		.align	1
+ 2903              	output_4160x3120_10fps:
+ 2904 0000 4403     		.short	836
+ 2905 0002 2800     		.short	40
+ 2906 0004 4803     		.short	840
+ 2907 0006 6710     		.short	4199
+ 2908 0008 4603     		.short	838
+ 2909 000a 1000     		.short	16
+ 2910 000c 4A03     		.short	842
+ 2911 000e 3F0C     		.short	3135
+ 2912 0010 4C03     		.short	844
+ 2913 0012 4010     		.short	4160
+ 2914 0014 4E03     		.short	846
+ 2915 0016 300C     		.short	3120
+ 2916 0018 4030     		.short	12352
+ 2917 001a 4100     		.short	65
+ 2918 001c 1201     		.short	274
+ 2919 001e 0A0A     		.short	2570
+ 2920 0020 4203     		.short	834
+ 2921 0022 2430     		.short	12324
+ 2922 0024 4003     		.short	832
+ 2923 0026 FE0D     		.short	3582
+ 2924 0028 0202     		.short	514
+ 2925 002a 980C     		.short	3224
+ 2926 002c 7231     		.short	12658
+ 2927 002e 0602     		.short	518
+ 2928 0030 7A31     		.short	12666
+ 2929 0032 6E41     		.short	16750
+ 2930 0034 3C3F     		.short	16188
+ 2931 0036 0300     		.short	3
+ 2932 0038 0004     		.short	1024
+ 2933 003a 0000     		.short	0
+ 2934 003c 0404     		.short	1028
+ 2935 003e 1000     		.short	16
+ 2936              		.section	.data.res3M_testing_recommended,"aw",%progbits
+ 2937              		.align	1
+ 2940              	res3M_testing_recommended:
+ 2941 0000 4403     		.short	836
+ 2942 0002 1000     		.short	16
+ 2943 0004 4803     		.short	840
+ 2944 0006 7D10     		.short	4221
+ 2945 0008 4603     		.short	838
+ 2946 000a 1000     		.short	16
+ 2947 000c 4A03     		.short	842
+ 2948 000e 3D0C     		.short	3133
+ 2949 0010 4C03     		.short	844
+ 2950 0012 3808     		.short	2104
+ 2951 0014 4E03     		.short	846
+ 2952 0016 1806     		.short	1560
+ 2953 0018 4030     		.short	12352
+ 2954 001a C308     		.short	2243
+ 2955 001c 7231     		.short	12658
+ 2956 001e 2602     		.short	550
+ 2957 0020 7A31     		.short	12666
+ 2958 0022 6E51     		.short	20846
+ 2959 0024 3C3F     		.short	16188
+ 2960 0026 0300     		.short	3
+ 2961 0028 0004     		.short	1024
+ 2962 002a 0000     		.short	0
+ 2963 002c 0404     		.short	1028
+ 2964 002e 1000     		.short	16
+ 2965 0030 4203     		.short	834
+ 2966 0032 0012     		.short	4608
+ 2967 0034 4003     		.short	832
+ 2968 0036 6E0C     		.short	3182
+ 2969 0038 0202     		.short	514
+ 2970 003a 4F0C     		.short	3151
+ 2971              		.section	.data.stream_3M_30fps_LP,"aw",%progbits
+ 2972              		.align	2
+ 2975              	stream_3M_30fps_LP:
+ 2976 0000 00000000 		.word	mipi_timing_880M
+ 2977 0004 0700     		.short	7
+ 2978 0006 0200     		.short	2
+ 2979 0008 00       		.byte	0
+ 2980 0009 000000   		.space	3
+ 2981 000c 00000000 		.word	pll_setup_880M_0
+ 2982 0010 0600     		.short	6
+ 2983 0012 0200     		.short	2
+ 2984 0014 00       		.byte	0
+ 2985 0015 000000   		.space	3
+ 2986 0018 00000000 		.word	pll_setup_880M_1
+ 2987 001c 0200     		.short	2
+ 2988 001e 0200     		.short	2
+ 2989 0020 01       		.byte	1
+ 2990 0021 000000   		.space	3
+ 2991 0024 00000000 		.word	res3_4208_3120_Ybin2_XBin2_reg_array_0
+ 2992 0028 0600     		.short	6
+ 2993 002a 0200     		.short	2
+ 2994 002c 00       		.byte	0
+ 2995 002d 000000   		.space	3
+ 2996 0030 00000000 		.word	res3_4208_3120_Ybin2_XBin2_reg_array_1
+ 2997 0034 0600     		.short	6
+ 2998 0036 0200     		.short	2
+ 2999 0038 01       		.byte	1
+ 3000 0039 000000   		.space	3
+ 3001 003c 00000000 		.word	defect_correction_0
+ 3002 0040 0300     		.short	3
+ 3003 0042 0200     		.short	2
+ 3004 0044 01       		.byte	1
+ 3005 0045 000000   		.space	3
+ 3006 0048 00000000 		.word	defect_correction_1
+ 3007 004c 0700     		.short	7
+ 3008 004e 0200     		.short	2
+ 3009 0050 00       		.byte	0
+ 3010 0051 000000   		.space	3
+ 3011 0054 00000000 		.word	defect_correction_2
+ 3012 0058 0600     		.short	6
+ 3013 005a 0200     		.short	2
+ 3014 005c 00       		.byte	0
+ 3015 005d 000000   		.space	3
+ 3016 0060 00000000 		.word	defect_correction_3
+ 3017 0064 0300     		.short	3
+ 3018 0066 0200     		.short	2
+ 3019 0068 00       		.byte	0
+ 3020 0069 000000   		.space	3
+ 3021              		.section	.data.enable_streaming,"aw",%progbits
+ 3022              		.align	1
+ 3025              	enable_streaming:
+ 3026 0000 3C3F     		.short	16188
+ 3027 0002 0300     		.short	3
+ 3028 0004 1A30     		.short	12314
+ 3029 0006 1C02     		.short	540
+ 3030              		.section	.data.stream_13m_30fps_DPCM8,"aw",%progbits
+ 3031              		.align	2
+ 3034              	stream_13m_30fps_DPCM8:
+ 3035 0000 00000000 		.word	mipi_timing_880M_DPCM8
+ 3036 0004 0700     		.short	7
+ 3037 0006 0200     		.short	2
+ 3038 0008 00       		.byte	0
+ 3039 0009 000000   		.space	3
+ 3040 000c 00000000 		.word	pll_setup_880M_DPCM8_0
+ 3041 0010 0600     		.short	6
+ 3042 0012 0200     		.short	2
+ 3043 0014 00       		.byte	0
+ 3044 0015 000000   		.space	3
+ 3045 0018 00000000 		.word	pll_setup_880M_DPCM8_1
+ 3046 001c 0200     		.short	2
+ 3047 001e 0200     		.short	2
+ 3048 0020 01       		.byte	1
+ 3049 0021 000000   		.space	3
+ 3050 0024 00000000 		.word	res13_4208_3120_DPCM8_reg_array_0
+ 3051 0028 0800     		.short	8
+ 3052 002a 0200     		.short	2
+ 3053 002c 00       		.byte	0
+ 3054 002d 000000   		.space	3
+ 3055 0030 00000000 		.word	res13_4208_3120_DPCM8_reg_array_1
+ 3056 0034 0600     		.short	6
+ 3057 0036 0200     		.short	2
+ 3058 0038 01       		.byte	1
+ 3059 0039 000000   		.space	3
+ 3060 003c 00000000 		.word	defect_correction_0
+ 3061 0040 0300     		.short	3
+ 3062 0042 0200     		.short	2
+ 3063 0044 01       		.byte	1
+ 3064 0045 000000   		.space	3
+ 3065 0048 00000000 		.word	defect_correction_1
+ 3066 004c 0700     		.short	7
+ 3067 004e 0200     		.short	2
+ 3068 0050 00       		.byte	0
+ 3069 0051 000000   		.space	3
+ 3070 0054 00000000 		.word	defect_correction_2
+ 3071 0058 0600     		.short	6
+ 3072 005a 0200     		.short	2
+ 3073 005c 00       		.byte	0
+ 3074 005d 000000   		.space	3
+ 3075 0060 00000000 		.word	defect_correction_3
+ 3076 0064 0300     		.short	3
+ 3077 0066 0200     		.short	2
+ 3078 0068 00       		.byte	0
+ 3079 0069 000000   		.space	3
+ 3080              		.section	.data.stream_720p_60fps_LP_custom,"aw",%progbits
+ 3081              		.align	1
+ 3084              	stream_720p_60fps_LP_custom:
+ 3085 0000 4003     		.short	832
+ 3086 0002 3606     		.short	1590
+ 3087 0004 0202     		.short	514
+ 3088 0006 3606     		.short	1590
+ 3089              		.section	.data.res3_4208_3120_Ybin2_Xscale2_reg_array_1,"aw",%progbits
+ 3090              		.align	1
+ 3093              	res3_4208_3120_Ybin2_Xscale2_reg_array_1:
+ 3094 0000 4030     		.short	12352
+ 3095 0002 4300     		.short	67
+ 3096 0004 7231     		.short	12658
+ 3097 0006 0602     		.short	518
+ 3098 0008 7A31     		.short	12666
+ 3099 000a 6E51     		.short	20846
+ 3100 000c 3C3F     		.short	16188
+ 3101 000e 0300     		.short	3
+ 3102 0010 0004     		.short	1024
+ 3103 0012 0100     		.short	1
+ 3104 0014 0404     		.short	1028
+ 3105 0016 2000     		.short	32
+ 3106 0018 0202     		.short	514
+ 3107 001a 4F0C     		.short	3151
+ 3108              		.section	.data.stream_13m_30fps_border,"aw",%progbits
+ 3109              		.align	2
+ 3112              	stream_13m_30fps_border:
+ 3113 0000 00000000 		.word	mipi_timing_max
+ 3114 0004 0700     		.short	7
+ 3115 0006 0200     		.short	2
+ 3116 0008 00       		.byte	0
+ 3117 0009 000000   		.space	3
+ 3118 000c 00000000 		.word	pll_setup_max_0
+ 3119 0010 0600     		.short	6
+ 3120 0012 0200     		.short	2
+ 3121 0014 00       		.byte	0
+ 3122 0015 000000   		.space	3
+ 3123 0018 00000000 		.word	pll_setup_max_1
+ 3124 001c 0200     		.short	2
+ 3125 001e 0200     		.short	2
+ 3126 0020 01       		.byte	1
+ 3127 0021 000000   		.space	3
+ 3128 0024 00000000 		.word	res13_4224_3136_border_reg_array_0
+ 3129 0028 0800     		.short	8
+ 3130 002a 0200     		.short	2
+ 3131 002c 00       		.byte	0
+ 3132 002d 000000   		.space	3
+ 3133 0030 00000000 		.word	res13_4224_3136_border_reg_array_1
+ 3134 0034 0500     		.short	5
+ 3135 0036 0200     		.short	2
+ 3136 0038 01       		.byte	1
+ 3137 0039 000000   		.space	3
+ 3138 003c 00000000 		.word	defect_correction_0
+ 3139 0040 0300     		.short	3
+ 3140 0042 0200     		.short	2
+ 3141 0044 01       		.byte	1
+ 3142 0045 000000   		.space	3
+ 3143 0048 00000000 		.word	defect_correction_1
+ 3144 004c 0700     		.short	7
+ 3145 004e 0200     		.short	2
+ 3146 0050 00       		.byte	0
+ 3147 0051 000000   		.space	3
+ 3148 0054 00000000 		.word	defect_correction_2
+ 3149 0058 0600     		.short	6
+ 3150 005a 0200     		.short	2
+ 3151 005c 00       		.byte	0
+ 3152 005d 000000   		.space	3
+ 3153 0060 00000000 		.word	defect_correction_3
+ 3154 0064 0300     		.short	3
+ 3155 0066 0200     		.short	2
+ 3156 0068 00       		.byte	0
+ 3157 0069 000000   		.space	3
+ 3158              		.section	.data.groupoff_reg_array,"aw",%progbits
+ 3159              		.align	1
+ 3162              	groupoff_reg_array:
+ 3163 0000 0401     		.short	260
+ 3164 0002 0000     		.short	0
+ 3165              		.section	.data.stream_720p_60fps_HQ,"aw",%progbits
+ 3166              		.align	2
+ 3169              	stream_720p_60fps_HQ:
+ 3170 0000 00000000 		.word	mipi_timing_880M
+ 3171 0004 0700     		.short	7
+ 3172 0006 0200     		.short	2
+ 3173 0008 00       		.byte	0
+ 3174 0009 000000   		.space	3
+ 3175 000c 00000000 		.word	pll_setup_880M_0
+ 3176 0010 0600     		.short	6
+ 3177 0012 0200     		.short	2
+ 3178 0014 00       		.byte	0
+ 3179 0015 000000   		.space	3
+ 3180 0018 00000000 		.word	pll_setup_880M_1
+ 3181 001c 0200     		.short	2
+ 3182 001e 0200     		.short	2
+ 3183 0020 01       		.byte	1
+ 3184 0021 000000   		.space	3
+ 3185 0024 00000000 		.word	res720_3840_2160_Yskip3_XScale3_reg_array_0
+ 3186 0028 0800     		.short	8
+ 3187 002a 0200     		.short	2
+ 3188 002c 00       		.byte	0
+ 3189 002d 000000   		.space	3
+ 3190 0030 00000000 		.word	res720_3840_2160_Yskip3_XScale3_reg_array_1
+ 3191 0034 0700     		.short	7
+ 3192 0036 0200     		.short	2
+ 3193 0038 01       		.byte	1
+ 3194 0039 000000   		.space	3
+ 3195 003c 00000000 		.word	defect_correction_0
+ 3196 0040 0300     		.short	3
+ 3197 0042 0200     		.short	2
+ 3198 0044 01       		.byte	1
+ 3199 0045 000000   		.space	3
+ 3200 0048 00000000 		.word	defect_correction_1
+ 3201 004c 0700     		.short	7
+ 3202 004e 0200     		.short	2
+ 3203 0050 00       		.byte	0
+ 3204 0051 000000   		.space	3
+ 3205 0054 00000000 		.word	defect_correction_2
+ 3206 0058 0600     		.short	6
+ 3207 005a 0200     		.short	2
+ 3208 005c 00       		.byte	0
+ 3209 005d 000000   		.space	3
+ 3210 0060 00000000 		.word	defect_correction_3
+ 3211 0064 0300     		.short	3
+ 3212 0066 0200     		.short	2
+ 3213 0068 00       		.byte	0
+ 3214 0069 000000   		.space	3
+ 3215 006c 00000000 		.word	stream_720p_60fps_HQ_custom
+ 3216 0070 0200     		.short	2
+ 3217 0072 0200     		.short	2
+ 3218 0074 01       		.byte	1
+ 3219 0075 000000   		.space	3
+ 3220              		.section	.data.pll_220_110_1000,"aw",%progbits
+ 3221              		.align	1
+ 3224              	pll_220_110_1000:
+ 3225 0000 0003     		.short	768
+ 3226 0002 0500     		.short	5
+ 3227 0004 0203     		.short	770
+ 3228 0006 0100     		.short	1
+ 3229 0008 0403     		.short	772
+ 3230 000a 0101     		.short	257
+ 3231 000c 0603     		.short	774
+ 3232 000e 2E2A     		.short	10798
+ 3233 0010 0803     		.short	776
+ 3234 0012 0A00     		.short	10
+ 3235 0014 0A03     		.short	778
+ 3236 0016 0100     		.short	1
+ 3237              		.section	.data.pll_220_40_1,"aw",%progbits
+ 3238              		.align	1
+ 3241              	pll_220_40_1:
+ 3242 0000 0003     		.short	768
+ 3243 0002 0500     		.short	5
+ 3244 0004 0203     		.short	770
+ 3245 0006 0100     		.short	1
+ 3246 0008 0403     		.short	772
+ 3247 000a 0101     		.short	257
+ 3248 000c 0603     		.short	774
+ 3249 000e 2E10     		.short	4142
+ 3250 0010 0803     		.short	776
+ 3251 0012 0A00     		.short	10
+ 3252 0014 0A03     		.short	778
+ 3253 0016 0100     		.short	1
+ 3254              		.section	.data.config_4208x3120_10fps_mipi_400Mbs,"aw",%progbits
+ 3255              		.align	2
+ 3258              	config_4208x3120_10fps_mipi_400Mbs:
+ 3259 0000 00000000 		.word	power_up
+ 3260 0004 0200     		.short	2
+ 3261 0006 0100     		.short	1
+ 3262 0008 01       		.byte	1
+ 3263 0009 000000   		.space	3
+ 3264 000c 00000000 		.word	corrections_recommended
+ 3265 0010 0B00     		.short	11
+ 3266 0012 0200     		.short	2
+ 3267 0014 01       		.byte	1
+ 3268 0015 000000   		.space	3
+ 3269 0018 00000000 		.word	pll_220_40
+ 3270 001c 0600     		.short	6
+ 3271 001e 0200     		.short	2
+ 3272 0020 01       		.byte	1
+ 3273 0021 000000   		.space	3
+ 3274 0024 00000000 		.word	pixel_timing_recommended
+ 3275 0028 DB00     		.short	219
+ 3276 002a 0200     		.short	2
+ 3277 002c 01       		.byte	1
+ 3278 002d 000000   		.space	3
+ 3279 0030 00000000 		.word	analog_setup_recommended
+ 3280 0034 1200     		.short	18
+ 3281 0036 0200     		.short	2
+ 3282 0038 01       		.byte	1
+ 3283 0039 000000   		.space	3
+ 3284 003c 00000000 		.word	mipi_timing_220_40
+ 3285 0040 0700     		.short	7
+ 3286 0042 0200     		.short	2
+ 3287 0044 01       		.byte	1
+ 3288 0045 000000   		.space	3
+ 3289 0048 00000000 		.word	output_4208x3120_10fps
+ 3290 004c 1000     		.short	16
+ 3291 004e 0200     		.short	2
+ 3292 0050 01       		.byte	1
+ 3293 0051 000000   		.space	3
+ 3294              		.section	.data.stream_types_size,"aw",%progbits
+ 3295              		.align	2
+ 3298              	stream_types_size:
+ 3299 0000 11000000 		.word	17
+ 3300              		.section	.data.stream_4k_cinema,"aw",%progbits
+ 3301              		.align	2
+ 3304              	stream_4k_cinema:
+ 3305 0000 00000000 		.word	mipi_timing_recommended
+ 3306 0004 0700     		.short	7
+ 3307 0006 0200     		.short	2
+ 3308 0008 00       		.byte	0
+ 3309 0009 000000   		.space	3
+ 3310 000c 00000000 		.word	pll_setup_recommended
+ 3311 0010 0600     		.short	6
+ 3312 0012 0200     		.short	2
+ 3313 0014 00       		.byte	0
+ 3314 0015 000000   		.space	3
+ 3315 0018 00000000 		.word	res4k_4096_2160_reg_array_0
+ 3316 001c 0800     		.short	8
+ 3317 001e 0200     		.short	2
+ 3318 0020 00       		.byte	0
+ 3319 0021 000000   		.space	3
+ 3320 0024 00000000 		.word	res4k_4096_2160_reg_array_1
+ 3321 0028 0500     		.short	5
+ 3322 002a 0200     		.short	2
+ 3323 002c 01       		.byte	1
+ 3324 002d 000000   		.space	3
+ 3325 0030 00000000 		.word	defect_correction_0
+ 3326 0034 0300     		.short	3
+ 3327 0036 0200     		.short	2
+ 3328 0038 01       		.byte	1
+ 3329 0039 000000   		.space	3
+ 3330 003c 00000000 		.word	defect_correction_1
+ 3331 0040 0700     		.short	7
+ 3332 0042 0200     		.short	2
+ 3333 0044 00       		.byte	0
+ 3334 0045 000000   		.space	3
+ 3335 0048 00000000 		.word	defect_correction_2
+ 3336 004c 0600     		.short	6
+ 3337 004e 0200     		.short	2
+ 3338 0050 00       		.byte	0
+ 3339 0051 000000   		.space	3
+ 3340 0054 00000000 		.word	defect_correction_3
+ 3341 0058 0300     		.short	3
+ 3342 005a 0200     		.short	2
+ 3343 005c 00       		.byte	0
+ 3344 005d 000000   		.space	3
+ 3345              		.section	.data.res4k_3840_2160_reg_array_0,"aw",%progbits
+ 3346              		.align	1
+ 3349              	res4k_3840_2160_reg_array_0:
+ 3350 0000 4003     		.short	832
+ 3351 0002 7E08     		.short	2174
+ 3352 0004 4203     		.short	834
+ 3353 0006 1215     		.short	5394
+ 3354 0008 4403     		.short	836
+ 3355 000a C800     		.short	200
+ 3356 000c 4603     		.short	838
+ 3357 000e F001     		.short	496
+ 3358 0010 4803     		.short	840
+ 3359 0012 C70F     		.short	4039
+ 3360 0014 4A03     		.short	842
+ 3361 0016 5F0A     		.short	2655
+ 3362 0018 4C03     		.short	844
+ 3363 001a 000F     		.short	3840
+ 3364 001c 4E03     		.short	846
+ 3365 001e 7008     		.short	2160
+ 3366              		.section	.data.fll_600,"aw",%progbits
+ 3367              		.align	1
+ 3370              	fll_600:
+ 3371 0000 4203     		.short	834
+ 3372 0002 1620     		.short	8214
+ 3373 0004 4003     		.short	832
+ 3374 0006 5A0C     		.short	3162
+ 3375              		.section	.data.output_1200Mbs,"aw",%progbits
+ 3376              		.align	1
+ 3379              	output_1200Mbs:
+ 3380 0000 4203     		.short	834
+ 3381 0002 3012     		.short	4656
+ 3382 0004 4003     		.short	832
+ 3383 0006 4E0C     		.short	3150
+ 3384              		.section	.data.stream_13m_30fps,"aw",%progbits
+ 3385              		.align	2
+ 3388              	stream_13m_30fps:
+ 3389 0000 00000000 		.word	mipi_timing_max
+ 3390 0004 0700     		.short	7
+ 3391 0006 0200     		.short	2
+ 3392 0008 00       		.byte	0
+ 3393 0009 000000   		.space	3
+ 3394 000c 00000000 		.word	pll_setup_max_0
+ 3395 0010 0600     		.short	6
+ 3396 0012 0200     		.short	2
+ 3397 0014 00       		.byte	0
+ 3398 0015 000000   		.space	3
+ 3399 0018 00000000 		.word	pll_setup_max_1
+ 3400 001c 0200     		.short	2
+ 3401 001e 0200     		.short	2
+ 3402 0020 01       		.byte	1
+ 3403 0021 000000   		.space	3
+ 3404 0024 00000000 		.word	res13_4208_3120_reg_array_0
+ 3405 0028 0800     		.short	8
+ 3406 002a 0200     		.short	2
+ 3407 002c 00       		.byte	0
+ 3408 002d 000000   		.space	3
+ 3409 0030 00000000 		.word	res13_4208_3120_reg_array_1
+ 3410 0034 0600     		.short	6
+ 3411 0036 0200     		.short	2
+ 3412 0038 01       		.byte	1
+ 3413 0039 000000   		.space	3
+ 3414 003c 00000000 		.word	stream_13m_30fps_custom
+ 3415 0040 0300     		.short	3
+ 3416 0042 0200     		.short	2
+ 3417 0044 01       		.byte	1
+ 3418 0045 000000   		.space	3
+ 3419 0048 00000000 		.word	defect_correction_0
+ 3420 004c 0300     		.short	3
+ 3421 004e 0200     		.short	2
+ 3422 0050 01       		.byte	1
+ 3423 0051 000000   		.space	3
+ 3424 0054 00000000 		.word	defect_correction_1
+ 3425 0058 0700     		.short	7
+ 3426 005a 0200     		.short	2
+ 3427 005c 00       		.byte	0
+ 3428 005d 000000   		.space	3
+ 3429 0060 00000000 		.word	defect_correction_2
+ 3430 0064 0600     		.short	6
+ 3431 0066 0200     		.short	2
+ 3432 0068 00       		.byte	0
+ 3433 0069 000000   		.space	3
+ 3434 006c 00000000 		.word	defect_correction_3
+ 3435 0070 0300     		.short	3
+ 3436 0072 0200     		.short	2
+ 3437 0074 00       		.byte	0
+ 3438 0075 000000   		.space	3
+ 3439              		.section	.data.res720_3840_2160_Ybin3_Xbin3_reg_array_0,"aw",%progbits
+ 3440              		.align	1
+ 3443              	res720_3840_2160_Ybin3_Xbin3_reg_array_0:
+ 3444 0000 4003     		.short	832
+ 3445 0002 6E0C     		.short	3182
+ 3446 0004 4203     		.short	834
+ 3447 0006 0012     		.short	4608
+ 3448 0008 4403     		.short	836
+ 3449 000a C800     		.short	200
+ 3450 000c 4603     		.short	838
+ 3451 000e F001     		.short	496
+ 3452 0010 4803     		.short	840
+ 3453 0012 C30F     		.short	4035
+ 3454 0014 4A03     		.short	842
+ 3455 0016 5B0A     		.short	2651
+ 3456 0018 4C03     		.short	844
+ 3457 001a 0005     		.short	1280
+ 3458 001c 4E03     		.short	846
+ 3459 001e D002     		.short	720
+ 3460              		.section	.data.config_1920x1080_30fps_mipi_1200Mbs,"aw",%progbits
+ 3461              		.align	2
+ 3464              	config_1920x1080_30fps_mipi_1200Mbs:
+ 3465 0000 00000000 		.word	power_up
+ 3466 0004 0200     		.short	2
+ 3467 0006 0100     		.short	1
+ 3468 0008 01       		.byte	1
+ 3469 0009 000000   		.space	3
+ 3470 000c 00000000 		.word	corrections_recommended
+ 3471 0010 0B00     		.short	11
+ 3472 0012 0200     		.short	2
+ 3473 0014 01       		.byte	1
+ 3474 0015 000000   		.space	3
+ 3475 0018 00000000 		.word	pll_220_110
+ 3476 001c 0600     		.short	6
+ 3477 001e 0200     		.short	2
+ 3478 0020 01       		.byte	1
+ 3479 0021 000000   		.space	3
+ 3480 0024 00000000 		.word	pixel_timing_recommended
+ 3481 0028 DB00     		.short	219
+ 3482 002a 0200     		.short	2
+ 3483 002c 01       		.byte	1
+ 3484 002d 000000   		.space	3
+ 3485 0030 00000000 		.word	analog_setup_recommended
+ 3486 0034 1200     		.short	18
+ 3487 0036 0200     		.short	2
+ 3488 0038 01       		.byte	1
+ 3489 0039 000000   		.space	3
+ 3490 003c 00000000 		.word	mipi_timing_220_110
+ 3491 0040 0700     		.short	7
+ 3492 0042 0200     		.short	2
+ 3493 0044 01       		.byte	1
+ 3494 0045 000000   		.space	3
+ 3495 0048 00000000 		.word	output_1920x1080_30fps
+ 3496 004c 1100     		.short	17
+ 3497 004e 0200     		.short	2
+ 3498 0050 01       		.byte	1
+ 3499 0051 000000   		.space	3
+ 3500 0054 00000000 		.word	defect_correction
+ 3501 0058 1200     		.short	18
+ 3502 005a 0200     		.short	2
+ 3503 005c 01       		.byte	1
+ 3504 005d 000000   		.space	3
+ 3505              		.section	.data.stream_types,"aw",%progbits
+ 3506              		.align	2
+ 3509              	stream_types:
+ 3510 0000 00000000 		.word	stream_13m_30fps
+ 3511 0004 7010     		.short	4208
+ 3512 0006 300C     		.short	3120
+ 3513 0008 1E00     		.short	30
+ 3514 000a 0A       		.byte	10
+ 3515 000b 00       		.space	1
+ 3516 000c 00000000 		.word	stream_13m_30fps_border
+ 3517 0010 8010     		.short	4224
+ 3518 0012 400C     		.short	3136
+ 3519 0014 1E00     		.short	30
+ 3520 0016 09       		.byte	9
+ 3521 0017 00       		.space	1
+ 3522 0018 00000000 		.word	stream_13m_30fps_DPCM8
+ 3523 001c 7010     		.short	4208
+ 3524 001e 300C     		.short	3120
+ 3525 0020 1E00     		.short	30
+ 3526 0022 09       		.byte	9
+ 3527 0023 00       		.space	1
+ 3528 0024 00000000 		.word	stream_13m_24fps
+ 3529 0028 7010     		.short	4208
+ 3530 002a 300C     		.short	3120
+ 3531 002c 1800     		.short	24
+ 3532 002e 0A       		.byte	10
+ 3533 002f 00       		.space	1
+ 3534 0030 00000000 		.word	stream_13m_15fps
+ 3535 0034 7010     		.short	4208
+ 3536 0036 300C     		.short	3120
+ 3537 0038 0F00     		.short	15
+ 3538 003a 0A       		.byte	10
+ 3539 003b 00       		.space	1
+ 3540 003c 00000000 		.word	stream_3M_30fps_HQ
+ 3541 0040 3808     		.short	2104
+ 3542 0042 1806     		.short	1560
+ 3543 0044 1E00     		.short	30
+ 3544 0046 09       		.byte	9
+ 3545 0047 00       		.space	1
+ 3546 0048 00000000 		.word	stream_3M_30fps_LP
+ 3547 004c 3808     		.short	2104
+ 3548 004e 1806     		.short	1560
+ 3549 0050 1E00     		.short	30
+ 3550 0052 09       		.byte	9
+ 3551 0053 00       		.space	1
+ 3552 0054 00000000 		.word	stream_1080p_30fps_HQ
+ 3553 0058 8007     		.short	1920
+ 3554 005a 3804     		.short	1080
+ 3555 005c 1E00     		.short	30
+ 3556 005e 09       		.byte	9
+ 3557 005f 00       		.space	1
+ 3558 0060 00000000 		.word	stream_1080p_30fps_LP
+ 3559 0064 8007     		.short	1920
+ 3560 0066 3804     		.short	1080
+ 3561 0068 1E00     		.short	30
+ 3562 006a 09       		.byte	9
+ 3563 006b 00       		.space	1
+ 3564 006c 00000000 		.word	stream_1080p_60fps_HQ
+ 3565 0070 8007     		.short	1920
+ 3566 0072 3804     		.short	1080
+ 3567 0074 3C00     		.short	60
+ 3568 0076 0A       		.byte	10
+ 3569 0077 00       		.space	1
+ 3570 0078 00000000 		.word	stream_1080p_60fps_LP
+ 3571 007c 8007     		.short	1920
+ 3572 007e 3804     		.short	1080
+ 3573 0080 3C00     		.short	60
+ 3574 0082 0A       		.byte	10
+ 3575 0083 00       		.space	1
+ 3576 0084 00000000 		.word	stream_720p_30fps_HQ
+ 3577 0088 0005     		.short	1280
+ 3578 008a D002     		.short	720
+ 3579 008c 1E00     		.short	30
+ 3580 008e 09       		.byte	9
+ 3581 008f 00       		.space	1
+ 3582 0090 00000000 		.word	stream_720p_30fps_LP
+ 3583 0094 0005     		.short	1280
+ 3584 0096 D002     		.short	720
+ 3585 0098 1E00     		.short	30
+ 3586 009a 09       		.byte	9
+ 3587 009b 00       		.space	1
+ 3588 009c 00000000 		.word	stream_720p_60fps_HQ
+ 3589 00a0 0005     		.short	1280
+ 3590 00a2 D002     		.short	720
+ 3591 00a4 3C00     		.short	60
+ 3592 00a6 0A       		.byte	10
+ 3593 00a7 00       		.space	1
+ 3594 00a8 00000000 		.word	stream_720p_60fps_LP
+ 3595 00ac 0005     		.short	1280
+ 3596 00ae D002     		.short	720
+ 3597 00b0 3C00     		.short	60
+ 3598 00b2 0A       		.byte	10
+ 3599 00b3 00       		.space	1
+ 3600 00b4 00000000 		.word	stream_4k_uhd
+ 3601 00b8 000F     		.short	3840
+ 3602 00ba 7008     		.short	2160
+ 3603 00bc 1E00     		.short	30
+ 3604 00be 08       		.byte	8
+ 3605 00bf 00       		.space	1
+ 3606 00c0 00000000 		.word	stream_4k_cinema
+ 3607 00c4 0010     		.short	4096
+ 3608 00c6 7008     		.short	2160
+ 3609 00c8 1E00     		.short	30
+ 3610 00ca 08       		.byte	8
+ 3611 00cb 00       		.space	1
+ 3612              		.section	.data.res720_3840_2160_Yskip3_XScale3_reg_array_1,"aw",%progbits
+ 3613              		.align	1
+ 3616              	res720_3840_2160_Yskip3_XScale3_reg_array_1:
+ 3617 0000 4030     		.short	12352
+ 3618 0002 4500     		.short	69
+ 3619 0004 7231     		.short	12658
+ 3620 0006 0602     		.short	518
+ 3621 0008 7A31     		.short	12666
+ 3622 000a 6E51     		.short	20846
+ 3623 000c 3C3F     		.short	16188
+ 3624 000e 0300     		.short	3
+ 3625 0010 0004     		.short	1024
+ 3626 0012 0100     		.short	1
+ 3627 0014 0404     		.short	1028
+ 3628 0016 3000     		.short	48
+ 3629 0018 0202     		.short	514
+ 3630 001a 4F0C     		.short	3151
+ 3631              		.section	.data.config_2048x1536_18fps_mipi_400Mbs,"aw",%progbits
+ 3632              		.align	2
+ 3635              	config_2048x1536_18fps_mipi_400Mbs:
+ 3636 0000 00000000 		.word	power_up
+ 3637 0004 0200     		.short	2
+ 3638 0006 0100     		.short	1
+ 3639 0008 01       		.byte	1
+ 3640 0009 000000   		.space	3
+ 3641 000c 00000000 		.word	corrections_recommended
+ 3642 0010 0B00     		.short	11
+ 3643 0012 0200     		.short	2
+ 3644 0014 01       		.byte	1
+ 3645 0015 000000   		.space	3
+ 3646 0018 00000000 		.word	pll_220_40
+ 3647 001c 0600     		.short	6
+ 3648 001e 0200     		.short	2
+ 3649 0020 01       		.byte	1
+ 3650 0021 000000   		.space	3
+ 3651 0024 00000000 		.word	pixel_timing_recommended
+ 3652 0028 DB00     		.short	219
+ 3653 002a 0200     		.short	2
+ 3654 002c 01       		.byte	1
+ 3655 002d 000000   		.space	3
+ 3656 0030 00000000 		.word	analog_setup_recommended
+ 3657 0034 1200     		.short	18
+ 3658 0036 0200     		.short	2
+ 3659 0038 01       		.byte	1
+ 3660 0039 000000   		.space	3
+ 3661 003c 00000000 		.word	mipi_timing_220_40
+ 3662 0040 0700     		.short	7
+ 3663 0042 0200     		.short	2
+ 3664 0044 01       		.byte	1
+ 3665 0045 000000   		.space	3
+ 3666 0048 00000000 		.word	output_2048x1536_18fps
+ 3667 004c 1100     		.short	17
+ 3668 004e 0200     		.short	2
+ 3669 0050 01       		.byte	1
+ 3670 0051 000000   		.space	3
+ 3671 0054 00000000 		.word	defect_correction
+ 3672 0058 1200     		.short	18
+ 3673 005a 0200     		.short	2
+ 3674 005c 01       		.byte	1
+ 3675 005d 000000   		.space	3
+ 3676              		.section	.data.config_4160x3120_30fps_mipi_1200Mbs,"aw",%progbits
+ 3677              		.align	2
+ 3680              	config_4160x3120_30fps_mipi_1200Mbs:
+ 3681 0000 00000000 		.word	power_up
+ 3682 0004 0200     		.short	2
+ 3683 0006 0100     		.short	1
+ 3684 0008 01       		.byte	1
+ 3685 0009 000000   		.space	3
+ 3686 000c 00000000 		.word	corrections_recommended
+ 3687 0010 0B00     		.short	11
+ 3688 0012 0200     		.short	2
+ 3689 0014 01       		.byte	1
+ 3690 0015 000000   		.space	3
+ 3691 0018 00000000 		.word	pll_220_110
+ 3692 001c 0600     		.short	6
+ 3693 001e 0200     		.short	2
+ 3694 0020 01       		.byte	1
+ 3695 0021 000000   		.space	3
+ 3696 0024 00000000 		.word	pixel_timing_recommended
+ 3697 0028 DB00     		.short	219
+ 3698 002a 0200     		.short	2
+ 3699 002c 01       		.byte	1
+ 3700 002d 000000   		.space	3
+ 3701 0030 00000000 		.word	analog_setup_recommended
+ 3702 0034 1200     		.short	18
+ 3703 0036 0200     		.short	2
+ 3704 0038 01       		.byte	1
+ 3705 0039 000000   		.space	3
+ 3706 003c 00000000 		.word	mipi_timing_220_110
+ 3707 0040 0700     		.short	7
+ 3708 0042 0200     		.short	2
+ 3709 0044 01       		.byte	1
+ 3710 0045 000000   		.space	3
+ 3711 0048 00000000 		.word	output_4160x3120_30fps
+ 3712 004c 1000     		.short	16
+ 3713 004e 0200     		.short	2
+ 3714 0050 01       		.byte	1
+ 3715 0051 000000   		.space	3
+ 3716              		.section	.data.stream_13m_15fps_custom,"aw",%progbits
+ 3717              		.align	1
+ 3720              	stream_13m_15fps_custom:
+ 3721 0000 4203     		.short	834
+ 3722 0002 5C16     		.short	5724
+ 3723 0004 4003     		.short	832
+ 3724 0006 0214     		.short	5122
+ 3725 0008 0202     		.short	514
+ 3726 000a 0414     		.short	5124
+ 3727              		.section	.data.correction_recommend,"aw",%progbits
+ 3728              		.align	1
+ 3731              	correction_recommend:
+ 3732 0000 4230     		.short	12354
+ 3733 0002 0410     		.short	4100
+ 3734 0004 D230     		.short	12498
+ 3735 0006 2001     		.short	288
+ 3736 0008 D430     		.short	12500
+ 3737 000a 0000     		.short	0
+ 3738 000c 9030     		.short	12432
+ 3739 000e 0000     		.short	0
+ 3740 0010 FC30     		.short	12540
+ 3741 0012 6000     		.short	96
+ 3742 0014 FE30     		.short	12542
+ 3743 0016 6000     		.short	96
+ 3744 0018 E031     		.short	12768
+ 3745 001a 8107     		.short	1921
+ 3746 001c 8031     		.short	12672
+ 3747 001e 3494     		.short	-27596
+ 3748 0020 7C31     		.short	12668
+ 3749 0022 F4EF     		.short	-4108
+ 3750 0024 EE30     		.short	12526
+ 3751 0026 3E61     		.short	24894
+ 3752 0028 2C3F     		.short	16172
+ 3753 002a 2844     		.short	17448
+ 3754              		.section	.data.defect_correction_size,"aw",%progbits
+ 3755              		.align	2
+ 3758              	defect_correction_size:
+ 3759 0000 12000000 		.word	18
+ 3760              		.section	.data.mipi_timing_1000,"aw",%progbits
+ 3761              		.align	1
+ 3764              	mipi_timing_1000:
+ 3765 0000 B031     		.short	12720
+ 3766 0002 5600     		.short	86
+ 3767 0004 B231     		.short	12722
+ 3768 0006 2B00     		.short	43
+ 3769 0008 B431     		.short	12724
+ 3770 000a 1043     		.short	17168
+ 3771 000c B631     		.short	12726
+ 3772 000e 8933     		.short	13193
+ 3773 0010 B831     		.short	12728
+ 3774 0012 1320     		.short	8211
+ 3775 0014 BA31     		.short	12730
+ 3776 0016 681C     		.short	7272
+ 3777 0018 BC31     		.short	12732
+ 3778 001a 0A86     		.short	-31222
+ 3779              		.section	.data.res4k_3840_2160_reg_array_1,"aw",%progbits
+ 3780              		.align	1
+ 3783              	res4k_3840_2160_reg_array_1:
+ 3784 0000 4030     		.short	12352
+ 3785 0002 4100     		.short	65
+ 3786 0004 7231     		.short	12658
+ 3787 0006 0602     		.short	518
+ 3788 0008 7A31     		.short	12666
+ 3789 000a 6E41     		.short	16750
+ 3790 000c 3C3F     		.short	16188
+ 3791 000e 0300     		.short	3
+ 3792 0010 0202     		.short	514
+ 3793 0012 AF08     		.short	2223
+ 3794              		.section	.data.start_reg_array,"aw",%progbits
+ 3795              		.align	1
+ 3798              	start_reg_array:
+ 3799 0000 0001     		.short	256
+ 3800 0002 0100     		.short	1
+ 3801              		.section	.data.pll_setup_max_0,"aw",%progbits
+ 3802              		.align	1
+ 3805              	pll_setup_max_0:
+ 3806 0000 0003     		.short	768
+ 3807 0002 0500     		.short	5
+ 3808 0004 0203     		.short	770
+ 3809 0006 0100     		.short	1
+ 3810 0008 0403     		.short	772
+ 3811 000a 0101     		.short	257
+ 3812 000c 0603     		.short	774
+ 3813 000e 2C2C     		.short	11308
+ 3814 0010 0803     		.short	776
+ 3815 0012 0A00     		.short	10
+ 3816 0014 0A03     		.short	778
+ 3817 0016 0100     		.short	1
+ 3818              		.section	.data.pll_setup_max_1,"aw",%progbits
+ 3819              		.align	1
+ 3822              	pll_setup_max_1:
+ 3823 0000 1201     		.short	274
+ 3824 0002 0A0A     		.short	2570
+ 3825 0004 1630     		.short	12310
+ 3826 0006 0101     		.short	257
+ 3827              		.section	.data.output_4208x3120_30fps,"aw",%progbits
+ 3828              		.align	1
+ 3831              	output_4208x3120_30fps:
+ 3832 0000 4403     		.short	836
+ 3833 0002 1000     		.short	16
+ 3834 0004 4803     		.short	840
+ 3835 0006 7F10     		.short	4223
+ 3836 0008 4603     		.short	838
+ 3837 000a 1000     		.short	16
+ 3838 000c 4A03     		.short	842
+ 3839 000e 3F0C     		.short	3135
+ 3840 0010 4C03     		.short	844
+ 3841 0012 7010     		.short	4208
+ 3842 0014 4E03     		.short	846
+ 3843 0016 300C     		.short	3120
+ 3844 0018 4030     		.short	12352
+ 3845 001a 4100     		.short	65
+ 3846 001c 1201     		.short	274
+ 3847 001e 0A0A     		.short	2570
+ 3848 0020 4203     		.short	834
+ 3849 0022 2012     		.short	4640
+ 3850 0024 4003     		.short	832
+ 3851 0026 640C     		.short	3172
+ 3852 0028 0202     		.short	514
+ 3853 002a B80B     		.short	3000
+ 3854 002c 7231     		.short	12658
+ 3855 002e 0602     		.short	518
+ 3856 0030 7A31     		.short	12666
+ 3857 0032 6E41     		.short	16750
+ 3858 0034 3C3F     		.short	16188
+ 3859 0036 0300     		.short	3
+ 3860 0038 0004     		.short	1024
+ 3861 003a 0000     		.short	0
+ 3862 003c 0404     		.short	1028
+ 3863 003e 1000     		.short	16
+ 3864              		.section	.data.mipi_timing_220_40,"aw",%progbits
+ 3865              		.align	1
+ 3868              	mipi_timing_220_40:
+ 3869 0000 B031     		.short	12720
+ 3870 0002 3100     		.short	49
+ 3871 0004 B231     		.short	12722
+ 3872 0006 1E00     		.short	30
+ 3873 0008 B431     		.short	12724
+ 3874 000a 8811     		.short	4488
+ 3875 000c B631     		.short	12726
+ 3876 000e 6511     		.short	4453
+ 3877 0010 B831     		.short	12728
+ 3878 0012 1210     		.short	4114
+ 3879 0014 BA31     		.short	12730
+ 3880 0016 280C     		.short	3112
+ 3881 0018 BC31     		.short	12732
+ 3882 001a 8482     		.short	-32124
+ 3883              		.section	.data.pll_1200Mbps,"aw",%progbits
+ 3884              		.align	1
+ 3887              	pll_1200Mbps:
+ 3888 0000 0003     		.short	768
+ 3889 0002 0500     		.short	5
+ 3890 0004 0203     		.short	770
+ 3891 0006 0100     		.short	1
+ 3892 0008 0403     		.short	772
+ 3893 000a 0101     		.short	257
+ 3894 000c 0603     		.short	774
+ 3895 000e 2C2C     		.short	11308
+ 3896 0010 0803     		.short	776
+ 3897 0012 0A00     		.short	10
+ 3898 0014 0A03     		.short	778
+ 3899 0016 0100     		.short	1
+ 3900 0018 1201     		.short	274
+ 3901 001a 0A0A     		.short	2570
+ 3902 001c 1630     		.short	12310
+ 3903 001e 0101     		.short	257
+ 3904              		.section	.data.res13_4208_3120_reg_array_1,"aw",%progbits
+ 3905              		.align	1
+ 3908              	res13_4208_3120_reg_array_1:
+ 3909 0000 4030     		.short	12352
+ 3910 0002 4100     		.short	65
+ 3911 0004 1201     		.short	274
+ 3912 0006 0A0A     		.short	2570
+ 3913 0008 7231     		.short	12658
+ 3914 000a 0602     		.short	518
+ 3915 000c 7A31     		.short	12666
+ 3916 000e 6E41     		.short	16750
+ 3917 0010 3C3F     		.short	16188
+ 3918 0012 0300     		.short	3
+ 3919 0014 0202     		.short	514
+ 3920 0016 3C0C     		.short	3132
+ 3921              		.section	.data.res13_4208_3120_recommended_1,"aw",%progbits
+ 3922              		.align	1
+ 3925              	res13_4208_3120_recommended_1:
+ 3926 0000 4030     		.short	12352
+ 3927 0002 4100     		.short	65
+ 3928 0004 1201     		.short	274
+ 3929 0006 0A0A     		.short	2570
+ 3930 0008 7231     		.short	12658
+ 3931 000a 0602     		.short	518
+ 3932 000c 7A31     		.short	12666
+ 3933 000e 6E41     		.short	16750
+ 3934 0010 3C3F     		.short	16188
+ 3935 0012 0300     		.short	3
+ 3936 0014 0202     		.short	514
+ 3937 0016 4D0C     		.short	3149
+ 3938 0018 0004     		.short	1024
+ 3939 001a 0000     		.short	0
+ 3940 001c 0404     		.short	1028
+ 3941 001e 1000     		.short	16
+ 3942              		.section	.data.pll_setup_recommended,"aw",%progbits
+ 3943              		.align	1
+ 3946              	pll_setup_recommended:
+ 3947 0000 0003     		.short	768
+ 3948 0002 0500     		.short	5
+ 3949 0004 0203     		.short	770
+ 3950 0006 0100     		.short	1
+ 3951 0008 0403     		.short	772
+ 3952 000a 0202     		.short	514
+ 3953 000c 0603     		.short	774
+ 3954 000e 2020     		.short	8224
+ 3955 0010 0803     		.short	776
+ 3956 0012 0A00     		.short	10
+ 3957 0014 0A03     		.short	778
+ 3958 0016 0100     		.short	1
+ 3959              		.section	.data.stream_720p_60fps_HQ_custom,"aw",%progbits
+ 3960              		.align	1
+ 3963              	stream_720p_60fps_HQ_custom:
+ 3964 0000 4003     		.short	832
+ 3965 0002 3606     		.short	1590
+ 3966 0004 0202     		.short	514
+ 3967 0006 3106     		.short	1585
+ 3968              		.section	.data.iso_table,"aw",%progbits
+ 3969              		.align	2
+ 3972              	iso_table:
+ 3973 0000 0000A83F 		.word	1067974656
+ 3974 0004 6400     		.short	100
+ 3975 0006 0000     		.space	2
+ 3976 0008 00002840 		.word	1076363264
+ 3977 000c C800     		.short	200
+ 3978 000e 0000     		.space	2
+ 3979 0010 0000A840 		.word	1084751872
+ 3980 0014 9001     		.short	400
+ 3981 0016 0000     		.space	2
+ 3982 0018 E17A2841 		.word	1093171937
+ 3983 001c 2003     		.short	800
+ 3984 001e 0000     		.space	2
+ 3985 0020 6666A841 		.word	1101555302
+ 3986 0024 4006     		.short	1600
+ 3987 0026 0000     		.space	2
+ 3988 0028 66662842 		.word	1109943910
+ 3989 002c 800C     		.short	3200
+ 3990 002e 0000     		.space	2
+ 3991              		.section	.data.config_3840x2160_30fps_mipi_1200Mbs,"aw",%progbits
+ 3992              		.align	2
+ 3995              	config_3840x2160_30fps_mipi_1200Mbs:
+ 3996 0000 00000000 		.word	power_up
+ 3997 0004 0200     		.short	2
+ 3998 0006 0100     		.short	1
+ 3999 0008 01       		.byte	1
+ 4000 0009 000000   		.space	3
+ 4001 000c 00000000 		.word	corrections_recommended
+ 4002 0010 0B00     		.short	11
+ 4003 0012 0200     		.short	2
+ 4004 0014 01       		.byte	1
+ 4005 0015 000000   		.space	3
+ 4006 0018 00000000 		.word	pll_220_110
+ 4007 001c 0600     		.short	6
+ 4008 001e 0200     		.short	2
+ 4009 0020 01       		.byte	1
+ 4010 0021 000000   		.space	3
+ 4011 0024 00000000 		.word	pixel_timing_recommended
+ 4012 0028 DB00     		.short	219
+ 4013 002a 0200     		.short	2
+ 4014 002c 01       		.byte	1
+ 4015 002d 000000   		.space	3
+ 4016 0030 00000000 		.word	analog_setup_recommended
+ 4017 0034 1200     		.short	18
+ 4018 0036 0200     		.short	2
+ 4019 0038 01       		.byte	1
+ 4020 0039 000000   		.space	3
+ 4021 003c 00000000 		.word	mipi_timing_220_110
+ 4022 0040 0700     		.short	7
+ 4023 0042 0200     		.short	2
+ 4024 0044 01       		.byte	1
+ 4025 0045 000000   		.space	3
+ 4026 0048 00000000 		.word	output_3840x2160_30fps
+ 4027 004c 1000     		.short	16
+ 4028 004e 0200     		.short	2
+ 4029 0050 01       		.byte	1
+ 4030 0051 000000   		.space	3
+ 4031 0054 00000000 		.word	defect_correction
+ 4032 0058 1200     		.short	18
+ 4033 005a 0200     		.short	2
+ 4034 005c 01       		.byte	1
+ 4035 005d 000000   		.space	3
+ 4036              		.section	.data.stream_720p_60fps_LP,"aw",%progbits
+ 4037              		.align	2
+ 4040              	stream_720p_60fps_LP:
+ 4041 0000 00000000 		.word	mipi_timing_880M
+ 4042 0004 0700     		.short	7
+ 4043 0006 0200     		.short	2
+ 4044 0008 00       		.byte	0
+ 4045 0009 000000   		.space	3
+ 4046 000c 00000000 		.word	pll_setup_880M_0
+ 4047 0010 0600     		.short	6
+ 4048 0012 0200     		.short	2
+ 4049 0014 00       		.byte	0
+ 4050 0015 000000   		.space	3
+ 4051 0018 00000000 		.word	pll_setup_880M_1
+ 4052 001c 0200     		.short	2
+ 4053 001e 0200     		.short	2
+ 4054 0020 01       		.byte	1
+ 4055 0021 000000   		.space	3
+ 4056 0024 00000000 		.word	res720_3840_2160_Ybin3_Xbin3_reg_array_0
+ 4057 0028 0800     		.short	8
+ 4058 002a 0200     		.short	2
+ 4059 002c 00       		.byte	0
+ 4060 002d 000000   		.space	3
+ 4061 0030 00000000 		.word	res720_3840_2160_Ybin3_Xbin3_reg_array_1
+ 4062 0034 0700     		.short	7
+ 4063 0036 0200     		.short	2
+ 4064 0038 01       		.byte	1
+ 4065 0039 000000   		.space	3
+ 4066 003c 00000000 		.word	defect_correction_0
+ 4067 0040 0300     		.short	3
+ 4068 0042 0200     		.short	2
+ 4069 0044 01       		.byte	1
+ 4070 0045 000000   		.space	3
+ 4071 0048 00000000 		.word	defect_correction_1
+ 4072 004c 0700     		.short	7
+ 4073 004e 0200     		.short	2
+ 4074 0050 00       		.byte	0
+ 4075 0051 000000   		.space	3
+ 4076 0054 00000000 		.word	defect_correction_2
+ 4077 0058 0600     		.short	6
+ 4078 005a 0200     		.short	2
+ 4079 005c 00       		.byte	0
+ 4080 005d 000000   		.space	3
+ 4081 0060 00000000 		.word	defect_correction_3
+ 4082 0064 0300     		.short	3
+ 4083 0066 0200     		.short	2
+ 4084 0068 00       		.byte	0
+ 4085 0069 000000   		.space	3
+ 4086 006c 00000000 		.word	stream_720p_60fps_LP_custom
+ 4087 0070 0200     		.short	2
+ 4088 0072 0200     		.short	2
+ 4089 0074 01       		.byte	1
+ 4090 0075 000000   		.space	3
+ 4091              		.text
+ 4092              	.Letext0:
+ 4093              		.file 1 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 4094              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 4095              		.file 3 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/ar1335.h"
+ 4096              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/ar1335.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 ar1335.c
+     /tmp/cc8yiZ0v.s:361    .data.resolution_testing_reg_array:00000000 resolution_testing_reg_array
+     /tmp/cc8yiZ0v.s:3464   .data.config_1920x1080_30fps_mipi_1200Mbs:00000000 config_1920x1080_30fps_mipi_1200Mbs
+     /tmp/cc8yiZ0v.s:3995   .data.config_3840x2160_30fps_mipi_1200Mbs:00000000 config_3840x2160_30fps_mipi_1200Mbs
+     /tmp/cc8yiZ0v.s:896    .data.config_2048x1536_30fps_mipi_1200Mbs:00000000 config_2048x1536_30fps_mipi_1200Mbs
+     /tmp/cc8yiZ0v.s:2763   .data.config_13MP_1200Mbs_size:00000000 config_13MP_1200Mbs_size
+     /tmp/cc8yiZ0v.s:1289   .data.config_4208x3120_30fps_mipi_1200Mbs:00000000 config_4208x3120_30fps_mipi_1200Mbs
+     /tmp/cc8yiZ0v.s:3680   .data.config_4160x3120_30fps_mipi_1200Mbs:00000000 config_4160x3120_30fps_mipi_1200Mbs
+     /tmp/cc8yiZ0v.s:3635   .data.config_2048x1536_18fps_mipi_400Mbs:00000000 config_2048x1536_18fps_mipi_400Mbs
+     /tmp/cc8yiZ0v.s:220    .data.config_13MP_400Mbs_size:00000000 config_13MP_400Mbs_size
+     /tmp/cc8yiZ0v.s:3258   .data.config_4208x3120_10fps_mipi_400Mbs:00000000 config_4208x3120_10fps_mipi_400Mbs
+     /tmp/cc8yiZ0v.s:477    .data.config_4160x3120_10fps_mipi_400Mbs:00000000 config_4160x3120_10fps_mipi_400Mbs
+     /tmp/cc8yiZ0v.s:2617   .data.config_new_1080p:00000000 config_new_1080p
+     /tmp/cc8yiZ0v.s:796    .data.num_of_lane:00000000 num_of_lane
+     /tmp/cc8yiZ0v.s:969    .data.power_up:00000000 power_up
+     /tmp/cc8yiZ0v.s:2528   .data.output_1920x1080_30fps:00000000 output_1920x1080_30fps
+     /tmp/cc8yiZ0v.s:2200   .data.output_3840x2160_30fps:00000000 output_3840x2160_30fps
+     /tmp/cc8yiZ0v.s:3831   .data.output_4208x3120_30fps:00000000 output_4208x3120_30fps
+     /tmp/cc8yiZ0v.s:1067   .data.output_4160x3120_30fps:00000000 output_4160x3120_30fps
+     /tmp/cc8yiZ0v.s:2105   .data.output_4208x3120_10fps:00000000 output_4208x3120_10fps
+     /tmp/cc8yiZ0v.s:2903   .data.output_4160x3120_10fps:00000000 output_4160x3120_10fps
+     /tmp/cc8yiZ0v.s:2163   .data.output_4160x3120_10fps_4208x3120:00000000 output_4160x3120_10fps_4208x3120
+     /tmp/cc8yiZ0v.s:660    .data.output_2048x1536_30fps:00000000 output_2048x1536_30fps
+     /tmp/cc8yiZ0v.s:2278   .data.output_2048x1536_18fps:00000000 output_2048x1536_18fps
+     /tmp/cc8yiZ0v.s:458    .data.mipi_timing_220_110:00000000 mipi_timing_220_110
+     /tmp/cc8yiZ0v.s:517    .data.mipi_timing_220_40_1:00000000 mipi_timing_220_40_1
+     /tmp/cc8yiZ0v.s:536    .data.mipi_timing_220_40_2:00000000 mipi_timing_220_40_2
+     /tmp/cc8yiZ0v.s:3868   .data.mipi_timing_220_40:00000000 mipi_timing_220_40
+     /tmp/cc8yiZ0v.s:1050   .data.pll_220_110:00000000 pll_220_110
+     /tmp/cc8yiZ0v.s:3370   .data.fll_600:00000000 fll_600
+     /tmp/cc8yiZ0v.s:842    .data.mipi_timing_600:00000000 mipi_timing_600
+     /tmp/cc8yiZ0v.s:735    .data.pll_220_110_600:00000000 pll_220_110_600
+     /tmp/cc8yiZ0v.s:581    .data.fll_1000:00000000 fll_1000
+     /tmp/cc8yiZ0v.s:3764   .data.mipi_timing_1000:00000000 mipi_timing_1000
+     /tmp/cc8yiZ0v.s:3224   .data.pll_220_110_1000:00000000 pll_220_110_1000
+     /tmp/cc8yiZ0v.s:3241   .data.pll_220_40_1:00000000 pll_220_40_1
+     /tmp/cc8yiZ0v.s:564    .data.pll_220_40:00000000 pll_220_40
+     /tmp/cc8yiZ0v.s:769    .data.corrections_recommended:00000000 corrections_recommended
+     /tmp/cc8yiZ0v.s:2652   .data.pan_defect_correction_size:00000000 pan_defect_correction_size
+     /tmp/cc8yiZ0v.s:1348   .data.defect_correction_panchromatic:00000000 defect_correction_panchromatic
+     /tmp/cc8yiZ0v.s:3758   .data.defect_correction_size:00000000 defect_correction_size
+     /tmp/cc8yiZ0v.s:1104   .data.defect_correction:00000000 defect_correction
+     /tmp/cc8yiZ0v.s:3298   .data.stream_types_size:00000000 stream_types_size
+     /tmp/cc8yiZ0v.s:3509   .data.stream_types:00000000 stream_types
+     /tmp/cc8yiZ0v.s:1044   .data.cam_open_default_size:00000000 cam_open_default_size
+     /tmp/cc8yiZ0v.s:1230   .data.cam_open_default:00000000 cam_open_default
+     /tmp/cc8yiZ0v.s:651    .data.output_800Mbs:00000000 output_800Mbs
+     /tmp/cc8yiZ0v.s:1329   .data.mipi_800Mbs:00000000 mipi_800Mbs
+     /tmp/cc8yiZ0v.s:1156   .data.pll_800Mbps:00000000 pll_800Mbps
+     /tmp/cc8yiZ0v.s:3379   .data.output_1200Mbs:00000000 output_1200Mbs
+     /tmp/cc8yiZ0v.s:2509   .data.mipi_1200Mbs:00000000 mipi_1200Mbs
+     /tmp/cc8yiZ0v.s:3887   .data.pll_1200Mbps:00000000 pll_1200Mbps
+     /tmp/cc8yiZ0v.s:1938   .data.res13_4208_3120_recommended:00000000 res13_4208_3120_recommended
+     /tmp/cc8yiZ0v.s:2237   .data.analog_setup_recommended:00000000 analog_setup_recommended
+     /tmp/cc8yiZ0v.s:3304   .data.stream_4k_cinema:00000000 stream_4k_cinema
+     /tmp/cc8yiZ0v.s:2858   .data.stream_4k_uhd:00000000 stream_4k_uhd
+     /tmp/cc8yiZ0v.s:4040   .data.stream_720p_60fps_LP:00000000 stream_720p_60fps_LP
+     /tmp/cc8yiZ0v.s:3084   .data.stream_720p_60fps_LP_custom:00000000 stream_720p_60fps_LP_custom
+     /tmp/cc8yiZ0v.s:408    .data.stream_720p_30fps_LP:00000000 stream_720p_30fps_LP
+     /tmp/cc8yiZ0v.s:3169   .data.stream_720p_60fps_HQ:00000000 stream_720p_60fps_HQ
+     /tmp/cc8yiZ0v.s:3963   .data.stream_720p_60fps_HQ_custom:00000000 stream_720p_60fps_HQ_custom
+     /tmp/cc8yiZ0v.s:226    .data.stream_720p_30fps_HQ:00000000 stream_720p_30fps_HQ
+     /tmp/cc8yiZ0v.s:2658   .data.stream_1080p_60fps_LP:00000000 stream_1080p_60fps_LP
+     /tmp/cc8yiZ0v.s:831    .data.stream_1080p_60fps_LP_custom:00000000 stream_1080p_60fps_LP_custom
+     /tmp/cc8yiZ0v.s:2567   .data.stream_1080p_30fps_LP:00000000 stream_1080p_30fps_LP
+     /tmp/cc8yiZ0v.s:2975   .data.stream_3M_30fps_LP:00000000 stream_3M_30fps_LP
+     /tmp/cc8yiZ0v.s:2416   .data.stream_1080p_60fps_HQ:00000000 stream_1080p_60fps_HQ
+     /tmp/cc8yiZ0v.s:1899   .data.stream_1080p_60fps_HQ_custom:00000000 stream_1080p_60fps_HQ_custom
+     /tmp/cc8yiZ0v.s:2317   .data.stream_1080p_30fps_HQ:00000000 stream_1080p_30fps_HQ
+     /tmp/cc8yiZ0v.s:2713   .data.stream_3M_30fps_HQ:00000000 stream_3M_30fps_HQ
+     /tmp/cc8yiZ0v.s:1175   .data.stream_13m_15fps:00000000 stream_13m_15fps
+     /tmp/cc8yiZ0v.s:3720   .data.stream_13m_15fps_custom:00000000 stream_13m_15fps_custom
+     /tmp/cc8yiZ0v.s:2031   .data.stream_13m_24fps:00000000 stream_13m_24fps
+     /tmp/cc8yiZ0v.s:1927   .data.stream_13m_24fps_custom:00000000 stream_13m_24fps_custom
+     /tmp/cc8yiZ0v.s:3388   .data.stream_13m_30fps:00000000 stream_13m_30fps
+     /tmp/cc8yiZ0v.s:1145   .data.stream_13m_30fps_custom:00000000 stream_13m_30fps_custom
+     /tmp/cc8yiZ0v.s:3034   .data.stream_13m_30fps_DPCM8:00000000 stream_13m_30fps_DPCM8
+     /tmp/cc8yiZ0v.s:3112   .data.stream_13m_30fps_border:00000000 stream_13m_30fps_border
+     /tmp/cc8yiZ0v.s:590    .data.res4KCinema_testing_recommended:00000000 res4KCinema_testing_recommended
+     /tmp/cc8yiZ0v.s:1425   .data.res4KUHD_testing_recommended:00000000 res4KUHD_testing_recommended
+     /tmp/cc8yiZ0v.s:2940   .data.res3M_testing_recommended:00000000 res3M_testing_recommended
+     /tmp/cc8yiZ0v.s:2769   .data.res720_testing_recommended:00000000 res720_testing_recommended
+     /tmp/cc8yiZ0v.s:309    .data.res1080_testing_recommended:00000000 res1080_testing_recommended
+     /tmp/cc8yiZ0v.s:2823   .data.res13M_testing_recommended:00000000 res13M_testing_recommended
+     /tmp/cc8yiZ0v.s:1994   .data.analog_setup_recommended_1:00000000 analog_setup_recommended_1
+     /tmp/cc8yiZ0v.s:720    .data.res4k_4096_2160_reg_array_1:00000000 res4k_4096_2160_reg_array_1
+     /tmp/cc8yiZ0v.s:699    .data.res4k_4096_2160_reg_array_0:00000000 res4k_4096_2160_reg_array_0
+     /tmp/cc8yiZ0v.s:3783   .data.res4k_3840_2160_reg_array_1:00000000 res4k_3840_2160_reg_array_1
+     /tmp/cc8yiZ0v.s:3349   .data.res4k_3840_2160_reg_array_0:00000000 res4k_3840_2160_reg_array_0
+     /tmp/cc8yiZ0v.s:1908   .data.res720_3840_2160_Ybin3_Xbin3_reg_array_1:00000000 res720_3840_2160_Ybin3_Xbin3_reg_array_1
+     /tmp/cc8yiZ0v.s:3443   .data.res720_3840_2160_Ybin3_Xbin3_reg_array_0:00000000 res720_3840_2160_Ybin3_Xbin3_reg_array_0
+     /tmp/cc8yiZ0v.s:3616   .data.res720_3840_2160_Yskip3_XScale3_reg_array_1:00000000 res720_3840_2160_Yskip3_XScale3_reg_array_1
+     /tmp/cc8yiZ0v.s:2142   .data.res720_3840_2160_Yskip3_XScale3_reg_array_0:00000000 res720_3840_2160_Yskip3_XScale3_reg_array_0
+     /tmp/cc8yiZ0v.s:2388   .data.res1080_3840_2160_Ybin2_XBin2_reg_array_1:00000000 res1080_3840_2160_Ybin2_XBin2_reg_array_1
+     /tmp/cc8yiZ0v.s:2367   .data.res1080_3840_2160_Ybin2_XBin2_reg_array_0:00000000 res1080_3840_2160_Ybin2_XBin2_reg_array_0
+     /tmp/cc8yiZ0v.s:391    .data.res3_4208_3120_Ybin2_XBin2_reg_array_1:00000000 res3_4208_3120_Ybin2_XBin2_reg_array_1
+     /tmp/cc8yiZ0v.s:344    .data.res3_4208_3120_Ybin2_XBin2_reg_array_0:00000000 res3_4208_3120_Ybin2_XBin2_reg_array_0
+     /tmp/cc8yiZ0v.s:999    .data.res1080_3840_2160_Ybin2_Xscale2_reg_array_1:00000000 res1080_3840_2160_Ybin2_Xscale2_reg_array_1
+     /tmp/cc8yiZ0v.s:978    .data.res1080_3840_2160_Ybin2_Xscale2_reg_array_0:00000000 res1080_3840_2160_Ybin2_Xscale2_reg_array_0
+     /tmp/cc8yiZ0v.s:3093   .data.res3_4208_3120_Ybin2_Xscale2_reg_array_1:00000000 res3_4208_3120_Ybin2_Xscale2_reg_array_1
+     /tmp/cc8yiZ0v.s:803    .data.res3_4208_3120_Ybin2_Xscale2_reg_array_0:00000000 res3_4208_3120_Ybin2_Xscale2_reg_array_0
+     /tmp/cc8yiZ0v.s:3908   .data.res13_4208_3120_reg_array_1:00000000 res13_4208_3120_reg_array_1
+     /tmp/cc8yiZ0v.s:875    .data.res13_4208_3120_reg_array_0:00000000 res13_4208_3120_reg_array_0
+     /tmp/cc8yiZ0v.s:2492   .data.res13_4208_3120_DPCM8_reg_array_1:00000000 res13_4208_3120_DPCM8_reg_array_1
+     /tmp/cc8yiZ0v.s:2471   .data.res13_4208_3120_DPCM8_reg_array_0:00000000 res13_4208_3120_DPCM8_reg_array_0
+     /tmp/cc8yiZ0v.s:1410   .data.res13_4224_3136_border_reg_array_1:00000000 res13_4224_3136_border_reg_array_1
+     /tmp/cc8yiZ0v.s:1389   .data.res13_4224_3136_border_reg_array_0:00000000 res13_4224_3136_border_reg_array_0
+     /tmp/cc8yiZ0v.s:3925   .data.res13_4208_3120_recommended_1:00000000 res13_4208_3120_recommended_1
+     /tmp/cc8yiZ0v.s:941    .data.res13_4208_3120_recommended_0:00000000 res13_4208_3120_recommended_0
+     /tmp/cc8yiZ0v.s:192    .data.defect_correction_3:00000000 defect_correction_3
+     /tmp/cc8yiZ0v.s:203    .data.defect_correction_2:00000000 defect_correction_2
+     /tmp/cc8yiZ0v.s:162    .data.defect_correction_1:00000000 defect_correction_1
+     /tmp/cc8yiZ0v.s:181    .data.defect_correction_0:00000000 defect_correction_0
+     /tmp/cc8yiZ0v.s:3946   .data.pll_setup_recommended:00000000 pll_setup_recommended
+     /tmp/cc8yiZ0v.s:300    .data.pll_setup_880M_1:00000000 pll_setup_880M_1
+     /tmp/cc8yiZ0v.s:283    .data.pll_setup_880M_0:00000000 pll_setup_880M_0
+     /tmp/cc8yiZ0v.s:2407   .data.pll_setup_880M_DPCM8_1:00000000 pll_setup_880M_DPCM8_1
+     /tmp/cc8yiZ0v.s:752    .data.pll_setup_880M_DPCM8_0:00000000 pll_setup_880M_DPCM8_0
+     /tmp/cc8yiZ0v.s:3822   .data.pll_setup_max_1:00000000 pll_setup_max_1
+     /tmp/cc8yiZ0v.s:3805   .data.pll_setup_max_0:00000000 pll_setup_max_0
+     /tmp/cc8yiZ0v.s:621    .data.mipi_timing_recommended:00000000 mipi_timing_recommended
+     /tmp/cc8yiZ0v.s:1975   .data.mipi_timing_880M_DPCM8:00000000 mipi_timing_880M_DPCM8
+     /tmp/cc8yiZ0v.s:2804   .data.mipi_timing_880M:00000000 mipi_timing_880M
+     /tmp/cc8yiZ0v.s:1025   .data.mipi_timing_max:00000000 mipi_timing_max
+     /tmp/cc8yiZ0v.s:1280   .data.analog_setup_recommended_0:00000000 analog_setup_recommended_0
+     /tmp/cc8yiZ0v.s:1456   .data.pixel_timing_recommended:00000000 pixel_timing_recommended
+     /tmp/cc8yiZ0v.s:3731   .data.correction_recommend:00000000 correction_recommend
+     /tmp/cc8yiZ0v.s:640    .data.reset_reg_array:00000000 reset_reg_array
+     /tmp/cc8yiZ0v.s:2099   .data.iso_table_size:00000000 iso_table_size
+     /tmp/cc8yiZ0v.s:3972   .data.iso_table:00000000 iso_table
+     /tmp/cc8yiZ0v.s:861    .data.slave_mode_disable_reg_array:00000000 slave_mode_disable_reg_array
+     /tmp/cc8yiZ0v.s:276    .data.slave_mode_enable_reg_array:00000000 slave_mode_enable_reg_array
+     /tmp/cc8yiZ0v.s:2086   .data.slave_mode_control_reg_array:00000000 slave_mode_control_reg_array
+     /tmp/cc8yiZ0v.s:3162   .data.groupoff_reg_array:00000000 groupoff_reg_array
+     /tmp/cc8yiZ0v.s:868    .data.groupon_reg_array:00000000 groupon_reg_array
+     /tmp/cc8yiZ0v.s:1018   .data.stop_reg_array:00000000 stop_reg_array
+     /tmp/cc8yiZ0v.s:962    .data.analog_control_reset:00000000 analog_control_reset
+     /tmp/cc8yiZ0v.s:555    .data.analog_control_off:00000000 analog_control_off
+     /tmp/cc8yiZ0v.s:824    .data.analog_control_on:00000000 analog_control_on
+     /tmp/cc8yiZ0v.s:3025   .data.enable_streaming:00000000 enable_streaming
+     /tmp/cc8yiZ0v.s:3798   .data.start_reg_array:00000000 start_reg_array
+     /tmp/cc8yiZ0v.s:159    .data.defect_correction_1:00000000 $d
+     /tmp/cc8yiZ0v.s:178    .data.defect_correction_0:00000000 $d
+     /tmp/cc8yiZ0v.s:189    .data.defect_correction_3:00000000 $d
+     /tmp/cc8yiZ0v.s:200    .data.defect_correction_2:00000000 $d
+     /tmp/cc8yiZ0v.s:217    .data.config_13MP_400Mbs_size:00000000 $d
+     /tmp/cc8yiZ0v.s:223    .data.stream_720p_30fps_HQ:00000000 $d
+     /tmp/cc8yiZ0v.s:273    .data.slave_mode_enable_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:280    .data.pll_setup_880M_0:00000000 $d
+     /tmp/cc8yiZ0v.s:297    .data.pll_setup_880M_1:00000000 $d
+     /tmp/cc8yiZ0v.s:306    .data.res1080_testing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:341    .data.res3_4208_3120_Ybin2_XBin2_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:358    .data.resolution_testing_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:388    .data.res3_4208_3120_Ybin2_XBin2_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:405    .data.stream_720p_30fps_LP:00000000 $d
+     /tmp/cc8yiZ0v.s:455    .data.mipi_timing_220_110:00000000 $d
+     /tmp/cc8yiZ0v.s:474    .data.config_4160x3120_10fps_mipi_400Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:514    .data.mipi_timing_220_40_1:00000000 $d
+     /tmp/cc8yiZ0v.s:533    .data.mipi_timing_220_40_2:00000000 $d
+     /tmp/cc8yiZ0v.s:552    .data.analog_control_off:00000000 $d
+     /tmp/cc8yiZ0v.s:561    .data.pll_220_40:00000000 $d
+     /tmp/cc8yiZ0v.s:578    .data.fll_1000:00000000 $d
+     /tmp/cc8yiZ0v.s:587    .data.res4KCinema_testing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:618    .data.mipi_timing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:637    .data.reset_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:648    .data.output_800Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:657    .data.output_2048x1536_30fps:00000000 $d
+     /tmp/cc8yiZ0v.s:696    .data.res4k_4096_2160_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:717    .data.res4k_4096_2160_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:732    .data.pll_220_110_600:00000000 $d
+     /tmp/cc8yiZ0v.s:749    .data.pll_setup_880M_DPCM8_0:00000000 $d
+     /tmp/cc8yiZ0v.s:766    .data.corrections_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:793    .data.num_of_lane:00000000 $d
+     /tmp/cc8yiZ0v.s:800    .data.res3_4208_3120_Ybin2_Xscale2_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:821    .data.analog_control_on:00000000 $d
+     /tmp/cc8yiZ0v.s:828    .data.stream_1080p_60fps_LP_custom:00000000 $d
+     /tmp/cc8yiZ0v.s:839    .data.mipi_timing_600:00000000 $d
+     /tmp/cc8yiZ0v.s:858    .data.slave_mode_disable_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:865    .data.groupon_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:872    .data.res13_4208_3120_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:893    .data.config_2048x1536_30fps_mipi_1200Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:938    .data.res13_4208_3120_recommended_0:00000000 $d
+     /tmp/cc8yiZ0v.s:959    .data.analog_control_reset:00000000 $d
+     /tmp/cc8yiZ0v.s:966    .data.power_up:00000000 $d
+     /tmp/cc8yiZ0v.s:975    .data.res1080_3840_2160_Ybin2_Xscale2_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:996    .data.res1080_3840_2160_Ybin2_Xscale2_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:1015   .data.stop_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:1022   .data.mipi_timing_max:00000000 $d
+     /tmp/cc8yiZ0v.s:1041   .data.cam_open_default_size:00000000 $d
+     /tmp/cc8yiZ0v.s:1047   .data.pll_220_110:00000000 $d
+     /tmp/cc8yiZ0v.s:1064   .data.output_4160x3120_30fps:00000000 $d
+     /tmp/cc8yiZ0v.s:1101   .data.defect_correction:00000000 $d
+     /tmp/cc8yiZ0v.s:1142   .data.stream_13m_30fps_custom:00000000 $d
+     /tmp/cc8yiZ0v.s:1153   .data.pll_800Mbps:00000000 $d
+     /tmp/cc8yiZ0v.s:1172   .data.stream_13m_15fps:00000000 $d
+     /tmp/cc8yiZ0v.s:1227   .data.cam_open_default:00000000 $d
+     /tmp/cc8yiZ0v.s:1277   .data.analog_setup_recommended_0:00000000 $d
+     /tmp/cc8yiZ0v.s:1286   .data.config_4208x3120_30fps_mipi_1200Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:1326   .data.mipi_800Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:1345   .data.defect_correction_panchromatic:00000000 $d
+     /tmp/cc8yiZ0v.s:1386   .data.res13_4224_3136_border_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:1407   .data.res13_4224_3136_border_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:1422   .data.res4KUHD_testing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:1453   .data.pixel_timing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:1896   .data.stream_1080p_60fps_HQ_custom:00000000 $d
+     /tmp/cc8yiZ0v.s:1905   .data.res720_3840_2160_Ybin3_Xbin3_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:1924   .data.stream_13m_24fps_custom:00000000 $d
+     /tmp/cc8yiZ0v.s:1935   .data.res13_4208_3120_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:1972   .data.mipi_timing_880M_DPCM8:00000000 $d
+     /tmp/cc8yiZ0v.s:1991   .data.analog_setup_recommended_1:00000000 $d
+     /tmp/cc8yiZ0v.s:2028   .data.stream_13m_24fps:00000000 $d
+     /tmp/cc8yiZ0v.s:2083   .data.slave_mode_control_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:2096   .data.iso_table_size:00000000 $d
+     /tmp/cc8yiZ0v.s:2102   .data.output_4208x3120_10fps:00000000 $d
+     /tmp/cc8yiZ0v.s:2139   .data.res720_3840_2160_Yskip3_XScale3_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:2160   .data.output_4160x3120_10fps_4208x3120:00000000 $d
+     /tmp/cc8yiZ0v.s:2197   .data.output_3840x2160_30fps:00000000 $d
+     /tmp/cc8yiZ0v.s:2234   .data.analog_setup_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:2275   .data.output_2048x1536_18fps:00000000 $d
+     /tmp/cc8yiZ0v.s:2314   .data.stream_1080p_30fps_HQ:00000000 $d
+     /tmp/cc8yiZ0v.s:2364   .data.res1080_3840_2160_Ybin2_XBin2_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:2385   .data.res1080_3840_2160_Ybin2_XBin2_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:2404   .data.pll_setup_880M_DPCM8_1:00000000 $d
+     /tmp/cc8yiZ0v.s:2413   .data.stream_1080p_60fps_HQ:00000000 $d
+     /tmp/cc8yiZ0v.s:2468   .data.res13_4208_3120_DPCM8_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:2489   .data.res13_4208_3120_DPCM8_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:2506   .data.mipi_1200Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:2525   .data.output_1920x1080_30fps:00000000 $d
+     /tmp/cc8yiZ0v.s:2564   .data.stream_1080p_30fps_LP:00000000 $d
+     /tmp/cc8yiZ0v.s:2614   .data.config_new_1080p:00000000 $d
+     /tmp/cc8yiZ0v.s:2649   .data.pan_defect_correction_size:00000000 $d
+     /tmp/cc8yiZ0v.s:2655   .data.stream_1080p_60fps_LP:00000000 $d
+     /tmp/cc8yiZ0v.s:2710   .data.stream_3M_30fps_HQ:00000000 $d
+     /tmp/cc8yiZ0v.s:2760   .data.config_13MP_1200Mbs_size:00000000 $d
+     /tmp/cc8yiZ0v.s:2766   .data.res720_testing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:2801   .data.mipi_timing_880M:00000000 $d
+     /tmp/cc8yiZ0v.s:2820   .data.res13M_testing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:2855   .data.stream_4k_uhd:00000000 $d
+     /tmp/cc8yiZ0v.s:2900   .data.output_4160x3120_10fps:00000000 $d
+     /tmp/cc8yiZ0v.s:2937   .data.res3M_testing_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:2972   .data.stream_3M_30fps_LP:00000000 $d
+     /tmp/cc8yiZ0v.s:3022   .data.enable_streaming:00000000 $d
+     /tmp/cc8yiZ0v.s:3031   .data.stream_13m_30fps_DPCM8:00000000 $d
+     /tmp/cc8yiZ0v.s:3081   .data.stream_720p_60fps_LP_custom:00000000 $d
+     /tmp/cc8yiZ0v.s:3090   .data.res3_4208_3120_Ybin2_Xscale2_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:3109   .data.stream_13m_30fps_border:00000000 $d
+     /tmp/cc8yiZ0v.s:3159   .data.groupoff_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:3166   .data.stream_720p_60fps_HQ:00000000 $d
+     /tmp/cc8yiZ0v.s:3221   .data.pll_220_110_1000:00000000 $d
+     /tmp/cc8yiZ0v.s:3238   .data.pll_220_40_1:00000000 $d
+     /tmp/cc8yiZ0v.s:3255   .data.config_4208x3120_10fps_mipi_400Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:3295   .data.stream_types_size:00000000 $d
+     /tmp/cc8yiZ0v.s:3301   .data.stream_4k_cinema:00000000 $d
+     /tmp/cc8yiZ0v.s:3346   .data.res4k_3840_2160_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:3367   .data.fll_600:00000000 $d
+     /tmp/cc8yiZ0v.s:3376   .data.output_1200Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:3385   .data.stream_13m_30fps:00000000 $d
+     /tmp/cc8yiZ0v.s:3440   .data.res720_3840_2160_Ybin3_Xbin3_reg_array_0:00000000 $d
+     /tmp/cc8yiZ0v.s:3461   .data.config_1920x1080_30fps_mipi_1200Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:3506   .data.stream_types:00000000 $d
+     /tmp/cc8yiZ0v.s:3613   .data.res720_3840_2160_Yskip3_XScale3_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:3632   .data.config_2048x1536_18fps_mipi_400Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:3677   .data.config_4160x3120_30fps_mipi_1200Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:3717   .data.stream_13m_15fps_custom:00000000 $d
+     /tmp/cc8yiZ0v.s:3728   .data.correction_recommend:00000000 $d
+     /tmp/cc8yiZ0v.s:3755   .data.defect_correction_size:00000000 $d
+     /tmp/cc8yiZ0v.s:3761   .data.mipi_timing_1000:00000000 $d
+     /tmp/cc8yiZ0v.s:3780   .data.res4k_3840_2160_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:3795   .data.start_reg_array:00000000 $d
+     /tmp/cc8yiZ0v.s:3802   .data.pll_setup_max_0:00000000 $d
+     /tmp/cc8yiZ0v.s:3819   .data.pll_setup_max_1:00000000 $d
+     /tmp/cc8yiZ0v.s:3828   .data.output_4208x3120_30fps:00000000 $d
+     /tmp/cc8yiZ0v.s:3865   .data.mipi_timing_220_40:00000000 $d
+     /tmp/cc8yiZ0v.s:3884   .data.pll_1200Mbps:00000000 $d
+     /tmp/cc8yiZ0v.s:3905   .data.res13_4208_3120_reg_array_1:00000000 $d
+     /tmp/cc8yiZ0v.s:3922   .data.res13_4208_3120_recommended_1:00000000 $d
+     /tmp/cc8yiZ0v.s:3943   .data.pll_setup_recommended:00000000 $d
+     /tmp/cc8yiZ0v.s:3960   .data.stream_720p_60fps_HQ_custom:00000000 $d
+     /tmp/cc8yiZ0v.s:3969   .data.iso_table:00000000 $d
+     /tmp/cc8yiZ0v.s:3992   .data.config_3840x2160_30fps_mipi_1200Mbs:00000000 $d
+     /tmp/cc8yiZ0v.s:4037   .data.stream_720p_60fps_LP:00000000 $d
+
+NO UNDEFINED SYMBOLS

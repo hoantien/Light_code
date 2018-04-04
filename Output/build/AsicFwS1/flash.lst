@@ -1,0 +1,2574 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"flash.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.read_status,"ax",%progbits
+  17              		.align	2
+  19              	read_status:
+  20              	.LFB3:
+  21              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * Copyright (c) 2015, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * @file	flash.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * @author	The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * @version	V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * @date	Mar-10-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * @brief	This file contains definitions of the flash driver.
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Includes ------------------------------------------------------------------*/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #include "assert.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #include "cortex_r4.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #include "std_type.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #include "flash.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #include "os.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Private define ------------------------------------------------------------*/
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_RDID		0x9F
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_RDSR		0x05
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_WRSR		0x01
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_WREN		0x06
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_CE		0xC7
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_SE		0xD8
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_SSE		0x20
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_GBULK		0x98
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_READ		0x03
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_PP		0x02
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_4READ		0xEB
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_4PP		0x32
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_WIP_MASK		0x01
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define FLASH_CMD_CLSR		0x50
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define BYTES_PER_READ		64
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define BYTES_PER_WRITE		256
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define SECTOR_SIZE			0x00010000
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define SUB_SECTOR_SIZE		0x00001000
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Private macro -------------------------------------------------------------*/
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Qspi address */
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #define QSPI_ADDR				((qspi_register_t *)(uint32_t)(QSPI_BASE))
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Private typedef -----------------------------------------------------------*/
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Private variables ---------------------------------------------------------*/
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** qspi_transfer_cmd_t qspi_transfer_cmd;
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** static xSemaphoreHandle semaphore;
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Private function prototypes -----------------------------------------------*/
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /* Private functions ---------------------------------------------------------*/
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * flash_init
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** void flash_init(void)
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg	= QSPI_ADDR->TX_BUFF_REG;
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg8	= QSPI_ADDR->TX_BUFF_REG8;
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.rx_buff_reg	= QSPI_ADDR->RX_BUFF_REG;
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.rx_buff_reg8	= QSPI_ADDR->RX_BUFF_REG8;
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if (semaphore == NULL)
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		semaphore = xSemaphoreCreateMutex();
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		assert_param(semaphore);
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * read_id
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** uint32_t read_id(void)
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t chip_id;
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg);
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreTake(semaphore, portMAX_DELAY);
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.spi_mode_reg = PIO1_GO_MODE;
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.cycle			= 32;
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en 	= FOUR_OUTPUTS;
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes 		= ONE_LANE;
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en 	= FOUR_OUTPUTS;
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes 		= ONE_LANE;
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en 	= FOUR_OUTPUTS;
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes 		= ONE_LANE;
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg[0] = (FLASH_CMD_RDID << 24);
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	transfer_cmd(&qspi_transfer_cmd);
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	chip_id = qspi_transfer_cmd.rx_buff_reg[0] & 0x00FFFFFF;
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreGive(semaphore);
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return chip_id;
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * read_status
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** static uint32_t read_status(void)
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+  22              		.loc 1 120 0
+  23              		.cfi_startproc
+  24              		@ args = 0, pretend = 0, frame = 0
+  25              		@ frame_needed = 0, uses_anonymous_args = 0
+  26 0000 10402DE9 		stmfd	sp!, {r4, lr}
+  27              	.LCFI0:
+  28              		.cfi_def_cfa_offset 8
+  29              		.cfi_offset 4, -8
+  30              		.cfi_offset 14, -4
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t status;
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t wip;
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg);
+  31              		.loc 1 125 0
+  32 0004 18419FE5 		ldr	r4, .L10
+  33 0008 403094E5 		ldr	r3, [r4, #64]
+  34 000c 000053E3 		cmp	r3, #0
+  35 0010 0200001A 		bne	.L2
+  36              		.loc 1 125 0 is_stmt 0 discriminator 1
+  37 0014 0C019FE5 		ldr	r0, .L10+4
+  38 0018 7D10A0E3 		mov	r1, #125
+  39 001c FEFFFFEB 		bl	assert_failed
+  40              	.LVL0:
+  41              	.L2:
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+  42              		.loc 1 126 0 is_stmt 1
+  43 0020 443094E5 		ldr	r3, [r4, #68]
+  44 0024 000053E3 		cmp	r3, #0
+  45 0028 0200001A 		bne	.L3
+  46              		.loc 1 126 0 is_stmt 0 discriminator 1
+  47 002c F4009FE5 		ldr	r0, .L10+4
+  48 0030 7E10A0E3 		mov	r1, #126
+  49 0034 FEFFFFEB 		bl	assert_failed
+  50              	.LVL1:
+  51              	.L3:
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+  52              		.loc 1 127 0 is_stmt 1
+  53 0038 483094E5 		ldr	r3, [r4, #72]
+  54 003c 000053E3 		cmp	r3, #0
+  55 0040 0200001A 		bne	.L4
+  56              		.loc 1 127 0 is_stmt 0 discriminator 1
+  57 0044 DC009FE5 		ldr	r0, .L10+4
+  58 0048 7F10A0E3 		mov	r1, #127
+  59 004c FEFFFFEB 		bl	assert_failed
+  60              	.LVL2:
+  61              	.L4:
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+  62              		.loc 1 128 0 is_stmt 1
+  63 0050 4C3094E5 		ldr	r3, [r4, #76]
+  64 0054 000053E3 		cmp	r3, #0
+  65 0058 0200001A 		bne	.L5
+  66              		.loc 1 128 0 is_stmt 0 discriminator 1
+  67 005c C4009FE5 		ldr	r0, .L10+4
+  68 0060 8010A0E3 		mov	r1, #128
+  69 0064 FEFFFFEB 		bl	assert_failed
+  70              	.LVL3:
+  71              	.L5:
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.spi_mode_reg = PIO1_GO_MODE;
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.cycle			= 16;
+  72              		.loc 1 132 0 is_stmt 1
+  73 0068 1010A0E3 		mov	r1, #16
+  74 006c B430D4E1 		ldrh	r3, [r4, #4]
+  75 0070 1130C9E7 		bfi	r3, r1, #0, #10
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  76              		.loc 1 130 0
+  77 0074 0120A0E3 		mov	r2, #1
+  78              		.loc 1 132 0
+  79 0078 B430C4E1 		strh	r3, [r4, #4]	@ movhi
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+  80              		.loc 1 133 0
+  81 007c 0630D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+  82 0080 1230C2E7 		bfi	r3, r2, #0, #3
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+  83              		.loc 1 130 0
+  84 0084 B020C4E1 		strh	r2, [r4]	@ movhi
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en 	= FOUR_OUTPUTS;
+  85              		.loc 1 134 0
+  86 0088 033EE0E1 		mvn	r3, r3, asl #28
+  87 008c 233EE0E1 		mvn	r3, r3, lsr #28
+  88 0090 0630C4E5 		strb	r3, [r4, #6]
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+  89              		.loc 1 135 0
+  90 0094 B830D4E1 		ldrh	r3, [r4, #8]
+  91 0098 1F30C9E7 		bfc	r3, #0, #10
+  92 009c B830C4E1 		strh	r3, [r4, #8]	@ movhi
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes 		= ONE_LANE;
+  93              		.loc 1 136 0
+  94 00a0 0A30D4E5 		ldrb	r3, [r4, #10]	@ zero_extendqisi2
+  95 00a4 1230C2E7 		bfi	r3, r2, #0, #3
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en 	= FOUR_OUTPUTS;
+  96              		.loc 1 137 0
+  97 00a8 033EE0E1 		mvn	r3, r3, asl #28
+  98 00ac 233EE0E1 		mvn	r3, r3, lsr #28
+  99 00b0 0A30C4E5 		strb	r3, [r4, #10]
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 100              		.loc 1 138 0
+ 101 00b4 BC30D4E1 		ldrh	r3, [r4, #12]
+ 102 00b8 1F30C9E7 		bfc	r3, #0, #10
+ 103 00bc BC30C4E1 		strh	r3, [r4, #12]	@ movhi
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes 		= ONE_LANE;
+ 104              		.loc 1 139 0
+ 105 00c0 0E30D4E5 		ldrb	r3, [r4, #14]	@ zero_extendqisi2
+ 106 00c4 1230C2E7 		bfi	r3, r2, #0, #3
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 107              		.loc 1 140 0
+ 108 00c8 033EE0E1 		mvn	r3, r3, asl #28
+ 109 00cc 233EE0E1 		mvn	r3, r3, lsr #28
+ 110 00d0 0E30C4E5 		strb	r3, [r4, #14]
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 111              		.loc 1 141 0
+ 112 00d4 B031D4E1 		ldrh	r3, [r4, #16]
+ 113 00d8 1F30C9E7 		bfc	r3, #0, #10
+ 114 00dc B031C4E1 		strh	r3, [r4, #16]	@ movhi
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes 		= ONE_LANE;
+ 115              		.loc 1 142 0
+ 116 00e0 1230D4E5 		ldrb	r3, [r4, #18]	@ zero_extendqisi2
+ 117 00e4 1230C2E7 		bfi	r3, r2, #0, #3
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg[0] = (FLASH_CMD_RDSR << 8);
+ 118              		.loc 1 145 0
+ 119 00e8 052CA0E3 		mov	r2, #1280
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 120              		.loc 1 143 0
+ 121 00ec 033EE0E1 		mvn	r3, r3, asl #28
+ 122 00f0 233EE0E1 		mvn	r3, r3, lsr #28
+ 123 00f4 1230C4E5 		strb	r3, [r4, #18]
+ 124              		.loc 1 145 0
+ 125 00f8 403094E5 		ldr	r3, [r4, #64]
+ 126 00fc 002083E5 		str	r2, [r3]
+ 127              	.L7:
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	transfer_cmd(&qspi_transfer_cmd);
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	status = qspi_transfer_cmd.rx_buff_reg[0];
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	wip = status & 0x00000001;
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	while(wip)
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		transfer_cmd(&qspi_transfer_cmd);
+ 128              		.loc 1 153 0
+ 129 0100 1C009FE5 		ldr	r0, .L10
+ 130 0104 FEFFFFEB 		bl	transfer_cmd
+ 131              	.LVL4:
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		status = qspi_transfer_cmd.rx_buff_reg[0];
+ 132              		.loc 1 154 0
+ 133 0108 483094E5 		ldr	r3, [r4, #72]
+ 134 010c 000093E5 		ldr	r0, [r3]
+ 135              	.LVL5:
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		wip = status & 0x00000001;
+ 136              		.loc 1 155 0
+ 137 0110 013000E2 		and	r3, r0, #1
+ 138              	.LVL6:
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 139              		.loc 1 151 0
+ 140 0114 000053E3 		cmp	r3, #0
+ 141 0118 F8FFFF1A 		bne	.L7
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return (status & 0x000000FF);
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 142              		.loc 1 158 0
+ 143 011c 7000EFE6 		uxtb	r0, r0
+ 144 0120 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 145              	.L11:
+ 146              		.align	2
+ 147              	.L10:
+ 148 0124 00000000 		.word	qspi_transfer_cmd
+ 149 0128 00000000 		.word	.LANCHOR0
+ 150              		.cfi_endproc
+ 151              	.LFE3:
+ 153              		.section	.text.is_flash_busy,"ax",%progbits
+ 154              		.align	2
+ 156              	is_flash_busy:
+ 157              	.LFB4:
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * is_flash_busy
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 163:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** static flash_status_t is_flash_busy(void)
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 158              		.loc 1 164 0
+ 159              		.cfi_startproc
+ 160              		@ args = 0, pretend = 0, frame = 0
+ 161              		@ frame_needed = 0, uses_anonymous_args = 0
+ 162 0000 08402DE9 		stmfd	sp!, {r3, lr}
+ 163              	.LCFI1:
+ 164              		.cfi_def_cfa_offset 8
+ 165              		.cfi_offset 3, -8
+ 166              		.cfi_offset 14, -4
+ 165:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint8_t get_rdsr;
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 167:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	get_rdsr = read_status();
+ 167              		.loc 1 167 0
+ 168 0004 FEFFFFEB 		bl	read_status
+ 169              	.LVL7:
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if((get_rdsr & FLASH_WIP_MASK) == FLASH_WIP_MASK)
+ 170              		.loc 1 168 0
+ 171 0008 010010E3 		tst	r0, #1
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		return FLASH_BUSY;
+ 170:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	else
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		return FLASH_SUCCESS;
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 172              		.loc 1 172 0
+ 173 000c 0100A013 		movne	r0, #1
+ 174              	.LVL8:
+ 175 0010 0200A003 		moveq	r0, #2
+ 176 0014 0880BDE8 		ldmfd	sp!, {r3, pc}
+ 177              		.cfi_endproc
+ 178              	.LFE4:
+ 180              		.section	.text.write_enable,"ax",%progbits
+ 181              		.align	2
+ 183              	write_enable:
+ 184              	.LFB5:
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 174:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * write_enable
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 177:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** static void write_enable(void)
+ 178:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 185              		.loc 1 178 0
+ 186              		.cfi_startproc
+ 187              		@ args = 0, pretend = 0, frame = 0
+ 188              		@ frame_needed = 0, uses_anonymous_args = 0
+ 189 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 190              	.LCFI2:
+ 191              		.cfi_def_cfa_offset 8
+ 192              		.cfi_offset 4, -8
+ 193              		.cfi_offset 14, -4
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t tmp;
+ 180:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 182:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg);
+ 194              		.loc 1 182 0
+ 195 0004 0C419FE5 		ldr	r4, .L25
+ 196 0008 403094E5 		ldr	r3, [r4, #64]
+ 197 000c 000053E3 		cmp	r3, #0
+ 198 0010 0200001A 		bne	.L17
+ 199              		.loc 1 182 0 is_stmt 0 discriminator 1
+ 200 0014 00019FE5 		ldr	r0, .L25+4
+ 201 0018 B610A0E3 		mov	r1, #182
+ 202 001c FEFFFFEB 		bl	assert_failed
+ 203              	.LVL9:
+ 204              	.L17:
+ 183:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 205              		.loc 1 183 0 is_stmt 1
+ 206 0020 443094E5 		ldr	r3, [r4, #68]
+ 207 0024 000053E3 		cmp	r3, #0
+ 208 0028 0200001A 		bne	.L18
+ 209              		.loc 1 183 0 is_stmt 0 discriminator 1
+ 210 002c E8009FE5 		ldr	r0, .L25+4
+ 211 0030 B710A0E3 		mov	r1, #183
+ 212 0034 FEFFFFEB 		bl	assert_failed
+ 213              	.LVL10:
+ 214              	.L18:
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 215              		.loc 1 184 0 is_stmt 1
+ 216 0038 483094E5 		ldr	r3, [r4, #72]
+ 217 003c 000053E3 		cmp	r3, #0
+ 218 0040 0200001A 		bne	.L19
+ 219              		.loc 1 184 0 is_stmt 0 discriminator 1
+ 220 0044 D0009FE5 		ldr	r0, .L25+4
+ 221 0048 B810A0E3 		mov	r1, #184
+ 222 004c FEFFFFEB 		bl	assert_failed
+ 223              	.LVL11:
+ 224              	.L19:
+ 185:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 225              		.loc 1 185 0 is_stmt 1
+ 226 0050 4C3094E5 		ldr	r3, [r4, #76]
+ 227 0054 000053E3 		cmp	r3, #0
+ 228 0058 0200001A 		bne	.L20
+ 229              		.loc 1 185 0 is_stmt 0 discriminator 1
+ 230 005c B8009FE5 		ldr	r0, .L25+4
+ 231 0060 B910A0E3 		mov	r1, #185
+ 232 0064 FEFFFFEB 		bl	assert_failed
+ 233              	.LVL12:
+ 234              	.L20:
+ 186:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.spi_mode_reg = PIO1_GO_MODE;
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 189:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.cycle			= 8;
+ 235              		.loc 1 189 0 is_stmt 1
+ 236 0068 0810A0E3 		mov	r1, #8
+ 237 006c B430D4E1 		ldrh	r3, [r4, #4]
+ 238 0070 1130C9E7 		bfi	r3, r1, #0, #10
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 239              		.loc 1 187 0
+ 240 0074 0120A0E3 		mov	r2, #1
+ 241              		.loc 1 189 0
+ 242 0078 B430C4E1 		strh	r3, [r4, #4]	@ movhi
+ 190:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+ 243              		.loc 1 190 0
+ 244 007c 0630D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+ 245 0080 1230C2E7 		bfi	r3, r2, #0, #3
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 246              		.loc 1 187 0
+ 247 0084 B020C4E1 		strh	r2, [r4]	@ movhi
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 248              		.loc 1 191 0
+ 249 0088 033EE0E1 		mvn	r3, r3, asl #28
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes 		= ONE_LANE;
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes 		= ONE_LANE;
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes 		= ONE_LANE;
+ 200:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 201:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg[0] = FLASH_CMD_WREN;
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 204:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	transfer_cmd(&qspi_transfer_cmd);
+ 250              		.loc 1 204 0
+ 251 008c 84009FE5 		ldr	r0, .L25
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 252              		.loc 1 191 0
+ 253 0090 233EE0E1 		mvn	r3, r3, lsr #28
+ 254 0094 0630C4E5 		strb	r3, [r4, #6]
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 255              		.loc 1 192 0
+ 256 0098 B830D4E1 		ldrh	r3, [r4, #8]
+ 257 009c 1F30C9E7 		bfc	r3, #0, #10
+ 258 00a0 B830C4E1 		strh	r3, [r4, #8]	@ movhi
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 259              		.loc 1 193 0
+ 260 00a4 0A30D4E5 		ldrb	r3, [r4, #10]	@ zero_extendqisi2
+ 261 00a8 1230C2E7 		bfi	r3, r2, #0, #3
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 262              		.loc 1 194 0
+ 263 00ac 033EE0E1 		mvn	r3, r3, asl #28
+ 264 00b0 233EE0E1 		mvn	r3, r3, lsr #28
+ 265 00b4 0A30C4E5 		strb	r3, [r4, #10]
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes 		= ONE_LANE;
+ 266              		.loc 1 195 0
+ 267 00b8 BC30D4E1 		ldrh	r3, [r4, #12]
+ 268 00bc 1F30C9E7 		bfc	r3, #0, #10
+ 269 00c0 BC30C4E1 		strh	r3, [r4, #12]	@ movhi
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 270              		.loc 1 196 0
+ 271 00c4 0E30D4E5 		ldrb	r3, [r4, #14]	@ zero_extendqisi2
+ 272 00c8 1230C2E7 		bfi	r3, r2, #0, #3
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 273              		.loc 1 197 0
+ 274 00cc 033EE0E1 		mvn	r3, r3, asl #28
+ 275 00d0 233EE0E1 		mvn	r3, r3, lsr #28
+ 276 00d4 0E30C4E5 		strb	r3, [r4, #14]
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes 		= ONE_LANE;
+ 277              		.loc 1 198 0
+ 278 00d8 B031D4E1 		ldrh	r3, [r4, #16]
+ 279 00dc 1F30C9E7 		bfc	r3, #0, #10
+ 280 00e0 B031C4E1 		strh	r3, [r4, #16]	@ movhi
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 281              		.loc 1 199 0
+ 282 00e4 1230D4E5 		ldrb	r3, [r4, #18]	@ zero_extendqisi2
+ 283 00e8 1230C2E7 		bfi	r3, r2, #0, #3
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 284              		.loc 1 202 0
+ 285 00ec 0620A0E3 		mov	r2, #6
+ 200:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 286              		.loc 1 200 0
+ 287 00f0 033EE0E1 		mvn	r3, r3, asl #28
+ 288 00f4 233EE0E1 		mvn	r3, r3, lsr #28
+ 289 00f8 1230C4E5 		strb	r3, [r4, #18]
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 290              		.loc 1 202 0
+ 291 00fc 403094E5 		ldr	r3, [r4, #64]
+ 292 0100 002083E5 		str	r2, [r3]
+ 293              		.loc 1 204 0
+ 294 0104 FEFFFFEB 		bl	transfer_cmd
+ 295              	.LVL13:
+ 296              	.L21:
+ 205:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 206:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	do
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 208:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		tmp = read_status();
+ 297              		.loc 1 208 0 discriminator 1
+ 298 0108 FEFFFFEB 		bl	read_status
+ 299              	.LVL14:
+ 209:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	} while((tmp & 0x02) == 0);
+ 300              		.loc 1 209 0 discriminator 1
+ 301 010c 020010E3 		tst	r0, #2
+ 302 0110 FCFFFF0A 		beq	.L21
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 303              		.loc 1 210 0
+ 304 0114 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 305              	.L26:
+ 306              		.align	2
+ 307              	.L25:
+ 308 0118 00000000 		.word	qspi_transfer_cmd
+ 309 011c 00000000 		.word	.LANCHOR1
+ 310              		.cfi_endproc
+ 311              	.LFE5:
+ 313              		.section	.text.cmd_read,"ax",%progbits
+ 314              		.align	2
+ 316              	cmd_read:
+ 317              	.LFB8:
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 212:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 213:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * bulk_erase
+ 214:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 215:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** flash_status_t bulk_erase(void)
+ 216:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 217:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg);
+ 219:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 220:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 221:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 222:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 223:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 224:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreTake(semaphore, portMAX_DELAY);
+ 225:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 226:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(is_flash_busy() == FLASH_BUSY)
+ 227:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 228:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 229:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		xSemaphoreGive(semaphore);
+ 230:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 231:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		return FLASH_BUSY;
+ 232:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 233:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 234:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	write_enable();
+ 235:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 236:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.spi_mode_reg = PIO1_GO_MODE;
+ 237:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 238:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.cycle			= 8;
+ 239:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+ 240:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 241:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 242:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes 		= ONE_LANE;
+ 243:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 244:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 245:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes 		= ONE_LANE;
+ 246:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 247:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 248:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes 		= ONE_LANE;
+ 249:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 250:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 251:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg[0] = FLASH_CMD_CE;
+ 252:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 253:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	transfer_cmd(&qspi_transfer_cmd);
+ 254:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 255:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	read_status();
+ 256:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 257:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreGive(semaphore);
+ 258:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 259:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 260:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 261:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 262:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 263:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 264:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * sector_erase
+ 265:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 266:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** static flash_status_t sector_erase(uint32_t flash_addr, uint32_t cmd)
+ 267:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 268:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 269:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg);
+ 270:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 271:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 272:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 273:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 274:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(is_flash_busy() == FLASH_BUSY)
+ 275:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		return FLASH_BUSY;
+ 276:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 277:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	write_enable();
+ 278:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 279:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.spi_mode_reg = PIO1_GO_MODE;
+ 280:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 281:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.cycle			= 32;
+ 282:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes		= ONE_LANE;
+ 283:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en	= FOUR_OUTPUTS;
+ 284:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 285:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes		= ONE_LANE;
+ 286:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en	= FOUR_OUTPUTS;
+ 287:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 288:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes		= ONE_LANE;
+ 289:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en	= FOUR_OUTPUTS;
+ 290:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 291:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes		= ONE_LANE;
+ 292:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en	= FOUR_OUTPUTS;
+ 293:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 294:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg[0] = (cmd << 24) | \
+ 295:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			(flash_addr & 0x00FFFFFF);
+ 296:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 297:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	transfer_cmd(&qspi_transfer_cmd);
+ 298:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 299:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	read_status();
+ 300:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 301:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 302:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 303:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 304:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 305:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * cmd_read
+ 306:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 307:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** static flash_status_t cmd_read(uint32_t flash_addr, uint8_t *target_addr,\
+ 308:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		uint32_t byte_length, qspi_mode_t qmode)
+ 309:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 318              		.loc 1 309 0
+ 319              		.cfi_startproc
+ 320              		@ args = 0, pretend = 0, frame = 0
+ 321              		@ frame_needed = 0, uses_anonymous_args = 0
+ 322              	.LVL15:
+ 323 0000 F0472DE9 		stmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, lr}
+ 324              	.LCFI3:
+ 325              		.cfi_def_cfa_offset 32
+ 326              		.cfi_offset 4, -32
+ 327              		.cfi_offset 5, -28
+ 328              		.cfi_offset 6, -24
+ 329              		.cfi_offset 7, -20
+ 330              		.cfi_offset 8, -16
+ 331              		.cfi_offset 9, -12
+ 332              		.cfi_offset 10, -8
+ 333              		.cfi_offset 14, -4
+ 310:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t i, cycle, cycle_rem, tmp;
+ 311:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	int j;
+ 312:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 313:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 314:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg);
+ 334              		.loc 1 314 0
+ 335 0004 54539FE5 		ldr	r5, .L60
+ 309:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t i, cycle, cycle_rem, tmp;
+ 336              		.loc 1 309 0
+ 337 0008 0360A0E1 		mov	r6, r3
+ 338 000c 0040A0E1 		mov	r4, r0
+ 339 0010 0170A0E1 		mov	r7, r1
+ 340 0014 0280A0E1 		mov	r8, r2
+ 341              		.loc 1 314 0
+ 342 0018 403095E5 		ldr	r3, [r5, #64]
+ 343              	.LVL16:
+ 344 001c 000053E3 		cmp	r3, #0
+ 345 0020 0200001A 		bne	.L28
+ 346              		.loc 1 314 0 is_stmt 0 discriminator 1
+ 347 0024 38039FE5 		ldr	r0, .L60+4
+ 348              	.LVL17:
+ 349 0028 3A1100E3 		movw	r1, #314
+ 350              	.LVL18:
+ 351 002c FEFFFFEB 		bl	assert_failed
+ 352              	.LVL19:
+ 353              	.L28:
+ 315:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 354              		.loc 1 315 0 is_stmt 1
+ 355 0030 443095E5 		ldr	r3, [r5, #68]
+ 356 0034 000053E3 		cmp	r3, #0
+ 357 0038 0200001A 		bne	.L29
+ 358              		.loc 1 315 0 is_stmt 0 discriminator 1
+ 359 003c 20039FE5 		ldr	r0, .L60+4
+ 360 0040 3B1100E3 		movw	r1, #315
+ 361 0044 FEFFFFEB 		bl	assert_failed
+ 362              	.LVL20:
+ 363              	.L29:
+ 316:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 364              		.loc 1 316 0 is_stmt 1
+ 365 0048 483095E5 		ldr	r3, [r5, #72]
+ 366 004c 000053E3 		cmp	r3, #0
+ 367 0050 0200001A 		bne	.L30
+ 368              		.loc 1 316 0 is_stmt 0 discriminator 1
+ 369 0054 08039FE5 		ldr	r0, .L60+4
+ 370 0058 4F1FA0E3 		mov	r1, #316
+ 371 005c FEFFFFEB 		bl	assert_failed
+ 372              	.LVL21:
+ 373              	.L30:
+ 317:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 374              		.loc 1 317 0 is_stmt 1
+ 375 0060 4C3095E5 		ldr	r3, [r5, #76]
+ 376 0064 000053E3 		cmp	r3, #0
+ 377 0068 0200001A 		bne	.L31
+ 378              		.loc 1 317 0 is_stmt 0 discriminator 1
+ 379 006c F0029FE5 		ldr	r0, .L60+4
+ 380 0070 3D1100E3 		movw	r1, #317
+ 381 0074 FEFFFFEB 		bl	assert_failed
+ 382              	.LVL22:
+ 383              	.L31:
+ 318:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 319:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(qmode == QSPI_MODE)
+ 384              		.loc 1 319 0 is_stmt 1
+ 385 0078 010056E3 		cmp	r6, #1
+ 386 007c B400D5E1 		ldrh	r0, [r5, #4]
+ 320:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		byte_length += 2;
+ 321:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	cycle = byte_length >> 2;
+ 322:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	cycle_rem = byte_length % 4;
+ 323:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 324:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.spi_mode_reg = PIO1_GO_MODE;
+ 387              		.loc 1 324 0
+ 388 0080 01C0A0E3 		mov	ip, #1
+ 320:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		byte_length += 2;
+ 389              		.loc 1 320 0
+ 390 0084 02808802 		addeq	r8, r8, #2
+ 391              	.LVL23:
+ 325:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 326:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(qmode == QSPI_MODE)
+ 392              		.loc 1 326 0
+ 393 0088 0C0056E1 		cmp	r6, ip
+ 394 008c 0610D5E5 		ldrb	r1, [r5, #6]	@ zero_extendqisi2
+ 321:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	cycle_rem = byte_length % 4;
+ 395              		.loc 1 321 0
+ 396 0090 2891A0E1 		mov	r9, r8, lsr #2
+ 397              	.LVL24:
+ 398 0094 B820D5E1 		ldrh	r2, [r5, #8]
+ 322:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 399              		.loc 1 322 0
+ 400 0098 03A008E2 		and	r10, r8, #3
+ 401              	.LVL25:
+ 324:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 402              		.loc 1 324 0
+ 403 009c BC329FE5 		ldr	r3, .L60
+ 404 00a0 B0C0C5E1 		strh	ip, [r5]	@ movhi
+ 405              		.loc 1 326 0
+ 406 00a4 1F00001A 		bne	.L33
+ 327:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 328:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.cycle		 = 8;
+ 329:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes	 = ONE_LANE;
+ 407              		.loc 1 329 0
+ 408 00a8 1610C2E7 		bfi	r1, r6, #0, #3
+ 328:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes	 = ONE_LANE;
+ 409              		.loc 1 328 0
+ 410 00ac 08C0A0E3 		mov	ip, #8
+ 411 00b0 1C00C9E7 		bfi	r0, ip, #0, #10
+ 330:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en = FOUR_OUTPUTS;
+ 412              		.loc 1 330 0
+ 413 00b4 011EE0E1 		mvn	r1, r1, asl #28
+ 328:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes	 = ONE_LANE;
+ 414              		.loc 1 328 0
+ 415 00b8 B400C3E1 		strh	r0, [r3, #4]	@ movhi
+ 331:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle		 = 6;
+ 416              		.loc 1 331 0
+ 417 00bc 0600A0E3 		mov	r0, #6
+ 330:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en = FOUR_OUTPUTS;
+ 418              		.loc 1 330 0
+ 419 00c0 211EE0E1 		mvn	r1, r1, lsr #28
+ 420              		.loc 1 331 0
+ 421 00c4 1020C9E7 		bfi	r2, r0, #0, #10
+ 330:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en = FOUR_OUTPUTS;
+ 422              		.loc 1 330 0
+ 423 00c8 0610C3E5 		strb	r1, [r3, #6]
+ 332:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes	 = FOUR_LANES;
+ 424              		.loc 1 332 0
+ 425 00cc 0410A0E3 		mov	r1, #4
+ 331:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle		 = 6;
+ 426              		.loc 1 331 0
+ 427 00d0 B820C3E1 		strh	r2, [r3, #8]	@ movhi
+ 428              		.loc 1 332 0
+ 429 00d4 0A20D3E5 		ldrb	r2, [r3, #10]	@ zero_extendqisi2
+ 430 00d8 1120C2E7 		bfi	r2, r1, #0, #3
+ 333:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en = FOUR_OUTPUTS;
+ 431              		.loc 1 333 0
+ 432 00dc 022EE0E1 		mvn	r2, r2, asl #28
+ 433 00e0 222EE0E1 		mvn	r2, r2, lsr #28
+ 434 00e4 0A20C3E5 		strb	r2, [r3, #10]
+ 334:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle		 = 6;
+ 435              		.loc 1 334 0
+ 436 00e8 BC20D3E1 		ldrh	r2, [r3, #12]
+ 437 00ec 1020C9E7 		bfi	r2, r0, #0, #10
+ 335:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes	 = FOUR_LANES;
+ 336:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en = FOUR_OUTPUTS;
+ 337:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle		 = \
+ 438              		.loc 1 337 0
+ 439 00f0 B001D3E1 		ldrh	r0, [r3, #16]
+ 334:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle		 = 6;
+ 440              		.loc 1 334 0
+ 441 00f4 BC20C3E1 		strh	r2, [r3, #12]	@ movhi
+ 335:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes	 = FOUR_LANES;
+ 442              		.loc 1 335 0
+ 443 00f8 0E20D3E5 		ldrb	r2, [r3, #14]	@ zero_extendqisi2
+ 444 00fc 1120C2E7 		bfi	r2, r1, #0, #3
+ 336:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle		 = \
+ 445              		.loc 1 336 0
+ 446 0100 022EE0E1 		mvn	r2, r2, asl #28
+ 447 0104 222EE0E1 		mvn	r2, r2, lsr #28
+ 448 0108 0E20C3E5 		strb	r2, [r3, #14]
+ 449              		.loc 1 337 0
+ 450 010c 8820A0E1 		mov	r2, r8, asl #1
+ 451 0110 1200C9E7 		bfi	r0, r2, #0, #10
+ 338:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 															(byte_length << 1);
+ 339:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes	 = FOUR_LANES;
+ 452              		.loc 1 339 0
+ 453 0114 1220D3E5 		ldrb	r2, [r3, #18]	@ zero_extendqisi2
+ 454 0118 1120C2E7 		bfi	r2, r1, #0, #3
+ 337:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 															(byte_length << 1);
+ 455              		.loc 1 337 0
+ 456 011c B001C3E1 		strh	r0, [r3, #16]	@ movhi
+ 340:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en = NO_OUTPUT;
+ 457              		.loc 1 340 0
+ 458 0120 1F22C7E7 		bfc	r2, #4, #4
+ 459 0124 1E0000EA 		b	.L57
+ 460              	.L33:
+ 341:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 342:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	else
+ 343:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 344:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.cycle		 = 32;
+ 345:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes	 = ONE_LANE;
+ 461              		.loc 1 345 0
+ 462 0128 1C10C2E7 		bfi	r1, ip, #0, #3
+ 344:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes	 = ONE_LANE;
+ 463              		.loc 1 344 0
+ 464 012c 20E0A0E3 		mov	lr, #32
+ 346:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en = FOUR_OUTPUTS;
+ 465              		.loc 1 346 0
+ 466 0130 011EE0E1 		mvn	r1, r1, asl #28
+ 344:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes	 = ONE_LANE;
+ 467              		.loc 1 344 0
+ 468 0134 1E00C9E7 		bfi	r0, lr, #0, #10
+ 469              		.loc 1 346 0
+ 470 0138 211EE0E1 		mvn	r1, r1, lsr #28
+ 344:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes	 = ONE_LANE;
+ 471              		.loc 1 344 0
+ 472 013c B400C3E1 		strh	r0, [r3, #4]	@ movhi
+ 473              		.loc 1 346 0
+ 474 0140 0610C3E5 		strb	r1, [r3, #6]
+ 347:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle		 = \
+ 475              		.loc 1 347 0
+ 476 0144 8811A0E1 		mov	r1, r8, asl #3
+ 477 0148 FE1F01E2 		and	r1, r1, #1016
+ 478 014c 1120C9E7 		bfi	r2, r1, #0, #10
+ 479 0150 B820C3E1 		strh	r2, [r3, #8]	@ movhi
+ 348:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 																8 * byte_length;
+ 349:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes	 = ONE_LANE;
+ 480              		.loc 1 349 0
+ 481 0154 0A20D3E5 		ldrb	r2, [r3, #10]	@ zero_extendqisi2
+ 482 0158 1C20C2E7 		bfi	r2, ip, #0, #3
+ 350:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en = FOUR_OUTPUTS;
+ 483              		.loc 1 350 0
+ 484 015c 022EE0E1 		mvn	r2, r2, asl #28
+ 485 0160 222EE0E1 		mvn	r2, r2, lsr #28
+ 486 0164 0A20C3E5 		strb	r2, [r3, #10]
+ 351:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle		 = 0;
+ 487              		.loc 1 351 0
+ 488 0168 BC20D3E1 		ldrh	r2, [r3, #12]
+ 489 016c 1F20C9E7 		bfc	r2, #0, #10
+ 490 0170 BC20C3E1 		strh	r2, [r3, #12]	@ movhi
+ 352:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes	 = ONE_LANE;
+ 491              		.loc 1 352 0
+ 492 0174 0E20D3E5 		ldrb	r2, [r3, #14]	@ zero_extendqisi2
+ 493 0178 1C20C2E7 		bfi	r2, ip, #0, #3
+ 353:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en = FOUR_OUTPUTS;
+ 494              		.loc 1 353 0
+ 495 017c 022EE0E1 		mvn	r2, r2, asl #28
+ 496 0180 222EE0E1 		mvn	r2, r2, lsr #28
+ 497 0184 0E20C3E5 		strb	r2, [r3, #14]
+ 354:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle		 = 0;
+ 498              		.loc 1 354 0
+ 499 0188 B021D3E1 		ldrh	r2, [r3, #16]
+ 500 018c 1F20C9E7 		bfc	r2, #0, #10
+ 501 0190 B021C3E1 		strh	r2, [r3, #16]	@ movhi
+ 355:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes	 = ONE_LANE;
+ 502              		.loc 1 355 0
+ 503 0194 1220D3E5 		ldrb	r2, [r3, #18]	@ zero_extendqisi2
+ 504 0198 1C20C2E7 		bfi	r2, ip, #0, #3
+ 356:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en = FOUR_OUTPUTS;
+ 505              		.loc 1 356 0
+ 506 019c 022EE0E1 		mvn	r2, r2, asl #28
+ 507 01a0 222EE0E1 		mvn	r2, r2, lsr #28
+ 508              	.L57:
+ 509 01a4 1220C3E5 		strb	r2, [r3, #18]
+ 510 01a8 0931A0E1 		mov	r3, r9, asl #2
+ 357:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 358:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 359:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	for(i = 0; i < cycle; i++)
+ 360:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 361:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.tx_buff_reg[i] = 0;
+ 511              		.loc 1 361 0
+ 512 01ac 402095E5 		ldr	r2, [r5, #64]
+ 513 01b0 031082E0 		add	r1, r2, r3
+ 514              	.L35:
+ 359:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 515              		.loc 1 359 0 discriminator 1
+ 516 01b4 010052E1 		cmp	r2, r1
+ 517              		.loc 1 361 0 discriminator 3
+ 518 01b8 0000A013 		movne	r0, #0
+ 519 01bc 04008214 		strne	r0, [r2], #4
+ 520 01c0 FBFFFF1A 		bne	.L35
+ 521              	.L59:
+ 362:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 363:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 364:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	switch(cycle_rem)
+ 522              		.loc 1 364 0
+ 523 01c4 02005AE3 		cmp	r10, #2
+ 365:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 366:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		case 0:
+ 367:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			if(qmode == QSPI_MODE)
+ 368:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 369:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] = flash_addr << 24;
+ 370:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 371:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 					(FLASH_CMD_4READ << 16) | ((flash_addr >> 8) & 0x0000FFFF);
+ 372:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 373:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			else
+ 374:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 375:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] = (FLASH_CMD_READ << 24) |\
+ 376:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				(flash_addr & 0x00FFFFFF);
+ 377:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 378:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		break;
+ 379:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 380:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		case 1:
+ 381:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			if(qmode == QSPI_MODE)
+ 382:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 383:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] = 0x00000000;
+ 384:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 385:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(FLASH_CMD_4READ << 24) | (flash_addr & 0x00FFFFFF);
+ 386:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 387:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			else
+ 388:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 389:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] = \
+ 390:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(flash_addr << 8) & 0xFFFFFF00;
+ 391:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 392:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						FLASH_CMD_READ;
+ 393:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 394:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		break;
+ 395:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 396:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		case 2:
+ 397:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			if(qmode == QSPI_MODE)
+ 398:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 399:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] = 0x00000000;
+ 524              		.loc 1 399 0
+ 525 01c8 402095E5 		ldr	r2, [r5, #64]
+ 364:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 526              		.loc 1 364 0
+ 527 01cc 1F00000A 		beq	.L38
+ 528 01d0 03005AE3 		cmp	r10, #3
+ 529 01d4 2F00000A 		beq	.L39
+ 530 01d8 01005AE3 		cmp	r10, #1
+ 531 01dc 0B00000A 		beq	.L40
+ 367:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 532              		.loc 1 367 0
+ 533 01e0 010056E3 		cmp	r6, #1
+ 376:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 534              		.loc 1 376 0
+ 535 01e4 FF44C413 		bicne	r4, r4, #-16777216
+ 536              	.LVL26:
+ 375:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				(flash_addr & 0x00FFFFFF);
+ 537              		.loc 1 375 0
+ 538 01e8 03448413 		orrne	r4, r4, #50331648
+ 539 01ec 03408217 		strne	r4, [r2, r3]
+ 367:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 540              		.loc 1 367 0
+ 541 01f0 3B00001A 		bne	.L42
+ 369:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 542              		.loc 1 369 0
+ 543 01f4 041CA0E1 		mov	r1, r4, asl #24
+ 371:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 544              		.loc 1 371 0
+ 545 01f8 5444EFE7 		ubfx	r4, r4, #8, #16
+ 369:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 546              		.loc 1 369 0
+ 547 01fc 031082E7 		str	r1, [r2, r3]
+ 371:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 548              		.loc 1 371 0
+ 549 0200 EB4884E3 		orr	r4, r4, #15400960
+ 370:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 					(FLASH_CMD_4READ << 16) | ((flash_addr >> 8) & 0x0000FFFF);
+ 550              		.loc 1 370 0
+ 551 0204 442095E5 		ldr	r2, [r5, #68]
+ 552 0208 033082E0 		add	r3, r2, r3
+ 553 020c 330000EA 		b	.L58
+ 554              	.LVL27:
+ 555              	.L40:
+ 381:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 556              		.loc 1 381 0
+ 557 0210 010056E3 		cmp	r6, #1
+ 558 0214 0600001A 		bne	.L43
+ 383:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 559              		.loc 1 383 0
+ 560 0218 0010A0E3 		mov	r1, #0
+ 385:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 561              		.loc 1 385 0
+ 562 021c FF44C4E3 		bic	r4, r4, #-16777216
+ 563              	.LVL28:
+ 564 0220 EB4484E3 		orr	r4, r4, #-352321536
+ 383:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 565              		.loc 1 383 0
+ 566 0224 031082E7 		str	r1, [r2, r3]
+ 384:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(FLASH_CMD_4READ << 24) | (flash_addr & 0x00FFFFFF);
+ 567              		.loc 1 384 0
+ 568 0228 442095E5 		ldr	r2, [r5, #68]
+ 569 022c 033082E0 		add	r3, r2, r3
+ 570 0230 2A0000EA 		b	.L58
+ 571              	.LVL29:
+ 572              	.L43:
+ 390:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 573              		.loc 1 390 0
+ 574 0234 0444A0E1 		mov	r4, r4, asl #8
+ 575              	.LVL30:
+ 389:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(flash_addr << 8) & 0xFFFFFF00;
+ 576              		.loc 1 389 0
+ 577 0238 034082E7 		str	r4, [r2, r3]
+ 391:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						FLASH_CMD_READ;
+ 578              		.loc 1 391 0
+ 579 023c 442095E5 		ldr	r2, [r5, #68]
+ 580 0240 033082E0 		add	r3, r2, r3
+ 581 0244 0320A0E3 		mov	r2, #3
+ 582 0248 042083E5 		str	r2, [r3, #4]
+ 583 024c 240000EA 		b	.L42
+ 584              	.LVL31:
+ 585              	.L38:
+ 397:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 586              		.loc 1 397 0
+ 587 0250 010056E3 		cmp	r6, #1
+ 588 0254 0800001A 		bne	.L44
+ 589              		.loc 1 399 0
+ 590 0258 0010A0E3 		mov	r1, #0
+ 400:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 401:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						flash_addr << 8;
+ 591              		.loc 1 401 0
+ 592 025c 0444A0E1 		mov	r4, r4, asl #8
+ 593              	.LVL32:
+ 399:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 594              		.loc 1 399 0
+ 595 0260 031082E7 		str	r1, [r2, r3]
+ 400:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 596              		.loc 1 400 0
+ 597 0264 442095E5 		ldr	r2, [r5, #68]
+ 598 0268 033082E0 		add	r3, r2, r3
+ 402:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 2) * 4)) =\
+ 599              		.loc 1 402 0
+ 600 026c EB20A0E3 		mov	r2, #235
+ 400:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 601              		.loc 1 400 0
+ 602 0270 044083E5 		str	r4, [r3, #4]
+ 603              		.loc 1 402 0
+ 604 0274 082083E5 		str	r2, [r3, #8]
+ 605 0278 190000EA 		b	.L42
+ 606              	.LVL33:
+ 607              	.L44:
+ 403:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						FLASH_CMD_4READ;
+ 404:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 405:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			else
+ 406:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 407:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] =\
+ 408:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(flash_addr << 16) & 0xFFFF0000;
+ 608              		.loc 1 408 0
+ 609 027c 0418A0E1 		mov	r1, r4, asl #16
+ 409:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 410:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 					(FLASH_CMD_READ << 8) | ((flash_addr >> 16) & 0x000000FF);
+ 610              		.loc 1 410 0
+ 611 0280 5448E7E7 		ubfx	r4, r4, #16, #8
+ 612              	.LVL34:
+ 407:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(flash_addr << 16) & 0xFFFF0000;
+ 613              		.loc 1 407 0
+ 614 0284 031082E7 		str	r1, [r2, r3]
+ 615              		.loc 1 410 0
+ 616 0288 034C84E3 		orr	r4, r4, #768
+ 409:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 617              		.loc 1 409 0
+ 618 028c 442095E5 		ldr	r2, [r5, #68]
+ 619 0290 033082E0 		add	r3, r2, r3
+ 620 0294 110000EA 		b	.L58
+ 621              	.LVL35:
+ 622              	.L39:
+ 411:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 412:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		break;
+ 413:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 414:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		case 3:
+ 415:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			if(qmode == QSPI_MODE)
+ 623              		.loc 1 415 0
+ 624 0298 010056E3 		cmp	r6, #1
+ 625 029c 0900001A 		bne	.L45
+ 416:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 417:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] = 0x00000000;
+ 626              		.loc 1 417 0
+ 627 02a0 0010A0E3 		mov	r1, #0
+ 628 02a4 031082E7 		str	r1, [r2, r3]
+ 418:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 629              		.loc 1 418 0
+ 630 02a8 442095E5 		ldr	r2, [r5, #68]
+ 631 02ac 033082E0 		add	r3, r2, r3
+ 419:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						flash_addr << 16;
+ 632              		.loc 1 419 0
+ 633 02b0 0428A0E1 		mov	r2, r4, asl #16
+ 420:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 2) * 4)) =\
+ 421:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 					(FLASH_CMD_4READ << 8) | ((flash_addr >> 16) & 0x000000FF);
+ 634              		.loc 1 421 0
+ 635 02b4 5448E7E7 		ubfx	r4, r4, #16, #8
+ 636              	.LVL36:
+ 637 02b8 EB4C84E3 		orr	r4, r4, #60160
+ 418:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						flash_addr << 16;
+ 638              		.loc 1 418 0
+ 639 02bc 042083E5 		str	r2, [r3, #4]
+ 420:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 2) * 4)) =\
+ 640              		.loc 1 420 0
+ 641 02c0 084083E5 		str	r4, [r3, #8]
+ 642 02c4 060000EA 		b	.L42
+ 643              	.LVL37:
+ 644              	.L45:
+ 422:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 423:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			else
+ 424:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			{
+ 425:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				qspi_transfer_cmd.tx_buff_reg[i] = \
+ 426:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(flash_addr << 24) & 0xFF000000;
+ 645              		.loc 1 426 0
+ 646 02c8 041CA0E1 		mov	r1, r4, asl #24
+ 427:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 428:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 					(FLASH_CMD_READ << 16) | ((flash_addr >> 8) & 0x0000FFFF);
+ 647              		.loc 1 428 0
+ 648 02cc 5444EFE7 		ubfx	r4, r4, #8, #16
+ 649              	.LVL38:
+ 425:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 						(flash_addr << 24) & 0xFF000000;
+ 650              		.loc 1 425 0
+ 651 02d0 031082E7 		str	r1, [r2, r3]
+ 652              		.loc 1 428 0
+ 653 02d4 034884E3 		orr	r4, r4, #196608
+ 427:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				*((uint32_t *)(qspi_transfer_cmd.tx_buff_reg8 + (i + 1) * 4)) =\
+ 654              		.loc 1 427 0
+ 655 02d8 442095E5 		ldr	r2, [r5, #68]
+ 656 02dc 033082E0 		add	r3, r2, r3
+ 657              	.L58:
+ 658 02e0 044083E5 		str	r4, [r3, #4]
+ 659              	.L42:
+ 429:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			}
+ 430:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		break;
+ 431:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 432:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 433:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	transfer_cmd(&qspi_transfer_cmd);
+ 660              		.loc 1 433 0
+ 661 02e4 74009FE5 		ldr	r0, .L60
+ 662 02e8 FEFFFFEB 		bl	transfer_cmd
+ 663              	.LVL39:
+ 434:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 435:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(cycle_rem)
+ 664              		.loc 1 435 0
+ 665 02ec 00005AE3 		cmp	r10, #0
+ 436:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		cycle++;
+ 666              		.loc 1 436 0
+ 667 02f0 01908912 		addne	r9, r9, #1
+ 668              	.LVL40:
+ 437:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 438:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(qmode == QSPI_MODE)
+ 669              		.loc 1 438 0
+ 670 02f4 010056E3 		cmp	r6, #1
+ 439:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		byte_length -= 2;
+ 671              		.loc 1 439 0
+ 672 02f8 02804802 		subeq	r8, r8, #2
+ 673              	.LVL41:
+ 440:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	j = byte_length - 1;
+ 674              		.loc 1 440 0
+ 675 02fc 013048E2 		sub	r3, r8, #1
+ 676              	.LVL42:
+ 677 0300 087087E0 		add	r7, r7, r8
+ 678              	.LVL43:
+ 441:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	for(i = 0; i < cycle; i++)
+ 679              		.loc 1 441 0
+ 680 0304 0010A0E3 		mov	r1, #0
+ 681              	.LVL44:
+ 682              	.L48:
+ 683              		.loc 1 441 0 is_stmt 0 discriminator 1
+ 684 0308 090051E1 		cmp	r1, r9
+ 685 030c 1100000A 		beq	.L54
+ 442:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 443:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		tmp = qspi_transfer_cmd.rx_buff_reg[i];
+ 686              		.loc 1 443 0 is_stmt 1
+ 687 0310 482095E5 		ldr	r2, [r5, #72]
+ 444:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 445:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		target_addr[j] = (uint8_t)(tmp & 0x000000FF);
+ 446:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		j--; if(j < 0) break;
+ 688              		.loc 1 446 0
+ 689 0314 010053E3 		cmp	r3, #1
+ 443:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 690              		.loc 1 443 0
+ 691 0318 012192E7 		ldr	r2, [r2, r1, asl #2]
+ 692              	.LVL45:
+ 445:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		j--; if(j < 0) break;
+ 693              		.loc 1 445 0
+ 694 031c 012047E5 		strb	r2, [r7, #-1]
+ 695              	.LVL46:
+ 696              		.loc 1 446 0
+ 697 0320 0C00004A 		bmi	.L54
+ 447:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		target_addr[j] = (uint8_t)((tmp >> 8) & 0x000000FF);
+ 698              		.loc 1 447 0
+ 699 0324 2204A0E1 		mov	r0, r2, lsr #8
+ 448:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		j--; if(j < 0) break;
+ 700              		.loc 1 448 0
+ 701 0328 020053E3 		cmp	r3, #2
+ 447:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		target_addr[j] = (uint8_t)((tmp >> 8) & 0x000000FF);
+ 702              		.loc 1 447 0
+ 703 032c 020047E5 		strb	r0, [r7, #-2]
+ 704              	.LVL47:
+ 705              		.loc 1 448 0
+ 706 0330 0800004A 		bmi	.L54
+ 449:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		target_addr[j] = (uint8_t)((tmp >> 16) & 0x000000FF);
+ 707              		.loc 1 449 0
+ 708 0334 2208A0E1 		mov	r0, r2, lsr #16
+ 450:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		j--; if(j < 0) break;
+ 709              		.loc 1 450 0
+ 710 0338 030053E3 		cmp	r3, #3
+ 449:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		target_addr[j] = (uint8_t)((tmp >> 16) & 0x000000FF);
+ 711              		.loc 1 449 0
+ 712 033c 030047E5 		strb	r0, [r7, #-3]
+ 713              	.LVL48:
+ 714              		.loc 1 450 0
+ 715 0340 0400004A 		bmi	.L54
+ 716              	.LVL49:
+ 451:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		target_addr[j] = (uint8_t)((tmp >> 24) & 0x000000FF);
+ 717              		.loc 1 451 0
+ 718 0344 222CA0E1 		mov	r2, r2, lsr #24
+ 719              	.LVL50:
+ 452:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		j--; if(j < 0) break;
+ 720              		.loc 1 452 0
+ 721 0348 043053E2 		subs	r3, r3, #4
+ 722              	.LVL51:
+ 451:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		target_addr[j] = (uint8_t)((tmp >> 24) & 0x000000FF);
+ 723              		.loc 1 451 0
+ 724 034c 042067E5 		strb	r2, [r7, #-4]!
+ 725              		.loc 1 452 0
+ 441:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 726              		.loc 1 441 0 discriminator 2
+ 727 0350 01108152 		addpl	r1, r1, #1
+ 728              	.LVL52:
+ 729 0354 EBFFFF5A 		bpl	.L48
+ 730              	.LVL53:
+ 731              	.L54:
+ 453:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 454:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 455:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 456:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 732              		.loc 1 456 0
+ 733 0358 0200A0E3 		mov	r0, #2
+ 734 035c F087BDE8 		ldmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, pc}
+ 735              	.L61:
+ 736              		.align	2
+ 737              	.L60:
+ 738 0360 00000000 		.word	qspi_transfer_cmd
+ 739 0364 00000000 		.word	.LANCHOR2
+ 740              		.cfi_endproc
+ 741              	.LFE8:
+ 743              		.section	.text.sector_erase,"ax",%progbits
+ 744              		.align	2
+ 746              	sector_erase:
+ 747              	.LFB7:
+ 267:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 748              		.loc 1 267 0
+ 749              		.cfi_startproc
+ 750              		@ args = 0, pretend = 0, frame = 0
+ 751              		@ frame_needed = 0, uses_anonymous_args = 0
+ 752              	.LVL54:
+ 753 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 754              	.LCFI4:
+ 755              		.cfi_def_cfa_offset 16
+ 756              		.cfi_offset 4, -16
+ 757              		.cfi_offset 5, -12
+ 758              		.cfi_offset 6, -8
+ 759              		.cfi_offset 14, -4
+ 269:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 760              		.loc 1 269 0
+ 761 0004 24419FE5 		ldr	r4, .L72
+ 267:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 762              		.loc 1 267 0
+ 763 0008 0050A0E1 		mov	r5, r0
+ 764 000c 0160A0E1 		mov	r6, r1
+ 269:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 765              		.loc 1 269 0
+ 766 0010 403094E5 		ldr	r3, [r4, #64]
+ 767 0014 000053E3 		cmp	r3, #0
+ 768 0018 0200001A 		bne	.L63
+ 269:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 769              		.loc 1 269 0 is_stmt 0 discriminator 1
+ 770 001c 10019FE5 		ldr	r0, .L72+4
+ 771              	.LVL55:
+ 772 0020 0D1100E3 		movw	r1, #269
+ 773              	.LVL56:
+ 774 0024 FEFFFFEB 		bl	assert_failed
+ 775              	.LVL57:
+ 776              	.L63:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 777              		.loc 1 270 0 is_stmt 1
+ 778 0028 443094E5 		ldr	r3, [r4, #68]
+ 779 002c 000053E3 		cmp	r3, #0
+ 780 0030 0200001A 		bne	.L64
+ 270:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 781              		.loc 1 270 0 is_stmt 0 discriminator 1
+ 782 0034 F8009FE5 		ldr	r0, .L72+4
+ 783 0038 0E1100E3 		movw	r1, #270
+ 784 003c FEFFFFEB 		bl	assert_failed
+ 785              	.LVL58:
+ 786              	.L64:
+ 271:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 787              		.loc 1 271 0 is_stmt 1
+ 788 0040 483094E5 		ldr	r3, [r4, #72]
+ 789 0044 000053E3 		cmp	r3, #0
+ 790 0048 0200001A 		bne	.L65
+ 271:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 791              		.loc 1 271 0 is_stmt 0 discriminator 1
+ 792 004c E0009FE5 		ldr	r0, .L72+4
+ 793 0050 0F1100E3 		movw	r1, #271
+ 794 0054 FEFFFFEB 		bl	assert_failed
+ 795              	.LVL59:
+ 796              	.L65:
+ 272:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 797              		.loc 1 272 0 is_stmt 1
+ 798 0058 4C3094E5 		ldr	r3, [r4, #76]
+ 799 005c 000053E3 		cmp	r3, #0
+ 800 0060 0200001A 		bne	.L66
+ 272:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 801              		.loc 1 272 0 is_stmt 0 discriminator 1
+ 802 0064 C8009FE5 		ldr	r0, .L72+4
+ 803 0068 111EA0E3 		mov	r1, #272
+ 804 006c FEFFFFEB 		bl	assert_failed
+ 805              	.LVL60:
+ 806              	.L66:
+ 274:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		return FLASH_BUSY;
+ 807              		.loc 1 274 0 is_stmt 1
+ 808 0070 FEFFFFEB 		bl	is_flash_busy
+ 809              	.LVL61:
+ 810 0074 010050E3 		cmp	r0, #1
+ 811 0078 7080BD08 		ldmeqfd	sp!, {r4, r5, r6, pc}
+ 812              	.LVL62:
+ 813              	.LBB4:
+ 814              	.LBB5:
+ 277:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 815              		.loc 1 277 0
+ 816 007c FEFFFFEB 		bl	write_enable
+ 817              	.LVL63:
+ 281:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes		= ONE_LANE;
+ 818              		.loc 1 281 0
+ 819 0080 2010A0E3 		mov	r1, #32
+ 820 0084 B430D4E1 		ldrh	r3, [r4, #4]
+ 821 0088 1130C9E7 		bfi	r3, r1, #0, #10
+ 279:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 822              		.loc 1 279 0
+ 823 008c 0120A0E3 		mov	r2, #1
+ 295:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 824              		.loc 1 295 0
+ 825 0090 FF54C5E3 		bic	r5, r5, #-16777216
+ 826              	.LVL64:
+ 281:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes		= ONE_LANE;
+ 827              		.loc 1 281 0
+ 828 0094 B430C4E1 		strh	r3, [r4, #4]	@ movhi
+ 282:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en	= FOUR_OUTPUTS;
+ 829              		.loc 1 282 0
+ 830 0098 0630D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+ 831 009c 1230C2E7 		bfi	r3, r2, #0, #3
+ 294:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			(flash_addr & 0x00FFFFFF);
+ 832              		.loc 1 294 0
+ 833 00a0 066C85E1 		orr	r6, r5, r6, asl #24
+ 834              	.LVL65:
+ 283:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 835              		.loc 1 283 0
+ 836 00a4 033EE0E1 		mvn	r3, r3, asl #28
+ 279:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 837              		.loc 1 279 0
+ 838 00a8 B020C4E1 		strh	r2, [r4]	@ movhi
+ 283:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 839              		.loc 1 283 0
+ 840 00ac 233EE0E1 		mvn	r3, r3, lsr #28
+ 297:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 841              		.loc 1 297 0
+ 842 00b0 78009FE5 		ldr	r0, .L72
+ 283:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 843              		.loc 1 283 0
+ 844 00b4 0630C4E5 		strb	r3, [r4, #6]
+ 284:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes		= ONE_LANE;
+ 845              		.loc 1 284 0
+ 846 00b8 B830D4E1 		ldrh	r3, [r4, #8]
+ 847 00bc 1F30C9E7 		bfc	r3, #0, #10
+ 848 00c0 B830C4E1 		strh	r3, [r4, #8]	@ movhi
+ 285:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en	= FOUR_OUTPUTS;
+ 849              		.loc 1 285 0
+ 850 00c4 0A30D4E5 		ldrb	r3, [r4, #10]	@ zero_extendqisi2
+ 851 00c8 1230C2E7 		bfi	r3, r2, #0, #3
+ 286:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 852              		.loc 1 286 0
+ 853 00cc 033EE0E1 		mvn	r3, r3, asl #28
+ 854 00d0 233EE0E1 		mvn	r3, r3, lsr #28
+ 855 00d4 0A30C4E5 		strb	r3, [r4, #10]
+ 287:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes		= ONE_LANE;
+ 856              		.loc 1 287 0
+ 857 00d8 BC30D4E1 		ldrh	r3, [r4, #12]
+ 858 00dc 1F30C9E7 		bfc	r3, #0, #10
+ 859 00e0 BC30C4E1 		strh	r3, [r4, #12]	@ movhi
+ 288:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en	= FOUR_OUTPUTS;
+ 860              		.loc 1 288 0
+ 861 00e4 0E30D4E5 		ldrb	r3, [r4, #14]	@ zero_extendqisi2
+ 862 00e8 1230C2E7 		bfi	r3, r2, #0, #3
+ 289:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 863              		.loc 1 289 0
+ 864 00ec 033EE0E1 		mvn	r3, r3, asl #28
+ 865 00f0 233EE0E1 		mvn	r3, r3, lsr #28
+ 866 00f4 0E30C4E5 		strb	r3, [r4, #14]
+ 290:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes		= ONE_LANE;
+ 867              		.loc 1 290 0
+ 868 00f8 B031D4E1 		ldrh	r3, [r4, #16]
+ 869 00fc 1F30C9E7 		bfc	r3, #0, #10
+ 870 0100 B031C4E1 		strh	r3, [r4, #16]	@ movhi
+ 291:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en	= FOUR_OUTPUTS;
+ 871              		.loc 1 291 0
+ 872 0104 1230D4E5 		ldrb	r3, [r4, #18]	@ zero_extendqisi2
+ 873 0108 1230C2E7 		bfi	r3, r2, #0, #3
+ 292:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 874              		.loc 1 292 0
+ 875 010c 033EE0E1 		mvn	r3, r3, asl #28
+ 876 0110 233EE0E1 		mvn	r3, r3, lsr #28
+ 877 0114 1230C4E5 		strb	r3, [r4, #18]
+ 294:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			(flash_addr & 0x00FFFFFF);
+ 878              		.loc 1 294 0
+ 879 0118 403094E5 		ldr	r3, [r4, #64]
+ 880 011c 006083E5 		str	r6, [r3]
+ 297:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 881              		.loc 1 297 0
+ 882 0120 FEFFFFEB 		bl	transfer_cmd
+ 883              	.LVL66:
+ 299:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 884              		.loc 1 299 0
+ 885 0124 FEFFFFEB 		bl	read_status
+ 886              	.LVL67:
+ 887 0128 0200A0E3 		mov	r0, #2
+ 888              	.LBE5:
+ 889              	.LBE4:
+ 302:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 890              		.loc 1 302 0
+ 891 012c 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 892              	.L73:
+ 893              		.align	2
+ 894              	.L72:
+ 895 0130 00000000 		.word	qspi_transfer_cmd
+ 896 0134 00000000 		.word	.LANCHOR3
+ 897              		.cfi_endproc
+ 898              	.LFE7:
+ 900              		.section	.text.flash_init,"ax",%progbits
+ 901              		.align	2
+ 902              		.global	flash_init
+ 904              	flash_init:
+ 905              	.LFB1:
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg	= QSPI_ADDR->TX_BUFF_REG;
+ 906              		.loc 1 60 0
+ 907              		.cfi_startproc
+ 908              		@ args = 0, pretend = 0, frame = 0
+ 909              		@ frame_needed = 0, uses_anonymous_args = 0
+ 910              		@ link register save eliminated.
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.tx_buff_reg8	= QSPI_ADDR->TX_BUFF_REG8;
+ 911              		.loc 1 61 0
+ 912 0000 18209FE5 		ldr	r2, .L75
+ 913 0004 18309FE5 		ldr	r3, .L75+4
+ 914 0008 402083E5 		str	r2, [r3, #64]
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.rx_buff_reg	= QSPI_ADDR->RX_BUFF_REG;
+ 915              		.loc 1 62 0
+ 916 000c 442083E5 		str	r2, [r3, #68]
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.rx_buff_reg8	= QSPI_ADDR->RX_BUFF_REG8;
+ 917              		.loc 1 63 0
+ 918 0010 802082E2 		add	r2, r2, #128
+ 919 0014 482083E5 		str	r2, [r3, #72]
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 920              		.loc 1 64 0
+ 921 0018 4C2083E5 		str	r2, [r3, #76]
+ 922 001c 1EFF2FE1 		bx	lr
+ 923              	.L76:
+ 924              		.align	2
+ 925              	.L75:
+ 926 0020 00013002 		.word	36700416
+ 927 0024 00000000 		.word	qspi_transfer_cmd
+ 928              		.cfi_endproc
+ 929              	.LFE1:
+ 931              		.section	.text.read_id,"ax",%progbits
+ 932              		.align	2
+ 933              		.global	read_id
+ 935              	read_id:
+ 936              	.LFB2:
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t chip_id;
+ 937              		.loc 1 78 0
+ 938              		.cfi_startproc
+ 939              		@ args = 0, pretend = 0, frame = 0
+ 940              		@ frame_needed = 0, uses_anonymous_args = 0
+ 941 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 942              	.LCFI5:
+ 943              		.cfi_def_cfa_offset 8
+ 944              		.cfi_offset 4, -8
+ 945              		.cfi_offset 14, -4
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 946              		.loc 1 81 0
+ 947 0004 0C419FE5 		ldr	r4, .L83
+ 948 0008 403094E5 		ldr	r3, [r4, #64]
+ 949 000c 000053E3 		cmp	r3, #0
+ 950 0010 0200001A 		bne	.L78
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 951              		.loc 1 81 0 is_stmt 0 discriminator 1
+ 952 0014 00019FE5 		ldr	r0, .L83+4
+ 953 0018 5110A0E3 		mov	r1, #81
+ 954 001c FEFFFFEB 		bl	assert_failed
+ 955              	.LVL68:
+ 956              	.L78:
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 957              		.loc 1 82 0 is_stmt 1
+ 958 0020 443094E5 		ldr	r3, [r4, #68]
+ 959 0024 000053E3 		cmp	r3, #0
+ 960 0028 0200001A 		bne	.L79
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 961              		.loc 1 82 0 is_stmt 0 discriminator 1
+ 962 002c E8009FE5 		ldr	r0, .L83+4
+ 963 0030 5210A0E3 		mov	r1, #82
+ 964 0034 FEFFFFEB 		bl	assert_failed
+ 965              	.LVL69:
+ 966              	.L79:
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 967              		.loc 1 83 0 is_stmt 1
+ 968 0038 483094E5 		ldr	r3, [r4, #72]
+ 969 003c 000053E3 		cmp	r3, #0
+ 970 0040 0200001A 		bne	.L80
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 971              		.loc 1 83 0 is_stmt 0 discriminator 1
+ 972 0044 D0009FE5 		ldr	r0, .L83+4
+ 973 0048 5310A0E3 		mov	r1, #83
+ 974 004c FEFFFFEB 		bl	assert_failed
+ 975              	.LVL70:
+ 976              	.L80:
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 977              		.loc 1 84 0 is_stmt 1
+ 978 0050 4C3094E5 		ldr	r3, [r4, #76]
+ 979 0054 000053E3 		cmp	r3, #0
+ 980 0058 0200001A 		bne	.L81
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 981              		.loc 1 84 0 is_stmt 0 discriminator 1
+ 982 005c B8009FE5 		ldr	r0, .L83+4
+ 983 0060 5410A0E3 		mov	r1, #84
+ 984 0064 FEFFFFEB 		bl	assert_failed
+ 985              	.LVL71:
+ 986              	.L81:
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+ 987              		.loc 1 90 0 is_stmt 1
+ 988 0068 2010A0E3 		mov	r1, #32
+ 989 006c B430D4E1 		ldrh	r3, [r4, #4]
+ 990 0070 1130C9E7 		bfi	r3, r1, #0, #10
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 991              		.loc 1 88 0
+ 992 0074 0120A0E3 		mov	r2, #1
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+ 993              		.loc 1 90 0
+ 994 0078 B430C4E1 		strh	r3, [r4, #4]	@ movhi
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 995              		.loc 1 91 0
+ 996 007c 0630D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+ 997 0080 1230C2E7 		bfi	r3, r2, #0, #3
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 998              		.loc 1 88 0
+ 999 0084 B020C4E1 		strh	r2, [r4]	@ movhi
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 1000              		.loc 1 92 0
+ 1001 0088 033EE0E1 		mvn	r3, r3, asl #28
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1002              		.loc 1 105 0
+ 1003 008c 84009FE5 		ldr	r0, .L83
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 1004              		.loc 1 92 0
+ 1005 0090 233EE0E1 		mvn	r3, r3, lsr #28
+ 1006 0094 0630C4E5 		strb	r3, [r4, #6]
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes 		= ONE_LANE;
+ 1007              		.loc 1 93 0
+ 1008 0098 B830D4E1 		ldrh	r3, [r4, #8]
+ 1009 009c 1F30C9E7 		bfc	r3, #0, #10
+ 1010 00a0 B830C4E1 		strh	r3, [r4, #8]	@ movhi
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 1011              		.loc 1 94 0
+ 1012 00a4 0A30D4E5 		ldrb	r3, [r4, #10]	@ zero_extendqisi2
+ 1013 00a8 1230C2E7 		bfi	r3, r2, #0, #3
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 1014              		.loc 1 95 0
+ 1015 00ac 033EE0E1 		mvn	r3, r3, asl #28
+ 1016 00b0 233EE0E1 		mvn	r3, r3, lsr #28
+ 1017 00b4 0A30C4E5 		strb	r3, [r4, #10]
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes 		= ONE_LANE;
+ 1018              		.loc 1 96 0
+ 1019 00b8 BC30D4E1 		ldrh	r3, [r4, #12]
+ 1020 00bc 1F30C9E7 		bfc	r3, #0, #10
+ 1021 00c0 BC30C4E1 		strh	r3, [r4, #12]	@ movhi
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 1022              		.loc 1 97 0
+ 1023 00c4 0E30D4E5 		ldrb	r3, [r4, #14]	@ zero_extendqisi2
+ 1024 00c8 1230C2E7 		bfi	r3, r2, #0, #3
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 1025              		.loc 1 98 0
+ 1026 00cc 033EE0E1 		mvn	r3, r3, asl #28
+ 1027 00d0 233EE0E1 		mvn	r3, r3, lsr #28
+ 1028 00d4 0E30C4E5 		strb	r3, [r4, #14]
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes 		= ONE_LANE;
+ 1029              		.loc 1 99 0
+ 1030 00d8 B031D4E1 		ldrh	r3, [r4, #16]
+ 1031 00dc 1F30C9E7 		bfc	r3, #0, #10
+ 1032 00e0 B031C4E1 		strh	r3, [r4, #16]	@ movhi
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 1033              		.loc 1 100 0
+ 1034 00e4 1230D4E5 		ldrb	r3, [r4, #18]	@ zero_extendqisi2
+ 1035 00e8 1230C2E7 		bfi	r3, r2, #0, #3
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1036              		.loc 1 103 0
+ 1037 00ec 9F24A0E3 		mov	r2, #-1627389952
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1038              		.loc 1 101 0
+ 1039 00f0 033EE0E1 		mvn	r3, r3, asl #28
+ 1040 00f4 233EE0E1 		mvn	r3, r3, lsr #28
+ 1041 00f8 1230C4E5 		strb	r3, [r4, #18]
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1042              		.loc 1 103 0
+ 1043 00fc 403094E5 		ldr	r3, [r4, #64]
+ 1044 0100 002083E5 		str	r2, [r3]
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1045              		.loc 1 105 0
+ 1046 0104 FEFFFFEB 		bl	transfer_cmd
+ 1047              	.LVL72:
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1048              		.loc 1 107 0
+ 1049 0108 483094E5 		ldr	r3, [r4, #72]
+ 1050 010c 000093E5 		ldr	r0, [r3]
+ 1051              	.LVL73:
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1052              		.loc 1 114 0
+ 1053 0110 FF04C0E3 		bic	r0, r0, #-16777216
+ 1054              	.LVL74:
+ 1055 0114 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 1056              	.L84:
+ 1057              		.align	2
+ 1058              	.L83:
+ 1059 0118 00000000 		.word	qspi_transfer_cmd
+ 1060 011c 00000000 		.word	.LANCHOR4
+ 1061              		.cfi_endproc
+ 1062              	.LFE2:
+ 1064              		.section	.text.bulk_erase,"ax",%progbits
+ 1065              		.align	2
+ 1066              		.global	bulk_erase
+ 1068              	bulk_erase:
+ 1069              	.LFB6:
+ 216:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 1070              		.loc 1 216 0
+ 1071              		.cfi_startproc
+ 1072              		@ args = 0, pretend = 0, frame = 0
+ 1073              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1074 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 1075              	.LCFI6:
+ 1076              		.cfi_def_cfa_offset 8
+ 1077              		.cfi_offset 4, -8
+ 1078              		.cfi_offset 14, -4
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 1079              		.loc 1 218 0
+ 1080 0004 18419FE5 		ldr	r4, .L95
+ 1081 0008 403094E5 		ldr	r3, [r4, #64]
+ 1082 000c 000053E3 		cmp	r3, #0
+ 1083 0010 0200001A 		bne	.L86
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 1084              		.loc 1 218 0 is_stmt 0 discriminator 1
+ 1085 0014 0C019FE5 		ldr	r0, .L95+4
+ 1086 0018 DA10A0E3 		mov	r1, #218
+ 1087 001c FEFFFFEB 		bl	assert_failed
+ 1088              	.LVL75:
+ 1089              	.L86:
+ 219:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 1090              		.loc 1 219 0 is_stmt 1
+ 1091 0020 443094E5 		ldr	r3, [r4, #68]
+ 1092 0024 000053E3 		cmp	r3, #0
+ 1093 0028 0200001A 		bne	.L87
+ 219:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 1094              		.loc 1 219 0 is_stmt 0 discriminator 1
+ 1095 002c F4009FE5 		ldr	r0, .L95+4
+ 1096 0030 DB10A0E3 		mov	r1, #219
+ 1097 0034 FEFFFFEB 		bl	assert_failed
+ 1098              	.LVL76:
+ 1099              	.L87:
+ 220:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 1100              		.loc 1 220 0 is_stmt 1
+ 1101 0038 483094E5 		ldr	r3, [r4, #72]
+ 1102 003c 000053E3 		cmp	r3, #0
+ 1103 0040 0200001A 		bne	.L88
+ 220:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 1104              		.loc 1 220 0 is_stmt 0 discriminator 1
+ 1105 0044 DC009FE5 		ldr	r0, .L95+4
+ 1106 0048 DC10A0E3 		mov	r1, #220
+ 1107 004c FEFFFFEB 		bl	assert_failed
+ 1108              	.LVL77:
+ 1109              	.L88:
+ 221:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1110              		.loc 1 221 0 is_stmt 1
+ 1111 0050 4C3094E5 		ldr	r3, [r4, #76]
+ 1112 0054 000053E3 		cmp	r3, #0
+ 1113 0058 0200001A 		bne	.L89
+ 221:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1114              		.loc 1 221 0 is_stmt 0 discriminator 1
+ 1115 005c C4009FE5 		ldr	r0, .L95+4
+ 1116 0060 DD10A0E3 		mov	r1, #221
+ 1117 0064 FEFFFFEB 		bl	assert_failed
+ 1118              	.LVL78:
+ 1119              	.L89:
+ 226:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 1120              		.loc 1 226 0 is_stmt 1
+ 1121 0068 FEFFFFEB 		bl	is_flash_busy
+ 1122              	.LVL79:
+ 1123 006c 010050E3 		cmp	r0, #1
+ 1124 0070 1080BD08 		ldmeqfd	sp!, {r4, pc}
+ 234:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1125              		.loc 1 234 0
+ 1126 0074 FEFFFFEB 		bl	write_enable
+ 1127              	.LVL80:
+ 238:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+ 1128              		.loc 1 238 0
+ 1129 0078 0810A0E3 		mov	r1, #8
+ 1130 007c B430D4E1 		ldrh	r3, [r4, #4]
+ 1131 0080 1130C9E7 		bfi	r3, r1, #0, #10
+ 236:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1132              		.loc 1 236 0
+ 1133 0084 0120A0E3 		mov	r2, #1
+ 238:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_lanes 		= ONE_LANE;
+ 1134              		.loc 1 238 0
+ 1135 0088 B430C4E1 		strh	r3, [r4, #4]	@ movhi
+ 239:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step0_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 1136              		.loc 1 239 0
+ 1137 008c 0630D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+ 1138 0090 1230C2E7 		bfi	r3, r2, #0, #3
+ 236:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1139              		.loc 1 236 0
+ 1140 0094 B020C4E1 		strh	r2, [r4]	@ movhi
+ 240:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 1141              		.loc 1 240 0
+ 1142 0098 033EE0E1 		mvn	r3, r3, asl #28
+ 253:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1143              		.loc 1 253 0
+ 1144 009c 80009FE5 		ldr	r0, .L95
+ 240:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.cycle			= 0;
+ 1145              		.loc 1 240 0
+ 1146 00a0 233EE0E1 		mvn	r3, r3, lsr #28
+ 1147 00a4 0630C4E5 		strb	r3, [r4, #6]
+ 241:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_lanes 		= ONE_LANE;
+ 1148              		.loc 1 241 0
+ 1149 00a8 B830D4E1 		ldrh	r3, [r4, #8]
+ 1150 00ac 1F30C9E7 		bfc	r3, #0, #10
+ 1151 00b0 B830C4E1 		strh	r3, [r4, #8]	@ movhi
+ 242:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step1_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 1152              		.loc 1 242 0
+ 1153 00b4 0A30D4E5 		ldrb	r3, [r4, #10]	@ zero_extendqisi2
+ 1154 00b8 1230C2E7 		bfi	r3, r2, #0, #3
+ 243:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.cycle			= 0;
+ 1155              		.loc 1 243 0
+ 1156 00bc 033EE0E1 		mvn	r3, r3, asl #28
+ 1157 00c0 233EE0E1 		mvn	r3, r3, lsr #28
+ 1158 00c4 0A30C4E5 		strb	r3, [r4, #10]
+ 244:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_lanes 		= ONE_LANE;
+ 1159              		.loc 1 244 0
+ 1160 00c8 BC30D4E1 		ldrh	r3, [r4, #12]
+ 1161 00cc 1F30C9E7 		bfc	r3, #0, #10
+ 1162 00d0 BC30C4E1 		strh	r3, [r4, #12]	@ movhi
+ 245:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step2_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 1163              		.loc 1 245 0
+ 1164 00d4 0E30D4E5 		ldrb	r3, [r4, #14]	@ zero_extendqisi2
+ 1165 00d8 1230C2E7 		bfi	r3, r2, #0, #3
+ 246:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.cycle			= 0;
+ 1166              		.loc 1 246 0
+ 1167 00dc 033EE0E1 		mvn	r3, r3, asl #28
+ 1168 00e0 233EE0E1 		mvn	r3, r3, lsr #28
+ 1169 00e4 0E30C4E5 		strb	r3, [r4, #14]
+ 247:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_lanes 		= ONE_LANE;
+ 1170              		.loc 1 247 0
+ 1171 00e8 B031D4E1 		ldrh	r3, [r4, #16]
+ 1172 00ec 1F30C9E7 		bfc	r3, #0, #10
+ 1173 00f0 B031C4E1 		strh	r3, [r4, #16]	@ movhi
+ 248:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pio_mode1.pio_step3_conf.pio_output_en 	= FOUR_OUTPUTS;
+ 1174              		.loc 1 248 0
+ 1175 00f4 1230D4E5 		ldrb	r3, [r4, #18]	@ zero_extendqisi2
+ 1176 00f8 1230C2E7 		bfi	r3, r2, #0, #3
+ 251:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1177              		.loc 1 251 0
+ 1178 00fc C720A0E3 		mov	r2, #199
+ 249:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1179              		.loc 1 249 0
+ 1180 0100 033EE0E1 		mvn	r3, r3, asl #28
+ 1181 0104 233EE0E1 		mvn	r3, r3, lsr #28
+ 1182 0108 1230C4E5 		strb	r3, [r4, #18]
+ 251:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1183              		.loc 1 251 0
+ 1184 010c 403094E5 		ldr	r3, [r4, #64]
+ 1185 0110 002083E5 		str	r2, [r3]
+ 253:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1186              		.loc 1 253 0
+ 1187 0114 FEFFFFEB 		bl	transfer_cmd
+ 1188              	.LVL81:
+ 255:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 1189              		.loc 1 255 0
+ 1190 0118 FEFFFFEB 		bl	read_status
+ 1191              	.LVL82:
+ 260:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 1192              		.loc 1 260 0
+ 1193 011c 0200A0E3 		mov	r0, #2
+ 261:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1194              		.loc 1 261 0
+ 1195 0120 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 1196              	.L96:
+ 1197              		.align	2
+ 1198              	.L95:
+ 1199 0124 00000000 		.word	qspi_transfer_cmd
+ 1200 0128 00000000 		.word	.LANCHOR5
+ 1201              		.cfi_endproc
+ 1202              	.LFE6:
+ 1204              		.section	.text.flash_read,"ax",%progbits
+ 1205              		.align	2
+ 1206              		.global	flash_read
+ 1208              	flash_read:
+ 1209              	.LFB10:
+ 457:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 458:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 459:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * cmd_write
+ 460:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 461:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** static flash_status_t cmd_write(uint32_t flash_addr, uint8_t *buf,\
+ 462:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		uint32_t byte_length, qspi_mode_t qmode)
+ 463:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 464:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t i, cycle;
+ 465:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t *pdata;
+ 466:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 467:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	/* check parameters */
+ 468:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg);
+ 469:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 470:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 471:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 472:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 473:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(is_flash_busy() == FLASH_BUSY)
+ 474:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		return FLASH_BUSY;
+ 475:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 476:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	cycle = byte_length >> 2;
+ 477:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(byte_length % 4)
+ 478:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		cycle++;
+ 479:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 480:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	write_enable();
+ 481:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 482:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.spi_mode_reg = PP_GO_MODE;
+ 483:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 484:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(qmode == QSPI_MODE)
+ 485:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 486:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_cmd_code				= FLASH_CMD_4PP;
+ 487:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_cmd_cycle = 24;
+ 488:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_lanes 	= ONE_LANE;
+ 489:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_cmd_cycle = byte_length << 1;
+ 490:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_lanes		= FOUR_LANES;
+ 491:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 492:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	else
+ 493:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 494:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_cmd_code				= FLASH_CMD_PP;
+ 495:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_cmd_cycle = 24;
+ 496:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_lanes		= ONE_LANE;
+ 497:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_cmd_cycle	= byte_length << 3;
+ 498:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_lanes		= ONE_LANE;
+ 499:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 500:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 501:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_cmd_conf.pp_cmd_cycle		= 8;
+ 502:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_cmd_conf.pp_lanes			= ONE_LANE;
+ 503:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_addr_code					= flash_addr;
+ 504:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_code					= 0x00000000;
+ 505:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_conf.pp_cmd_cycle	= 0;
+ 506:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_conf.pp_lanes		= NO_LANE;
+ 507:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 508:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	pdata = (uint32_t *)buf;
+ 509:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	for(i = 0; i < cycle; i++)
+ 510:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 511:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.tx_buff_reg[i]	= *(pdata + i);
+ 512:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 513:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 514:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	transfer_cmd(&qspi_transfer_cmd);
+ 515:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 516:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	read_status();
+ 517:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 518:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 519:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 520:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 521:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 522:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * flash_read
+ 523:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 524:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** flash_status_t flash_read(uint32_t addr, uint32_t len,\
+ 525:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		uint8_t *buf, qspi_mode_t qmode)
+ 526:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 1210              		.loc 1 526 0
+ 1211              		.cfi_startproc
+ 1212              		@ args = 0, pretend = 0, frame = 0
+ 1213              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1214              	.LVL83:
+ 1215 0000 F8402DE9 		stmfd	sp!, {r3, r4, r5, r6, r7, lr}
+ 1216              	.LCFI7:
+ 1217              		.cfi_def_cfa_offset 24
+ 1218              		.cfi_offset 3, -24
+ 1219              		.cfi_offset 4, -20
+ 1220              		.cfi_offset 5, -16
+ 1221              		.cfi_offset 6, -12
+ 1222              		.cfi_offset 7, -8
+ 1223              		.cfi_offset 14, -4
+ 1224 0004 0050A0E1 		mov	r5, r0
+ 1225 0008 0140A0E1 		mov	r4, r1
+ 1226 000c 0260A0E1 		mov	r6, r2
+ 1227 0010 0370A0E1 		mov	r7, r3
+ 1228              	.LVL84:
+ 1229              	.L98:
+ 527:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 528:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreTake(semaphore, portMAX_DELAY);
+ 529:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 530:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	while(len)
+ 1230              		.loc 1 530 0
+ 1231 0014 000054E3 		cmp	r4, #0
+ 1232 0018 0D00000A 		beq	.L102
+ 531:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 532:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		if(len > BYTES_PER_READ)
+ 1233              		.loc 1 532 0
+ 1234 001c 400054E3 		cmp	r4, #64
+ 533:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		{
+ 534:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			cmd_read(addr, buf, BYTES_PER_READ, qmode);
+ 1235              		.loc 1 534 0
+ 1236 0020 0500A0E1 		mov	r0, r5
+ 1237 0024 0610A0E1 		mov	r1, r6
+ 532:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		{
+ 1238              		.loc 1 532 0
+ 1239 0028 0600009A 		bls	.L99
+ 1240              		.loc 1 534 0
+ 1241 002c 4020A0E3 		mov	r2, #64
+ 1242 0030 0730A0E1 		mov	r3, r7
+ 1243 0034 FEFFFFEB 		bl	cmd_read
+ 1244              	.LVL85:
+ 535:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			addr += BYTES_PER_READ;
+ 1245              		.loc 1 535 0
+ 1246 0038 405085E2 		add	r5, r5, #64
+ 1247              	.LVL86:
+ 536:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			buf += BYTES_PER_READ;
+ 1248              		.loc 1 536 0
+ 1249 003c 406086E2 		add	r6, r6, #64
+ 1250              	.LVL87:
+ 537:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			len -= BYTES_PER_READ;
+ 1251              		.loc 1 537 0
+ 1252 0040 404044E2 		sub	r4, r4, #64
+ 1253              	.LVL88:
+ 1254 0044 F2FFFFEA 		b	.L98
+ 1255              	.LVL89:
+ 1256              	.L99:
+ 538:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		}
+ 539:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		else
+ 540:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		{
+ 541:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			cmd_read(addr, buf, len, qmode);
+ 1257              		.loc 1 541 0
+ 1258 0048 0420A0E1 		mov	r2, r4
+ 1259 004c 0730A0E1 		mov	r3, r7
+ 1260 0050 FEFFFFEB 		bl	cmd_read
+ 1261              	.LVL90:
+ 1262              	.L102:
+ 542:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			len = 0;
+ 543:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		}
+ 544:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 545:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 546:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreGive(semaphore);
+ 547:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 548:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 549:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 550:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 1263              		.loc 1 550 0
+ 1264 0054 0200A0E3 		mov	r0, #2
+ 1265 0058 F880BDE8 		ldmfd	sp!, {r3, r4, r5, r6, r7, pc}
+ 1266              		.cfi_endproc
+ 1267              	.LFE10:
+ 1269              		.section	.text.flash_write,"ax",%progbits
+ 1270              		.align	2
+ 1271              		.global	flash_write
+ 1273              	flash_write:
+ 1274              	.LFB11:
+ 551:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 552:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 553:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * flash_write
+ 554:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 555:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** flash_status_t flash_write(uint32_t addr, uint32_t len,\
+ 556:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		const uint8_t *buf, qspi_mode_t qmode)
+ 557:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 1275              		.loc 1 557 0
+ 1276              		.cfi_startproc
+ 1277              		@ args = 0, pretend = 0, frame = 0
+ 1278              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1279              	.LVL91:
+ 1280 0000 F0472DE9 		stmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, lr}
+ 1281              	.LCFI8:
+ 1282              		.cfi_def_cfa_offset 32
+ 1283              		.cfi_offset 4, -32
+ 1284              		.cfi_offset 5, -28
+ 1285              		.cfi_offset 6, -24
+ 1286              		.cfi_offset 7, -20
+ 1287              		.cfi_offset 8, -16
+ 1288              		.cfi_offset 9, -12
+ 1289              		.cfi_offset 10, -8
+ 1290              		.cfi_offset 14, -4
+ 1291 0004 0070A0E1 		mov	r7, r0
+ 1292 0008 0160A0E1 		mov	r6, r1
+ 1293 000c 0280A0E1 		mov	r8, r2
+ 1294 0010 0390A0E1 		mov	r9, r3
+ 1295              	.LVL92:
+ 1296              	.L105:
+ 558:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint8_t *pbuf;
+ 559:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t tlen;
+ 560:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 561:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	pbuf = (uint8_t *)buf;
+ 562:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	uint32_t offset;
+ 563:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 564:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 565:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreTake(semaphore, portMAX_DELAY);
+ 566:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 567:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	while(len)
+ 1297              		.loc 1 567 0
+ 1298 0014 000056E3 		cmp	r6, #0
+ 1299 0018 6A00000A 		beq	.L128
+ 1300              	.LBB8:
+ 1301              	.LBB9:
+ 468:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 1302              		.loc 1 468 0
+ 1303 001c AC419FE5 		ldr	r4, .L130
+ 1304              	.LBE9:
+ 1305              	.LBE8:
+ 568:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 569:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		offset = addr % BYTES_PER_WRITE;
+ 1306              		.loc 1 569 0
+ 1307 0020 7750EFE6 		uxtb	r5, r7
+ 1308              	.LVL93:
+ 570:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 571:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		if ((len + offset) <= BYTES_PER_WRITE)
+ 1309              		.loc 1 571 0
+ 1310 0024 063085E0 		add	r3, r5, r6
+ 1311 0028 010C53E3 		cmp	r3, #256
+ 1312              	.LBB12:
+ 1313              	.LBB10:
+ 468:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 1314              		.loc 1 468 0
+ 1315 002c 403094E5 		ldr	r3, [r4, #64]
+ 1316              	.LBE10:
+ 1317              	.LBE12:
+ 572:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			tlen = len;
+ 573:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		else
+ 574:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			tlen = BYTES_PER_WRITE - offset;
+ 1318              		.loc 1 574 0
+ 1319 0030 015C6582 		rsbhi	r5, r5, #256
+ 1320              	.LVL94:
+ 1321 0034 0650A091 		movls	r5, r6
+ 1322              	.LVL95:
+ 1323              	.LBB13:
+ 1324              	.LBB11:
+ 468:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.tx_buff_reg8);
+ 1325              		.loc 1 468 0
+ 1326 0038 000053E3 		cmp	r3, #0
+ 1327 003c 0200001A 		bne	.L107
+ 1328 0040 8C019FE5 		ldr	r0, .L130+4
+ 1329 0044 751FA0E3 		mov	r1, #468
+ 1330 0048 FEFFFFEB 		bl	assert_failed
+ 1331              	.LVL96:
+ 1332              	.L107:
+ 469:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg);
+ 1333              		.loc 1 469 0
+ 1334 004c 443094E5 		ldr	r3, [r4, #68]
+ 1335 0050 000053E3 		cmp	r3, #0
+ 1336 0054 0200001A 		bne	.L108
+ 1337 0058 74019FE5 		ldr	r0, .L130+4
+ 1338 005c D51100E3 		movw	r1, #469
+ 1339 0060 FEFFFFEB 		bl	assert_failed
+ 1340              	.LVL97:
+ 1341              	.L108:
+ 470:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	assert_param(qspi_transfer_cmd.rx_buff_reg8);
+ 1342              		.loc 1 470 0
+ 1343 0064 483094E5 		ldr	r3, [r4, #72]
+ 1344 0068 000053E3 		cmp	r3, #0
+ 1345 006c 0200001A 		bne	.L109
+ 1346 0070 5C019FE5 		ldr	r0, .L130+4
+ 1347 0074 D61100E3 		movw	r1, #470
+ 1348 0078 FEFFFFEB 		bl	assert_failed
+ 1349              	.LVL98:
+ 1350              	.L109:
+ 471:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1351              		.loc 1 471 0
+ 1352 007c 4C3094E5 		ldr	r3, [r4, #76]
+ 1353 0080 000053E3 		cmp	r3, #0
+ 1354 0084 0200001A 		bne	.L110
+ 1355 0088 44019FE5 		ldr	r0, .L130+4
+ 1356 008c D71100E3 		movw	r1, #471
+ 1357 0090 FEFFFFEB 		bl	assert_failed
+ 1358              	.LVL99:
+ 1359              	.L110:
+ 473:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		return FLASH_BUSY;
+ 1360              		.loc 1 473 0
+ 1361 0094 FEFFFFEB 		bl	is_flash_busy
+ 1362              	.LVL100:
+ 1363 0098 010050E3 		cmp	r0, #1
+ 1364 009c 4500000A 		beq	.L119
+ 477:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		cycle++;
+ 1365              		.loc 1 477 0
+ 1366 00a0 030015E3 		tst	r5, #3
+ 476:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	if(byte_length % 4)
+ 1367              		.loc 1 476 0
+ 1368 00a4 25A1A0E1 		mov	r10, r5, lsr #2
+ 1369              	.LVL101:
+ 478:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1370              		.loc 1 478 0
+ 1371 00a8 01A08A12 		addne	r10, r10, #1
+ 1372              	.LVL102:
+ 480:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1373              		.loc 1 480 0
+ 1374 00ac FEFFFFEB 		bl	write_enable
+ 1375              	.LVL103:
+ 482:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1376              		.loc 1 482 0
+ 1377 00b0 012CA0E3 		mov	r2, #256
+ 484:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 1378              		.loc 1 484 0
+ 1379 00b4 010059E3 		cmp	r9, #1
+ 482:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1380              		.loc 1 482 0
+ 1381 00b8 10319FE5 		ldr	r3, .L130
+ 1382 00bc 3200D4E5 		ldrb	r0, [r4, #50]	@ zero_extendqisi2
+ 1383 00c0 B020C4E1 		strh	r2, [r4]	@ movhi
+ 1384 00c4 BC13D4E1 		ldrh	r1, [r4, #60]
+ 1385 00c8 B023D4E1 		ldrh	r2, [r4, #48]
+ 484:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 1386              		.loc 1 484 0
+ 1387 00cc 0F00001A 		bne	.L113
+ 486:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_cmd_cycle = 24;
+ 1388              		.loc 1 486 0
+ 1389 00d0 32C0A0E3 		mov	ip, #50
+ 1390 00d4 24C083E5 		str	ip, [r3, #36]
+ 487:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_lanes 	= ONE_LANE;
+ 1391              		.loc 1 487 0
+ 1392 00d8 18C0A0E3 		mov	ip, #24
+ 1393 00dc 1C20C9E7 		bfi	r2, ip, #0, #10
+ 1394 00e0 B023C3E1 		strh	r2, [r3, #48]	@ movhi
+ 488:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_cmd_cycle = byte_length << 1;
+ 1395              		.loc 1 488 0
+ 1396 00e4 0020A0E1 		mov	r2, r0
+ 1397 00e8 1920C2E7 		bfi	r2, r9, #0, #3
+ 489:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_lanes		= FOUR_LANES;
+ 1398              		.loc 1 489 0
+ 1399 00ec 8500A0E1 		mov	r0, r5, asl #1
+ 488:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_cmd_cycle = byte_length << 1;
+ 1400              		.loc 1 488 0
+ 1401 00f0 3220C3E5 		strb	r2, [r3, #50]
+ 489:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_lanes		= FOUR_LANES;
+ 1402              		.loc 1 489 0
+ 1403 00f4 0120A0E1 		mov	r2, r1	@ movhi
+ 1404 00f8 1020C9E7 		bfi	r2, r0, #0, #10
+ 490:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 1405              		.loc 1 490 0
+ 1406 00fc 0410A0E3 		mov	r1, #4
+ 489:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_lanes		= FOUR_LANES;
+ 1407              		.loc 1 489 0
+ 1408 0100 BC23C3E1 		strh	r2, [r3, #60]	@ movhi
+ 490:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 1409              		.loc 1 490 0
+ 1410 0104 3E20D3E5 		ldrb	r2, [r3, #62]	@ zero_extendqisi2
+ 1411 0108 1120C2E7 		bfi	r2, r1, #0, #3
+ 1412 010c 0E0000EA 		b	.L127
+ 1413              	.L113:
+ 494:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_cmd_cycle = 24;
+ 1414              		.loc 1 494 0
+ 1415 0110 02C0A0E3 		mov	ip, #2
+ 1416 0114 24C083E5 		str	ip, [r3, #36]
+ 495:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_lanes		= ONE_LANE;
+ 1417              		.loc 1 495 0
+ 1418 0118 18C0A0E3 		mov	ip, #24
+ 1419 011c 1C20C9E7 		bfi	r2, ip, #0, #10
+ 496:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_cmd_cycle	= byte_length << 3;
+ 1420              		.loc 1 496 0
+ 1421 0120 01C0A0E3 		mov	ip, #1
+ 495:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_addr_conf.pp_lanes		= ONE_LANE;
+ 1422              		.loc 1 495 0
+ 1423 0124 B023C3E1 		strh	r2, [r3, #48]	@ movhi
+ 496:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_cmd_cycle	= byte_length << 3;
+ 1424              		.loc 1 496 0
+ 1425 0128 0020A0E1 		mov	r2, r0
+ 1426 012c 1C20C2E7 		bfi	r2, ip, #0, #3
+ 497:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_lanes		= ONE_LANE;
+ 1427              		.loc 1 497 0
+ 1428 0130 8501A0E1 		mov	r0, r5, asl #3
+ 496:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_cmd_cycle	= byte_length << 3;
+ 1429              		.loc 1 496 0
+ 1430 0134 3220C3E5 		strb	r2, [r3, #50]
+ 497:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		qspi_transfer_cmd.pp_mode.pp_data_conf.pp_lanes		= ONE_LANE;
+ 1431              		.loc 1 497 0
+ 1432 0138 0120A0E1 		mov	r2, r1	@ movhi
+ 1433 013c 1020C9E7 		bfi	r2, r0, #0, #10
+ 1434 0140 BC23C3E1 		strh	r2, [r3, #60]	@ movhi
+ 498:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 1435              		.loc 1 498 0
+ 1436 0144 3E20D3E5 		ldrb	r2, [r3, #62]	@ zero_extendqisi2
+ 1437 0148 1C20C2E7 		bfi	r2, ip, #0, #3
+ 1438              	.L127:
+ 1439 014c 3E20C3E5 		strb	r2, [r3, #62]
+ 501:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_cmd_conf.pp_lanes			= ONE_LANE;
+ 1440              		.loc 1 501 0
+ 1441 0150 0820A0E3 		mov	r2, #8
+ 1442 0154 B832D4E1 		ldrh	r3, [r4, #40]
+ 1443 0158 1230C9E7 		bfi	r3, r2, #0, #10
+ 502:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_addr_code					= flash_addr;
+ 1444              		.loc 1 502 0
+ 1445 015c 0120A0E3 		mov	r2, #1
+ 501:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_cmd_conf.pp_lanes			= ONE_LANE;
+ 1446              		.loc 1 501 0
+ 1447 0160 B832C4E1 		strh	r3, [r4, #40]	@ movhi
+ 502:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_addr_code					= flash_addr;
+ 1448              		.loc 1 502 0
+ 1449 0164 2A30D4E5 		ldrb	r3, [r4, #42]	@ zero_extendqisi2
+ 1450 0168 1230C2E7 		bfi	r3, r2, #0, #3
+ 505:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_conf.pp_lanes		= NO_LANE;
+ 1451              		.loc 1 505 0
+ 1452 016c B823D4E1 		ldrh	r2, [r4, #56]
+ 503:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_code					= 0x00000000;
+ 1453              		.loc 1 503 0
+ 1454 0170 2C7084E5 		str	r7, [r4, #44]
+ 502:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_addr_code					= flash_addr;
+ 1455              		.loc 1 502 0
+ 1456 0174 2A30C4E5 		strb	r3, [r4, #42]
+ 504:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_conf.pp_cmd_cycle	= 0;
+ 1457              		.loc 1 504 0
+ 1458 0178 0030A0E3 		mov	r3, #0
+ 505:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_conf.pp_lanes		= NO_LANE;
+ 1459              		.loc 1 505 0
+ 1460 017c 1320C9E7 		bfi	r2, r3, #0, #10
+ 504:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_conf.pp_cmd_cycle	= 0;
+ 1461              		.loc 1 504 0
+ 1462 0180 343084E5 		str	r3, [r4, #52]
+ 505:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	qspi_transfer_cmd.pp_mode.pp_dummy_conf.pp_lanes		= NO_LANE;
+ 1463              		.loc 1 505 0
+ 1464 0184 B823C4E1 		strh	r2, [r4, #56]	@ movhi
+ 506:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1465              		.loc 1 506 0
+ 1466 0188 3A20D4E5 		ldrb	r2, [r4, #58]	@ zero_extendqisi2
+ 1467 018c 1320C2E7 		bfi	r2, r3, #0, #3
+ 1468 0190 3A20C4E5 		strb	r2, [r4, #58]
+ 1469              	.LVL104:
+ 511:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 1470              		.loc 1 511 0
+ 1471 0194 402094E5 		ldr	r2, [r4, #64]
+ 1472              	.LVL105:
+ 1473              	.L115:
+ 509:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 1474              		.loc 1 509 0
+ 1475 0198 0A0053E1 		cmp	r3, r10
+ 511:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 1476              		.loc 1 511 0
+ 1477 019c 03119817 		ldrne	r1, [r8, r3, asl #2]
+ 1478 01a0 03118217 		strne	r1, [r2, r3, asl #2]
+ 509:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 1479              		.loc 1 509 0
+ 1480 01a4 01308312 		addne	r3, r3, #1
+ 1481              	.LVL106:
+ 1482 01a8 FAFFFF1A 		bne	.L115
+ 1483              	.L129:
+ 514:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1484              		.loc 1 514 0
+ 1485 01ac 1C009FE5 		ldr	r0, .L130
+ 1486 01b0 FEFFFFEB 		bl	transfer_cmd
+ 1487              	.LVL107:
+ 516:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 1488              		.loc 1 516 0
+ 1489 01b4 FEFFFFEB 		bl	read_status
+ 1490              	.LVL108:
+ 1491              	.L119:
+ 1492              	.LBE11:
+ 1493              	.LBE13:
+ 575:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 576:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		cmd_write(addr, pbuf, tlen, qmode);
+ 577:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		addr += tlen;
+ 1494              		.loc 1 577 0
+ 1495 01b8 057087E0 		add	r7, r7, r5
+ 1496              	.LVL109:
+ 578:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		pbuf += tlen;
+ 1497              		.loc 1 578 0
+ 1498 01bc 058088E0 		add	r8, r8, r5
+ 1499              	.LVL110:
+ 579:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		len -= tlen;
+ 1500              		.loc 1 579 0
+ 1501 01c0 066065E0 		rsb	r6, r5, r6
+ 1502              	.LVL111:
+ 1503 01c4 92FFFFEA 		b	.L105
+ 1504              	.LVL112:
+ 1505              	.L128:
+ 580:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 581:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 582:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreGive(semaphore);
+ 583:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 584:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 585:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 586:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 1506              		.loc 1 586 0
+ 1507 01c8 0200A0E3 		mov	r0, #2
+ 1508 01cc F087BDE8 		ldmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, pc}
+ 1509              	.L131:
+ 1510              		.align	2
+ 1511              	.L130:
+ 1512 01d0 00000000 		.word	qspi_transfer_cmd
+ 1513 01d4 00000000 		.word	.LANCHOR6
+ 1514              		.cfi_endproc
+ 1515              	.LFE11:
+ 1517              		.section	.text.flash_sector_erase,"ax",%progbits
+ 1518              		.align	2
+ 1519              		.global	flash_sector_erase
+ 1521              	flash_sector_erase:
+ 1522              	.LFB12:
+ 587:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 588:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 589:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * flash_sector_erase
+ 590:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 591:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** flash_status_t flash_sector_erase(uint16_t first_sector,
+ 592:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 									uint16_t number_sectors)
+ 593:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 1523              		.loc 1 593 0
+ 1524              		.cfi_startproc
+ 1525              		@ args = 0, pretend = 0, frame = 0
+ 1526              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1527              	.LVL113:
+ 1528 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 1529              	.LCFI9:
+ 1530              		.cfi_def_cfa_offset 16
+ 1531              		.cfi_offset 4, -16
+ 1532              		.cfi_offset 5, -12
+ 1533              		.cfi_offset 6, -8
+ 1534              		.cfi_offset 14, -4
+ 1535              		.loc 1 593 0
+ 1536 0004 0060A0E1 		mov	r6, r0
+ 1537 0008 0150A0E1 		mov	r5, r1
+ 1538              	.LBB14:
+ 594:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 595:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreTake(semaphore, portMAX_DELAY);
+ 596:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 597:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	for (int i = 0; i < number_sectors; i++)
+ 1539              		.loc 1 597 0
+ 1540 000c 0040A0E3 		mov	r4, #0
+ 1541              	.LVL114:
+ 1542              	.L133:
+ 1543              		.loc 1 597 0 is_stmt 0 discriminator 1
+ 1544 0010 050054E1 		cmp	r4, r5
+ 1545 0014 070000AA 		bge	.L138
+ 1546 0018 060084E0 		add	r0, r4, r6
+ 598:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 599:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		if (sector_erase((first_sector + i) * SECTOR_SIZE, FLASH_CMD_SE)
+ 1547              		.loc 1 599 0 is_stmt 1
+ 1548 001c D810A0E3 		mov	r1, #216
+ 1549 0020 0008A0E1 		mov	r0, r0, asl #16
+ 1550 0024 FEFFFFEB 		bl	sector_erase
+ 1551              	.LVL115:
+ 1552 0028 020050E3 		cmp	r0, #2
+ 1553 002c 0300001A 		bne	.L136
+ 597:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 1554              		.loc 1 597 0 discriminator 2
+ 1555 0030 014084E2 		add	r4, r4, #1
+ 1556              	.LVL116:
+ 1557 0034 F5FFFFEA 		b	.L133
+ 1558              	.L138:
+ 1559              	.LBE14:
+ 600:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				!= FLASH_SUCCESS)
+ 601:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		{
+ 602:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 603:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			xSemaphoreGive(semaphore);
+ 604:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 605:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			return FLASH_ERROR;
+ 606:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		}
+ 607:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 608:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 609:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreGive(semaphore);
+ 610:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 611:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 1560              		.loc 1 611 0
+ 1561 0038 0200A0E3 		mov	r0, #2
+ 1562              	.LBB15:
+ 1563 003c 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 1564              	.L136:
+ 605:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		}
+ 1565              		.loc 1 605 0
+ 1566 0040 0000A0E3 		mov	r0, #0
+ 1567              	.LBE15:
+ 612:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 1568              		.loc 1 612 0
+ 1569 0044 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 1570              		.cfi_endproc
+ 1571              	.LFE12:
+ 1573              		.section	.text.flash_sub_sector_erase,"ax",%progbits
+ 1574              		.align	2
+ 1575              		.global	flash_sub_sector_erase
+ 1577              	flash_sub_sector_erase:
+ 1578              	.LFB13:
+ 613:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 
+ 614:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** /*
+ 615:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  * flash_sub_sector_erase
+ 616:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c ****  */
+ 617:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** flash_status_t flash_sub_sector_erase(uint16_t first_sector,
+ 618:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 										uint16_t number_sectors)
+ 619:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** {
+ 1579              		.loc 1 619 0
+ 1580              		.cfi_startproc
+ 1581              		@ args = 0, pretend = 0, frame = 0
+ 1582              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1583              	.LVL117:
+ 1584 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 1585              	.LCFI10:
+ 1586              		.cfi_def_cfa_offset 16
+ 1587              		.cfi_offset 4, -16
+ 1588              		.cfi_offset 5, -12
+ 1589              		.cfi_offset 6, -8
+ 1590              		.cfi_offset 14, -4
+ 1591              		.loc 1 619 0
+ 1592 0004 0060A0E1 		mov	r6, r0
+ 1593 0008 0150A0E1 		mov	r5, r1
+ 1594              	.LBB16:
+ 620:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 621:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreTake(semaphore, portMAX_DELAY);
+ 622:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 623:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	for (int i = 0; i < number_sectors; i++)
+ 1595              		.loc 1 623 0
+ 1596 000c 0040A0E3 		mov	r4, #0
+ 1597              	.LVL118:
+ 1598              	.L140:
+ 1599              		.loc 1 623 0 is_stmt 0 discriminator 1
+ 1600 0010 050054E1 		cmp	r4, r5
+ 1601 0014 070000AA 		bge	.L145
+ 1602 0018 060084E0 		add	r0, r4, r6
+ 624:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 625:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		if (sector_erase((first_sector + i) * SUB_SECTOR_SIZE, FLASH_CMD_SSE)
+ 1603              		.loc 1 625 0 is_stmt 1
+ 1604 001c 2010A0E3 		mov	r1, #32
+ 1605 0020 0006A0E1 		mov	r0, r0, asl #12
+ 1606 0024 FEFFFFEB 		bl	sector_erase
+ 1607              	.LVL119:
+ 1608 0028 020050E3 		cmp	r0, #2
+ 1609 002c 0300001A 		bne	.L143
+ 623:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	{
+ 1610              		.loc 1 623 0 discriminator 2
+ 1611 0030 014084E2 		add	r4, r4, #1
+ 1612              	.LVL120:
+ 1613 0034 F5FFFFEA 		b	.L140
+ 1614              	.L145:
+ 1615              	.LBE16:
+ 626:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 				!= FLASH_SUCCESS)
+ 627:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		{
+ 628:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 629:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			xSemaphoreGive(semaphore);
+ 630:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 631:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 			return FLASH_ERROR;
+ 632:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		}
+ 633:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	}
+ 634:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #ifdef ASIC_FWS2
+ 635:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	xSemaphoreGive(semaphore);
+ 636:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** #endif
+ 637:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 	return FLASH_SUCCESS;
+ 1616              		.loc 1 637 0
+ 1617 0038 0200A0E3 		mov	r0, #2
+ 1618              	.LBB17:
+ 1619 003c 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 1620              	.L143:
+ 631:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** 		}
+ 1621              		.loc 1 631 0
+ 1622 0040 0000A0E3 		mov	r0, #0
+ 1623              	.LBE17:
+ 638:/home/tienluong/workspace/atlantis_fw/platform/driver/src/flash.c **** }
+ 1624              		.loc 1 638 0
+ 1625 0044 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 1626              		.cfi_endproc
+ 1627              	.LFE13:
+ 1629              		.comm	qspi_transfer_cmd,80,4
+ 1630              		.section	.rodata.__FUNCTION__.6378,"a",%progbits
+ 1631              		.set	.LANCHOR5,. + 0
+ 1634              	__FUNCTION__.6378:
+ 1635 0000 62756C6B 		.ascii	"bulk_erase\000"
+ 1635      5F657261 
+ 1635      736500
+ 1636              		.section	.rodata.__FUNCTION__.6354,"a",%progbits
+ 1637              		.set	.LANCHOR4,. + 0
+ 1640              	__FUNCTION__.6354:
+ 1641 0000 72656164 		.ascii	"read_id\000"
+ 1641      5F696400 
+ 1642              		.section	.rodata.__FUNCTION__.6360,"a",%progbits
+ 1643              		.set	.LANCHOR0,. + 0
+ 1646              	__FUNCTION__.6360:
+ 1647 0000 72656164 		.ascii	"read_status\000"
+ 1647      5F737461 
+ 1647      74757300 
+ 1648              		.section	.rodata.__FUNCTION__.6416,"a",%progbits
+ 1649              		.set	.LANCHOR6,. + 0
+ 1652              	__FUNCTION__.6416:
+ 1653 0000 636D645F 		.ascii	"cmd_write\000"
+ 1653      77726974 
+ 1653      6500
+ 1654              		.section	.rodata.__FUNCTION__.6372,"a",%progbits
+ 1655              		.set	.LANCHOR1,. + 0
+ 1658              	__FUNCTION__.6372:
+ 1659 0000 77726974 		.ascii	"write_enable\000"
+ 1659      655F656E 
+ 1659      61626C65 
+ 1659      00
+ 1660              		.section	.rodata.__FUNCTION__.6383,"a",%progbits
+ 1661              		.set	.LANCHOR3,. + 0
+ 1664              	__FUNCTION__.6383:
+ 1665 0000 73656374 		.ascii	"sector_erase\000"
+ 1665      6F725F65 
+ 1665      72617365 
+ 1665      00
+ 1666              		.section	.rodata.__FUNCTION__.6395,"a",%progbits
+ 1667              		.set	.LANCHOR2,. + 0
+ 1670              	__FUNCTION__.6395:
+ 1671 0000 636D645F 		.ascii	"cmd_read\000"
+ 1671      72656164 
+ 1671      00
+ 1672              		.text
+ 1673              	.Letext0:
+ 1674              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1675              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1676              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 1677              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_qspi.h"
+ 1678              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/flash.h"
+ 1679              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/common/assert.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 flash.c
+     /tmp/cc1r12Yd.s:17     .text.read_status:00000000 $a
+     /tmp/cc1r12Yd.s:19     .text.read_status:00000000 read_status
+     /tmp/cc1r12Yd.s:148    .text.read_status:00000124 $d
+                            *COM*:00000050 qspi_transfer_cmd
+     /tmp/cc1r12Yd.s:154    .text.is_flash_busy:00000000 $a
+     /tmp/cc1r12Yd.s:156    .text.is_flash_busy:00000000 is_flash_busy
+     /tmp/cc1r12Yd.s:181    .text.write_enable:00000000 $a
+     /tmp/cc1r12Yd.s:183    .text.write_enable:00000000 write_enable
+     /tmp/cc1r12Yd.s:308    .text.write_enable:00000118 $d
+     /tmp/cc1r12Yd.s:314    .text.cmd_read:00000000 $a
+     /tmp/cc1r12Yd.s:316    .text.cmd_read:00000000 cmd_read
+     /tmp/cc1r12Yd.s:738    .text.cmd_read:00000360 $d
+     /tmp/cc1r12Yd.s:744    .text.sector_erase:00000000 $a
+     /tmp/cc1r12Yd.s:746    .text.sector_erase:00000000 sector_erase
+     /tmp/cc1r12Yd.s:895    .text.sector_erase:00000130 $d
+     /tmp/cc1r12Yd.s:901    .text.flash_init:00000000 $a
+     /tmp/cc1r12Yd.s:904    .text.flash_init:00000000 flash_init
+     /tmp/cc1r12Yd.s:926    .text.flash_init:00000020 $d
+     /tmp/cc1r12Yd.s:932    .text.read_id:00000000 $a
+     /tmp/cc1r12Yd.s:935    .text.read_id:00000000 read_id
+     /tmp/cc1r12Yd.s:1059   .text.read_id:00000118 $d
+     /tmp/cc1r12Yd.s:1065   .text.bulk_erase:00000000 $a
+     /tmp/cc1r12Yd.s:1068   .text.bulk_erase:00000000 bulk_erase
+     /tmp/cc1r12Yd.s:1199   .text.bulk_erase:00000124 $d
+     /tmp/cc1r12Yd.s:1205   .text.flash_read:00000000 $a
+     /tmp/cc1r12Yd.s:1208   .text.flash_read:00000000 flash_read
+     /tmp/cc1r12Yd.s:1270   .text.flash_write:00000000 $a
+     /tmp/cc1r12Yd.s:1273   .text.flash_write:00000000 flash_write
+     /tmp/cc1r12Yd.s:1512   .text.flash_write:000001d0 $d
+     /tmp/cc1r12Yd.s:1518   .text.flash_sector_erase:00000000 $a
+     /tmp/cc1r12Yd.s:1521   .text.flash_sector_erase:00000000 flash_sector_erase
+     /tmp/cc1r12Yd.s:1574   .text.flash_sub_sector_erase:00000000 $a
+     /tmp/cc1r12Yd.s:1577   .text.flash_sub_sector_erase:00000000 flash_sub_sector_erase
+     /tmp/cc1r12Yd.s:1634   .rodata.__FUNCTION__.6378:00000000 __FUNCTION__.6378
+     /tmp/cc1r12Yd.s:1640   .rodata.__FUNCTION__.6354:00000000 __FUNCTION__.6354
+     /tmp/cc1r12Yd.s:1646   .rodata.__FUNCTION__.6360:00000000 __FUNCTION__.6360
+     /tmp/cc1r12Yd.s:1652   .rodata.__FUNCTION__.6416:00000000 __FUNCTION__.6416
+     /tmp/cc1r12Yd.s:1658   .rodata.__FUNCTION__.6372:00000000 __FUNCTION__.6372
+     /tmp/cc1r12Yd.s:1664   .rodata.__FUNCTION__.6383:00000000 __FUNCTION__.6383
+     /tmp/cc1r12Yd.s:1670   .rodata.__FUNCTION__.6395:00000000 __FUNCTION__.6395
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed
+transfer_cmd

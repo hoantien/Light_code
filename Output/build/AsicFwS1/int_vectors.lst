@@ -1,0 +1,69 @@
+ARM GAS  /tmp/cchDk68r.s 			page 1
+
+
+   1              	# 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s"
+   1              	/******************************************************************************
+   0              	
+   0              	
+   2              	 * Copyright (c) 2016, The LightCo
+   3              	 * All rights reserved.
+   4              	 * Redistribution and use in source and binary forms, with or without
+   5              	 * modification, are strictly prohibited without prior permission
+   6              	 * of The LightCo.
+   7              	 *
+   8              	 * @file    int_vectors.s
+   9              	 * @author  The LightCo
+  10              	 * @version V1.0.0
+  11              	 * @date    Mar-09-2016
+  12              	 * @brief
+  13              	 *
+  14              	 ******************************************************************************/
+  15              	/* This program is allocated to section "intvec" */
+  16              	
+  17              		.text
+  18              		.code 32
+  19              	
+  20              		.global undefined_handler
+  21              		.global svc_handler
+  22              		.global prefetch_handler
+  23              		.global abort_handler
+  24              		.global reserved_handler
+  25              		.global irq_handler
+  26              		.global fiq_handler
+  27              	
+  28              	undefined_handler:
+  29 0000 FEFFFFEA 		b  undefined_handler
+  30              	
+  31              	svc_handler:
+  32 0004 FEFFFFEA 		b  svc_handler
+  33              	
+  34              	prefetch_handler:
+  35 0008 FEFFFFEA 		b  prefetch_handler
+  36              	
+  37              	abort_handler:
+  38 000c FEFFFFEA 		b  abort_handler
+  39              	
+  40              	reserved_handler:
+  41 0010 FEFFFFEA 		b  reserved_handler
+  42              	
+  43              	irq_handler:
+  44 0014 FEFFFFEA 		b  irq_handler
+  45              	
+  46              	fiq_handler:
+  47 0018 FEFFFFEA 		b  fiq_handler
+  48              	
+  49              		.end
+ARM GAS  /tmp/cchDk68r.s 			page 2
+
+
+DEFINED SYMBOLS
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:28     .text:00000000 undefined_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:31     .text:00000004 svc_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:34     .text:00000008 prefetch_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:37     .text:0000000c abort_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:40     .text:00000010 reserved_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:43     .text:00000014 irq_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:46     .text:00000018 fiq_handler
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/int_vectors.s:29     .text:00000000 $a
+
+NO UNDEFINED SYMBOLS

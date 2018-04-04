@@ -1,0 +1,1152 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"hal_syncio.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.syncio_irq_handler,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	syncio_irq_handler:
+  24              	.LFB9:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @file    hal_syncio.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @author  The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @version V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @date    Mar-02-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @brief   This file provides firmware functions to manage the following
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  *          functionalities of the SyncIO
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  *           + Initialization and Configuration
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  *           + Interrupts, events and flags management
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  *
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  ******************************************************************************/
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* Includes ------------------------------------------------------------------*/
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #include "hal_syncio.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #include "assert.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #include "cortex_r4.h"
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #include "hal_vic.h"
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #include "stdbool.h"
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* Private typedef -----------------------------------------------------------*/
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define SG_GEN_DIS			0x00000000	/*!< Pulse Generator Disable */
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define SG_GEN_EN			0x00001000	/*!< Pulse Generator Enable */
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define SG_SW_TRIGGER		0x00000001	/*!< Pulse Generator Software Trigger */
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****   * @brief SyncIO Generator individual properties
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****   */
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** typedef struct
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__IO uint32_t LAT1;			/*!< Output 1 latency of pulse generator */
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__IO uint32_t LAT2;			/*!< Output 2 latency of pulse generator */
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__IO uint32_t WIDTH1;		/*!< Output 1 pulse width of pulse generator*/
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__IO uint32_t WIDTH2;		/*!< Output 2 pulse width of pulse generator*/
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__IO uint32_t CTRL;			/*!< Sync generator control register */
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__I  uint32_t COUNTER;		/*!< Counter of pulse generator*/
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__IO uint32_t RESERVED[2];	/*!< Reserved */
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** } syncio_chnl_reg_t;
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****   * @brief SyncIO Generator registers
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****   */
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** typedef struct
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_chnl_reg_t	SG[SG_CHANNEL_MAX];	/*!< SyncIO channels */
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__I  uint32_t		INT_STATE;			/*!< Interrupt state of SyncIO */
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__IO uint32_t		INT_MASK;			/*!< Interrupt mask of SyncIO */
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__O  uint32_t		INT_CLR;			/*!< Interrupt clear register */
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	__O  uint32_t		GBL_CTRL;			/*!< Global control register */
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** } syncio_reg_t;
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /*
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @brief syncio_irq_cfg_t
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  *
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * SyncIO interrupt configuration structure
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** typedef struct syncio_irq_cfg
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	void			(*callback_handler)(hal_syncio_channel_t chid,
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 										hal_syncio_irq_mode_t irq_status);
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	bool			irq_is_enabled;
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** } syncio_irq_cfg_t;
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* Private definition --------------------------------------------------------*/
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * SYNCIO: contains base address of SyncIO Pulse Generator
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define SYNCIO			((syncio_reg_t *)PPG_BASE)
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * CHANNEL(): bit mask for channel is used to configure registers
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define CHANNEL(x)		(1 << x)
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * PULSE_DONE(): bit mask for pulse done interrupt status.
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define PULSE_DONE(x)	(1 << x)
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * PULSE_DONE(): bit mask for repeat done interrupt status.
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define REPEAT_DONE(x)	(1 << (x + 6))
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * FALLING_EDGE(): bit mask for falling edge interrupt status.
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define FALLING_EDGE(x)	(1 << (x + 12))
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * REPEAT(): bit mask for repeat mode is used to configure registers
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define REPEAT(x)		(x << 4)
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * Macro is used for asserting channel number
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define IS_SYNCIO_CHANNEL(CHANNEL)		((CHANNEL >= SG_CHANNEL_0) && \
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 										(CHANNEL < SG_CHANNEL_MAX))
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * Macro is used for asserting infinite mode
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define IS_SYNCIO_INF_MODE(INF_MODE)	((INF_MODE == SG_INF_EN) || \
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 										(INF_MODE == SG_INF_DIS))
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * Macro is used for asserting trigger mode
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define IS_SYNCIO_TRIG_MODE(TRIG_MODE)	(((TRIG_MODE) == SG_TRIG_SW) || \
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 										((TRIG_MODE) == SG_TRIG_HW))
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * Macro is used for asserting interrupt modes
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define SG_INTR_MODE_ALL				(SG_INTR_PULSE_DONE | \
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 										SG_INTR_REPEAT_DONE | \
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 										SG_INTR_FALLING_EDGE)
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** #define IS_SYNCIO_INTR_MODES(MODES)		((MODES | SG_INTR_MODE_ALL) == \
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 										SG_INTR_MODE_ALL)
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* Private variables ---------------------------------------------------------*/
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* SyncIO interrupt configurations */
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** static syncio_irq_cfg_t syncio_irq_cfgs[SG_CHANNEL_MAX] =
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{.callback_handler = NULL, .irq_is_enabled = FALSE},	/* SyncIO0 */
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{.callback_handler = NULL, .irq_is_enabled = FALSE},	/* SyncIO1 */
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{.callback_handler = NULL, .irq_is_enabled = FALSE},	/* SyncIO2 */
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{.callback_handler = NULL, .irq_is_enabled = FALSE},	/* SyncIO3 */
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{.callback_handler = NULL, .irq_is_enabled = FALSE},	/* SyncIO4 */
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{.callback_handler = NULL, .irq_is_enabled = FALSE}		/* SyncIO5 */
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** };
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* Local function prototypes -------------------------------------------------*/
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** static void syncio_irq_handler(void);
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* Exported functions---------------------------------------------------------*/
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * hal_syncio_init
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The function shall initialize SyncIO global features
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** void hal_syncio_init(hal_syncio_channel_t chid)
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Reset pulse generator setting as default */
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].CTRL = (uint32_t)(SG_INF_EN | SG_TRIG_SW | SG_GEN_DIS);
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].LAT1 = 0;
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].LAT2 = 0;
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH1 = 0;
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH2 = 0;
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Disable all interrupts */
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->INT_MASK = 0;
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Clear all interrupts */
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->INT_CLR  = 0x0003FFFF;
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * hal_syncio_config
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * Configure pulse generator channel parameters
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** void hal_syncio_config(hal_syncio_channel_t chid, hal_syncio_cfg_t *cfg_val)
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(cfg_val != NULL);
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_INF_MODE(cfg_val->inf_mode));
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_TRIG_MODE(cfg_val->trig_mode));
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Configure SG channel*/
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].CTRL = cfg_val->trig_mode;
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	if(cfg_val->inf_mode)
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		SYNCIO->SG[chid].CTRL |= cfg_val->inf_mode;
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	}
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	else
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		SYNCIO->SG[chid].CTRL |= REPEAT(cfg_val->repeat);
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	}
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].LAT1 = cfg_val->lat1;
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].LAT2 = cfg_val->lat2;
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH1 = cfg_val->width1;
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH2 = cfg_val->width2;
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @brief hal_syncio_enable
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The function enables generating the SyncIO pulse of independent channel.
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** void hal_syncio_enable(hal_syncio_channel_t chid)
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Enable Pulse Generator mode */
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].CTRL |= SG_GEN_EN;
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * hal_syncio_disable
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The function disables generating the SyncIO pulse of independent channel.
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** void hal_syncio_disable(hal_syncio_channel_t chid)
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Disable Pulse Generator mode */
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].CTRL &= ~SG_GEN_EN;
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * hal_syncio_trigger
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The function triggers generating the SyncIO pulse
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * 		of the channels configured as SW trigger mode.
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** void hal_syncio_trigger(void)
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->GBL_CTRL = SG_SW_TRIGGER;
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @brief hal_syncio_syncio_enable_irq
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The function enable interrupt of independent SyncIO channel
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** void hal_syncio_enable_irq(hal_syncio_channel_t chid,
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 												hal_syncio_irq_t *irq_cfg)
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(irq_cfg != NULL);
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_INTR_MODES(irq_cfg->irq_modes));
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(irq_cfg->callback_handler != NULL);
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Store interrupt configuration */
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].callback_handler = irq_cfg->callback_handler;
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].irq_is_enabled = TRUE;
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Enable interrupt */
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->INT_MASK |= (irq_cfg->irq_modes << chid);
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Register interrupt handler */
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	vic_register_irq(PPG_IRQn, syncio_irq_handler);
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @brief hal_syncio_syncio_disable_irq
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The function disable interrupt of independent SyncIO channel
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** void hal_syncio_disable_irq(hal_syncio_channel_t chid)
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	uint8_t		i;
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Disable interrupt */
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->INT_MASK &= ~((PULSE_DONE(chid) | REPEAT_DONE(chid) |
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 							FALLING_EDGE(chid)));
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Clear interrupt pending */
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->INT_CLR |= PULSE_DONE(chid) | REPEAT_DONE(chid) |
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 							FALLING_EDGE(chid);
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Reset interrupt configuration */
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].callback_handler = NULL;
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].irq_is_enabled = FALSE;
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Unregister interrupt handler */
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	for (i = 0; i < SG_CHANNEL_MAX; i++)
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		if (syncio_irq_cfgs[i].irq_is_enabled == TRUE)
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			break;
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	if (i == SG_CHANNEL_MAX)
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		vic_unregister_irq(PPG_IRQn);
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * @brief hal_syncio_get_counter
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The function gets the counter register of independent SyncIO channel,
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * used for debug purpose.
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** uint32_t hal_syncio_get_counter(hal_syncio_channel_t chid)
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	return SYNCIO->SG[chid].COUNTER;
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /* Local function implementation ---------------------------------------------*/
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** /**
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * syncio_irq_handler
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  * The local function which processes SyncIO Interrupts
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c ****  */
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** static void syncio_irq_handler(void)
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** {
+  26              		.loc 1 284 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+  36              	.LBB2:
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	for (int i = 0; i < SG_CHANNEL_MAX; i++)
+  37              		.loc 1 285 0
+  38 0002 0024     		movs	r4, #0
+  39              	.LVL1:
+  40              	.L5:
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		/* Check whether pulse done interrupt occurred */
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		if((SYNCIO->INT_STATE & PULSE_DONE(i)) != RESET)
+  41              		.loc 1 288 0
+  42 0004 1E4B     		ldr	r3, .L17
+  43 0006 0121     		movs	r1, #1
+  44 0008 01FA04F0 		lsl	r0, r1, r4
+  45 000c D3F8C020 		ldr	r2, [r3, #192]
+  46 0010 1042     		tst	r0, r2
+  47 0012 09D0     		beq	.L2
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		{
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Clear interrupt bit */
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			SYNCIO->INT_CLR |= PULSE_DONE(i);
+  48              		.loc 1 291 0
+  49 0014 D3F8C820 		ldr	r2, [r3, #200]
+  50 0018 0243     		orrs	r2, r2, r0
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			syncio_irq_cfgs[i].callback_handler(i, SG_INTR_PULSE_DONE);
+  51              		.loc 1 293 0
+  52 001a E0B2     		uxtb	r0, r4
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+  53              		.loc 1 291 0
+  54 001c C3F8C820 		str	r2, [r3, #200]
+  55              		.loc 1 293 0
+  56 0020 184B     		ldr	r3, .L17+4
+  57 0022 53F83430 		ldr	r3, [r3, r4, lsl #3]
+  58 0026 9847     		blx	r3
+  59              	.LVL2:
+  60              	.L2:
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		}
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		/* Check whether repeat done interrupt occurred */
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		if((SYNCIO->INT_STATE & REPEAT_DONE(i)) != RESET)
+  61              		.loc 1 296 0
+  62 0028 154A     		ldr	r2, .L17
+  63 002a 0123     		movs	r3, #1
+  64 002c A01D     		adds	r0, r4, #6
+  65 002e 8340     		lsls	r3, r3, r0
+  66 0030 D2F8C010 		ldr	r1, [r2, #192]
+  67 0034 0B42     		tst	r3, r1
+  68 0036 0AD0     		beq	.L3
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		{
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Clear interrupt bit */
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			SYNCIO->INT_CLR |= REPEAT_DONE(i);
+  69              		.loc 1 299 0
+  70 0038 D2F8C810 		ldr	r1, [r2, #200]
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			syncio_irq_cfgs[i].callback_handler(i, SG_INTR_REPEAT_DONE);
+  71              		.loc 1 301 0
+  72 003c E0B2     		uxtb	r0, r4
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+  73              		.loc 1 299 0
+  74 003e 0B43     		orrs	r3, r3, r1
+  75              		.loc 1 301 0
+  76 0040 4021     		movs	r1, #64
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+  77              		.loc 1 299 0
+  78 0042 C2F8C830 		str	r3, [r2, #200]
+  79              		.loc 1 301 0
+  80 0046 0F4B     		ldr	r3, .L17+4
+  81 0048 53F83430 		ldr	r3, [r3, r4, lsl #3]
+  82 004c 9847     		blx	r3
+  83              	.LVL3:
+  84              	.L3:
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		}
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		/* Check whether falling edge interrupt occurred */
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		if((SYNCIO->INT_STATE & FALLING_EDGE(i)) != RESET)
+  85              		.loc 1 304 0
+  86 004e 0C4A     		ldr	r2, .L17
+  87 0050 0123     		movs	r3, #1
+  88 0052 04F10C00 		add	r0, r4, #12
+  89 0056 8340     		lsls	r3, r3, r0
+  90 0058 D2F8C010 		ldr	r1, [r2, #192]
+  91 005c 0B42     		tst	r3, r1
+  92 005e 0BD0     		beq	.L4
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		{
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Clear interrupt bit */
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			SYNCIO->INT_CLR |= FALLING_EDGE(i);
+  93              		.loc 1 307 0
+  94 0060 D2F8C810 		ldr	r1, [r2, #200]
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+ 309:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			syncio_irq_cfgs[i].callback_handler(i, SG_INTR_FALLING_EDGE);
+  95              		.loc 1 309 0
+  96 0064 E0B2     		uxtb	r0, r4
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+  97              		.loc 1 307 0
+  98 0066 0B43     		orrs	r3, r3, r1
+  99              		.loc 1 309 0
+ 100 0068 4FF48051 		mov	r1, #4096
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			/* Jump to handler */
+ 101              		.loc 1 307 0
+ 102 006c C2F8C830 		str	r3, [r2, #200]
+ 103              		.loc 1 309 0
+ 104 0070 044B     		ldr	r3, .L17+4
+ 105 0072 53F83430 		ldr	r3, [r3, r4, lsl #3]
+ 106 0076 9847     		blx	r3
+ 107              	.LVL4:
+ 108              	.L4:
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{
+ 109              		.loc 1 285 0 discriminator 2
+ 110 0078 0134     		adds	r4, r4, #1
+ 111              	.LVL5:
+ 112 007a 062C     		cmp	r4, #6
+ 113 007c C2D1     		bne	.L5
+ 114              	.LBE2:
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		}
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	}
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 115              		.loc 1 312 0
+ 116 007e 10BD     		pop	{r4, pc}
+ 117              	.LVL6:
+ 118              	.L18:
+ 119              		.align	2
+ 120              	.L17:
+ 121 0080 00B00102 		.word	33665024
+ 122 0084 00000000 		.word	.LANCHOR0
+ 123              		.cfi_endproc
+ 124              	.LFE9:
+ 126              		.section	.text.hal_syncio_init,"ax",%progbits
+ 127              		.align	1
+ 128              		.global	hal_syncio_init
+ 129              		.thumb
+ 130              		.thumb_func
+ 132              	hal_syncio_init:
+ 133              	.LFB1:
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Reset pulse generator setting as default */
+ 134              		.loc 1 144 0
+ 135              		.cfi_startproc
+ 136              		@ args = 0, pretend = 0, frame = 0
+ 137              		@ frame_needed = 0, uses_anonymous_args = 0
+ 138              		@ link register save eliminated.
+ 139              	.LVL7:
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].LAT1 = 0;
+ 140              		.loc 1 146 0
+ 141 0000 094A     		ldr	r2, .L20
+ 142 0002 4001     		lsls	r0, r0, #5
+ 143              	.LVL8:
+ 144 0004 0223     		movs	r3, #2
+ 145 0006 1118     		adds	r1, r2, r0
+ 146 0008 00F10070 		add	r0, r0, #33554432
+ 147 000c 0B61     		str	r3, [r1, #16]
+ 148 000e 00F5D830 		add	r0, r0, #110592
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].LAT2 = 0;
+ 149              		.loc 1 147 0
+ 150 0012 0023     		movs	r3, #0
+ 151 0014 0360     		str	r3, [r0]
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH1 = 0;
+ 152              		.loc 1 148 0
+ 153 0016 4360     		str	r3, [r0, #4]
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH2 = 0;
+ 154              		.loc 1 149 0
+ 155 0018 8B60     		str	r3, [r1, #8]
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Disable all interrupts */
+ 156              		.loc 1 150 0
+ 157 001a CB60     		str	r3, [r1, #12]
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Clear all interrupts */
+ 158              		.loc 1 152 0
+ 159 001c C2F8C430 		str	r3, [r2, #196]
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 160              		.loc 1 154 0
+ 161 0020 024B     		ldr	r3, .L20+4
+ 162 0022 C2F8C830 		str	r3, [r2, #200]
+ 163 0026 7047     		bx	lr
+ 164              	.L21:
+ 165              		.align	2
+ 166              	.L20:
+ 167 0028 00B00102 		.word	33665024
+ 168 002c FFFF0300 		.word	262143
+ 169              		.cfi_endproc
+ 170              	.LFE1:
+ 172              		.section	.text.hal_syncio_config,"ax",%progbits
+ 173              		.align	1
+ 174              		.global	hal_syncio_config
+ 175              		.thumb
+ 176              		.thumb_func
+ 178              	hal_syncio_config:
+ 179              	.LFB2:
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 180              		.loc 1 162 0
+ 181              		.cfi_startproc
+ 182              		@ args = 0, pretend = 0, frame = 0
+ 183              		@ frame_needed = 0, uses_anonymous_args = 0
+ 184              	.LVL9:
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(cfg_val != NULL);
+ 185              		.loc 1 163 0
+ 186 0000 0528     		cmp	r0, #5
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 187              		.loc 1 162 0
+ 188 0002 38B5     		push	{r3, r4, r5, lr}
+ 189              	.LCFI1:
+ 190              		.cfi_def_cfa_offset 16
+ 191              		.cfi_offset 3, -16
+ 192              		.cfi_offset 4, -12
+ 193              		.cfi_offset 5, -8
+ 194              		.cfi_offset 14, -4
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 195              		.loc 1 162 0
+ 196 0004 0446     		mov	r4, r0
+ 197 0006 0D46     		mov	r5, r1
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(cfg_val != NULL);
+ 198              		.loc 1 163 0
+ 199 0008 03D9     		bls	.L23
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(cfg_val != NULL);
+ 200              		.loc 1 163 0 is_stmt 0 discriminator 1
+ 201 000a 1A48     		ldr	r0, .L33
+ 202              	.LVL10:
+ 203 000c A321     		movs	r1, #163
+ 204              	.LVL11:
+ 205 000e 1A4B     		ldr	r3, .L33+4
+ 206 0010 9847     		blx	r3
+ 207              	.LVL12:
+ 208              	.L23:
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_INF_MODE(cfg_val->inf_mode));
+ 209              		.loc 1 164 0 is_stmt 1
+ 210 0012 1DB9     		cbnz	r5, .L24
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_INF_MODE(cfg_val->inf_mode));
+ 211              		.loc 1 164 0 is_stmt 0 discriminator 1
+ 212 0014 1748     		ldr	r0, .L33
+ 213 0016 A421     		movs	r1, #164
+ 214 0018 174B     		ldr	r3, .L33+4
+ 215 001a 9847     		blx	r3
+ 216              	.LVL13:
+ 217              	.L24:
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_TRIG_MODE(cfg_val->trig_mode));
+ 218              		.loc 1 165 0 is_stmt 1
+ 219 001c 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+ 220 001e 13F0FD0F 		tst	r3, #253
+ 221 0022 03D0     		beq	.L25
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_TRIG_MODE(cfg_val->trig_mode));
+ 222              		.loc 1 165 0 is_stmt 0 discriminator 2
+ 223 0024 1348     		ldr	r0, .L33
+ 224 0026 A521     		movs	r1, #165
+ 225 0028 134B     		ldr	r3, .L33+4
+ 226 002a 9847     		blx	r3
+ 227              	.LVL14:
+ 228              	.L25:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 229              		.loc 1 166 0 is_stmt 1
+ 230 002c 6B78     		ldrb	r3, [r5, #1]	@ zero_extendqisi2
+ 231 002e 012B     		cmp	r3, #1
+ 232 0030 03D9     		bls	.L26
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 233              		.loc 1 166 0 is_stmt 0 discriminator 1
+ 234 0032 1048     		ldr	r0, .L33
+ 235 0034 A621     		movs	r1, #166
+ 236 0036 104B     		ldr	r3, .L33+4
+ 237 0038 9847     		blx	r3
+ 238              	.LVL15:
+ 239              	.L26:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	if(cfg_val->inf_mode)
+ 240              		.loc 1 169 0 is_stmt 1
+ 241 003a 6001     		lsls	r0, r4, #5
+ 242 003c 6A78     		ldrb	r2, [r5, #1]	@ zero_extendqisi2
+ 243 003e 00F10073 		add	r3, r0, #33554432
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{
+ 244              		.loc 1 170 0
+ 245 0042 2978     		ldrb	r1, [r5]	@ zero_extendqisi2
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	if(cfg_val->inf_mode)
+ 246              		.loc 1 169 0
+ 247 0044 03F5D833 		add	r3, r3, #110592
+ 248 0048 1A61     		str	r2, [r3, #16]
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	}
+ 249              		.loc 1 172 0
+ 250 004a 1A69     		ldr	r2, [r3, #16]
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	{
+ 251              		.loc 1 170 0
+ 252 004c 09B1     		cbz	r1, .L27
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	}
+ 253              		.loc 1 172 0
+ 254 004e 0A43     		orrs	r2, r2, r1
+ 255 0050 02E0     		b	.L32
+ 256              	.L27:
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	}
+ 257              		.loc 1 176 0
+ 258 0052 297D     		ldrb	r1, [r5, #20]	@ zero_extendqisi2
+ 259 0054 42EA0112 		orr	r2, r2, r1, lsl #4
+ 260              	.L32:
+ 261 0058 1A61     		str	r2, [r3, #16]
+ 262 005a 00F10073 		add	r3, r0, #33554432
+ 263 005e 03F5D833 		add	r3, r3, #110592
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].LAT2 = cfg_val->lat2;
+ 264              		.loc 1 178 0
+ 265 0062 6A68     		ldr	r2, [r5, #4]
+ 266 0064 1A60     		str	r2, [r3]
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH1 = cfg_val->width1;
+ 267              		.loc 1 179 0
+ 268 0066 AA68     		ldr	r2, [r5, #8]
+ 269 0068 5A60     		str	r2, [r3, #4]
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->SG[chid].WIDTH2 = cfg_val->width2;
+ 270              		.loc 1 180 0
+ 271 006a EA68     		ldr	r2, [r5, #12]
+ 272 006c 9A60     		str	r2, [r3, #8]
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 273              		.loc 1 181 0
+ 274 006e 2A69     		ldr	r2, [r5, #16]
+ 275 0070 DA60     		str	r2, [r3, #12]
+ 276 0072 38BD     		pop	{r3, r4, r5, pc}
+ 277              	.LVL16:
+ 278              	.L34:
+ 279              		.align	2
+ 280              	.L33:
+ 281 0074 00000000 		.word	.LANCHOR1
+ 282 0078 00000000 		.word	assert_failed
+ 283              		.cfi_endproc
+ 284              	.LFE2:
+ 286              		.section	.text.hal_syncio_enable,"ax",%progbits
+ 287              		.align	1
+ 288              		.global	hal_syncio_enable
+ 289              		.thumb
+ 290              		.thumb_func
+ 292              	hal_syncio_enable:
+ 293              	.LFB3:
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 294              		.loc 1 189 0
+ 295              		.cfi_startproc
+ 296              		@ args = 0, pretend = 0, frame = 0
+ 297              		@ frame_needed = 0, uses_anonymous_args = 0
+ 298              	.LVL17:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 299              		.loc 1 190 0
+ 300 0000 0528     		cmp	r0, #5
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 301              		.loc 1 189 0
+ 302 0002 10B5     		push	{r4, lr}
+ 303              	.LCFI2:
+ 304              		.cfi_def_cfa_offset 8
+ 305              		.cfi_offset 4, -8
+ 306              		.cfi_offset 14, -4
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 307              		.loc 1 189 0
+ 308 0004 0446     		mov	r4, r0
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 309              		.loc 1 190 0
+ 310 0006 03D9     		bls	.L36
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 311              		.loc 1 190 0 is_stmt 0 discriminator 1
+ 312 0008 0648     		ldr	r0, .L37
+ 313              	.LVL18:
+ 314 000a BE21     		movs	r1, #190
+ 315 000c 064B     		ldr	r3, .L37+4
+ 316 000e 9847     		blx	r3
+ 317              	.LVL19:
+ 318              	.L36:
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 319              		.loc 1 193 0 is_stmt 1
+ 320 0010 6001     		lsls	r0, r4, #5
+ 321 0012 00F10070 		add	r0, r0, #33554432
+ 322 0016 00F5D830 		add	r0, r0, #110592
+ 323 001a 0369     		ldr	r3, [r0, #16]
+ 324 001c 43F48053 		orr	r3, r3, #4096
+ 325 0020 0361     		str	r3, [r0, #16]
+ 326 0022 10BD     		pop	{r4, pc}
+ 327              	.L38:
+ 328              		.align	2
+ 329              	.L37:
+ 330 0024 00000000 		.word	.LANCHOR2
+ 331 0028 00000000 		.word	assert_failed
+ 332              		.cfi_endproc
+ 333              	.LFE3:
+ 335              		.section	.text.hal_syncio_disable,"ax",%progbits
+ 336              		.align	1
+ 337              		.global	hal_syncio_disable
+ 338              		.thumb
+ 339              		.thumb_func
+ 341              	hal_syncio_disable:
+ 342              	.LFB4:
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 343              		.loc 1 201 0
+ 344              		.cfi_startproc
+ 345              		@ args = 0, pretend = 0, frame = 0
+ 346              		@ frame_needed = 0, uses_anonymous_args = 0
+ 347              	.LVL20:
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 348              		.loc 1 202 0
+ 349 0000 0528     		cmp	r0, #5
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 350              		.loc 1 201 0
+ 351 0002 10B5     		push	{r4, lr}
+ 352              	.LCFI3:
+ 353              		.cfi_def_cfa_offset 8
+ 354              		.cfi_offset 4, -8
+ 355              		.cfi_offset 14, -4
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 356              		.loc 1 201 0
+ 357 0004 0446     		mov	r4, r0
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 358              		.loc 1 202 0
+ 359 0006 03D9     		bls	.L40
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 360              		.loc 1 202 0 is_stmt 0 discriminator 1
+ 361 0008 0648     		ldr	r0, .L41
+ 362              	.LVL21:
+ 363 000a CA21     		movs	r1, #202
+ 364 000c 064B     		ldr	r3, .L41+4
+ 365 000e 9847     		blx	r3
+ 366              	.LVL22:
+ 367              	.L40:
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 368              		.loc 1 205 0 is_stmt 1
+ 369 0010 6001     		lsls	r0, r4, #5
+ 370 0012 00F10070 		add	r0, r0, #33554432
+ 371 0016 00F5D830 		add	r0, r0, #110592
+ 372 001a 0369     		ldr	r3, [r0, #16]
+ 373 001c 23F48053 		bic	r3, r3, #4096
+ 374 0020 0361     		str	r3, [r0, #16]
+ 375 0022 10BD     		pop	{r4, pc}
+ 376              	.L42:
+ 377              		.align	2
+ 378              	.L41:
+ 379 0024 00000000 		.word	.LANCHOR3
+ 380 0028 00000000 		.word	assert_failed
+ 381              		.cfi_endproc
+ 382              	.LFE4:
+ 384              		.section	.text.hal_syncio_trigger,"ax",%progbits
+ 385              		.align	1
+ 386              		.global	hal_syncio_trigger
+ 387              		.thumb
+ 388              		.thumb_func
+ 390              	hal_syncio_trigger:
+ 391              	.LFB5:
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	SYNCIO->GBL_CTRL = SG_SW_TRIGGER;
+ 392              		.loc 1 214 0
+ 393              		.cfi_startproc
+ 394              		@ args = 0, pretend = 0, frame = 0
+ 395              		@ frame_needed = 0, uses_anonymous_args = 0
+ 396              		@ link register save eliminated.
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 397              		.loc 1 215 0
+ 398 0000 0122     		movs	r2, #1
+ 399 0002 024B     		ldr	r3, .L44
+ 400 0004 C3F8CC20 		str	r2, [r3, #204]
+ 401 0008 7047     		bx	lr
+ 402              	.L45:
+ 403 000a 00BF     		.align	2
+ 404              	.L44:
+ 405 000c 00B00102 		.word	33665024
+ 406              		.cfi_endproc
+ 407              	.LFE5:
+ 409              		.section	.text.hal_syncio_enable_irq,"ax",%progbits
+ 410              		.align	1
+ 411              		.global	hal_syncio_enable_irq
+ 412              		.thumb
+ 413              		.thumb_func
+ 415              	hal_syncio_enable_irq:
+ 416              	.LFB6:
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 417              		.loc 1 224 0
+ 418              		.cfi_startproc
+ 419              		@ args = 0, pretend = 0, frame = 0
+ 420              		@ frame_needed = 0, uses_anonymous_args = 0
+ 421              	.LVL23:
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(irq_cfg != NULL);
+ 422              		.loc 1 225 0
+ 423 0000 0528     		cmp	r0, #5
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 424              		.loc 1 224 0
+ 425 0002 38B5     		push	{r3, r4, r5, lr}
+ 426              	.LCFI4:
+ 427              		.cfi_def_cfa_offset 16
+ 428              		.cfi_offset 3, -16
+ 429              		.cfi_offset 4, -12
+ 430              		.cfi_offset 5, -8
+ 431              		.cfi_offset 14, -4
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 432              		.loc 1 224 0
+ 433 0004 0546     		mov	r5, r0
+ 434 0006 0C46     		mov	r4, r1
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(irq_cfg != NULL);
+ 435              		.loc 1 225 0
+ 436 0008 03D9     		bls	.L47
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(irq_cfg != NULL);
+ 437              		.loc 1 225 0 is_stmt 0 discriminator 1
+ 438 000a 1948     		ldr	r0, .L51
+ 439              	.LVL24:
+ 440 000c E121     		movs	r1, #225
+ 441              	.LVL25:
+ 442 000e 194B     		ldr	r3, .L51+4
+ 443 0010 9847     		blx	r3
+ 444              	.LVL26:
+ 445              	.L47:
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_INTR_MODES(irq_cfg->irq_modes));
+ 446              		.loc 1 226 0 is_stmt 1
+ 447 0012 1CB9     		cbnz	r4, .L48
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_INTR_MODES(irq_cfg->irq_modes));
+ 448              		.loc 1 226 0 is_stmt 0 discriminator 1
+ 449 0014 1648     		ldr	r0, .L51
+ 450 0016 E221     		movs	r1, #226
+ 451 0018 164B     		ldr	r3, .L51+4
+ 452 001a 9847     		blx	r3
+ 453              	.LVL27:
+ 454              	.L48:
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(irq_cfg->callback_handler != NULL);
+ 455              		.loc 1 227 0 is_stmt 1
+ 456 001c 2388     		ldrh	r3, [r4]
+ 457 001e 43F48253 		orr	r3, r3, #4160
+ 458 0022 43F00103 		orr	r3, r3, #1
+ 459 0026 41F24102 		movw	r2, #4161
+ 460 002a 9BB2     		uxth	r3, r3
+ 461 002c 9342     		cmp	r3, r2
+ 462 002e 03D0     		beq	.L49
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(irq_cfg->callback_handler != NULL);
+ 463              		.loc 1 227 0 is_stmt 0 discriminator 1
+ 464 0030 0F48     		ldr	r0, .L51
+ 465 0032 E321     		movs	r1, #227
+ 466 0034 0F4B     		ldr	r3, .L51+4
+ 467 0036 9847     		blx	r3
+ 468              	.LVL28:
+ 469              	.L49:
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 470              		.loc 1 228 0 is_stmt 1
+ 471 0038 6368     		ldr	r3, [r4, #4]
+ 472 003a 1BB9     		cbnz	r3, .L50
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 473              		.loc 1 228 0 is_stmt 0 discriminator 1
+ 474 003c 0C48     		ldr	r0, .L51
+ 475 003e E421     		movs	r1, #228
+ 476 0040 0C4B     		ldr	r3, .L51+4
+ 477 0042 9847     		blx	r3
+ 478              	.LVL29:
+ 479              	.L50:
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].irq_is_enabled = TRUE;
+ 480              		.loc 1 231 0 is_stmt 1
+ 481 0044 0C4B     		ldr	r3, .L51+8
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 482              		.loc 1 236 0
+ 483 0046 0620     		movs	r0, #6
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].irq_is_enabled = TRUE;
+ 484              		.loc 1 231 0
+ 485 0048 6268     		ldr	r2, [r4, #4]
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Register interrupt handler */
+ 486              		.loc 1 234 0
+ 487 004a 0C49     		ldr	r1, .L51+12
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].irq_is_enabled = TRUE;
+ 488              		.loc 1 231 0
+ 489 004c 43F83520 		str	r2, [r3, r5, lsl #3]
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Enable interrupt */
+ 490              		.loc 1 232 0
+ 491 0050 03EBC503 		add	r3, r3, r5, lsl #3
+ 492 0054 0122     		movs	r2, #1
+ 493 0056 1A71     		strb	r2, [r3, #4]
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Register interrupt handler */
+ 494              		.loc 1 234 0
+ 495 0058 2388     		ldrh	r3, [r4]
+ 496 005a D1F8C420 		ldr	r2, [r1, #196]
+ 497 005e AB40     		lsls	r3, r3, r5
+ 498 0060 1343     		orrs	r3, r3, r2
+ 499 0062 C1F8C430 		str	r3, [r1, #196]
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 500              		.loc 1 236 0
+ 501 0066 0649     		ldr	r1, .L51+16
+ 502 0068 064B     		ldr	r3, .L51+20
+ 503 006a 9847     		blx	r3
+ 504              	.LVL30:
+ 505 006c 38BD     		pop	{r3, r4, r5, pc}
+ 506              	.LVL31:
+ 507              	.L52:
+ 508 006e 00BF     		.align	2
+ 509              	.L51:
+ 510 0070 00000000 		.word	.LANCHOR4
+ 511 0074 00000000 		.word	assert_failed
+ 512 0078 00000000 		.word	.LANCHOR0
+ 513 007c 00B00102 		.word	33665024
+ 514 0080 00000000 		.word	syncio_irq_handler
+ 515 0084 00000000 		.word	vic_register_irq
+ 516              		.cfi_endproc
+ 517              	.LFE6:
+ 519              		.section	.text.hal_syncio_disable_irq,"ax",%progbits
+ 520              		.align	1
+ 521              		.global	hal_syncio_disable_irq
+ 522              		.thumb
+ 523              		.thumb_func
+ 525              	hal_syncio_disable_irq:
+ 526              	.LFB7:
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	uint8_t		i;
+ 527              		.loc 1 244 0
+ 528              		.cfi_startproc
+ 529              		@ args = 0, pretend = 0, frame = 0
+ 530              		@ frame_needed = 0, uses_anonymous_args = 0
+ 531              	.LVL32:
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 532              		.loc 1 247 0
+ 533 0000 0528     		cmp	r0, #5
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	uint8_t		i;
+ 534              		.loc 1 244 0
+ 535 0002 38B5     		push	{r3, r4, r5, lr}
+ 536              	.LCFI5:
+ 537              		.cfi_def_cfa_offset 16
+ 538              		.cfi_offset 3, -16
+ 539              		.cfi_offset 4, -12
+ 540              		.cfi_offset 5, -8
+ 541              		.cfi_offset 14, -4
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	uint8_t		i;
+ 542              		.loc 1 244 0
+ 543 0004 0446     		mov	r4, r0
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 544              		.loc 1 247 0
+ 545 0006 03D9     		bls	.L54
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 546              		.loc 1 247 0 is_stmt 0 discriminator 1
+ 547 0008 1548     		ldr	r0, .L59
+ 548              	.LVL33:
+ 549 000a F721     		movs	r1, #247
+ 550 000c 154B     		ldr	r3, .L59+4
+ 551 000e 9847     		blx	r3
+ 552              	.LVL34:
+ 553              	.L54:
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 							FALLING_EDGE(chid)));
+ 554              		.loc 1 250 0 is_stmt 1
+ 555 0010 0123     		movs	r3, #1
+ 556 0012 154A     		ldr	r2, .L59+8
+ 557 0014 A01D     		adds	r0, r4, #6
+ 558 0016 03FA00F5 		lsl	r5, r3, r0
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Clear interrupt pending */
+ 559              		.loc 1 251 0
+ 560 001a 04F10C00 		add	r0, r4, #12
+ 561 001e 03FA00F0 		lsl	r0, r3, r0
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 							FALLING_EDGE(chid)));
+ 562              		.loc 1 250 0
+ 563 0022 D2F8C410 		ldr	r1, [r2, #196]
+ 564 0026 2843     		orrs	r0, r0, r5
+ 565 0028 A340     		lsls	r3, r3, r4
+ 566 002a 0343     		orrs	r3, r3, r0
+ 567 002c 21EA0301 		bic	r1, r1, r3
+ 568 0030 C2F8C410 		str	r1, [r2, #196]
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 							FALLING_EDGE(chid);
+ 569              		.loc 1 253 0
+ 570 0034 D2F8C810 		ldr	r1, [r2, #200]
+ 571 0038 0B43     		orrs	r3, r3, r1
+ 572 003a C2F8C830 		str	r3, [r2, #200]
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	syncio_irq_cfgs[chid].irq_is_enabled = FALSE;
+ 573              		.loc 1 256 0
+ 574 003e 0023     		movs	r3, #0
+ 575 0040 0A4A     		ldr	r2, .L59+12
+ 576 0042 42F83430 		str	r3, [r2, r4, lsl #3]
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	/* Unregister interrupt handler */
+ 577              		.loc 1 257 0
+ 578 0046 02EBC404 		add	r4, r2, r4, lsl #3
+ 579 004a 2371     		strb	r3, [r4, #4]
+ 580              	.LVL35:
+ 581              	.L56:
+ 582 004c D118     		adds	r1, r2, r3
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 			break;
+ 583              		.loc 1 260 0
+ 584 004e 0979     		ldrb	r1, [r1, #4]	@ zero_extendqisi2
+ 585 0050 29B9     		cbnz	r1, .L53
+ 586 0052 0833     		adds	r3, r3, #8
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 		if (syncio_irq_cfgs[i].irq_is_enabled == TRUE)
+ 587              		.loc 1 259 0 discriminator 2
+ 588 0054 302B     		cmp	r3, #48
+ 589 0056 F9D1     		bne	.L56
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 590              		.loc 1 263 0
+ 591 0058 0620     		movs	r0, #6
+ 592 005a 054B     		ldr	r3, .L59+16
+ 593 005c 9847     		blx	r3
+ 594              	.LVL36:
+ 595              	.L53:
+ 596 005e 38BD     		pop	{r3, r4, r5, pc}
+ 597              	.L60:
+ 598              		.align	2
+ 599              	.L59:
+ 600 0060 00000000 		.word	.LANCHOR5
+ 601 0064 00000000 		.word	assert_failed
+ 602 0068 00B00102 		.word	33665024
+ 603 006c 00000000 		.word	.LANCHOR0
+ 604 0070 00000000 		.word	vic_unregister_irq
+ 605              		.cfi_endproc
+ 606              	.LFE7:
+ 608              		.section	.text.hal_syncio_get_counter,"ax",%progbits
+ 609              		.align	1
+ 610              		.global	hal_syncio_get_counter
+ 611              		.thumb
+ 612              		.thumb_func
+ 614              	hal_syncio_get_counter:
+ 615              	.LFB8:
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 616              		.loc 1 272 0
+ 617              		.cfi_startproc
+ 618              		@ args = 0, pretend = 0, frame = 0
+ 619              		@ frame_needed = 0, uses_anonymous_args = 0
+ 620              	.LVL37:
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 621              		.loc 1 273 0
+ 622 0000 0528     		cmp	r0, #5
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 623              		.loc 1 272 0
+ 624 0002 10B5     		push	{r4, lr}
+ 625              	.LCFI6:
+ 626              		.cfi_def_cfa_offset 8
+ 627              		.cfi_offset 4, -8
+ 628              		.cfi_offset 14, -4
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 	assert_param(IS_SYNCIO_CHANNEL(chid));
+ 629              		.loc 1 272 0
+ 630 0004 0446     		mov	r4, r0
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 631              		.loc 1 273 0
+ 632 0006 04D9     		bls	.L62
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 633              		.loc 1 273 0 is_stmt 0 discriminator 1
+ 634 0008 0448     		ldr	r0, .L63
+ 635              	.LVL38:
+ 636 000a 40F21111 		movw	r1, #273
+ 637 000e 044B     		ldr	r3, .L63+4
+ 638 0010 9847     		blx	r3
+ 639              	.LVL39:
+ 640              	.L62:
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** }
+ 641              		.loc 1 275 0 is_stmt 1
+ 642 0012 6401     		lsls	r4, r4, #5
+ 643 0014 034B     		ldr	r3, .L63+8
+ 644 0016 1859     		ldr	r0, [r3, r4]
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_syncio.c **** 
+ 645              		.loc 1 276 0
+ 646 0018 10BD     		pop	{r4, pc}
+ 647              	.L64:
+ 648 001a 00BF     		.align	2
+ 649              	.L63:
+ 650 001c 00000000 		.word	.LANCHOR6
+ 651 0020 00000000 		.word	assert_failed
+ 652 0024 14B00102 		.word	33665044
+ 653              		.cfi_endproc
+ 654              	.LFE8:
+ 656              		.section	.rodata.__FUNCTION__.6352,"a",%progbits
+ 657              		.set	.LANCHOR5,. + 0
+ 660              	__FUNCTION__.6352:
+ 661 0000 68616C5F 		.ascii	"hal_syncio_disable_irq\000"
+ 661      73796E63 
+ 661      696F5F64 
+ 661      69736162 
+ 661      6C655F69 
+ 662              		.section	.rodata.__FUNCTION__.6347,"a",%progbits
+ 663              		.set	.LANCHOR4,. + 0
+ 666              	__FUNCTION__.6347:
+ 667 0000 68616C5F 		.ascii	"hal_syncio_enable_irq\000"
+ 667      73796E63 
+ 667      696F5F65 
+ 667      6E61626C 
+ 667      655F6972 
+ 668              		.section	.rodata.__FUNCTION__.6359,"a",%progbits
+ 669              		.set	.LANCHOR6,. + 0
+ 672              	__FUNCTION__.6359:
+ 673 0000 68616C5F 		.ascii	"hal_syncio_get_counter\000"
+ 673      73796E63 
+ 673      696F5F67 
+ 673      65745F63 
+ 673      6F756E74 
+ 674              		.section	.bss.syncio_irq_cfgs,"aw",%nobits
+ 675              		.align	2
+ 676              		.set	.LANCHOR0,. + 0
+ 679              	syncio_irq_cfgs:
+ 680 0000 00000000 		.space	48
+ 680      00000000 
+ 680      00000000 
+ 680      00000000 
+ 680      00000000 
+ 681              		.section	.rodata.__FUNCTION__.6331,"a",%progbits
+ 682              		.set	.LANCHOR1,. + 0
+ 685              	__FUNCTION__.6331:
+ 686 0000 68616C5F 		.ascii	"hal_syncio_config\000"
+ 686      73796E63 
+ 686      696F5F63 
+ 686      6F6E6669 
+ 686      6700
+ 687              		.section	.rodata.__FUNCTION__.6335,"a",%progbits
+ 688              		.set	.LANCHOR2,. + 0
+ 691              	__FUNCTION__.6335:
+ 692 0000 68616C5F 		.ascii	"hal_syncio_enable\000"
+ 692      73796E63 
+ 692      696F5F65 
+ 692      6E61626C 
+ 692      6500
+ 693              		.section	.rodata.__FUNCTION__.6339,"a",%progbits
+ 694              		.set	.LANCHOR3,. + 0
+ 697              	__FUNCTION__.6339:
+ 698 0000 68616C5F 		.ascii	"hal_syncio_disable\000"
+ 698      73796E63 
+ 698      696F5F64 
+ 698      69736162 
+ 698      6C6500
+ 699              		.text
+ 700              	.Letext0:
+ 701              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 702              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 703              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_syncio.h"
+ 704              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 705              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_syncio.c
+     /tmp/cc1ipnNh.s:19     .text.syncio_irq_handler:00000000 $t
+     /tmp/cc1ipnNh.s:23     .text.syncio_irq_handler:00000000 syncio_irq_handler
+     /tmp/cc1ipnNh.s:121    .text.syncio_irq_handler:00000080 $d
+     /tmp/cc1ipnNh.s:127    .text.hal_syncio_init:00000000 $t
+     /tmp/cc1ipnNh.s:132    .text.hal_syncio_init:00000000 hal_syncio_init
+     /tmp/cc1ipnNh.s:167    .text.hal_syncio_init:00000028 $d
+     /tmp/cc1ipnNh.s:173    .text.hal_syncio_config:00000000 $t
+     /tmp/cc1ipnNh.s:178    .text.hal_syncio_config:00000000 hal_syncio_config
+     /tmp/cc1ipnNh.s:281    .text.hal_syncio_config:00000074 $d
+     /tmp/cc1ipnNh.s:287    .text.hal_syncio_enable:00000000 $t
+     /tmp/cc1ipnNh.s:292    .text.hal_syncio_enable:00000000 hal_syncio_enable
+     /tmp/cc1ipnNh.s:330    .text.hal_syncio_enable:00000024 $d
+     /tmp/cc1ipnNh.s:336    .text.hal_syncio_disable:00000000 $t
+     /tmp/cc1ipnNh.s:341    .text.hal_syncio_disable:00000000 hal_syncio_disable
+     /tmp/cc1ipnNh.s:379    .text.hal_syncio_disable:00000024 $d
+     /tmp/cc1ipnNh.s:385    .text.hal_syncio_trigger:00000000 $t
+     /tmp/cc1ipnNh.s:390    .text.hal_syncio_trigger:00000000 hal_syncio_trigger
+     /tmp/cc1ipnNh.s:405    .text.hal_syncio_trigger:0000000c $d
+     /tmp/cc1ipnNh.s:410    .text.hal_syncio_enable_irq:00000000 $t
+     /tmp/cc1ipnNh.s:415    .text.hal_syncio_enable_irq:00000000 hal_syncio_enable_irq
+     /tmp/cc1ipnNh.s:510    .text.hal_syncio_enable_irq:00000070 $d
+     /tmp/cc1ipnNh.s:520    .text.hal_syncio_disable_irq:00000000 $t
+     /tmp/cc1ipnNh.s:525    .text.hal_syncio_disable_irq:00000000 hal_syncio_disable_irq
+     /tmp/cc1ipnNh.s:600    .text.hal_syncio_disable_irq:00000060 $d
+     /tmp/cc1ipnNh.s:609    .text.hal_syncio_get_counter:00000000 $t
+     /tmp/cc1ipnNh.s:614    .text.hal_syncio_get_counter:00000000 hal_syncio_get_counter
+     /tmp/cc1ipnNh.s:650    .text.hal_syncio_get_counter:0000001c $d
+     /tmp/cc1ipnNh.s:660    .rodata.__FUNCTION__.6352:00000000 __FUNCTION__.6352
+     /tmp/cc1ipnNh.s:666    .rodata.__FUNCTION__.6347:00000000 __FUNCTION__.6347
+     /tmp/cc1ipnNh.s:672    .rodata.__FUNCTION__.6359:00000000 __FUNCTION__.6359
+     /tmp/cc1ipnNh.s:675    .bss.syncio_irq_cfgs:00000000 $d
+     /tmp/cc1ipnNh.s:679    .bss.syncio_irq_cfgs:00000000 syncio_irq_cfgs
+     /tmp/cc1ipnNh.s:685    .rodata.__FUNCTION__.6331:00000000 __FUNCTION__.6331
+     /tmp/cc1ipnNh.s:691    .rodata.__FUNCTION__.6335:00000000 __FUNCTION__.6335
+     /tmp/cc1ipnNh.s:697    .rodata.__FUNCTION__.6339:00000000 __FUNCTION__.6339
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed
+vic_register_irq
+vic_unregister_irq

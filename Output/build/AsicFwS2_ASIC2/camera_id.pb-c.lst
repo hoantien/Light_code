@@ -1,0 +1,294 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"camera_id.pb-c.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	ltpb__camera_id__descriptor
+  19              		.section	.rodata.ltpb__camera_id__enum_values_by_number,"a",%progbits
+  20              		.align	2
+  23              	ltpb__camera_id__enum_values_by_number:
+  24 0000 2B000000 		.word	.LC4
+  25 0004 5B000000 		.word	.LC20
+  26 0008 00000000 		.word	0
+  27 000c 2E000000 		.word	.LC5
+  28 0010 6F000000 		.word	.LC21
+  29 0014 01000000 		.word	1
+  30 0018 31000000 		.word	.LC6
+  31 001c 83000000 		.word	.LC22
+  32 0020 02000000 		.word	2
+  33 0024 34000000 		.word	.LC7
+  34 0028 97000000 		.word	.LC23
+  35 002c 03000000 		.word	3
+  36 0030 37000000 		.word	.LC8
+  37 0034 AB000000 		.word	.LC24
+  38 0038 04000000 		.word	4
+  39 003c 3A000000 		.word	.LC9
+  40 0040 BF000000 		.word	.LC25
+  41 0044 05000000 		.word	5
+  42 0048 3D000000 		.word	.LC10
+  43 004c D3000000 		.word	.LC26
+  44 0050 06000000 		.word	6
+  45 0054 40000000 		.word	.LC11
+  46 0058 E7000000 		.word	.LC27
+  47 005c 07000000 		.word	7
+  48 0060 43000000 		.word	.LC12
+  49 0064 FB000000 		.word	.LC28
+  50 0068 08000000 		.word	8
+  51 006c 46000000 		.word	.LC13
+  52 0070 0F010000 		.word	.LC29
+  53 0074 09000000 		.word	9
+  54 0078 49000000 		.word	.LC14
+  55 007c 23010000 		.word	.LC30
+  56 0080 0A000000 		.word	10
+  57 0084 4C000000 		.word	.LC15
+  58 0088 37010000 		.word	.LC31
+  59 008c 0B000000 		.word	11
+  60 0090 4F000000 		.word	.LC16
+  61 0094 4B010000 		.word	.LC32
+  62 0098 0C000000 		.word	12
+  63 009c 52000000 		.word	.LC17
+  64 00a0 5F010000 		.word	.LC33
+  65 00a4 0D000000 		.word	13
+  66 00a8 55000000 		.word	.LC18
+  67 00ac 73010000 		.word	.LC34
+  68 00b0 0E000000 		.word	14
+  69 00b4 58000000 		.word	.LC19
+  70 00b8 87010000 		.word	.LC35
+  71 00bc 0F000000 		.word	15
+  72              		.section	.rodata.ltpb__camera_id__descriptor,"a",%progbits
+  73              		.align	2
+  76              	ltpb__camera_id__descriptor:
+  77 0000 AF154311 		.word	289609135
+  78 0004 00000000 		.word	.LC0
+  79 0008 0E000000 		.word	.LC1
+  80 000c 17000000 		.word	.LC2
+  81 0010 26000000 		.word	.LC3
+  82 0014 10000000 		.word	16
+  83 0018 00000000 		.word	ltpb__camera_id__enum_values_by_number
+  84 001c 10000000 		.word	16
+  85 0020 00000000 		.word	ltpb__camera_id__enum_values_by_name
+  86 0024 01000000 		.word	1
+  87 0028 00000000 		.word	ltpb__camera_id__value_ranges
+  88 002c 00000000 		.word	0
+  89 0030 00000000 		.word	0
+  90 0034 00000000 		.word	0
+  91 0038 00000000 		.word	0
+  92              		.section	.rodata.str1.1,"aMS",%progbits,1
+  93              	.LC0:
+  94 0000 6C747062 		.ascii	"ltpb.CameraID\000"
+  94      2E43616D 
+  94      65726149 
+  94      4400
+  95              	.LC1:
+  96 000e 43616D65 		.ascii	"CameraID\000"
+  96      72614944 
+  96      00
+  97              	.LC2:
+  98 0017 4C747062 		.ascii	"Ltpb__CameraID\000"
+  98      5F5F4361 
+  98      6D657261 
+  98      494400
+  99              	.LC3:
+ 100 0026 6C747062 		.ascii	"ltpb\000"
+ 100      00
+ 101              	.LC4:
+ 102 002b 413100   		.ascii	"A1\000"
+ 103              	.LC5:
+ 104 002e 413200   		.ascii	"A2\000"
+ 105              	.LC6:
+ 106 0031 413300   		.ascii	"A3\000"
+ 107              	.LC7:
+ 108 0034 413400   		.ascii	"A4\000"
+ 109              	.LC8:
+ 110 0037 413500   		.ascii	"A5\000"
+ 111              	.LC9:
+ 112 003a 423100   		.ascii	"B1\000"
+ 113              	.LC10:
+ 114 003d 423200   		.ascii	"B2\000"
+ 115              	.LC11:
+ 116 0040 423300   		.ascii	"B3\000"
+ 117              	.LC12:
+ 118 0043 423400   		.ascii	"B4\000"
+ 119              	.LC13:
+ 120 0046 423500   		.ascii	"B5\000"
+ 121              	.LC14:
+ 122 0049 433100   		.ascii	"C1\000"
+ 123              	.LC15:
+ 124 004c 433200   		.ascii	"C2\000"
+ 125              	.LC16:
+ 126 004f 433300   		.ascii	"C3\000"
+ 127              	.LC17:
+ 128 0052 433400   		.ascii	"C4\000"
+ 129              	.LC18:
+ 130 0055 433500   		.ascii	"C5\000"
+ 131              	.LC19:
+ 132 0058 433600   		.ascii	"C6\000"
+ 133              	.LC20:
+ 134 005b 4C545042 		.ascii	"LTPB__CAMERA_ID__A1\000"
+ 134      5F5F4341 
+ 134      4D455241 
+ 134      5F49445F 
+ 134      5F413100 
+ 135              	.LC21:
+ 136 006f 4C545042 		.ascii	"LTPB__CAMERA_ID__A2\000"
+ 136      5F5F4341 
+ 136      4D455241 
+ 136      5F49445F 
+ 136      5F413200 
+ 137              	.LC22:
+ 138 0083 4C545042 		.ascii	"LTPB__CAMERA_ID__A3\000"
+ 138      5F5F4341 
+ 138      4D455241 
+ 138      5F49445F 
+ 138      5F413300 
+ 139              	.LC23:
+ 140 0097 4C545042 		.ascii	"LTPB__CAMERA_ID__A4\000"
+ 140      5F5F4341 
+ 140      4D455241 
+ 140      5F49445F 
+ 140      5F413400 
+ 141              	.LC24:
+ 142 00ab 4C545042 		.ascii	"LTPB__CAMERA_ID__A5\000"
+ 142      5F5F4341 
+ 142      4D455241 
+ 142      5F49445F 
+ 142      5F413500 
+ 143              	.LC25:
+ 144 00bf 4C545042 		.ascii	"LTPB__CAMERA_ID__B1\000"
+ 144      5F5F4341 
+ 144      4D455241 
+ 144      5F49445F 
+ 144      5F423100 
+ 145              	.LC26:
+ 146 00d3 4C545042 		.ascii	"LTPB__CAMERA_ID__B2\000"
+ 146      5F5F4341 
+ 146      4D455241 
+ 146      5F49445F 
+ 146      5F423200 
+ 147              	.LC27:
+ 148 00e7 4C545042 		.ascii	"LTPB__CAMERA_ID__B3\000"
+ 148      5F5F4341 
+ 148      4D455241 
+ 148      5F49445F 
+ 148      5F423300 
+ 149              	.LC28:
+ 150 00fb 4C545042 		.ascii	"LTPB__CAMERA_ID__B4\000"
+ 150      5F5F4341 
+ 150      4D455241 
+ 150      5F49445F 
+ 150      5F423400 
+ 151              	.LC29:
+ 152 010f 4C545042 		.ascii	"LTPB__CAMERA_ID__B5\000"
+ 152      5F5F4341 
+ 152      4D455241 
+ 152      5F49445F 
+ 152      5F423500 
+ 153              	.LC30:
+ 154 0123 4C545042 		.ascii	"LTPB__CAMERA_ID__C1\000"
+ 154      5F5F4341 
+ 154      4D455241 
+ 154      5F49445F 
+ 154      5F433100 
+ 155              	.LC31:
+ 156 0137 4C545042 		.ascii	"LTPB__CAMERA_ID__C2\000"
+ 156      5F5F4341 
+ 156      4D455241 
+ 156      5F49445F 
+ 156      5F433200 
+ 157              	.LC32:
+ 158 014b 4C545042 		.ascii	"LTPB__CAMERA_ID__C3\000"
+ 158      5F5F4341 
+ 158      4D455241 
+ 158      5F49445F 
+ 158      5F433300 
+ 159              	.LC33:
+ 160 015f 4C545042 		.ascii	"LTPB__CAMERA_ID__C4\000"
+ 160      5F5F4341 
+ 160      4D455241 
+ 160      5F49445F 
+ 160      5F433400 
+ 161              	.LC34:
+ 162 0173 4C545042 		.ascii	"LTPB__CAMERA_ID__C5\000"
+ 162      5F5F4341 
+ 162      4D455241 
+ 162      5F49445F 
+ 162      5F433500 
+ 163              	.LC35:
+ 164 0187 4C545042 		.ascii	"LTPB__CAMERA_ID__C6\000"
+ 164      5F5F4341 
+ 164      4D455241 
+ 164      5F49445F 
+ 164      5F433600 
+ 165              		.section	.rodata.ltpb__camera_id__value_ranges,"a",%progbits
+ 166              		.align	2
+ 169              	ltpb__camera_id__value_ranges:
+ 170 0000 00000000 		.word	0
+ 171 0004 00000000 		.word	0
+ 172 0008 00000000 		.word	0
+ 173 000c 10000000 		.word	16
+ 174              		.section	.rodata.ltpb__camera_id__enum_values_by_name,"a",%progbits
+ 175              		.align	2
+ 178              	ltpb__camera_id__enum_values_by_name:
+ 179 0000 2B000000 		.word	.LC4
+ 180 0004 00000000 		.word	0
+ 181 0008 2E000000 		.word	.LC5
+ 182 000c 01000000 		.word	1
+ 183 0010 31000000 		.word	.LC6
+ 184 0014 02000000 		.word	2
+ 185 0018 34000000 		.word	.LC7
+ 186 001c 03000000 		.word	3
+ 187 0020 37000000 		.word	.LC8
+ 188 0024 04000000 		.word	4
+ 189 0028 3A000000 		.word	.LC9
+ 190 002c 05000000 		.word	5
+ 191 0030 3D000000 		.word	.LC10
+ 192 0034 06000000 		.word	6
+ 193 0038 40000000 		.word	.LC11
+ 194 003c 07000000 		.word	7
+ 195 0040 43000000 		.word	.LC12
+ 196 0044 08000000 		.word	8
+ 197 0048 46000000 		.word	.LC13
+ 198 004c 09000000 		.word	9
+ 199 0050 49000000 		.word	.LC14
+ 200 0054 0A000000 		.word	10
+ 201 0058 4C000000 		.word	.LC15
+ 202 005c 0B000000 		.word	11
+ 203 0060 4F000000 		.word	.LC16
+ 204 0064 0C000000 		.word	12
+ 205 0068 52000000 		.word	.LC17
+ 206 006c 0D000000 		.word	13
+ 207 0070 55000000 		.word	.LC18
+ 208 0074 0E000000 		.word	14
+ 209 0078 58000000 		.word	.LC19
+ 210 007c 0F000000 		.word	15
+ 211              		.text
+ 212              	.Letext0:
+ 213              		.file 1 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 214              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 215              		.file 3 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 216              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/common/lightheader/include/protobuf-c/prot
+ 217              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/common/lightheader/src/camera_id.pb-c.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 camera_id.pb-c.c
+     /tmp/ccY99Ylh.s:76     .rodata.ltpb__camera_id__descriptor:00000000 ltpb__camera_id__descriptor
+     /tmp/ccY99Ylh.s:20     .rodata.ltpb__camera_id__enum_values_by_number:00000000 $d
+     /tmp/ccY99Ylh.s:23     .rodata.ltpb__camera_id__enum_values_by_number:00000000 ltpb__camera_id__enum_values_by_number
+     /tmp/ccY99Ylh.s:73     .rodata.ltpb__camera_id__descriptor:00000000 $d
+     /tmp/ccY99Ylh.s:178    .rodata.ltpb__camera_id__enum_values_by_name:00000000 ltpb__camera_id__enum_values_by_name
+     /tmp/ccY99Ylh.s:169    .rodata.ltpb__camera_id__value_ranges:00000000 ltpb__camera_id__value_ranges
+     /tmp/ccY99Ylh.s:166    .rodata.ltpb__camera_id__value_ranges:00000000 $d
+     /tmp/ccY99Ylh.s:175    .rodata.ltpb__camera_id__enum_values_by_name:00000000 $d
+
+NO UNDEFINED SYMBOLS

@@ -1,0 +1,2679 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"lcc_cmd.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.cb_tx_request,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	cb_tx_request:
+  24              	.LFB7:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * @file    lcc_cmd.c
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * @date    Mar-10-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * @brief   This file contains expand of lcc_cmd
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include <stdbool.h>
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "assert.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "os.h"
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "log.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "i2cs.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "spis.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "i2cm.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "lcc_cmd.h"
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "lcc_cmd_log.h"
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #include "light_system.h"
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Private define-------------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #define SLOGF_ID		SLOG_ID_LCC_CMD
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Configure LCC data buffer size */
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #define LCC_CMD_MAX_BUFFER_SIZE             1024
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Number of LCC commands */
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #define LCC_CMD_NBR		(sizeof(lcc_cmd_list)/sizeof(lcc_cmd_list[0]))
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Private typedef -----------------------------------------------------------*/
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /**
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * @brief Handler of LCC command structure
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  */
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** typedef struct
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint32_t cmd;
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	void (*func)(lcc_cmd_t *in, lcc_cmd_t *out);
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** } lcc_cmd_handle_t;
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /**
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * @brief  Buffer of LCC command structure
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  */
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** typedef struct {
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t *data;
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint16_t len;
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** } lcc_cmd_msg_t;
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** typedef struct
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t asic2_len;
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t asic3_len;
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint32_t asic2_bitmask;
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint32_t asic3_bitmask;
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t *asic2_data;
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t *asic3_data;
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** } lcc_asic_data_t;
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** typedef struct
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_store_asic1_t *head;
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_store_asic1_t *tail;
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t total;
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** } asic_command_waiting_list_t;
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** typedef struct
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint16_t cmd_tid;
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint16_t cmd_status;
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** } lcc_intr_src_data_t;
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** typedef struct {
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     uint8_t *buf_start;
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t *buf_end;
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     uint8_t *wp;
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t *rp;
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** } cmd_rx_buf_t;
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** typedef struct {
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t* msg_start;
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     uint16_t len;
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     bool buf_overflow;
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** } cmd_rx_buf_msg_t;
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Private macro -------------------------------------------------------------*/
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #define ADD_LCC_CMD(c_cmd, c_func) {.func = &c_func, .cmd = c_cmd }
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #define CMD_RX_COMPLETED			BIT0
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #define CMD_TX_REQUESTED			BIT1
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Private functions ---------------------------------------------------------*/
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (LOG_I2C_MESSAGE == STD_ON)
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* The function print out full message received from MSG queue for debugging */
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void slogf_message(lcc_cmd_msg_t msg);
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif /* LOG_VERBOSE == STD_ON */
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Reset CCI RX buffer */
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void cb_rx_completed(void);
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* CCI data receive call back */
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void cb_rx_not_empty(uint8_t data);
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Prepare data for reading command*/
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void cb_tx_request(void);
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_query_asic2(uint16_t *asic2_status);
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_query_asic3(uint16_t *asic3_status);
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** void asic_command_list_init(void);
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t push_asic_command_list(lcc_cmd_store_asic1_t msg);
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_get_data(lcc_cmd_store_asic1_t *info);
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_push_read_cmd(lcc_cmd_store_asic1_t *info);
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_get_intr_source(lcc_intr_src_data_t *asic2,
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							lcc_intr_src_data_t *asic3);
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_init_cache(uint8_t asic_num);
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_get_eeprom(lcc_cmd_store_asic1_t *info);
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** uint8_t asic1_get_data(lcc_cmd_store_asic1_t *info);
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Private variables ---------------------------------------------------------*/
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static const lcc_cmd_handle_t lcc_cmd_list[] =
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* LCC CMD GROUP 0x0000 */
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_OPEN, cmd_cam_module_open),
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_STREAMING, cmd_cam_streaming),
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_BURST_REQUESTED, cmd_cam_burst_requested),
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_BURST_AVAILABLE, cmd_cam_burst_available),
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_BURST_ACTUAL, cmd_cam_burst_actual),
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_SNAPSHOT_UUID, cmd_cam_snapshot_uuid),
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_SNAPSHOT_TID, cmd_cam_snapshot_tid),
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_COMMAND_STATUS, cmd_cam_command_status),
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_STATUS, cmd_cam_module_status),
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_RESOLUTION, cmd_cam_module_resolution),
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_SENSITIVITY, cmd_cam_module_sensitivity),
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_EXPOSURE_TIME, cmd_cam_module_exposure_time),
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_FPS, cmd_cam_module_fps),
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_FOCAL_LENGTH, cmd_cam_module_focal_length),
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_FOCUS_DISTANCE, cmd_cam_module_focus_distance),
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_LENS_POSITION, cmd_cam_module_lens_position),
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_MIRROR_POSITION, cmd_cam_module_mirror_position),
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_ROI, cmd_cam_roi),
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     ADD_LCC_CMD(LCC_CMD_CAM_ROI_TRANSFER, cmd_cam_roi_transfer),
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_ROI_CALIBRATION, cmd_cam_roi_calibration),
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_UUID, cmd_cam_module_uuid),
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_TYPE, cmd_cam_module_type),
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_I2C_FORWARD, cmd_i2c_forward),
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ZOOM_FACTOR, cmd_zoom_factor),
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_CAM_MODULE_MIRROR_CALIBRATION, cmd_cam_module_mirror_calib),
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_I2C_SPEED, cmd_i2c_speed),
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_SPI_SPEED, cmd_spi_speed),
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* CBB CMD GROUP 0x0200 */
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_LIGHT_PROTOCOL, cmd_asic_light_protocol),
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_FW_VERSION, cmd_asic_fw_version),
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_CALIB_VERSION, cmd_asic_calib_version),
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_STATUS, cmd_asic_status),
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_LOG_CTRL, cmd_asic_log_ctrl),
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_TMPx, cmd_asic_tmpx),
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_CMD_DUMP, cmd_asic_cmd_dump),
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_MODULE_METADATA, cmd_asic_module_metadata),
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_DEVICE_CALIBRATION, cmd_asic_device_calibration),
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_PWR_CTRL, cmd_asic_pwr_ctrl),
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_AISC_INTR_SRC, cmd_cam_asic_intr_src),
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_FLASH_LIGHT, cmd_asic_flash_light),
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_TOF, cmd_asic_tof),
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_GYRO, cmd_asic_gyro),
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_CTRL, cmd_asic_control),
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_POWER_INFO, cmd_asic_power_info),
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_ASIC_CALIB_DATA, cmd_asic_calib_data),
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		ADD_LCC_CMD(LCC_CMD_ASIC_PZT_PWR_CTRL, cmd_asic_pzt_pwr_ctrl),
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* CBB CMD GROUP 0x1000 */
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	ADD_LCC_CMD(LCC_CMD_LIGHT_ACTIVE_UCID, cmd_light_active_ucid)
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** };
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static uint8_t cmd_rx_buf_arr[LCC_CMD_MAX_BUFFER_SIZE];
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static cmd_rx_buf_t cmd_rx_buf;
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static cmd_rx_buf_msg_t cmd_rx_buf_msg;
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static QueueHandle_t cmd_rx_msg_queue;
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static asic_command_waiting_list_t *asic_command_list;
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static TaskHandle_t task_read_handle;
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** TaskHandle_t task_asic_read_handle;
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** SemaphoreHandle_t asic_read_sem;
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Export functions ----------------------------------------------------------*/
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** void task_asic_read(void *param)
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	assert_param(light_system->asic1_read_event);
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	EventBits_t event_bits_read;
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_store_asic1_t cmd_store_tmp;
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_store_asic1_t *arch_msg = NULL;
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_intr_src_data_t intr_asic2, intr_asic3;
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	asic_read_sem = xSemaphoreCreateMutex();
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	while(1)
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		event_bits_read = xEventGroupWaitBits(light_system->asic1_read_event,
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									ASIC_READ_EVENT_ALLS,
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									pdTRUE, pdFALSE, portMAX_DELAY);
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		xSemaphoreTake(asic_read_sem, portMAX_DELAY);
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if(asic_command_list->total >= 1 && event_bits_read)
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			if(event_bits_read & ASIC_READ_ASIC_2)
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			{
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				asic1_get_intr_source(&intr_asic2, NULL);
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				arch_msg = asic_cmd_pop_msg(intr_asic2.cmd_tid);
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if(light_system->asic_intr_queue_num.asic2_intr_num)
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					light_system->asic_intr_queue_num.asic2_intr_num--;
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if(arch_msg != NULL)
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					memcpy(&cmd_store_tmp, arch_msg, sizeof(lcc_cmd_store_asic1_t));
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Reset bits of other ASIC */
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					cmd_store_tmp.m_bitmask &= ~light_system->m_filter_asic2;
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (arch_msg->cmd.read)
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						asic1_push_read_cmd(&cmd_store_tmp);
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						if((arch_msg->cmd.cmd == LCC_CMD_READ_EEPROM_METADATA_ID) &&
+ 226:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							(arch_msg->cmd.base == LCC_CMD_READ_EEPROM_METADATA_BASE))
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							asic1_get_eeprom(&cmd_store_tmp);
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						else
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							asic1_get_data(&cmd_store_tmp);
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 231:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					lcc_cmd_log_update_status(swap16(intr_asic2.cmd_tid),
+ 232:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						(intr_asic2.cmd_status), cmd_store_tmp.m_bitmask);
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Reset bit of itself */
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					arch_msg->m_bitmask &= ~light_system->m_filter_asic1;
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if(!arch_msg->m_bitmask)
+ 236:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						asic_cmd_delete_msg(arch_msg);
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				else
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 240:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					SLOGF(SLOG_ERROR, "Cannot find TID %X", intr_asic2.cmd_tid);
+ 241:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if(light_system->asic_intr_queue_num.asic2_intr_num)
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					xEventGroupSetBits(light_system->asic1_read_event,
+ 244:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						ASIC_READ_ASIC_2);
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			}
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			if(event_bits_read & ASIC_READ_ASIC_3)
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			{
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				asic1_get_intr_source(NULL, &intr_asic3);
+ 250:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				arch_msg = asic_cmd_pop_msg(intr_asic3.cmd_tid);
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if(light_system->asic_intr_queue_num.asic3_intr_num)
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					light_system->asic_intr_queue_num.asic3_intr_num--;
+ 253:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if(arch_msg != NULL)
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					memcpy(&cmd_store_tmp, arch_msg, sizeof(lcc_cmd_store_asic1_t));
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Reset bits of other ASIC */
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					cmd_store_tmp.m_bitmask &= ~light_system->m_filter_asic1;
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (arch_msg->cmd.read)
+ 259:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						asic1_push_read_cmd(&cmd_store_tmp);
+ 261:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						if((arch_msg->cmd.cmd == LCC_CMD_READ_EEPROM_METADATA_ID) &&
+ 262:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							(arch_msg->cmd.base == LCC_CMD_READ_EEPROM_METADATA_BASE))
+ 263:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							asic1_get_eeprom(&cmd_store_tmp);
+ 264:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						else
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							asic1_get_data(&cmd_store_tmp);
+ 266:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					lcc_cmd_log_update_status(swap16(intr_asic3.cmd_tid),
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						(intr_asic3.cmd_status), cmd_store_tmp.m_bitmask);
+ 269:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Reset bit of itself */
+ 270:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					arch_msg->m_bitmask &= ~light_system->m_filter_asic2;
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if(!arch_msg->m_bitmask)
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						asic_cmd_delete_msg(arch_msg);
+ 273:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				else
+ 275:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 276:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					SLOGF(SLOG_ERROR, "Cannot find TID %X", intr_asic3.cmd_tid);
+ 277:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if(light_system->asic_intr_queue_num.asic3_intr_num)
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					xEventGroupSetBits(light_system->asic1_read_event,
+ 280:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						ASIC_READ_ASIC_3);
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			}
+ 282:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 283:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		xSemaphoreGive(asic_read_sem);
+ 284:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 285:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 286:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 287:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #define ASIC1_SYNC_TIMEOUT			6000 /* 30s */
+ 288:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** void task_sync_asic(void *param)
+ 289:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 290:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	SLOGF(SLOG_INFO, "Task sync started");
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t asic2_3_status = 0;
+ 292:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint16_t asic2_status = 0, asic3_status = 0;
+ 293:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint16_t timeout = ASIC1_SYNC_TIMEOUT;
+ 294:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	hal_gpio_t intr_asic2, intr_asic3;
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	intr_asic2.direction = GPIO_DIR_IN;
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	intr_asic2.port = GPIO_PORTA;
+ 297:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	intr_asic2.pin = light_system->asic2_intr;
+ 298:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	hal_gpio_init(&intr_asic2);
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	intr_asic3.direction = GPIO_DIR_IN;
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	intr_asic3.port = GPIO_PORTA;
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	intr_asic3.pin = light_system->asic3_intr;
+ 302:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	hal_gpio_init(&intr_asic3);
+ 303:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	while(1)
+ 304:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 305:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if(((asic2_3_status & ASIC_2) != ASIC_2)  && hal_gpio_read(&intr_asic2))
+ 306:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 307:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			asic1_query_asic2(&asic2_status);
+ 308:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			asic2_3_status |= ASIC_2;
+ 309:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			asic1_init_cache(ASIC_2);
+ 310:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_INFO, "ASIC2 is ready...");
+ 311:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if(((asic2_3_status & ASIC_3) != ASIC_3)  && hal_gpio_read(&intr_asic3))
+ 313:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 314:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			asic1_query_asic3(&asic3_status);
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			asic2_3_status |= ASIC_3;
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			asic1_init_cache(ASIC_3);
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_INFO, "ASIC3 is ready...");
+ 318:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 319:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if(asic2_3_status == (ASIC_2 | ASIC_3))
+ 321:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 322:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_INFO, "Data Sync successes");
+ 323:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			light_system->asic_intr_queue_num.asic2_intr_num = 0;
+ 324:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			light_system->asic_intr_queue_num.asic3_intr_num = 0;
+ 325:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			vTaskDelete(task_read_handle);
+ 326:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 327:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		else if(--timeout == 0)
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_ERROR, "ASIC Sync timeout...");
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			vTaskDelete(task_read_handle);
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 332:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		vTaskDelay(5);
+ 333:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void lcc_cmd_msg_create(lcc_cmd_msg_t *msg, const cmd_rx_buf_msg_t *rx_msg)
+ 338:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     msg->len = rx_msg->len;
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     size_t size = msg->len * sizeof(uint8_t);
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     msg->data = pvPortMalloc(size);
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t *rp_new = rx_msg->msg_start + rx_msg->len;
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     // Circular memcpy from cmd_rx_buf to msg->data
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     uint16_t buf_arr_rem = cmd_rx_buf.buf_end - rx_msg->msg_start;
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (buf_arr_rem < rx_msg->len)
+ 346:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 347:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         uint16_t len_wrap = rx_msg->len - buf_arr_rem;
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         memcpy(msg->data + buf_arr_rem, cmd_rx_buf.buf_start, len_wrap * sizeof(uint8_t));
+ 349:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         size = buf_arr_rem * sizeof(uint8_t);
+ 350:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         rp_new = cmd_rx_buf.buf_start + len_wrap;
+ 351:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 352:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     memcpy(msg->data, rx_msg->msg_start, size);
+ 353:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     // Modify rp atomically, to ensure it is seen consistently changed in interrupt
+ 354:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     taskENTER_CRITICAL();
+ 355:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.rp = rp_new;
+ 356:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     taskEXIT_CRITICAL();
+ 357:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 358:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 359:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /**
+ 360:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * LCC command task
+ 361:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  */
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** void task_lcc_cmd(void *vParameter)
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 364:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	task_handle_t *hdl = (task_handle_t *)(vParameter);
+ 365:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 366:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_t in;
+ 367:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	in.data = NULL;
+ 368:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_t out;
+ 369:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_info_t cmd_info;
+ 370:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 371:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM != ASIC1)
+ 372:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint32_t cmd_bitmask = 0;
+ 373:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t asic_data_idx;
+ 374:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t data_cnt = 0;
+ 375:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	uint8_t count_idx = 0;
+ 376:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 377:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 378:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_store_asic1_t asic_data;
+ 379:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 380:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 381:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	memset(&out, 0, sizeof(lcc_cmd_t));
+ 382:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 383:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* Start initialize temperature sensor */
+ 384:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	bool exit = false;
+ 385:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	while (!exit)
+ 386:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 387:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Task #__task_i2c_ex initialize done for temperature sensor,
+ 388:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		 * #task_console done for slogf */
+ 389:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if (TASK_READY == task_handler[task_query_tid("console")].state &&
+ 390:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			TASK_READY == task_handler[task_query_tid("queuelog")].state)
+ 391:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			exit = true;
+ 392:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			vTaskDelay(1);
+ 393:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 394:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 395:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* Task ready id */
+ 396:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	hdl->state = TASK_READY;
+ 397:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* Task start */
+ 398:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	taskENTER_CRITICAL();
+ 399:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	log_msg("Start %s\r\n", __FUNCTION__);
+ 400:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	taskEXIT_CRITICAL();
+ 401:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 402:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	xTaskCreate(task_asic_read, "Read_ASIC2_ASIC3",
+ 403:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		__TASK_STACK_SIZE_128, NULL,
+ 404:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		__TASK_PRIO_HIGHEST - 7, &task_asic_read_handle);
+ 405:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 406:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	xTaskCreate(task_sync_asic, "Sync_ASIC_data",
+ 407:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		__TASK_STACK_SIZE_128, NULL,
+ 408:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		__TASK_PRIO_HIGHEST - 8, &task_read_handle);
+ 409:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 410:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* Loop forever */
+ 411:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	while (1)
+ 412:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 413:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	    cmd_rx_buf_msg_t rx_msg;
+ 414:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		xQueueReceive(cmd_rx_msg_queue, &rx_msg, portMAX_DELAY);
+ 415:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 416:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		lcc_cmd_msg_t msg;
+ 417:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		lcc_cmd_msg_create(&msg, &rx_msg);
+ 418:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 419:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (LOG_I2C_MESSAGE == STD_ON)
+ 420:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Print out all content message received for debugging */
+ 421:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		slogf_message(msg);
+ 422:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 423:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if (LCC_CMD_M_BITMASK_IDX > msg.len)
+ 424:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 425:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			in.status = LCC_CMD_INVALID_ARG;
+ 426:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_ERROR, "%s: Message too short", __FUNCTION__);
+ 427:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			goto EXIT;
+ 428:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 429:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 430:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Get command transaction id */
+ 431:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		in.tid = *(uint16_t *)(msg.data + LCC_CMD_TRANSACTION_ID_IDX);
+ 432:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		in.cmd = *(uint16_t *)(msg.data + LCC_CMD_COMMAND_IDX);
+ 433:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 434:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		uint16_t count = LCC_CMD_M_BITMASK_IDX;
+ 435:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		uint16_t scan_idx = 0;
+ 436:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* TODO: optimize the search method */
+ 437:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Scan the matching command in task list */
+ 438:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		for (scan_idx = 0; scan_idx < LCC_CMD_NBR; scan_idx++)
+ 439:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 440:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			/* Search the matching command in lcc_cmd_list[] */
+ 441:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			cmd_info = (lcc_cmd_info_t)lcc_cmd_list[scan_idx].cmd;
+ 442:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			if ((in.cmd & 0x7FFF) == (cmd_info.word & 0x7FFF))
+ 443:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			{
+ 444:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Get interrupt signal */
+ 445:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				in.intr = in.cmd >> 15;
+ 446:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Get m_bitmask if this command support */
+ 447:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if (cmd_info.m_bitmask)
+ 448:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 449:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.m_bitmask  = (uint32_t)msg.data[count++];
+ 450:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.m_bitmask |= (uint32_t)msg.data[count++] << 8;
+ 451:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.m_bitmask |= (uint32_t)msg.data[count++] << 16;
+ 452:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Check if m_bitmask is set over 16 camera modules */
+ 453:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (in.m_bitmask & (~LCC_CMD_M_BITMASK_MASK))
+ 454:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 455:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.status = LCC_CMD_INVALID_ARG;
+ 456:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: m_bitmask invalid",__FUNCTION__);
+ 457:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 458:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 459:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 460:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Check global in m_bitmask */
+ 461:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.global = in.m_bitmask & LCC_CMD_M_BITMASK_GLOBAL_MASK;
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if ((0 == cmd_info.global) && (1 == in.global))
+ 463:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 464:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.global = 0;		/* Clear global mask */
+ 465:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.status = LCC_CMD_INVALID_ARG;
+ 466:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Unsupported global bitmask",
+ 467:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 468:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 469:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 470:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					else if (in.global)
+ 471:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 472:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						/* Set the module bitmask to all of module belong to
+ 473:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						 * this ASIC */
+ 474:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.m_bitmask = light_system->m_bitmask_all;
+ 475:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 476:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Get number of bit 1 */
+ 477:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.m_number = __builtin_popcount(in.m_bitmask);
+ 478:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 479:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				else
+ 480:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 481:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* if m_bitmask is not apply then it should be zero*/
+ 482:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.m_bitmask = 0;
+ 483:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 484:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 485:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Get ucid if this command support */
+ 486:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if (cmd_info.ucid)
+ 487:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 488:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.ucid  = (uint16_t)msg.data[count++];
+ 489:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.ucid |= (uint16_t)msg.data[count++] << 8;
+ 490:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Checking UCID value */
+ 491:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (UC_MAX <= in.ucid)
+ 492:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 493:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.status = LCC_CMD_INVALID_ARG;
+ 494:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: UCID invalid", __FUNCTION__);
+ 495:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 496:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 497:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 498:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 499:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Read condition detected */
+ 500:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if (count == msg.len)
+ 501:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 502:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (0 == cmd_info.read)
+ 503:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 504:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.status = LCC_CMD_INVALID_ARG;
+ 505:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Unsupported read action",
+ 506:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 507:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 508:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 509:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.action = CMD_READ;
+ 510:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 511:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Write condition checking  */
+ 512:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				else if (cmd_info.write)
+ 513:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 514:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					uint16_t expected_len = cmd_info.size;
+ 515:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (cmd_info.bypass)
+ 516:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						expected_len = msg.len - count;
+ 517:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					else if (!in.global && cmd_info.m_bitmask)
+ 518:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						expected_len = cmd_info.size * in.m_number;
+ 519:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 520:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (expected_len == msg.len - count)
+ 521:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 522:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						/* Set the pointer and length of data position */
+ 523:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.len = expected_len;
+ 524:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.data = &msg.data[count];
+ 525:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						/* Indicate the writing action for command */
+ 526:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.action = CMD_WRITE;
+ 527:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 528:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						uint8_t tmp = msg.data[3];
+ 529:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						if(cmd_info.m_bitmask)
+ 530:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 531:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							if((in.m_bitmask & light_system->m_filter_asic1) ||
+ 532:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							(in.m_bitmask & light_system->m_filter_asic2))
+ 533:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							{
+ 534:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								/* Enable interrupt for asic2/asic3 */
+ 535:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								msg.data[3] |= 0x80;
+ 536:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								asic_data.m_bitmask = in.m_bitmask &
+ 537:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									~light_system->m_filter;
+ 538:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								asic_data.tid = in.tid;
+ 539:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								asic_data.cmd = cmd_info;
+ 540:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								asic_data.ucid = in.ucid;
+ 541:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								asic_data.cmd_idx = scan_idx;
+ 542:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								push_asic_command_list(asic_data);
+ 543:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								if(in.m_bitmask & light_system->m_filter_asic1)
+ 544:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									i2cm.transceiver(I2C_FORWARD_ASIC2_CHANNEL,
+ 545:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											I2C_FORWARD_SLAVEADDR,
+ 546:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											msg.data, msg.len, NULL, 0);
+ 547:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								if(in.m_bitmask & light_system->m_filter_asic2)
+ 548:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									i2cm.transceiver(I2C_FORWARD_ASIC3_CHANNEL,
+ 549:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											I2C_FORWARD_SLAVEADDR,
+ 550:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											msg.data, msg.len, NULL, 0);
+ 551:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							}
+ 552:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						}
+ 553:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						else
+ 554:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 555:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							/* Reset intr bit */
+ 556:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							msg.data[3] &= ~0x80;
+ 557:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							i2cm.transceiver(I2C_FORWARD_ASIC2_CHANNEL,
+ 558:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 										I2C_FORWARD_SLAVEADDR,
+ 559:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 										msg.data, msg.len, NULL, 0);
+ 560:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							i2cm.transceiver(I2C_FORWARD_ASIC3_CHANNEL,
+ 561:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 										I2C_FORWARD_SLAVEADDR,
+ 562:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 										msg.data, msg.len, NULL, 0);
+ 563:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						}
+ 564:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						msg.data[3] = tmp;
+ 565:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 566:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 567:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					else
+ 568:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 569:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.status = LCC_CMD_INVALID_ARG;
+ 570:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Message length is incorrect",
+ 571:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 572:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 573:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 574:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 575:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				else
+ 576:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 577:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.status = LCC_CMD_INVALID_ARG;
+ 578:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					SLOGF(SLOG_ERROR, "%s: Unsupported write action",
+ 579:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 580:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 581:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 582:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM != ASIC1)
+ 583:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Parse data respecive with m_bitmask */
+ 584:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if(cmd_info.m_bitmask)
+ 585:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 586:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					cmd_bitmask = in.m_bitmask;
+ 587:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if((in.action == CMD_WRITE) && (cmd_info.cmd !=
+ 588:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								LCC_CMD_READ_EEPROM_METADATA_ID))
+ 589:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 590:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.m_bitmask &= light_system->m_filter;
+ 591:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						data_cnt = 0;
+ 592:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						count_idx = count;
+ 593:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						if(in.global)
+ 594:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 595:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							in.data = &msg.data[count_idx];
+ 596:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						}
+ 597:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						else if(in.m_bitmask)
+ 598:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 599:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							uint8_t *tmp = pvPortMalloc(__builtin_popcount(
+ 600:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								in.m_bitmask) * cmd_info.size);
+ 601:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							for(uint8_t i = 0; i < in.m_number; i++)
+ 602:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							{
+ 603:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								asic_data_idx = __builtin_ctz(cmd_bitmask);
+ 604:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								cmd_bitmask &= ~(1 << asic_data_idx);
+ 605:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								if(light_system->m_filter &
+ 606:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									(1 << asic_data_idx))
+ 607:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								{
+ 608:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									memcpy(&tmp[data_cnt],
+ 609:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 										&msg.data[count_idx], cmd_info.size);
+ 610:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									data_cnt += cmd_info.size;
+ 611:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								}
+ 612:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								count_idx += cmd_info.size;
+ 613:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							}
+ 614:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							memcpy(&msg.data[count], tmp, data_cnt);
+ 615:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							in.data = &msg.data[count];
+ 616:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							in.len = data_cnt;
+ 617:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							vPortFree(tmp);
+ 618:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						}
+ 619:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.m_number = __builtin_popcount(in.m_bitmask);
+ 620:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 621:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 622:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 623:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				in.status = LCC_CMD_PENDING;
+ 624:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				light_system->cur_tid = in.tid;
+ 625:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Execute function correspond with command from host  */
+ 626:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****                 out.len = 0;
+ 627:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****                 out.data = NULL;
+ 628:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				(*lcc_cmd_list[scan_idx].func)(&in, &out);
+ 629:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 630:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				if ((CMD_READ == in.action) && (out.len))
+ 631:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 632:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (LCC_CMD_MAX_BUFFER_SIZE < out.len)
+ 633:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 634:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "The return message too long");
+ 635:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						out.len = LCC_CMD_MAX_BUFFER_SIZE;
+ 636:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 637:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					i2c_slave_write(out.data, out.len);
+ 638:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Update the command status */
+ 639:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.status = LCC_CMD_SUCCESS;
+ 640:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 641:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				else
+ 642:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 643:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				    vPortFree(out.data);
+ 644:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 645:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****                 out.len = 0;
+ 646:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****                 out.data = NULL;
+ 647:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				break;		/* Scanning completed */
+ 648:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			}
+ 649:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 650:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if (scan_idx == LCC_CMD_NBR)
+ 651:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 652:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_WARN, "Unsupported command ID %04X", in.cmd);
+ 653:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 654:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** EXIT:
+ 655:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM != ASIC1)
+ 656:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* For now, ASIC1 will handle command status so ASIC2/ASIC3
+ 657:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		 * should not care about status of read command and don't
+ 658:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		 * need to put it into log queue */
+ 659:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		if(in.action == CMD_WRITE)
+ 660:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 661:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			/* Push command to log */
+ 662:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			lcc_cmd_log_push(in.tid, in.status, in.m_bitmask, in.intr);
+ 663:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 664:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #else
+ 665:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Push command to log */
+ 666:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		lcc_cmd_log_push(in.tid, in.status, in.m_bitmask, in.intr);
+ 667:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 668:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* TODO: Store message to msg queue, using RTOS QUEUE */
+ 669:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* TODO: Trigger interrupt signal if command requested */
+ 670:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Flush input message memory and watting for next command */
+ 671:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		memset(&in, 0, sizeof(lcc_cmd_t));
+ 672:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Free the message memory */
+ 673:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		vPortFree(msg.data);
+ 674:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		msg.data = NULL;
+ 675:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 676:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 677:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 678:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** void lcc_cmd_init(void)
+ 679:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 680:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.buf_start = cmd_rx_buf_arr;
+ 681:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.buf_end = cmd_rx_buf_arr + LCC_CMD_MAX_BUFFER_SIZE;
+ 682:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.wp = cmd_rx_buf.buf_start;
+ 683:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.rp = cmd_rx_buf.buf_start;
+ 684:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.msg_start = cmd_rx_buf.buf_start;
+ 685:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.len = 0;
+ 686:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.buf_overflow = false;
+ 687:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 688:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_msg_queue = xQueueCreate(50, sizeof(cmd_rx_buf_msg_t));
+ 689:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 690:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     /* Setup I2C slave to host communication */
+ 691:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave_t i2c_slave;
+ 692:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave.clbk_hdl = cb_rx_not_empty;
+ 693:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave.receiver_hdl = cb_rx_completed;
+ 694:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave.restart_hdl = cb_tx_request;
+ 695:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave_init(&i2c_slave);
+ 696:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 697:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     /* Initialize Light system log */
+ 698:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     lcc_cmd_log_init();
+ 699:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 700:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 701:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     /* Init linked list read back data from ASIC2/ASIC3 */
+ 702:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     asic_command_list_init();
+ 703:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 704:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2cm.init(I2C_FORWARD_ASIC2_CHANNEL);
+ 705:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2cm.init(I2C_FORWARD_ASIC3_CHANNEL);
+ 706:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif
+ 707:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 708:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 709:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 710:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /* Private functions ---------------------------------------------------------*/
+ 711:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /**
+ 712:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * slogf_message
+ 713:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * The function print out full message received from MSG queue for debugging
+ 714:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  */
+ 715:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (LOG_I2C_MESSAGE == STD_ON)
+ 716:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void slogf_message(lcc_cmd_msg_t msg)
+ 717:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 718:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	char *str = pvPortMalloc(msg.len * 4);
+ 719:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	char *str_byte = pvPortMalloc(4);
+ 720:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	if((NULL != str) && (NULL != str_byte))
+ 721:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 722:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		memset(str, 0, msg.len * 4);
+ 723:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		memset(str_byte, 0, 4);
+ 724:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Dump data message */
+ 725:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		for (int i = 0; i <  msg.len; ++i)
+ 726:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 727:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			sprintf(str_byte, "%02X ", msg.data[i]);
+ 728:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			strcat(str, str_byte);
+ 729:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			memset(str_byte, 0, 4);
+ 730:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 731:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		SLOGF(SLOG_DEBUG, "I2C msg: %s", str);
+ 732:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 733:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	else
+ 734:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 735:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		SLOGF(SLOG_WARN, "%s[%d]: Malloc failed", __FUNCTION__, __LINE__);
+ 736:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 737:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* Free memory, the null pointer will be check inside vPortFree */
+ 738:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	vPortFree(str);
+ 739:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	vPortFree(str_byte);
+ 740:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 741:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #endif /* LOG_VERBOSE == STD_ON */
+ 742:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 743:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /**
+ 744:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * cb_rx_not_empty
+ 745:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * I2C Slave receiver buffer is not empty callback function
+ 746:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  */
+ 747:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void cb_rx_not_empty(uint8_t data)
+ 748:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 749:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     ++cmd_rx_buf_msg.len;
+ 750:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (cmd_rx_buf_msg.buf_overflow)
+ 751:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         return;
+ 752:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     uint8_t* wp_new = cmd_rx_buf.wp + 1;
+ 753:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (wp_new >= cmd_rx_buf.buf_end)
+ 754:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         wp_new = cmd_rx_buf.buf_start;
+ 755:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (wp_new != cmd_rx_buf.rp)
+ 756:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 757:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         *cmd_rx_buf.wp = data;
+ 758:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         cmd_rx_buf.wp = wp_new;
+ 759:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 760:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     else
+ 761:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 762:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         cmd_rx_buf_msg.buf_overflow = true;
+ 763:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         printf("\r\nError: Command receive buffer overflow\r\n");
+ 764:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 765:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 766:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 767:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** /**
+ 768:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  * cmd receive call back when i2c is complete
+ 769:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  *
+ 770:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****  */
+ 771:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void cb_rx_completed(void)
+ 772:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+ 773:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (cmd_rx_buf_msg.buf_overflow)
+ 774:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 775:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         printf("\r\nError: Discarding received command due to buffer overflow\r\n");
+ 776:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 777:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     else
+ 778:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 779:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         BaseType_t task_awoken = pdFALSE;
+ 780:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         if (xQueueSendFromISR(cmd_rx_msg_queue, &cmd_rx_buf_msg, &task_awoken) != pdTRUE)
+ 781:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         {
+ 782:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****             printf("\r\nError in %s[%d]: Failed to push received command!\r\n", __FUNCTION__, __LIN
+ 783:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         }
+ 784:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         portYIELD_FROM_ISR(task_awoken);
+ 785:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 786:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     // Initialize next received message info
+ 787:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.buf_overflow = false;
+ 788:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.len = 0;
+ 789:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.msg_start = cmd_rx_buf.wp;
+ 790:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 791:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 792:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** static void cb_tx_request(void)
+ 793:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** {
+  26              		.loc 1 793 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+ 794:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	cmd_rx_buf_msg.buf_overflow = false;
+  31              		.loc 1 794 0
+  32 0000 0022     		movs	r2, #0
+  33 0002 034B     		ldr	r3, .L2
+  34 0004 9A71     		strb	r2, [r3, #6]
+ 795:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	cmd_rx_buf_msg.len = 0;
+  35              		.loc 1 795 0
+  36 0006 9A80     		strh	r2, [r3, #4]	@ movhi
+ 796:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	cmd_rx_buf_msg.msg_start = cmd_rx_buf.wp;
+  37              		.loc 1 796 0
+  38 0008 024A     		ldr	r2, .L2+4
+  39 000a 9268     		ldr	r2, [r2, #8]
+  40 000c 1A60     		str	r2, [r3]
+  41 000e 7047     		bx	lr
+  42              	.L3:
+  43              		.align	2
+  44              	.L2:
+  45 0010 00000000 		.word	.LANCHOR0
+  46 0014 00000000 		.word	.LANCHOR1
+  47              		.cfi_endproc
+  48              	.LFE7:
+  50              		.section	.text.cb_rx_completed,"ax",%progbits
+  51              		.align	1
+  52              		.thumb
+  53              		.thumb_func
+  55              	cb_rx_completed:
+  56              	.LFB6:
+ 772:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (cmd_rx_buf_msg.buf_overflow)
+  57              		.loc 1 772 0
+  58              		.cfi_startproc
+  59              		@ args = 0, pretend = 0, frame = 8
+  60              		@ frame_needed = 0, uses_anonymous_args = 0
+  61 0000 37B5     		push	{r0, r1, r2, r4, r5, lr}
+  62              	.LCFI0:
+  63              		.cfi_def_cfa_offset 24
+  64              		.cfi_offset 4, -12
+  65              		.cfi_offset 5, -8
+  66              		.cfi_offset 14, -4
+ 773:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+  67              		.loc 1 773 0
+  68 0002 124C     		ldr	r4, .L16
+  69 0004 A379     		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+  70 0006 1BB1     		cbz	r3, .L5
+ 775:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+  71              		.loc 1 775 0
+  72 0008 114B     		ldr	r3, .L16+4
+  73 000a 1248     		ldr	r0, .L16+8
+  74 000c 9847     		blx	r3
+  75              	.LVL0:
+  76 000e 14E0     		b	.L6
+  77              	.L5:
+  78              	.LBB3:
+ 780:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         {
+  79              		.loc 1 780 0
+  80 0010 1149     		ldr	r1, .L16+12
+ 779:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         if (xQueueSendFromISR(cmd_rx_msg_queue, &cmd_rx_buf_msg, &task_awoken) != pdTRUE)
+  81              		.loc 1 779 0
+  82 0012 02AA     		add	r2, sp, #8
+ 780:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         {
+  83              		.loc 1 780 0
+  84 0014 114D     		ldr	r5, .L16+16
+ 779:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         if (xQueueSendFromISR(cmd_rx_msg_queue, &cmd_rx_buf_msg, &task_awoken) != pdTRUE)
+  85              		.loc 1 779 0
+  86 0016 42F8043D 		str	r3, [r2, #-4]!
+ 780:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         {
+  87              		.loc 1 780 0
+  88 001a 0868     		ldr	r0, [r1]
+  89 001c 2146     		mov	r1, r4
+  90 001e A847     		blx	r5
+  91              	.LVL1:
+  92 0020 0128     		cmp	r0, #1
+  93 0022 05D0     		beq	.L7
+ 782:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         }
+  94              		.loc 1 782 0
+  95 0024 0E48     		ldr	r0, .L16+20
+  96 0026 40F20E32 		movw	r2, #782
+  97 002a 0E49     		ldr	r1, .L16+24
+  98 002c 0E4B     		ldr	r3, .L16+28
+  99 002e 9847     		blx	r3
+ 100              	.LVL2:
+ 101              	.L7:
+ 102              	.LBB4:
+ 784:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 103              		.loc 1 784 0
+ 104 0030 019B     		ldr	r3, [sp, #4]
+ 105 0032 13B1     		cbz	r3, .L6
+ 784:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 106              		.loc 1 784 0 is_stmt 0 discriminator 1
+ 107 0034 0122     		movs	r2, #1
+ 108 0036 0D4B     		ldr	r3, .L16+32
+ 109 0038 1A60     		str	r2, [r3]
+ 110              	.L6:
+ 111              	.LBE4:
+ 112              	.LBE3:
+ 787:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.len = 0;
+ 113              		.loc 1 787 0 is_stmt 1
+ 114 003a 0023     		movs	r3, #0
+ 115 003c A371     		strb	r3, [r4, #6]
+ 788:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.msg_start = cmd_rx_buf.wp;
+ 116              		.loc 1 788 0
+ 117 003e A380     		strh	r3, [r4, #4]	@ movhi
+ 789:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 118              		.loc 1 789 0
+ 119 0040 0B4B     		ldr	r3, .L16+36
+ 120 0042 9B68     		ldr	r3, [r3, #8]
+ 121 0044 2360     		str	r3, [r4]
+ 790:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 122              		.loc 1 790 0
+ 123 0046 03B0     		add	sp, sp, #12
+ 124              	.LCFI1:
+ 125              		.cfi_def_cfa_offset 12
+ 126              		@ sp needed
+ 127 0048 30BD     		pop	{r4, r5, pc}
+ 128              	.L17:
+ 129 004a 00BF     		.align	2
+ 130              	.L16:
+ 131 004c 00000000 		.word	.LANCHOR0
+ 132 0050 00000000 		.word	puts
+ 133 0054 00000000 		.word	.LC0
+ 134 0058 00000000 		.word	.LANCHOR2
+ 135 005c 00000000 		.word	xQueueGenericSendFromISR
+ 136 0060 3D000000 		.word	.LC1
+ 137 0064 00000000 		.word	.LANCHOR3
+ 138 0068 00000000 		.word	printf
+ 139 006c 00000000 		.word	ulPortYieldRequired
+ 140 0070 00000000 		.word	.LANCHOR1
+ 141              		.cfi_endproc
+ 142              	.LFE6:
+ 144              		.section	.text.cb_rx_not_empty,"ax",%progbits
+ 145              		.align	1
+ 146              		.thumb
+ 147              		.thumb_func
+ 149              	cb_rx_not_empty:
+ 150              	.LFB5:
+ 748:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     ++cmd_rx_buf_msg.len;
+ 151              		.loc 1 748 0
+ 152              		.cfi_startproc
+ 153              		@ args = 0, pretend = 0, frame = 0
+ 154              		@ frame_needed = 0, uses_anonymous_args = 0
+ 155              	.LVL3:
+ 156 0000 38B5     		push	{r3, r4, r5, lr}
+ 157              	.LCFI2:
+ 158              		.cfi_def_cfa_offset 16
+ 159              		.cfi_offset 3, -16
+ 160              		.cfi_offset 4, -12
+ 161              		.cfi_offset 5, -8
+ 162              		.cfi_offset 14, -4
+ 749:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (cmd_rx_buf_msg.buf_overflow)
+ 163              		.loc 1 749 0
+ 164 0002 0D4B     		ldr	r3, .L22
+ 165 0004 9A88     		ldrh	r2, [r3, #4]
+ 166 0006 0132     		adds	r2, r2, #1
+ 167 0008 9A80     		strh	r2, [r3, #4]	@ movhi
+ 750:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         return;
+ 168              		.loc 1 750 0
+ 169 000a 9A79     		ldrb	r2, [r3, #6]	@ zero_extendqisi2
+ 170 000c 92B9     		cbnz	r2, .L18
+ 752:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (wp_new >= cmd_rx_buf.buf_end)
+ 171              		.loc 1 752 0
+ 172 000e 0B4A     		ldr	r2, .L22+4
+ 173 0010 9468     		ldr	r4, [r2, #8]
+ 753:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         wp_new = cmd_rx_buf.buf_start;
+ 174              		.loc 1 753 0
+ 175 0012 5568     		ldr	r5, [r2, #4]
+ 752:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (wp_new >= cmd_rx_buf.buf_end)
+ 176              		.loc 1 752 0
+ 177 0014 611C     		adds	r1, r4, #1
+ 178              	.LVL4:
+ 753:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         wp_new = cmd_rx_buf.buf_start;
+ 179              		.loc 1 753 0
+ 180 0016 A942     		cmp	r1, r5
+ 754:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (wp_new != cmd_rx_buf.rp)
+ 181              		.loc 1 754 0
+ 182 0018 28BF     		it	cs
+ 183 001a 1168     		ldrcs	r1, [r2]
+ 184              	.LVL5:
+ 755:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 185              		.loc 1 755 0
+ 186 001c D268     		ldr	r2, [r2, #12]
+ 187 001e 9142     		cmp	r1, r2
+ 188 0020 03D0     		beq	.L21
+ 758:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 189              		.loc 1 758 0
+ 190 0022 064B     		ldr	r3, .L22+4
+ 757:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         cmd_rx_buf.wp = wp_new;
+ 191              		.loc 1 757 0
+ 192 0024 2070     		strb	r0, [r4]
+ 758:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 193              		.loc 1 758 0
+ 194 0026 9960     		str	r1, [r3, #8]
+ 195 0028 38BD     		pop	{r3, r4, r5, pc}
+ 196              	.L21:
+ 197              	.LVL6:
+ 198              	.LBB7:
+ 199              	.LBB8:
+ 762:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         printf("\r\nError: Command receive buffer overflow\r\n");
+ 200              		.loc 1 762 0
+ 201 002a 0122     		movs	r2, #1
+ 763:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 202              		.loc 1 763 0
+ 203 002c 0448     		ldr	r0, .L22+8
+ 204              	.LVL7:
+ 762:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         printf("\r\nError: Command receive buffer overflow\r\n");
+ 205              		.loc 1 762 0
+ 206 002e 9A71     		strb	r2, [r3, #6]
+ 763:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 207              		.loc 1 763 0
+ 208 0030 044B     		ldr	r3, .L22+12
+ 209 0032 9847     		blx	r3
+ 210              	.LVL8:
+ 211              	.L18:
+ 212 0034 38BD     		pop	{r3, r4, r5, pc}
+ 213              	.L23:
+ 214 0036 00BF     		.align	2
+ 215              	.L22:
+ 216 0038 00000000 		.word	.LANCHOR0
+ 217 003c 00000000 		.word	.LANCHOR1
+ 218 0040 73000000 		.word	.LC2
+ 219 0044 00000000 		.word	puts
+ 220              	.LBE8:
+ 221              	.LBE7:
+ 222              		.cfi_endproc
+ 223              	.LFE5:
+ 225              		.global	__popcountsi2
+ 226              		.section	.text.task_lcc_cmd,"ax",%progbits
+ 227              		.align	1
+ 228              		.global	task_lcc_cmd
+ 229              		.thumb
+ 230              		.thumb_func
+ 232              	task_lcc_cmd:
+ 233              	.LFB2:
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	task_handle_t *hdl = (task_handle_t *)(vParameter);
+ 234              		.loc 1 363 0
+ 235              		.cfi_startproc
+ 236              		@ args = 0, pretend = 0, frame = 80
+ 237              		@ frame_needed = 0, uses_anonymous_args = 0
+ 238              	.LVL9:
+ 239 0000 2DE9F04F 		push	{r4, r5, r6, r7, r8, r9, r10, fp, lr}
+ 240              	.LCFI3:
+ 241              		.cfi_def_cfa_offset 36
+ 242              		.cfi_offset 4, -36
+ 243              		.cfi_offset 5, -32
+ 244              		.cfi_offset 6, -28
+ 245              		.cfi_offset 7, -24
+ 246              		.cfi_offset 8, -20
+ 247              		.cfi_offset 9, -16
+ 248              		.cfi_offset 10, -12
+ 249              		.cfi_offset 11, -8
+ 250              		.cfi_offset 14, -4
+ 367:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_t out;
+ 251              		.loc 1 367 0
+ 252 0004 0021     		movs	r1, #0
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	task_handle_t *hdl = (task_handle_t *)(vParameter);
+ 253              		.loc 1 363 0
+ 254 0006 97B0     		sub	sp, sp, #92
+ 255              	.LCFI4:
+ 256              		.cfi_def_cfa_offset 128
+ 381:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 257              		.loc 1 381 0
+ 258 0008 B04C     		ldr	r4, .L111
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	task_handle_t *hdl = (task_handle_t *)(vParameter);
+ 259              		.loc 1 363 0
+ 260 000a 0746     		mov	r7, r0
+ 261              	.LVL10:
+ 381:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 262              		.loc 1 381 0
+ 263 000c 1422     		movs	r2, #20
+ 264 000e 11A8     		add	r0, sp, #68
+ 265              	.LVL11:
+ 367:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	lcc_cmd_t out;
+ 266              		.loc 1 367 0
+ 267 0010 0D91     		str	r1, [sp, #52]
+ 268              	.LVL12:
+ 381:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 269              		.loc 1 381 0
+ 270 0012 A047     		blx	r4
+ 271              	.LVL13:
+ 272 0014 0494     		str	r4, [sp, #16]
+ 273              	.LVL14:
+ 274              	.L26:
+ 389:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			TASK_READY == task_handler[task_query_tid("queuelog")].state)
+ 275              		.loc 1 389 0
+ 276 0016 AE48     		ldr	r0, .L111+4
+ 277 0018 0C24     		movs	r4, #12
+ 278 001a AE4E     		ldr	r6, .L111+8
+ 279 001c B047     		blx	r6
+ 280              	.LVL15:
+ 281 001e AE4D     		ldr	r5, .L111+12
+ 282 0020 6043     		muls	r0, r4, r0
+ 283 0022 2B5C     		ldrb	r3, [r5, r0]	@ zero_extendqisi2
+ 284 0024 012B     		cmp	r3, #1
+ 285 0026 07D1     		bne	.L64
+ 390:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			exit = true;
+ 286              		.loc 1 390 0 discriminator 1
+ 287 0028 AC48     		ldr	r0, .L111+16
+ 288 002a B047     		blx	r6
+ 289              	.LVL16:
+ 290 002c 6043     		muls	r0, r4, r0
+ 389:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			TASK_READY == task_handler[task_query_tid("queuelog")].state)
+ 291              		.loc 1 389 0 discriminator 1
+ 292 002e 2C5C     		ldrb	r4, [r5, r0]	@ zero_extendqisi2
+ 293 0030 651E     		subs	r5, r4, #1
+ 294 0032 6C42     		rsbs	r4, r5, #0
+ 295 0034 6C41     		adcs	r4, r4, r5
+ 296 0036 00E0     		b	.L25
+ 297              	.L64:
+ 298 0038 0024     		movs	r4, #0
+ 299              	.L25:
+ 300              	.LVL17:
+ 392:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 301              		.loc 1 392 0
+ 302 003a 0120     		movs	r0, #1
+ 303 003c A84B     		ldr	r3, .L111+20
+ 304 003e 9847     		blx	r3
+ 305              	.LVL18:
+ 385:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 306              		.loc 1 385 0
+ 307 0040 002C     		cmp	r4, #0
+ 308 0042 E8D0     		beq	.L26
+ 396:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* Task start */
+ 309              		.loc 1 396 0
+ 310 0044 0123     		movs	r3, #1
+ 398:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	log_msg("Start %s\r\n", __FUNCTION__);
+ 311              		.loc 1 398 0
+ 312 0046 A74D     		ldr	r5, .L111+24
+ 396:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	/* Task start */
+ 313              		.loc 1 396 0
+ 314 0048 3B70     		strb	r3, [r7]
+ 398:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	log_msg("Start %s\r\n", __FUNCTION__);
+ 315              		.loc 1 398 0
+ 316 004a A847     		blx	r5
+ 317              	.LVL19:
+ 400:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 318              		.loc 1 400 0
+ 319 004c A64C     		ldr	r4, .L111+28
+ 320              	.LVL20:
+ 399:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	taskEXIT_CRITICAL();
+ 321              		.loc 1 399 0
+ 322 004e A748     		ldr	r0, .L111+32
+ 323 0050 A749     		ldr	r1, .L111+36
+ 324 0052 A84B     		ldr	r3, .L111+40
+ 325 0054 9847     		blx	r3
+ 326              	.LVL21:
+ 400:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 327              		.loc 1 400 0
+ 328 0056 A047     		blx	r4
+ 329              	.LVL22:
+ 330 0058 0695     		str	r5, [sp, #24]
+ 331 005a 0794     		str	r4, [sp, #28]
+ 332              	.LVL23:
+ 333              	.L63:
+ 334              	.LBB19:
+ 414:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 335              		.loc 1 414 0
+ 336 005c A64B     		ldr	r3, .L111+44
+ 337 005e 0AA9     		add	r1, sp, #40
+ 338 0060 4FF0FF32 		mov	r2, #-1
+ 339 0064 A54C     		ldr	r4, .L111+48
+ 340 0066 1868     		ldr	r0, [r3]
+ 341 0068 0023     		movs	r3, #0
+ 342 006a A047     		blx	r4
+ 343              	.LVL24:
+ 344              	.LBB20:
+ 345              	.LBB21:
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t *rp_new = rx_msg->msg_start + rx_msg->len;
+ 346              		.loc 1 341 0
+ 347 006c A44E     		ldr	r6, .L111+52
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     size_t size = msg->len * sizeof(uint8_t);
+ 348              		.loc 1 339 0
+ 349 006e BDF82C70 		ldrh	r7, [sp, #44]
+ 350              	.LVL25:
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t *rp_new = rx_msg->msg_start + rx_msg->len;
+ 351              		.loc 1 341 0
+ 352 0072 40F25512 		movw	r2, #341
+ 353 0076 3846     		mov	r0, r7
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     msg->data = pvPortMalloc(size);
+ 354              		.loc 1 340 0
+ 355 0078 B846     		mov	r8, r7
+ 356              	.LVL26:
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t *rp_new = rx_msg->msg_start + rx_msg->len;
+ 357              		.loc 1 341 0
+ 358 007a A249     		ldr	r1, .L111+56
+ 359 007c B047     		blx	r6
+ 360              	.LVL27:
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (buf_arr_rem < rx_msg->len)
+ 361              		.loc 1 344 0
+ 362 007e DFF8CC92 		ldr	r9, .L111+128
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     // Circular memcpy from cmd_rx_buf to msg->data
+ 363              		.loc 1 342 0
+ 364 0082 0A9A     		ldr	r2, [sp, #40]
+ 365 0084 BDF82C50 		ldrh	r5, [sp, #44]
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     if (buf_arr_rem < rx_msg->len)
+ 366              		.loc 1 344 0
+ 367 0088 D9F80430 		ldr	r3, [r9, #4]
+ 368 008c 9B1A     		subs	r3, r3, r2
+ 369 008e 9BB2     		uxth	r3, r3
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 370              		.loc 1 345 0
+ 371 0090 AB42     		cmp	r3, r5
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     const uint8_t *rp_new = rx_msg->msg_start + rx_msg->len;
+ 372              		.loc 1 341 0
+ 373 0092 0446     		mov	r4, r0
+ 374              	.LVL28:
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     {
+ 375              		.loc 1 345 0
+ 376 0094 01D3     		bcc	.L27
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     // Circular memcpy from cmd_rx_buf to msg->data
+ 377              		.loc 1 342 0
+ 378 0096 1544     		add	r5, r5, r2
+ 379              	.LVL29:
+ 380 0098 0AE0     		b	.L28
+ 381              	.LVL30:
+ 382              	.L27:
+ 383              	.LBB22:
+ 347:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         memcpy(msg->data + buf_arr_rem, cmd_rx_buf.buf_start, len_wrap * sizeof(uint8_t));
+ 384              		.loc 1 347 0
+ 385 009a ED1A     		subs	r5, r5, r3
+ 386              	.LVL31:
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         size = buf_arr_rem * sizeof(uint8_t);
+ 387              		.loc 1 348 0
+ 388 009c D9F800A0 		ldr	r10, [r9]
+ 389 00a0 1844     		add	r0, r0, r3
+ 390              	.LVL32:
+ 391 00a2 ADB2     		uxth	r5, r5
+ 392 00a4 2A46     		mov	r2, r5
+ 393              	.LVL33:
+ 394 00a6 9846     		mov	r8, r3
+ 395 00a8 5146     		mov	r1, r10
+ 350:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     }
+ 396              		.loc 1 350 0
+ 397 00aa 5544     		add	r5, r5, r10
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****         size = buf_arr_rem * sizeof(uint8_t);
+ 398              		.loc 1 348 0
+ 399 00ac 964B     		ldr	r3, .L111+60
+ 400 00ae 9847     		blx	r3
+ 401              	.LVL34:
+ 402              	.L28:
+ 403              	.LBE22:
+ 352:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     // Modify rp atomically, to ensure it is seen consistently changed in interrupt
+ 404              		.loc 1 352 0
+ 405 00b0 4246     		mov	r2, r8
+ 406 00b2 2046     		mov	r0, r4
+ 407 00b4 0A99     		ldr	r1, [sp, #40]
+ 408 00b6 944B     		ldr	r3, .L111+60
+ 409 00b8 9847     		blx	r3
+ 410              	.LVL35:
+ 354:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.rp = rp_new;
+ 411              		.loc 1 354 0
+ 412 00ba 069B     		ldr	r3, [sp, #24]
+ 413 00bc 9847     		blx	r3
+ 414              	.LVL36:
+ 355:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     taskEXIT_CRITICAL();
+ 415              		.loc 1 355 0
+ 416 00be C9F80C50 		str	r5, [r9, #12]
+ 356:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 417              		.loc 1 356 0
+ 418 00c2 079B     		ldr	r3, [sp, #28]
+ 419              	.LBE21:
+ 420              	.LBE20:
+ 421              	.LBB24:
+ 422              	.LBB25:
+ 718:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	char *str_byte = pvPortMalloc(4);
+ 423              		.loc 1 718 0
+ 424 00c4 4FEA8709 		lsl	r9, r7, #2
+ 425              	.LBE25:
+ 426              	.LBE24:
+ 427              	.LBB28:
+ 428              	.LBB23:
+ 356:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 429              		.loc 1 356 0
+ 430 00c8 9847     		blx	r3
+ 431              	.LVL37:
+ 432              	.LBE23:
+ 433              	.LBE28:
+ 434              	.LBB29:
+ 435              	.LBB27:
+ 718:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	char *str_byte = pvPortMalloc(4);
+ 436              		.loc 1 718 0
+ 437 00ca 9049     		ldr	r1, .L111+64
+ 438 00cc 40F2CE22 		movw	r2, #718
+ 439 00d0 4846     		mov	r0, r9
+ 440 00d2 B047     		blx	r6
+ 441              	.LVL38:
+ 719:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	if((NULL != str) && (NULL != str_byte))
+ 442              		.loc 1 719 0
+ 443 00d4 8D49     		ldr	r1, .L111+64
+ 444 00d6 40F2CF22 		movw	r2, #719
+ 718:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	char *str_byte = pvPortMalloc(4);
+ 445              		.loc 1 718 0
+ 446 00da 8046     		mov	r8, r0
+ 447              	.LVL39:
+ 719:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	if((NULL != str) && (NULL != str_byte))
+ 448              		.loc 1 719 0
+ 449 00dc 0420     		movs	r0, #4
+ 450              	.LVL40:
+ 451 00de B047     		blx	r6
+ 452              	.LVL41:
+ 453 00e0 0546     		mov	r5, r0
+ 454              	.LVL42:
+ 720:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	{
+ 455              		.loc 1 720 0
+ 456 00e2 B8F1000F 		cmp	r8, #0
+ 457 00e6 25D0     		beq	.L29
+ 458 00e8 20B3     		cbz	r0, .L29
+ 722:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		memset(str_byte, 0, 4);
+ 459              		.loc 1 722 0
+ 460 00ea 0021     		movs	r1, #0
+ 461 00ec 4A46     		mov	r2, r9
+ 462 00ee 4046     		mov	r0, r8
+ 463              	.LVL43:
+ 464 00f0 049B     		ldr	r3, [sp, #16]
+ 723:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Dump data message */
+ 465              		.loc 1 723 0
+ 466 00f2 2646     		mov	r6, r4
+ 722:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		memset(str_byte, 0, 4);
+ 467              		.loc 1 722 0
+ 468 00f4 9847     		blx	r3
+ 469              	.LVL44:
+ 723:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Dump data message */
+ 470              		.loc 1 723 0
+ 471 00f6 2846     		mov	r0, r5
+ 472 00f8 0021     		movs	r1, #0
+ 473 00fa 0422     		movs	r2, #4
+ 474 00fc 049B     		ldr	r3, [sp, #16]
+ 475 00fe 9847     		blx	r3
+ 476              	.LVL45:
+ 477              	.L30:
+ 478 0100 331B     		subs	r3, r6, r4
+ 479              	.LVL46:
+ 480              	.LBB26:
+ 725:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 481              		.loc 1 725 0
+ 482 0102 BB42     		cmp	r3, r7
+ 483 0104 0FDA     		bge	.L108
+ 727:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			strcat(str, str_byte);
+ 484              		.loc 1 727 0
+ 485 0106 16F8012B 		ldrb	r2, [r6], #1	@ zero_extendqisi2
+ 486 010a 2846     		mov	r0, r5
+ 487 010c 8049     		ldr	r1, .L111+68
+ 488 010e 814B     		ldr	r3, .L111+72
+ 489              	.LVL47:
+ 490 0110 9847     		blx	r3
+ 491              	.LVL48:
+ 728:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			memset(str_byte, 0, 4);
+ 492              		.loc 1 728 0
+ 493 0112 2946     		mov	r1, r5
+ 494 0114 4046     		mov	r0, r8
+ 495 0116 804B     		ldr	r3, .L111+76
+ 496 0118 9847     		blx	r3
+ 497              	.LVL49:
+ 729:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 498              		.loc 1 729 0
+ 499 011a 2846     		mov	r0, r5
+ 500 011c 0021     		movs	r1, #0
+ 501 011e 0422     		movs	r2, #4
+ 502 0120 049B     		ldr	r3, [sp, #16]
+ 503 0122 9847     		blx	r3
+ 504              	.LVL50:
+ 505 0124 ECE7     		b	.L30
+ 506              	.LVL51:
+ 507              	.L108:
+ 508              	.LBE26:
+ 731:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 509              		.loc 1 731 0
+ 510 0126 2020     		movs	r0, #32
+ 511 0128 1021     		movs	r1, #16
+ 512 012a 7C4A     		ldr	r2, .L111+80
+ 513 012c 4346     		mov	r3, r8
+ 514              	.LVL52:
+ 515 012e 7C4E     		ldr	r6, .L111+84
+ 516              	.LVL53:
+ 517 0130 B047     		blx	r6
+ 518              	.LVL54:
+ 519 0132 08E0     		b	.L32
+ 520              	.LVL55:
+ 521              	.L29:
+ 735:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	}
+ 522              		.loc 1 735 0
+ 523 0134 40F2DF23 		movw	r3, #735
+ 524 0138 2020     		movs	r0, #32
+ 525              	.LVL56:
+ 526 013a 0421     		movs	r1, #4
+ 527 013c 0093     		str	r3, [sp]
+ 528 013e 794A     		ldr	r2, .L111+88
+ 529 0140 724B     		ldr	r3, .L111+64
+ 530 0142 774E     		ldr	r6, .L111+84
+ 531 0144 B047     		blx	r6
+ 532              	.LVL57:
+ 533              	.L32:
+ 738:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 	vPortFree(str_byte);
+ 534              		.loc 1 738 0
+ 535 0146 4046     		mov	r0, r8
+ 536 0148 40F2E222 		movw	r2, #738
+ 537 014c 6F49     		ldr	r1, .L111+64
+ 538 014e 764E     		ldr	r6, .L111+92
+ 539 0150 B047     		blx	r6
+ 540              	.LVL58:
+ 739:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 541              		.loc 1 739 0
+ 542 0152 2846     		mov	r0, r5
+ 543 0154 6D49     		ldr	r1, .L111+64
+ 544 0156 40F2E322 		movw	r2, #739
+ 545 015a B047     		blx	r6
+ 546              	.LVL59:
+ 547              	.LBE27:
+ 548              	.LBE29:
+ 423:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 549              		.loc 1 423 0
+ 550 015c 032F     		cmp	r7, #3
+ 551 015e 06D8     		bhi	.L33
+ 425:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_ERROR, "%s: Message too short", __FUNCTION__);
+ 552              		.loc 1 425 0
+ 553 0160 0423     		movs	r3, #4
+ 426:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			goto EXIT;
+ 554              		.loc 1 426 0
+ 555 0162 2020     		movs	r0, #32
+ 425:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			SLOGF(SLOG_ERROR, "%s: Message too short", __FUNCTION__);
+ 556              		.loc 1 425 0
+ 557 0164 ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 426:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			goto EXIT;
+ 558              		.loc 1 426 0
+ 559 0168 0221     		movs	r1, #2
+ 560 016a 704A     		ldr	r2, .L111+96
+ 561 016c FDE0     		b	.L106
+ 562              	.L33:
+ 432:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 563              		.loc 1 432 0
+ 564 016e 4FF0000A 		mov	r10, #0
+ 431:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		in.cmd = *(uint16_t *)(msg.data + LCC_CMD_COMMAND_IDX);
+ 565              		.loc 1 431 0
+ 566 0172 2388     		ldrh	r3, [r4]
+ 567 0174 ADF83A30 		strh	r3, [sp, #58]	@ movhi
+ 432:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 568              		.loc 1 432 0
+ 569 0178 6388     		ldrh	r3, [r4, #2]
+ 570 017a ADF83C30 		strh	r3, [sp, #60]	@ movhi
+ 571              	.LVL60:
+ 572              	.L60:
+ 441:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			if ((in.cmd & 0x7FFF) == (cmd_info.word & 0x7FFF))
+ 573              		.loc 1 441 0
+ 574 017e 6C49     		ldr	r1, .L111+100
+ 575 0180 0891     		str	r1, [sp, #32]
+ 576 0182 51F83A60 		ldr	r6, [r1, r10, lsl #3]
+ 442:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			{
+ 577              		.loc 1 442 0
+ 578 0186 86EA0302 		eor	r2, r6, r3
+ 579 018a C2F30E02 		ubfx	r2, r2, #0, #15
+ 580 018e 002A     		cmp	r2, #0
+ 581 0190 40F08E81 		bne	.L35
+ 445:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Get m_bitmask if this command support */
+ 582              		.loc 1 445 0
+ 583 0194 DB0B     		lsrs	r3, r3, #15
+ 584 0196 9DF84320 		ldrb	r2, [sp, #67]	@ zero_extendqisi2
+ 447:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 585              		.loc 1 447 0
+ 586 019a C6F30749 		ubfx	r9, r6, #16, #8
+ 445:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Get m_bitmask if this command support */
+ 587              		.loc 1 445 0
+ 588 019e 63F38202 		bfi	r2, r3, #2, #1
+ 447:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 589              		.loc 1 447 0
+ 590 01a2 19F00108 		ands	r8, r9, #1
+ 591              	.LVL61:
+ 445:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Get m_bitmask if this command support */
+ 592              		.loc 1 445 0
+ 593 01a6 8DF84320 		strb	r2, [sp, #67]
+ 447:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 594              		.loc 1 447 0
+ 595 01aa 38D0     		beq	.L36
+ 596              	.LVL62:
+ 451:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Check if m_bitmask is set over 16 camera modules */
+ 597              		.loc 1 451 0
+ 598 01ac A279     		ldrb	r2, [r4, #6]	@ zero_extendqisi2
+ 599 01ae 1204     		lsls	r2, r2, #16
+ 450:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.m_bitmask |= (uint32_t)msg.data[count++] << 16;
+ 600              		.loc 1 450 0
+ 601 01b0 6379     		ldrb	r3, [r4, #5]	@ zero_extendqisi2
+ 602 01b2 42EA0322 		orr	r2, r2, r3, lsl #8
+ 449:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.m_bitmask |= (uint32_t)msg.data[count++] << 8;
+ 603              		.loc 1 449 0
+ 604 01b6 2379     		ldrb	r3, [r4, #4]	@ zero_extendqisi2
+ 451:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Check if m_bitmask is set over 16 camera modules */
+ 605              		.loc 1 451 0
+ 606 01b8 1A43     		orrs	r2, r2, r3
+ 453:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 607              		.loc 1 453 0
+ 608 01ba 12F47E0F 		tst	r2, #16646144
+ 451:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Check if m_bitmask is set over 16 camera modules */
+ 609              		.loc 1 451 0
+ 610 01be 0C92     		str	r2, [sp, #48]
+ 453:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 611              		.loc 1 453 0
+ 612 01c0 06D0     		beq	.L37
+ 455:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: m_bitmask invalid",__FUNCTION__);
+ 613              		.loc 1 455 0
+ 614 01c2 0423     		movs	r3, #4
+ 456:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 615              		.loc 1 456 0
+ 616 01c4 2020     		movs	r0, #32
+ 455:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: m_bitmask invalid",__FUNCTION__);
+ 617              		.loc 1 455 0
+ 618 01c6 ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 456:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 619              		.loc 1 456 0
+ 620 01ca 0221     		movs	r1, #2
+ 621 01cc 594A     		ldr	r2, .L111+104
+ 622 01ce CCE0     		b	.L106
+ 623              	.L37:
+ 461:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if ((0 == cmd_info.global) && (1 == in.global))
+ 624              		.loc 1 461 0
+ 625 01d0 9DF84330 		ldrb	r3, [sp, #67]	@ zero_extendqisi2
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 626              		.loc 1 462 0
+ 627 01d4 09F00201 		and	r1, r9, #2
+ 461:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if ((0 == cmd_info.global) && (1 == in.global))
+ 628              		.loc 1 461 0
+ 629 01d8 62F34103 		bfi	r3, r2, #1, #1
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 630              		.loc 1 462 0
+ 631 01dc 01F0FF02 		and	r2, r1, #255
+ 461:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if ((0 == cmd_info.global) && (1 == in.global))
+ 632              		.loc 1 461 0
+ 633 01e0 8DF84330 		strb	r3, [sp, #67]
+ 634 01e4 DBB2     		uxtb	r3, r3
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 635              		.loc 1 462 0
+ 636 01e6 61B9     		cbnz	r1, .L39
+ 462:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 637              		.loc 1 462 0 is_stmt 0 discriminator 1
+ 638 01e8 9807     		lsls	r0, r3, #30
+ 639 01ea 0AD5     		bpl	.L39
+ 464:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.status = LCC_CMD_INVALID_ARG;
+ 640              		.loc 1 464 0 is_stmt 1
+ 641 01ec 62F34103 		bfi	r3, r2, #1, #1
+ 466:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 642              		.loc 1 466 0
+ 643 01f0 2020     		movs	r0, #32
+ 464:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.status = LCC_CMD_INVALID_ARG;
+ 644              		.loc 1 464 0
+ 645 01f2 8DF84330 		strb	r3, [sp, #67]
+ 465:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Unsupported global bitmask",
+ 646              		.loc 1 465 0
+ 647 01f6 0423     		movs	r3, #4
+ 466:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 648              		.loc 1 466 0
+ 649 01f8 0221     		movs	r1, #2
+ 465:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Unsupported global bitmask",
+ 650              		.loc 1 465 0
+ 651 01fa ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 466:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 652              		.loc 1 466 0
+ 653 01fe 4E4A     		ldr	r2, .L111+108
+ 654 0200 B3E0     		b	.L106
+ 655              	.L39:
+ 470:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 656              		.loc 1 470 0
+ 657 0202 9907     		lsls	r1, r3, #30
+ 451:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Check if m_bitmask is set over 16 camera modules */
+ 658              		.loc 1 451 0
+ 659 0204 4FF00705 		mov	r5, #7
+ 660              	.LVL63:
+ 474:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 661              		.loc 1 474 0
+ 662 0208 41BF     		itttt	mi
+ 663 020a 4C4B     		ldrmi	r3, .L111+112
+ 664 020c 1B68     		ldrmi	r3, [r3]
+ 665 020e 5B69     		ldrmi	r3, [r3, #20]
+ 666 0210 0C93     		strmi	r3, [sp, #48]
+ 477:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 667              		.loc 1 477 0
+ 668 0212 4B4B     		ldr	r3, .L111+116
+ 669 0214 0C98     		ldr	r0, [sp, #48]
+ 670 0216 9847     		blx	r3
+ 671              	.LVL64:
+ 672 0218 8DF84200 		strb	r0, [sp, #66]
+ 673 021c 02E0     		b	.L41
+ 674              	.LVL65:
+ 675              	.L36:
+ 434:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		uint16_t scan_idx = 0;
+ 676              		.loc 1 434 0
+ 677 021e 0425     		movs	r5, #4
+ 678              	.LVL66:
+ 482:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 679              		.loc 1 482 0
+ 680 0220 CDF83080 		str	r8, [sp, #48]
+ 681              	.LVL67:
+ 682              	.L41:
+ 486:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 683              		.loc 1 486 0
+ 684 0224 19F0040F 		tst	r9, #4
+ 685 0228 15D0     		beq	.L42
+ 686              	.LVL68:
+ 488:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					in.ucid |= (uint16_t)msg.data[count++] << 8;
+ 687              		.loc 1 488 0
+ 688 022a 6A1C     		adds	r2, r5, #1
+ 689 022c 635D     		ldrb	r3, [r4, r5]	@ zero_extendqisi2
+ 690 022e ADF83E30 		strh	r3, [sp, #62]	@ movhi
+ 691              	.LVL69:
+ 489:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Checking UCID value */
+ 692              		.loc 1 489 0
+ 693 0232 92B2     		uxth	r2, r2
+ 694 0234 A25C     		ldrb	r2, [r4, r2]	@ zero_extendqisi2
+ 695 0236 43EA0223 		orr	r3, r3, r2, lsl #8
+ 491:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 696              		.loc 1 491 0
+ 697 023a 0A2B     		cmp	r3, #10
+ 489:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Checking UCID value */
+ 698              		.loc 1 489 0
+ 699 023c ADF83E30 		strh	r3, [sp, #62]	@ movhi
+ 491:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 700              		.loc 1 491 0
+ 701 0240 02D8     		bhi	.L43
+ 489:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Checking UCID value */
+ 702              		.loc 1 489 0
+ 703 0242 0235     		adds	r5, r5, #2
+ 704              	.LVL70:
+ 705 0244 ADB2     		uxth	r5, r5
+ 706 0246 06E0     		b	.L42
+ 707              	.LVL71:
+ 708              	.L43:
+ 493:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: UCID invalid", __FUNCTION__);
+ 709              		.loc 1 493 0
+ 710 0248 0423     		movs	r3, #4
+ 494:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 711              		.loc 1 494 0
+ 712 024a 2020     		movs	r0, #32
+ 493:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: UCID invalid", __FUNCTION__);
+ 713              		.loc 1 493 0
+ 714 024c ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 494:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						break;
+ 715              		.loc 1 494 0
+ 716 0250 0221     		movs	r1, #2
+ 717 0252 3C4A     		ldr	r2, .L111+120
+ 718 0254 89E0     		b	.L106
+ 719              	.LVL72:
+ 720              	.L42:
+ 500:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 721              		.loc 1 500 0
+ 722 0256 BD42     		cmp	r5, r7
+ 723 0258 0ED1     		bne	.L44
+ 502:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 724              		.loc 1 502 0
+ 725 025a 19F0080F 		tst	r9, #8
+ 726 025e 06D1     		bne	.L45
+ 504:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Unsupported read action",
+ 727              		.loc 1 504 0
+ 728 0260 0423     		movs	r3, #4
+ 505:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 729              		.loc 1 505 0
+ 730 0262 2020     		movs	r0, #32
+ 504:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Unsupported read action",
+ 731              		.loc 1 504 0
+ 732 0264 ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 505:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 733              		.loc 1 505 0
+ 734 0268 0221     		movs	r1, #2
+ 735 026a 374A     		ldr	r2, .L111+124
+ 736 026c 7DE0     		b	.L106
+ 737              	.L45:
+ 509:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 738              		.loc 1 509 0
+ 739 026e 9DF84330 		ldrb	r3, [sp, #67]	@ zero_extendqisi2
+ 740 0272 43F00103 		orr	r3, r3, #1
+ 741 0276 20E0     		b	.L105
+ 742              	.L44:
+ 512:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 743              		.loc 1 512 0
+ 744 0278 19F0100F 		tst	r9, #16
+ 745 027c 6FD0     		beq	.L47
+ 746              	.LBB30:
+ 515:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						expected_len = msg.len - count;
+ 747              		.loc 1 515 0
+ 748 027e 19F0200F 		tst	r9, #32
+ 514:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (cmd_info.bypass)
+ 749              		.loc 1 514 0
+ 750 0282 4FEA1663 		lsr	r3, r6, #24
+ 751              	.LVL73:
+ 752 0286 A7EB0507 		sub	r7, r7, r5
+ 753              	.LVL74:
+ 515:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						expected_len = msg.len - count;
+ 754              		.loc 1 515 0
+ 755 028a 01D0     		beq	.L48
+ 516:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					else if (!in.global && cmd_info.m_bitmask)
+ 756              		.loc 1 516 0
+ 757 028c BBB2     		uxth	r3, r7
+ 758              	.LVL75:
+ 759 028e 0AE0     		b	.L49
+ 760              	.LVL76:
+ 761              	.L48:
+ 517:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						expected_len = cmd_info.size * in.m_number;
+ 762              		.loc 1 517 0
+ 763 0290 9DF84320 		ldrb	r2, [sp, #67]	@ zero_extendqisi2
+ 764 0294 9207     		lsls	r2, r2, #30
+ 514:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if (cmd_info.bypass)
+ 765              		.loc 1 514 0
+ 766 0296 9BB2     		uxth	r3, r3
+ 517:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						expected_len = cmd_info.size * in.m_number;
+ 767              		.loc 1 517 0
+ 768 0298 05D4     		bmi	.L49
+ 517:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						expected_len = cmd_info.size * in.m_number;
+ 769              		.loc 1 517 0 is_stmt 0 discriminator 1
+ 770 029a B8F1000F 		cmp	r8, #0
+ 771 029e 02D0     		beq	.L49
+ 518:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 772              		.loc 1 518 0 is_stmt 1
+ 773 02a0 9DF84220 		ldrb	r2, [sp, #66]	@ zero_extendqisi2
+ 774 02a4 5343     		muls	r3, r2, r3
+ 775              	.LVL77:
+ 776              	.L49:
+ 520:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 777              		.loc 1 520 0
+ 778 02a6 BB42     		cmp	r3, r7
+ 779 02a8 52D1     		bne	.L50
+ 523:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						in.data = &msg.data[count];
+ 780              		.loc 1 523 0
+ 781 02aa ADF83830 		strh	r3, [sp, #56]	@ movhi
+ 524:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						/* Indicate the writing action for command */
+ 782              		.loc 1 524 0
+ 783 02ae 6319     		adds	r3, r4, r5
+ 784              	.LVL78:
+ 785 02b0 0D93     		str	r3, [sp, #52]
+ 526:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** #if (ASIC_NUM == ASIC1)
+ 786              		.loc 1 526 0
+ 787 02b2 9DF84330 		ldrb	r3, [sp, #67]	@ zero_extendqisi2
+ 788 02b6 6FF30003 		bfc	r3, #0, #1
+ 789              	.LVL79:
+ 790              	.L105:
+ 791 02ba 8DF84330 		strb	r3, [sp, #67]
+ 792 02be DFF87CB0 		ldr	fp, .L111+112
+ 793              	.LBE30:
+ 584:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 794              		.loc 1 584 0
+ 795 02c2 B8F1000F 		cmp	r8, #0
+ 796 02c6 00F0B880 		beq	.L51
+ 797 02ca 52E0     		b	.L109
+ 798              	.L112:
+ 799              		.align	2
+ 800              	.L111:
+ 801 02cc 00000000 		.word	memset
+ 802 02d0 9D000000 		.word	.LC3
+ 803 02d4 00000000 		.word	task_query_tid
+ 804 02d8 00000000 		.word	task_handler
+ 805 02dc A5000000 		.word	.LC4
+ 806 02e0 00000000 		.word	vTaskDelay
+ 807 02e4 00000000 		.word	vPortEnterCritical
+ 808 02e8 00000000 		.word	vPortExitCritical
+ 809 02ec AE000000 		.word	.LC5
+ 810 02f0 00000000 		.word	.LANCHOR4
+ 811 02f4 00000000 		.word	log_msg
+ 812 02f8 00000000 		.word	.LANCHOR2
+ 813 02fc 00000000 		.word	xQueueGenericReceive
+ 814 0300 00000000 		.word	pvPortMalloc1
+ 815 0304 00000000 		.word	.LANCHOR5
+ 816 0308 00000000 		.word	memcpy
+ 817 030c 00000000 		.word	.LANCHOR6
+ 818 0310 B9000000 		.word	.LC6
+ 819 0314 00000000 		.word	sprintf
+ 820 0318 00000000 		.word	strcat
+ 821 031c BF000000 		.word	.LC7
+ 822 0320 00000000 		.word	slogf
+ 823 0324 CB000000 		.word	.LC8
+ 824 0328 00000000 		.word	vPortFree1
+ 825 032c E1000000 		.word	.LC9
+ 826 0330 00000000 		.word	.LANCHOR7
+ 827 0334 F7000000 		.word	.LC10
+ 828 0338 0D010000 		.word	.LC11
+ 829 033c 00000000 		.word	light_system
+ 830 0340 00000000 		.word	__popcountsi2
+ 831 0344 2C010000 		.word	.LC12
+ 832 0348 3D010000 		.word	.LC13
+ 833 034c 00000000 		.word	.LANCHOR1
+ 834              	.LVL80:
+ 835              	.L50:
+ 836              	.LBB31:
+ 569:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Message length is incorrect",
+ 837              		.loc 1 569 0
+ 838 0350 0423     		movs	r3, #4
+ 839              	.LVL81:
+ 570:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 840              		.loc 1 570 0
+ 841 0352 2020     		movs	r0, #32
+ 569:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						SLOGF(SLOG_ERROR, "%s: Message length is incorrect",
+ 842              		.loc 1 569 0
+ 843 0354 ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 570:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 844              		.loc 1 570 0
+ 845 0358 0221     		movs	r1, #2
+ 846 035a 674A     		ldr	r2, .L113
+ 847 035c 05E0     		b	.L106
+ 848              	.LVL82:
+ 849              	.L47:
+ 850              	.LBE31:
+ 578:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 851              		.loc 1 578 0
+ 852 035e 674A     		ldr	r2, .L113+4
+ 577:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					SLOGF(SLOG_ERROR, "%s: Unsupported write action",
+ 853              		.loc 1 577 0
+ 854 0360 0423     		movs	r3, #4
+ 578:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 855              		.loc 1 578 0
+ 856 0362 2020     		movs	r0, #32
+ 857 0364 0221     		movs	r1, #2
+ 577:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					SLOGF(SLOG_ERROR, "%s: Unsupported write action",
+ 858              		.loc 1 577 0
+ 859 0366 ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 860              	.LVL83:
+ 861              	.L106:
+ 578:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 											__FUNCTION__);
+ 862              		.loc 1 578 0
+ 863 036a 654B     		ldr	r3, .L113+8
+ 864              	.L107:
+ 865 036c 654D     		ldr	r5, .L113+12
+ 866 036e A847     		blx	r5
+ 867              	.LVL84:
+ 580:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 868              		.loc 1 580 0
+ 869 0370 A8E0     		b	.L34
+ 870              	.LVL85:
+ 871              	.L109:
+ 586:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					if((in.action == CMD_WRITE) && (cmd_info.cmd !=
+ 872              		.loc 1 586 0
+ 873 0372 0C9B     		ldr	r3, [sp, #48]
+ 874 0374 0393     		str	r3, [sp, #12]
+ 875              	.LVL86:
+ 587:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								LCC_CMD_READ_EEPROM_METADATA_ID))
+ 876              		.loc 1 587 0
+ 877 0376 9DF84330 		ldrb	r3, [sp, #67]	@ zero_extendqisi2
+ 878              	.LVL87:
+ 879 037a D807     		lsls	r0, r3, #31
+ 880 037c 5DD4     		bmi	.L51
+ 587:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								LCC_CMD_READ_EEPROM_METADATA_ID))
+ 881              		.loc 1 587 0 is_stmt 0 discriminator 1
+ 882 037e F2B2     		uxtb	r2, r6
+ 883              	.LVL88:
+ 884 0380 722A     		cmp	r2, #114
+ 885 0382 5AD0     		beq	.L51
+ 590:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						data_cnt = 0;
+ 886              		.loc 1 590 0 is_stmt 1
+ 887 0384 DBF80020 		ldr	r2, [fp]
+ 888              	.LVL89:
+ 593:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 889              		.loc 1 593 0
+ 890 0388 03F00203 		and	r3, r3, #2
+ 590:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						data_cnt = 0;
+ 891              		.loc 1 590 0
+ 892 038c 0592     		str	r2, [sp, #20]
+ 592:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						if(in.global)
+ 893              		.loc 1 592 0
+ 894 038e EFB2     		uxtb	r7, r5
+ 593:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 895              		.loc 1 593 0
+ 896 0390 03F0FF09 		and	r9, r3, #255
+ 590:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						data_cnt = 0;
+ 897              		.loc 1 590 0
+ 898 0394 9069     		ldr	r0, [r2, #24]
+ 899 0396 039A     		ldr	r2, [sp, #12]
+ 900 0398 1040     		ands	r0, r0, r2
+ 901 039a 0C90     		str	r0, [sp, #48]
+ 902              	.LVL90:
+ 593:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 903              		.loc 1 593 0
+ 904 039c 13B1     		cbz	r3, .L52
+ 595:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						}
+ 905              		.loc 1 595 0
+ 906 039e 2744     		add	r7, r7, r4
+ 907              	.LVL91:
+ 908 03a0 0D97     		str	r7, [sp, #52]
+ 909 03a2 45E0     		b	.L53
+ 910              	.LVL92:
+ 911              	.L52:
+ 597:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						{
+ 912              		.loc 1 597 0
+ 913 03a4 0028     		cmp	r0, #0
+ 914 03a6 43D0     		beq	.L53
+ 915              	.LBB32:
+ 599:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								in.m_bitmask) * cmd_info.size);
+ 916              		.loc 1 599 0
+ 917 03a8 574B     		ldr	r3, .L113+16
+ 918 03aa 360E     		lsrs	r6, r6, #24
+ 919 03ac 9847     		blx	r3
+ 920              	.LVL93:
+ 921 03ae 5449     		ldr	r1, .L113+8
+ 922 03b0 4FF41672 		mov	r2, #600
+ 923 03b4 554B     		ldr	r3, .L113+20
+ 924              	.LBE32:
+ 591:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						count_idx = count;
+ 925              		.loc 1 591 0
+ 926 03b6 C846     		mov	r8, r9
+ 927              	.LBB34:
+ 599:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								in.m_bitmask) * cmd_info.size);
+ 928              		.loc 1 599 0
+ 929 03b8 7043     		muls	r0, r6, r0
+ 930 03ba 9847     		blx	r3
+ 931              	.LVL94:
+ 932 03bc 8446     		mov	ip, r0
+ 933              	.LVL95:
+ 934              	.L54:
+ 935              	.LBB33:
+ 601:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							{
+ 936              		.loc 1 601 0 discriminator 1
+ 937 03be 5FFA89F2 		uxtb	r2, r9
+ 938 03c2 9DF84210 		ldrb	r1, [sp, #66]	@ zero_extendqisi2
+ 939 03c6 9142     		cmp	r1, r2
+ 940 03c8 1FD9     		bls	.L110
+ 604:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								if(light_system->m_filter &
+ 941              		.loc 1 604 0
+ 942 03ca 0122     		movs	r2, #1
+ 603:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								cmd_bitmask &= ~(1 << asic_data_idx);
+ 943              		.loc 1 603 0
+ 944 03cc 039B     		ldr	r3, [sp, #12]
+ 945 03ce 93FAA3F1 		rbit	r1, r3
+ 946 03d2 B1FA81F1 		clz	r1, r1
+ 947              	.LVL96:
+ 604:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								if(light_system->m_filter &
+ 948              		.loc 1 604 0
+ 949 03d6 8A40     		lsls	r2, r2, r1
+ 950 03d8 23EA0203 		bic	r3, r3, r2
+ 951 03dc 0393     		str	r3, [sp, #12]
+ 952              	.LVL97:
+ 605:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 									(1 << asic_data_idx))
+ 953              		.loc 1 605 0
+ 954 03de 059B     		ldr	r3, [sp, #20]
+ 955              	.LVL98:
+ 956 03e0 9969     		ldr	r1, [r3, #24]
+ 957              	.LVL99:
+ 958 03e2 0A42     		tst	r2, r1
+ 959 03e4 0CD0     		beq	.L55
+ 608:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 										&msg.data[count_idx], cmd_info.size);
+ 960              		.loc 1 608 0
+ 961 03e6 0CEB0800 		add	r0, ip, r8
+ 962 03ea E119     		adds	r1, r4, r7
+ 963 03ec 3246     		mov	r2, r6
+ 610:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								}
+ 964              		.loc 1 610 0
+ 965 03ee B044     		add	r8, r8, r6
+ 966              	.LVL100:
+ 608:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 										&msg.data[count_idx], cmd_info.size);
+ 967              		.loc 1 608 0
+ 968 03f0 474B     		ldr	r3, .L113+24
+ 969 03f2 CDF824C0 		str	ip, [sp, #36]
+ 970 03f6 9847     		blx	r3
+ 971              	.LVL101:
+ 610:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 								}
+ 972              		.loc 1 610 0
+ 973 03f8 DDF824C0 		ldr	ip, [sp, #36]
+ 974 03fc 5FFA88F8 		uxtb	r8, r8
+ 975              	.LVL102:
+ 976              	.L55:
+ 612:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							}
+ 977              		.loc 1 612 0 discriminator 2
+ 978 0400 3744     		add	r7, r7, r6
+ 979              	.LVL103:
+ 980 0402 09F10109 		add	r9, r9, #1
+ 981              	.LVL104:
+ 982 0406 FFB2     		uxtb	r7, r7
+ 983              	.LVL105:
+ 984 0408 D9E7     		b	.L54
+ 985              	.LVL106:
+ 986              	.L110:
+ 987              	.LBE33:
+ 614:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							in.data = &msg.data[count];
+ 988              		.loc 1 614 0
+ 989 040a 2544     		add	r5, r5, r4
+ 990              	.LVL107:
+ 991 040c 6146     		mov	r1, ip
+ 992 040e 4246     		mov	r2, r8
+ 993 0410 2846     		mov	r0, r5
+ 994 0412 3F4E     		ldr	r6, .L113+24
+ 995 0414 CDF80CC0 		str	ip, [sp, #12]
+ 996              	.LVL108:
+ 997 0418 B047     		blx	r6
+ 998              	.LVL109:
+ 617:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						}
+ 999              		.loc 1 617 0
+ 1000 041a DDF80CC0 		ldr	ip, [sp, #12]
+ 1001 041e 40F26922 		movw	r2, #617
+ 1002 0422 6046     		mov	r0, ip
+ 1003 0424 3649     		ldr	r1, .L113+8
+ 1004 0426 3B4B     		ldr	r3, .L113+28
+ 615:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							in.len = data_cnt;
+ 1005              		.loc 1 615 0
+ 1006 0428 0D95     		str	r5, [sp, #52]
+ 616:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 							vPortFree(tmp);
+ 1007              		.loc 1 616 0
+ 1008 042a ADF83880 		strh	r8, [sp, #56]	@ movhi
+ 617:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						}
+ 1009              		.loc 1 617 0
+ 1010 042e 9847     		blx	r3
+ 1011              	.LVL110:
+ 1012              	.L53:
+ 1013              	.LBE34:
+ 619:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 1014              		.loc 1 619 0
+ 1015 0430 0C98     		ldr	r0, [sp, #48]
+ 1016 0432 354B     		ldr	r3, .L113+16
+ 1017 0434 9847     		blx	r3
+ 1018              	.LVL111:
+ 1019 0436 8DF84200 		strb	r0, [sp, #66]
+ 1020              	.LVL112:
+ 1021              	.L51:
+ 624:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				/* Execute function correspond with command from host  */
+ 1022              		.loc 1 624 0
+ 1023 043a DBF80030 		ldr	r3, [fp]
+ 1024 043e BDF83A20 		ldrh	r2, [sp, #58]
+ 1025              	.LVL113:
+ 1026 0442 9A84     		strh	r2, [r3, #36]	@ movhi
+ 626:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****                 out.data = NULL;
+ 1027              		.loc 1 626 0
+ 1028 0444 0023     		movs	r3, #0
+ 623:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				light_system->cur_tid = in.tid;
+ 1029              		.loc 1 623 0
+ 1030 0446 0225     		movs	r5, #2
+ 626:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****                 out.data = NULL;
+ 1031              		.loc 1 626 0
+ 1032 0448 ADF84C30 		strh	r3, [sp, #76]	@ movhi
+ 628:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1033              		.loc 1 628 0
+ 1034 044c 11A9     		add	r1, sp, #68
+ 627:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				(*lcc_cmd_list[scan_idx].func)(&in, &out);
+ 1035              		.loc 1 627 0
+ 1036 044e 1293     		str	r3, [sp, #72]
+ 628:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1037              		.loc 1 628 0
+ 1038 0450 0CA8     		add	r0, sp, #48
+ 1039 0452 089B     		ldr	r3, [sp, #32]
+ 623:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				light_system->cur_tid = in.tid;
+ 1040              		.loc 1 623 0
+ 1041 0454 ADF84050 		strh	r5, [sp, #64]	@ movhi
+ 628:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1042              		.loc 1 628 0
+ 1043 0458 03EBCA0A 		add	r10, r3, r10, lsl #3
+ 1044              	.LVL114:
+ 1045 045c DAF80430 		ldr	r3, [r10, #4]
+ 1046 0460 9847     		blx	r3
+ 1047              	.LVL115:
+ 630:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 1048              		.loc 1 630 0
+ 1049 0462 9DF84330 		ldrb	r3, [sp, #67]	@ zero_extendqisi2
+ 1050 0466 D907     		lsls	r1, r3, #31
+ 1051 0468 17D5     		bpl	.L57
+ 630:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				{
+ 1052              		.loc 1 630 0 is_stmt 0 discriminator 1
+ 1053 046a BDF84C30 		ldrh	r3, [sp, #76]
+ 1054 046e A3B1     		cbz	r3, .L57
+ 632:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					{
+ 1055              		.loc 1 632 0 is_stmt 1
+ 1056 0470 B3F5806F 		cmp	r3, #1024
+ 1057 0474 08D9     		bls	.L58
+ 634:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 						out.len = LCC_CMD_MAX_BUFFER_SIZE;
+ 1058              		.loc 1 634 0
+ 1059 0476 234B     		ldr	r3, .L113+12
+ 1060 0478 2020     		movs	r0, #32
+ 1061 047a 2946     		mov	r1, r5
+ 1062 047c 264A     		ldr	r2, .L113+32
+ 1063 047e 9847     		blx	r3
+ 1064              	.LVL116:
+ 635:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					}
+ 1065              		.loc 1 635 0
+ 1066 0480 4FF48063 		mov	r3, #1024
+ 1067 0484 ADF84C30 		strh	r3, [sp, #76]	@ movhi
+ 1068              	.L58:
+ 637:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 					/* Update the command status */
+ 1069              		.loc 1 637 0
+ 1070 0488 244B     		ldr	r3, .L113+36
+ 1071 048a BDF84C10 		ldrh	r1, [sp, #76]
+ 1072 048e 1298     		ldr	r0, [sp, #72]
+ 1073 0490 9847     		blx	r3
+ 1074              	.LVL117:
+ 639:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 1075              		.loc 1 639 0
+ 1076 0492 0123     		movs	r3, #1
+ 1077 0494 ADF84030 		strh	r3, [sp, #64]	@ movhi
+ 1078 0498 05E0     		b	.L59
+ 1079              	.L57:
+ 643:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				}
+ 1080              		.loc 1 643 0
+ 1081 049a 1298     		ldr	r0, [sp, #72]
+ 1082 049c 40F28322 		movw	r2, #643
+ 1083 04a0 1749     		ldr	r1, .L113+8
+ 1084 04a2 1C4B     		ldr	r3, .L113+28
+ 1085 04a4 9847     		blx	r3
+ 1086              	.LVL118:
+ 1087              	.L59:
+ 645:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****                 out.data = NULL;
+ 1088              		.loc 1 645 0
+ 1089 04a6 0023     		movs	r3, #0
+ 1090 04a8 ADF84C30 		strh	r3, [sp, #76]	@ movhi
+ 646:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 				break;		/* Scanning completed */
+ 1091              		.loc 1 646 0
+ 1092 04ac 1293     		str	r3, [sp, #72]
+ 647:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 			}
+ 1093              		.loc 1 647 0
+ 1094 04ae 09E0     		b	.L34
+ 1095              	.LVL119:
+ 1096              	.L35:
+ 1097 04b0 0AF1010A 		add	r10, r10, #1
+ 1098              	.LVL120:
+ 438:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 1099              		.loc 1 438 0 discriminator 2
+ 1100 04b4 BAF12C0F 		cmp	r10, #44
+ 1101 04b8 7FF461AE 		bne	.L60
+ 652:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 1102              		.loc 1 652 0
+ 1103 04bc 2020     		movs	r0, #32
+ 1104 04be 0421     		movs	r1, #4
+ 1105 04c0 174A     		ldr	r2, .L113+40
+ 1106 04c2 53E7     		b	.L107
+ 1107              	.LVL121:
+ 1108              	.L34:
+ 659:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		{
+ 1109              		.loc 1 659 0
+ 1110 04c4 9DF84330 		ldrb	r3, [sp, #67]	@ zero_extendqisi2
+ 1111 04c8 DA07     		lsls	r2, r3, #31
+ 1112 04ca 08D4     		bmi	.L62
+ 662:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		}
+ 1113              		.loc 1 662 0
+ 1114 04cc BDF83A00 		ldrh	r0, [sp, #58]
+ 1115 04d0 BDF84010 		ldrh	r1, [sp, #64]
+ 1116 04d4 0C9A     		ldr	r2, [sp, #48]
+ 1117 04d6 C3F38003 		ubfx	r3, r3, #2, #1
+ 1118 04da 124D     		ldr	r5, .L113+44
+ 1119 04dc A847     		blx	r5
+ 1120              	.LVL122:
+ 1121              	.L62:
+ 671:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		/* Free the message memory */
+ 1122              		.loc 1 671 0
+ 1123 04de 049B     		ldr	r3, [sp, #16]
+ 1124 04e0 0CA8     		add	r0, sp, #48
+ 1125 04e2 0021     		movs	r1, #0
+ 1126 04e4 1422     		movs	r2, #20
+ 1127 04e6 9847     		blx	r3
+ 1128              	.LVL123:
+ 673:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 		msg.data = NULL;
+ 1129              		.loc 1 673 0
+ 1130 04e8 2046     		mov	r0, r4
+ 1131 04ea 0549     		ldr	r1, .L113+8
+ 1132 04ec 40F2A122 		movw	r2, #673
+ 1133 04f0 084B     		ldr	r3, .L113+28
+ 1134 04f2 9847     		blx	r3
+ 1135              	.LVL124:
+ 1136              	.LBE19:
+ 675:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** }
+ 1137              		.loc 1 675 0
+ 1138 04f4 B2E5     		b	.L63
+ 1139              	.L114:
+ 1140 04f6 00BF     		.align	2
+ 1141              	.L113:
+ 1142 04f8 59010000 		.word	.LC14
+ 1143 04fc 79010000 		.word	.LC15
+ 1144 0500 00000000 		.word	.LANCHOR4
+ 1145 0504 00000000 		.word	slogf
+ 1146 0508 00000000 		.word	__popcountsi2
+ 1147 050c 00000000 		.word	pvPortMalloc1
+ 1148 0510 00000000 		.word	memcpy
+ 1149 0514 00000000 		.word	vPortFree1
+ 1150 0518 96010000 		.word	.LC16
+ 1151 051c 00000000 		.word	i2c_slave_write
+ 1152 0520 B2010000 		.word	.LC17
+ 1153 0524 00000000 		.word	lcc_cmd_log_push
+ 1154              		.cfi_endproc
+ 1155              	.LFE2:
+ 1157              		.section	.text.lcc_cmd_init,"ax",%progbits
+ 1158              		.align	1
+ 1159              		.global	lcc_cmd_init
+ 1160              		.thumb
+ 1161              		.thumb_func
+ 1163              	lcc_cmd_init:
+ 1164              	.LFB3:
+ 679:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.buf_start = cmd_rx_buf_arr;
+ 1165              		.loc 1 679 0
+ 1166              		.cfi_startproc
+ 1167              		@ args = 0, pretend = 0, frame = 24
+ 1168              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1169 0000 7FB5     		push	{r0, r1, r2, r3, r4, r5, r6, lr}
+ 1170              	.LCFI5:
+ 1171              		.cfi_def_cfa_offset 32
+ 1172              		.cfi_offset 14, -4
+ 680:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.buf_end = cmd_rx_buf_arr + LCC_CMD_MAX_BUFFER_SIZE;
+ 1173              		.loc 1 680 0
+ 1174 0002 104B     		ldr	r3, .L116
+ 688:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1175              		.loc 1 688 0
+ 1176 0004 3220     		movs	r0, #50
+ 680:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.buf_end = cmd_rx_buf_arr + LCC_CMD_MAX_BUFFER_SIZE;
+ 1177              		.loc 1 680 0
+ 1178 0006 104A     		ldr	r2, .L116+4
+ 681:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.wp = cmd_rx_buf.buf_start;
+ 1179              		.loc 1 681 0
+ 1180 0008 03F58061 		add	r1, r3, #1024
+ 680:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.buf_end = cmd_rx_buf_arr + LCC_CMD_MAX_BUFFER_SIZE;
+ 1181              		.loc 1 680 0
+ 1182 000c 1360     		str	r3, [r2]
+ 681:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.wp = cmd_rx_buf.buf_start;
+ 1183              		.loc 1 681 0
+ 1184 000e 5160     		str	r1, [r2, #4]
+ 682:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf.rp = cmd_rx_buf.buf_start;
+ 1185              		.loc 1 682 0
+ 1186 0010 9360     		str	r3, [r2, #8]
+ 683:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.msg_start = cmd_rx_buf.buf_start;
+ 1187              		.loc 1 683 0
+ 1188 0012 D360     		str	r3, [r2, #12]
+ 685:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.buf_overflow = false;
+ 1189              		.loc 1 685 0
+ 1190 0014 0022     		movs	r2, #0
+ 684:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.len = 0;
+ 1191              		.loc 1 684 0
+ 1192 0016 0D49     		ldr	r1, .L116+8
+ 685:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.buf_overflow = false;
+ 1193              		.loc 1 685 0
+ 1194 0018 8A80     		strh	r2, [r1, #4]	@ movhi
+ 686:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1195              		.loc 1 686 0
+ 1196 001a 8A71     		strb	r2, [r1, #6]
+ 684:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     cmd_rx_buf_msg.len = 0;
+ 1197              		.loc 1 684 0
+ 1198 001c 0B60     		str	r3, [r1]
+ 688:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1199              		.loc 1 688 0
+ 1200 001e 0821     		movs	r1, #8
+ 1201 0020 0B4B     		ldr	r3, .L116+12
+ 1202 0022 9847     		blx	r3
+ 1203              	.LVL125:
+ 1204 0024 0B4B     		ldr	r3, .L116+16
+ 1205 0026 1860     		str	r0, [r3]
+ 695:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1206              		.loc 1 695 0
+ 1207 0028 01A8     		add	r0, sp, #4
+ 692:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave.receiver_hdl = cb_rx_completed;
+ 1208              		.loc 1 692 0
+ 1209 002a 0B4B     		ldr	r3, .L116+20
+ 1210 002c 0193     		str	r3, [sp, #4]
+ 693:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave.restart_hdl = cb_tx_request;
+ 1211              		.loc 1 693 0
+ 1212 002e 0B4B     		ldr	r3, .L116+24
+ 1213 0030 0293     		str	r3, [sp, #8]
+ 694:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c ****     i2c_slave_init(&i2c_slave);
+ 1214              		.loc 1 694 0
+ 1215 0032 0B4B     		ldr	r3, .L116+28
+ 1216 0034 0493     		str	r3, [sp, #16]
+ 695:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1217              		.loc 1 695 0
+ 1218 0036 0B4B     		ldr	r3, .L116+32
+ 1219 0038 9847     		blx	r3
+ 1220              	.LVL126:
+ 698:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1221              		.loc 1 698 0
+ 1222 003a 0B4B     		ldr	r3, .L116+36
+ 1223 003c 9847     		blx	r3
+ 1224              	.LVL127:
+ 708:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/lcc_cmd.c **** 
+ 1225              		.loc 1 708 0
+ 1226 003e 07B0     		add	sp, sp, #28
+ 1227              	.LCFI6:
+ 1228              		.cfi_def_cfa_offset 4
+ 1229              		@ sp needed
+ 1230 0040 5DF804FB 		ldr	pc, [sp], #4
+ 1231              	.L117:
+ 1232              		.align	2
+ 1233              	.L116:
+ 1234 0044 00000000 		.word	.LANCHOR8
+ 1235 0048 00000000 		.word	.LANCHOR1
+ 1236 004c 00000000 		.word	.LANCHOR0
+ 1237 0050 00000000 		.word	xQueueGenericCreate
+ 1238 0054 00000000 		.word	.LANCHOR2
+ 1239 0058 00000000 		.word	cb_rx_not_empty
+ 1240 005c 00000000 		.word	cb_rx_completed
+ 1241 0060 00000000 		.word	cb_tx_request
+ 1242 0064 00000000 		.word	i2c_slave_init
+ 1243 0068 00000000 		.word	lcc_cmd_log_init
+ 1244              		.cfi_endproc
+ 1245              	.LFE3:
+ 1247              		.global	asic_read_sem
+ 1248              		.section	.bss.cmd_rx_buf_arr,"aw",%nobits
+ 1249              		.set	.LANCHOR8,. + 0
+ 1252              	cmd_rx_buf_arr:
+ 1253 0000 00000000 		.space	1024
+ 1253      00000000 
+ 1253      00000000 
+ 1253      00000000 
+ 1253      00000000 
+ 1254              		.section	.rodata.lcc_cmd_list,"a",%progbits
+ 1255              		.align	2
+ 1256              		.set	.LANCHOR7,. + 0
+ 1259              	lcc_cmd_list:
+ 1260 0000 00001B01 		.word	18546688
+ 1261 0004 00000000 		.word	cmd_cam_module_open
+ 1262 0008 02001B03 		.word	52101122
+ 1263 000c 00000000 		.word	cmd_cam_streaming
+ 1264 0010 10001C01 		.word	18612240
+ 1265 0014 00000000 		.word	cmd_cam_burst_requested
+ 1266 0018 12003C00 		.word	3932178
+ 1267 001c 00000000 		.word	cmd_cam_burst_available
+ 1268 0020 14001C00 		.word	1835028
+ 1269 0024 00000000 		.word	cmd_cam_burst_actual
+ 1270 0028 06001810 		.word	270008326
+ 1271 002c 00000000 		.word	cmd_cam_snapshot_uuid
+ 1272 0030 08001908 		.word	135856136
+ 1273 0034 00000000 		.word	cmd_cam_snapshot_tid
+ 1274 0038 24001802 		.word	35127332
+ 1275 003c 00000000 		.word	cmd_cam_command_status
+ 1276 0040 28000904 		.word	67698728
+ 1277 0044 00000000 		.word	cmd_cam_module_status
+ 1278 0048 2C001F08 		.word	136249388
+ 1279 004c 00000000 		.word	cmd_cam_module_resolution
+ 1280 0050 30001F04 		.word	69140528
+ 1281 0054 00000000 		.word	cmd_cam_module_sensitivity
+ 1282 0058 32001F08 		.word	136249394
+ 1283 005c 00000000 		.word	cmd_cam_module_exposure_time
+ 1284 0060 50001F02 		.word	35586128
+ 1285 0064 00000000 		.word	cmd_cam_module_fps
+ 1286 0068 3A000B02 		.word	34275386
+ 1287 006c 00000000 		.word	cmd_cam_module_focal_length
+ 1288 0070 48001B04 		.word	68878408
+ 1289 0074 00000000 		.word	cmd_cam_module_focus_distance
+ 1290 0078 40001B02 		.word	35323968
+ 1291 007c 00000000 		.word	cmd_cam_module_lens_position
+ 1292 0080 44001B02 		.word	35323972
+ 1293 0084 00000000 		.word	cmd_cam_module_mirror_position
+ 1294 0088 5800383E 		.word	1043857496
+ 1295 008c 00000000 		.word	cmd_cam_roi
+ 1296 0090 5900130D 		.word	219349081
+ 1297 0094 00000000 		.word	cmd_cam_roi_transfer
+ 1298 0098 5A001B08 		.word	135987290
+ 1299 009c 00000000 		.word	cmd_cam_roi_calibration
+ 1300 00a0 4A000910 		.word	269025354
+ 1301 00a4 00000000 		.word	cmd_cam_module_uuid
+ 1302 00a8 4C000901 		.word	17367116
+ 1303 00ac 00000000 		.word	cmd_cam_module_type
+ 1304 00b0 5B003800 		.word	3670107
+ 1305 00b4 00000000 		.word	cmd_i2c_forward
+ 1306 00b8 5C001804 		.word	68681820
+ 1307 00bc 00000000 		.word	cmd_zoom_factor
+ 1308 00c0 5E001301 		.word	18022494
+ 1309 00c4 00000000 		.word	cmd_cam_module_mirror_calib
+ 1310 00c8 60003801 		.word	20447328
+ 1311 00cc 00000000 		.word	cmd_i2c_speed
+ 1312 00d0 62001804 		.word	68681826
+ 1313 00d4 00000000 		.word	cmd_spi_speed
+ 1314 00d8 03020802 		.word	34079235
+ 1315 00dc 00000000 		.word	cmd_asic_light_protocol
+ 1316 00e0 05020808 		.word	134742533
+ 1317 00e4 00000000 		.word	cmd_asic_fw_version
+ 1318 00e8 0D020802 		.word	34079245
+ 1319 00ec 00000000 		.word	cmd_asic_calib_version
+ 1320 00f0 15020802 		.word	34079253
+ 1321 00f4 00000000 		.word	cmd_asic_status
+ 1322 00f8 19021801 		.word	18350617
+ 1323 00fc 00000000 		.word	cmd_asic_log_ctrl
+ 1324 0100 1C020808 		.word	134742556
+ 1325 0104 00000000 		.word	cmd_asic_tmpx
+ 1326 0108 24020830 		.word	805831204
+ 1327 010c 00000000 		.word	cmd_asic_cmd_dump
+ 1328 0110 72023B04 		.word	70976114
+ 1329 0114 00000000 		.word	cmd_asic_module_metadata
+ 1330 0118 74021800 		.word	1573492
+ 1331 011c 00000000 		.word	cmd_asic_device_calibration
+ 1332 0120 78021802 		.word	35127928
+ 1333 0124 00000000 		.word	cmd_asic_pwr_ctrl
+ 1334 0128 7C020800 		.word	524924
+ 1335 012c 00000000 		.word	cmd_cam_asic_intr_src
+ 1336 0130 54023000 		.word	3146324
+ 1337 0134 00000000 		.word	cmd_asic_flash_light
+ 1338 0138 56023801 		.word	20447830
+ 1339 013c 00000000 		.word	cmd_asic_tof
+ 1340 0140 52021806 		.word	102236754
+ 1341 0144 00000000 		.word	cmd_asic_gyro
+ 1342 0148 7E023000 		.word	3146366
+ 1343 014c 00000000 		.word	cmd_asic_calib_data
+ 1344 0150 7F023800 		.word	3670655
+ 1345 0154 00000000 		.word	cmd_asic_pzt_pwr_ctrl
+ 1346 0158 00101802 		.word	35131392
+ 1347 015c 00000000 		.word	cmd_light_active_ucid
+ 1348              		.section	.rodata.__FUNCTION__.8921,"a",%progbits
+ 1349              		.set	.LANCHOR5,. + 0
+ 1352              	__FUNCTION__.8921:
+ 1353 0000 6C63635F 		.ascii	"lcc_cmd_msg_create\000"
+ 1353      636D645F 
+ 1353      6D73675F 
+ 1353      63726561 
+ 1353      746500
+ 1354              		.section	.rodata.__FUNCTION__.8964,"a",%progbits
+ 1355              		.set	.LANCHOR6,. + 0
+ 1358              	__FUNCTION__.8964:
+ 1359 0000 736C6F67 		.ascii	"slogf_message\000"
+ 1359      665F6D65 
+ 1359      73736167 
+ 1359      6500
+ 1360              		.section	.bss.cmd_rx_buf,"aw",%nobits
+ 1361              		.align	2
+ 1362              		.set	.LANCHOR1,. + 0
+ 1365              	cmd_rx_buf:
+ 1366 0000 00000000 		.space	16
+ 1366      00000000 
+ 1366      00000000 
+ 1366      00000000 
+ 1367              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 1368              	.LC0:
+ 1369 0000 0D0A4572 		.ascii	"\015\012Error: Discarding received command due to b"
+ 1369      726F723A 
+ 1369      20446973 
+ 1369      63617264 
+ 1369      696E6720 
+ 1370 002d 75666665 		.ascii	"uffer overflow\015\000"
+ 1370      72206F76 
+ 1370      6572666C 
+ 1370      6F770D00 
+ 1371              	.LC1:
+ 1372 003d 0D0A4572 		.ascii	"\015\012Error in %s[%d]: Failed to push received co"
+ 1372      726F7220 
+ 1372      696E2025 
+ 1372      735B2564 
+ 1372      5D3A2046 
+ 1373 006a 6D6D616E 		.ascii	"mmand!\015\012\000"
+ 1373      64210D0A 
+ 1373      00
+ 1374              	.LC2:
+ 1375 0073 0D0A4572 		.ascii	"\015\012Error: Command receive buffer overflow\015\000"
+ 1375      726F723A 
+ 1375      20436F6D 
+ 1375      6D616E64 
+ 1375      20726563 
+ 1376              	.LC3:
+ 1377 009d 636F6E73 		.ascii	"console\000"
+ 1377      6F6C6500 
+ 1378              	.LC4:
+ 1379 00a5 71756575 		.ascii	"queuelog\000"
+ 1379      656C6F67 
+ 1379      00
+ 1380              	.LC5:
+ 1381 00ae 53746172 		.ascii	"Start %s\015\012\000"
+ 1381      74202573 
+ 1381      0D0A00
+ 1382              	.LC6:
+ 1383 00b9 25303258 		.ascii	"%02X \000"
+ 1383      2000
+ 1384              	.LC7:
+ 1385 00bf 49324320 		.ascii	"I2C msg: %s\000"
+ 1385      6D73673A 
+ 1385      20257300 
+ 1386              	.LC8:
+ 1387 00cb 25735B25 		.ascii	"%s[%d]: Malloc failed\000"
+ 1387      645D3A20 
+ 1387      4D616C6C 
+ 1387      6F632066 
+ 1387      61696C65 
+ 1388              	.LC9:
+ 1389 00e1 25733A20 		.ascii	"%s: Message too short\000"
+ 1389      4D657373 
+ 1389      61676520 
+ 1389      746F6F20 
+ 1389      73686F72 
+ 1390              	.LC10:
+ 1391 00f7 25733A20 		.ascii	"%s: m_bitmask invalid\000"
+ 1391      6D5F6269 
+ 1391      746D6173 
+ 1391      6B20696E 
+ 1391      76616C69 
+ 1392              	.LC11:
+ 1393 010d 25733A20 		.ascii	"%s: Unsupported global bitmask\000"
+ 1393      556E7375 
+ 1393      70706F72 
+ 1393      74656420 
+ 1393      676C6F62 
+ 1394              	.LC12:
+ 1395 012c 25733A20 		.ascii	"%s: UCID invalid\000"
+ 1395      55434944 
+ 1395      20696E76 
+ 1395      616C6964 
+ 1395      00
+ 1396              	.LC13:
+ 1397 013d 25733A20 		.ascii	"%s: Unsupported read action\000"
+ 1397      556E7375 
+ 1397      70706F72 
+ 1397      74656420 
+ 1397      72656164 
+ 1398              	.LC14:
+ 1399 0159 25733A20 		.ascii	"%s: Message length is incorrect\000"
+ 1399      4D657373 
+ 1399      61676520 
+ 1399      6C656E67 
+ 1399      74682069 
+ 1400              	.LC15:
+ 1401 0179 25733A20 		.ascii	"%s: Unsupported write action\000"
+ 1401      556E7375 
+ 1401      70706F72 
+ 1401      74656420 
+ 1401      77726974 
+ 1402              	.LC16:
+ 1403 0196 54686520 		.ascii	"The return message too long\000"
+ 1403      72657475 
+ 1403      726E206D 
+ 1403      65737361 
+ 1403      67652074 
+ 1404              	.LC17:
+ 1405 01b2 556E7375 		.ascii	"Unsupported command ID %04X\000"
+ 1405      70706F72 
+ 1405      74656420 
+ 1405      636F6D6D 
+ 1405      616E6420 
+ 1406              		.section	.rodata.__FUNCTION__.8978,"a",%progbits
+ 1407              		.set	.LANCHOR3,. + 0
+ 1410              	__FUNCTION__.8978:
+ 1411 0000 63625F72 		.ascii	"cb_rx_completed\000"
+ 1411      785F636F 
+ 1411      6D706C65 
+ 1411      74656400 
+ 1412              		.section	.bss.cmd_rx_msg_queue,"aw",%nobits
+ 1413              		.align	2
+ 1414              		.set	.LANCHOR2,. + 0
+ 1417              	cmd_rx_msg_queue:
+ 1418 0000 00000000 		.space	4
+ 1419              		.section	.bss.cmd_rx_buf_msg,"aw",%nobits
+ 1420              		.align	2
+ 1421              		.set	.LANCHOR0,. + 0
+ 1424              	cmd_rx_buf_msg:
+ 1425 0000 00000000 		.space	8
+ 1425      00000000 
+ 1426              		.section	.rodata.__FUNCTION__.8940,"a",%progbits
+ 1427              		.set	.LANCHOR4,. + 0
+ 1430              	__FUNCTION__.8940:
+ 1431 0000 7461736B 		.ascii	"task_lcc_cmd\000"
+ 1431      5F6C6363 
+ 1431      5F636D64 
+ 1431      00
+ 1432              		.section	.bss.asic_read_sem,"aw",%nobits
+ 1433              		.align	2
+ 1436              	asic_read_sem:
+ 1437 0000 00000000 		.space	4
+ 1438              		.text
+ 1439              	.Letext0:
+ 1440              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1441              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/lib/gcc/arm-none-eabi/4.9.3/include/stddef.h
+ 1442              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1443              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 1444              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/task.h"
+ 1445              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 1446              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 1447              		.file 9 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/event_groups.h"
+ 1448              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/common/os.h"
+ 1449              		.file 11 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_syncio.h"
+ 1450              		.file 12 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 1451              		.file 13 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 1452              		.file 14 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 1453              		.file 15 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/lcc_cmd.h"
+ 1454              		.file 16 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/optical.h"
+ 1455              		.file 17 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/pwr_ctrl.h"
+ 1456              		.file 18 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/eeprom.h"
+ 1457              		.file 19 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/task_af_ctrl.h"
+ 1458              		.file 20 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/light_system.h"
+ 1459              		.file 21 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cs.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 lcc_cmd.c
+     /tmp/ccyjZFKh.s:19     .text.cb_tx_request:00000000 $t
+     /tmp/ccyjZFKh.s:23     .text.cb_tx_request:00000000 cb_tx_request
+     /tmp/ccyjZFKh.s:45     .text.cb_tx_request:00000010 $d
+     /tmp/ccyjZFKh.s:51     .text.cb_rx_completed:00000000 $t
+     /tmp/ccyjZFKh.s:55     .text.cb_rx_completed:00000000 cb_rx_completed
+     /tmp/ccyjZFKh.s:131    .text.cb_rx_completed:0000004c $d
+     /tmp/ccyjZFKh.s:145    .text.cb_rx_not_empty:00000000 $t
+     /tmp/ccyjZFKh.s:149    .text.cb_rx_not_empty:00000000 cb_rx_not_empty
+     /tmp/ccyjZFKh.s:216    .text.cb_rx_not_empty:00000038 $d
+     /tmp/ccyjZFKh.s:227    .text.task_lcc_cmd:00000000 $t
+     /tmp/ccyjZFKh.s:232    .text.task_lcc_cmd:00000000 task_lcc_cmd
+     /tmp/ccyjZFKh.s:801    .text.task_lcc_cmd:000002cc $d
+     /tmp/ccyjZFKh.s:838    .text.task_lcc_cmd:00000350 $t
+     /tmp/ccyjZFKh.s:1142   .text.task_lcc_cmd:000004f8 $d
+     /tmp/ccyjZFKh.s:1158   .text.lcc_cmd_init:00000000 $t
+     /tmp/ccyjZFKh.s:1163   .text.lcc_cmd_init:00000000 lcc_cmd_init
+     /tmp/ccyjZFKh.s:1234   .text.lcc_cmd_init:00000044 $d
+     /tmp/ccyjZFKh.s:1436   .bss.asic_read_sem:00000000 asic_read_sem
+     /tmp/ccyjZFKh.s:1252   .bss.cmd_rx_buf_arr:00000000 cmd_rx_buf_arr
+     /tmp/ccyjZFKh.s:1253   .bss.cmd_rx_buf_arr:00000000 $d
+     /tmp/ccyjZFKh.s:1255   .rodata.lcc_cmd_list:00000000 $d
+     /tmp/ccyjZFKh.s:1259   .rodata.lcc_cmd_list:00000000 lcc_cmd_list
+     /tmp/ccyjZFKh.s:1352   .rodata.__FUNCTION__.8921:00000000 __FUNCTION__.8921
+     /tmp/ccyjZFKh.s:1358   .rodata.__FUNCTION__.8964:00000000 __FUNCTION__.8964
+     /tmp/ccyjZFKh.s:1361   .bss.cmd_rx_buf:00000000 $d
+     /tmp/ccyjZFKh.s:1365   .bss.cmd_rx_buf:00000000 cmd_rx_buf
+     /tmp/ccyjZFKh.s:1410   .rodata.__FUNCTION__.8978:00000000 __FUNCTION__.8978
+     /tmp/ccyjZFKh.s:1413   .bss.cmd_rx_msg_queue:00000000 $d
+     /tmp/ccyjZFKh.s:1417   .bss.cmd_rx_msg_queue:00000000 cmd_rx_msg_queue
+     /tmp/ccyjZFKh.s:1420   .bss.cmd_rx_buf_msg:00000000 $d
+     /tmp/ccyjZFKh.s:1424   .bss.cmd_rx_buf_msg:00000000 cmd_rx_buf_msg
+     /tmp/ccyjZFKh.s:1430   .rodata.__FUNCTION__.8940:00000000 __FUNCTION__.8940
+     /tmp/ccyjZFKh.s:1433   .bss.asic_read_sem:00000000 $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+puts
+xQueueGenericSendFromISR
+printf
+ulPortYieldRequired
+__popcountsi2
+memset
+task_query_tid
+task_handler
+vTaskDelay
+vPortEnterCritical
+vPortExitCritical
+log_msg
+xQueueGenericReceive
+pvPortMalloc1
+memcpy
+sprintf
+strcat
+slogf
+vPortFree1
+light_system
+i2c_slave_write
+lcc_cmd_log_push
+xQueueGenericCreate
+i2c_slave_init
+lcc_cmd_log_init
+cmd_cam_module_open
+cmd_cam_streaming
+cmd_cam_burst_requested
+cmd_cam_burst_available
+cmd_cam_burst_actual
+cmd_cam_snapshot_uuid
+cmd_cam_snapshot_tid
+cmd_cam_command_status
+cmd_cam_module_status
+cmd_cam_module_resolution
+cmd_cam_module_sensitivity
+cmd_cam_module_exposure_time
+cmd_cam_module_fps
+cmd_cam_module_focal_length
+cmd_cam_module_focus_distance
+cmd_cam_module_lens_position
+cmd_cam_module_mirror_position
+cmd_cam_roi
+cmd_cam_roi_transfer
+cmd_cam_roi_calibration
+cmd_cam_module_uuid
+cmd_cam_module_type
+cmd_i2c_forward
+cmd_zoom_factor
+cmd_cam_module_mirror_calib
+cmd_i2c_speed
+cmd_spi_speed
+cmd_asic_light_protocol
+cmd_asic_fw_version
+cmd_asic_calib_version
+cmd_asic_status
+cmd_asic_log_ctrl
+cmd_asic_tmpx
+cmd_asic_cmd_dump
+cmd_asic_module_metadata
+cmd_asic_device_calibration
+cmd_asic_pwr_ctrl
+cmd_cam_asic_intr_src
+cmd_asic_flash_light
+cmd_asic_tof
+cmd_asic_gyro
+cmd_asic_calib_data
+cmd_asic_pzt_pwr_ctrl
+cmd_light_active_ucid

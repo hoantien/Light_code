@@ -1,0 +1,480 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"hal_wdt.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.wdt_handler,"ax",%progbits
+  17              		.align	2
+  19              	wdt_handler:
+  20              	.LFB2:
+  21              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * @file    hal_wdt.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * @date    Feb-18-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * @brief   This file contains expand of hal_wdt
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #include "board_config.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #include "cortex_r4.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #include "hal_vic.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #include "hal_wdt.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /* Private typedef -----------------------------------------------------------*/
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /**
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * @brief wdt_reg_t
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  *
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  * Watchdog register
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c ****  */
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** typedef struct wdt_reg
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__IO uint32_t WDT_CR;		/* Offset 0x00 Control register */
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__IO uint32_t WDT_TORR;		/* Offset 0x04 Timeout range register */
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__IO uint32_t WDT_CCVR;		/* Offset 0x08 Current counter value register */
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__IO uint32_t WDT_CRR;		/* Offset 0x0c Counter restart register */
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__IO uint32_t WDT_STAT;		/* Offset 0x10 Interrupt status register */
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__IO uint32_t WDT_EOI;		/* Offset 0x14 Interrupt clear register */
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** } wdt_reg_t;
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /* Private definition --------------------------------------------------------*/
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #define WDT_MAX_TOP				15
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /* Registers */
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #define WDT_EN			(uint32_t)(1<<0)		/* Enable WDT */
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #define WDT_RPL			(uint32_t)(0x00000000)	/* 2 pclk cycles */
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #define WDT_EN_IRQ		(uint32_t)(1<<1)		/* Enable IRQ WDT */
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #define WDT_ALWAYS_EN	(uint32_t)(0x00000001)	/* Always enable WDT */
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #define WDT_TORR_WIDTH	(uint32_t)(0x0000000f)	/* Timeout width */
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** #define WDT_RESTART		(uint32_t)(0x76)
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /* Private function prototypes -----------------------------------------------*/
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** static void(*wdt_clb)(void);
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** static uint32_t wdt_top_convert(uint8_t top)
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	uint32_t sec = 0;
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	sec = ((1 << (16 + top)) - 1) / BOARD_PCLOCK;
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	return sec;
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** }
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** /* Exported functions---------------------------------------------------------*/
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** wdt_status_t wdt_set_timeout(uint32_t period)
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	uint8_t top_value = 0;
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	uint8_t ret;
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdt_reg_t *wdtx = (wdt_reg_t *)WDT_BASE;
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	for(int i = 0; i <= WDT_MAX_TOP; i++)
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		if(wdt_top_convert(i) >= period)
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		{
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 			top_value = i;
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 			break;
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		}
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	}
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	if(!top_value)
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		ret = HAL_INVALID_PERIOD;
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	}
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	else
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		ret = HAL_WDT_OK;
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	}
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Update timeout period. */
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_TORR = top_value & 0xF;
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	return ret;
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** }
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** static void wdt_handler(void)
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+  22              		.loc 1 85 0
+  23              		.cfi_startproc
+  24              		@ args = 0, pretend = 0, frame = 0
+  25              		@ frame_needed = 0, uses_anonymous_args = 0
+  26              	.LVL0:
+  27 0000 08402DE9 		stmfd	sp!, {r3, lr}
+  28              	.LCFI0:
+  29              		.cfi_def_cfa_offset 8
+  30              		.cfi_offset 3, -8
+  31              		.cfi_offset 14, -4
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	register wdt_reg_t *wdtx = (wdt_reg_t *)WDT_BASE;
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Call a call back function to upper layer. */
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	if(wdt_clb)
+  32              		.loc 1 88 0
+  33 0004 18309FE5 		ldr	r3, .L8
+  34 0008 003093E5 		ldr	r3, [r3]
+  35 000c 000053E3 		cmp	r3, #0
+  36 0010 0000000A 		beq	.L2
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		wdt_clb();
+  37              		.loc 1 90 0
+  38 0014 33FF2FE1 		blx	r3
+  39              	.LVL1:
+  40              	.L2:
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	}
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Clear the end of wdt interrupt. */
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_EOI;
+  41              		.loc 1 93 0
+  42 0018 08309FE5 		ldr	r3, .L8+4
+  43 001c 143093E5 		ldr	r3, [r3, #20]
+  44 0020 0880BDE8 		ldmfd	sp!, {r3, pc}
+  45              	.L9:
+  46              		.align	2
+  47              	.L8:
+  48 0024 00000000 		.word	.LANCHOR0
+  49 0028 00200002 		.word	33562624
+  50              		.cfi_endproc
+  51              	.LFE2:
+  53              		.global	__aeabi_idiv
+  54              		.section	.text.wdt_set_timeout,"ax",%progbits
+  55              		.align	2
+  56              		.global	wdt_set_timeout
+  58              	wdt_set_timeout:
+  59              	.LFB1:
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	uint8_t top_value = 0;
+  60              		.loc 1 59 0
+  61              		.cfi_startproc
+  62              		@ args = 0, pretend = 0, frame = 0
+  63              		@ frame_needed = 0, uses_anonymous_args = 0
+  64              	.LVL2:
+  65 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+  66              	.LCFI1:
+  67              		.cfi_def_cfa_offset 16
+  68              		.cfi_offset 4, -16
+  69              		.cfi_offset 5, -12
+  70              		.cfi_offset 6, -8
+  71              		.cfi_offset 14, -4
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	uint8_t top_value = 0;
+  72              		.loc 1 59 0
+  73 0004 0060A0E1 		mov	r6, r0
+  74              	.LBB5:
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+  75              		.loc 1 63 0
+  76 0008 0040A0E3 		mov	r4, #0
+  77              	.LVL3:
+  78              	.L13:
+  79              	.LBB6:
+  80              	.LBB7:
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	return sec;
+  81              		.loc 1 53 0
+  82 000c 0150A0E3 		mov	r5, #1
+  83 0010 100084E2 		add	r0, r4, #16
+  84 0014 48109FE5 		ldr	r1, .L17
+  85 0018 1500A0E1 		mov	r0, r5, asl r0
+  86 001c 010040E2 		sub	r0, r0, #1
+  87 0020 FEFFFFEB 		bl	__aeabi_idiv
+  88              	.LVL4:
+  89              	.LBE7:
+  90              	.LBE6:
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		{
+  91              		.loc 1 65 0
+  92 0024 060050E1 		cmp	r0, r6
+  93 0028 0500003A 		bcc	.L11
+  94              	.LBE5:
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+  95              		.loc 1 71 0
+  96 002c 000054E3 		cmp	r4, #0
+  97              	.LBB8:
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		{
+  98              		.loc 1 65 0
+  99 0030 7430EFE6 		uxtb	r3, r4
+ 100              	.LVL5:
+ 101              	.LBE8:
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+ 102              		.loc 1 71 0
+ 103 0034 0500A001 		moveq	r0, r5
+ 104 0038 0030A003 		moveq	r3, #0
+ 105              	.LVL6:
+ 106 003c 0000A013 		movne	r0, #0
+ 107 0040 040000EA 		b	.L12
+ 108              	.LVL7:
+ 109              	.L11:
+ 110              	.LBB9:
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+ 111              		.loc 1 63 0 discriminator 2
+ 112 0044 014084E2 		add	r4, r4, #1
+ 113              	.LVL8:
+ 114 0048 100054E3 		cmp	r4, #16
+ 115 004c EEFFFF1A 		bne	.L13
+ 116 0050 0030A0E3 		mov	r3, #0
+ 117              	.LBE9:
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	}
+ 118              		.loc 1 73 0
+ 119 0054 0500A0E1 		mov	r0, r5
+ 120              	.LVL9:
+ 121              	.L12:
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	return ret;
+ 122              		.loc 1 80 0
+ 123 0058 08209FE5 		ldr	r2, .L17+4
+ 124 005c 043082E5 		str	r3, [r2, #4]
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+ 125              		.loc 1 82 0
+ 126 0060 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 127              	.L18:
+ 128              		.align	2
+ 129              	.L17:
+ 130 0064 40EFC41F 		.word	533000000
+ 131 0068 00200002 		.word	33562624
+ 132              		.cfi_endproc
+ 133              	.LFE1:
+ 135              		.section	.text.hal_wdt_init,"ax",%progbits
+ 136              		.align	2
+ 137              		.global	hal_wdt_init
+ 139              	hal_wdt_init:
+ 140              	.LFB3:
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** }
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** void hal_wdt_init(uint32_t timeout, void(*clb_func)(void), uint8_t priority)
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+ 141              		.loc 1 97 0
+ 142              		.cfi_startproc
+ 143              		@ args = 0, pretend = 0, frame = 0
+ 144              		@ frame_needed = 0, uses_anonymous_args = 0
+ 145              	.LVL10:
+ 146 0000 38402DE9 		stmfd	sp!, {r3, r4, r5, lr}
+ 147              	.LCFI2:
+ 148              		.cfi_def_cfa_offset 16
+ 149              		.cfi_offset 3, -16
+ 150              		.cfi_offset 4, -12
+ 151              		.cfi_offset 5, -8
+ 152              		.cfi_offset 14, -4
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdt_reg_t *wdtx = (wdt_reg_t *)WDT_BASE;
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Enable APB clock for WDT via 0x34 bit [25:25] */
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	*(volatile uint32_t*)(SCU_BASE + 0x34) &= 0xFDFFFFFF;
+ 153              		.loc 1 100 0
+ 154 0004 0234A0E3 		mov	r3, #33554432
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdt_reg_t *wdtx = (wdt_reg_t *)WDT_BASE;
+ 155              		.loc 1 97 0
+ 156 0008 0140A0E1 		mov	r4, r1
+ 157 000c 0250A0E1 		mov	r5, r2
+ 158              		.loc 1 100 0
+ 159 0010 341093E5 		ldr	r1, [r3, #52]
+ 160              	.LVL11:
+ 161 0014 0214C1E3 		bic	r1, r1, #33554432
+ 162 0018 341083E5 		str	r1, [r3, #52]
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__asm("isb");
+ 163              		.loc 1 101 0
+ 164              	@ 101 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c" 1
+ 165 001c 6FF07FF5 		isb
+ 166              	@ 0 "" 2
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Reset WDT as nornal via 0x40 bit [25:25]*/
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	*(volatile uint32_t*)(SCU_BASE + 0x40) &= 0xFDFFFFFF;
+ 167              		.loc 1 103 0
+ 168 0020 401093E5 		ldr	r1, [r3, #64]
+ 169 0024 0214C1E3 		bic	r1, r1, #33554432
+ 170 0028 401083E5 		str	r1, [r3, #64]
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__asm("isb");
+ 171              		.loc 1 104 0
+ 172              	@ 104 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c" 1
+ 173 002c 6FF07FF5 		isb
+ 174              	@ 0 "" 2
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Allow watchdog timer for all IPs */
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	writel(SCU_BASE + 0x48, 0xFFFFFFFF);
+ 175              		.loc 1 106 0
+ 176 0030 0010E0E3 		mvn	r1, #0
+ 177 0034 481083E5 		str	r1, [r3, #72]
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	writel(SCU_BASE + 0x4C, 0xFFFFFFFF);
+ 178              		.loc 1 107 0
+ 179 0038 4C1083E5 		str	r1, [r3, #76]
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	writel(SCU_BASE + 0x50, 0xFFFFFFFF);
+ 180              		.loc 1 108 0
+ 181 003c 501083E5 		str	r1, [r3, #80]
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	__asm("isb");
+ 182              		.loc 1 109 0
+ 183              	@ 109 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c" 1
+ 184 0040 6FF07FF5 		isb
+ 185              	@ 0 "" 2
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Set Watchdog time out. */
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdt_set_timeout(timeout);
+ 186              		.loc 1 112 0
+ 187 0044 FEFFFFEB 		bl	wdt_set_timeout
+ 188              	.LVL12:
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_CR	|=	WDT_RPL;
+ 189              		.loc 1 113 0
+ 190 0048 38309FE5 		ldr	r3, .L25
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_CR	|=	WDT_EN_IRQ;
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Initialize the interrupt line for WDT. */
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	vic_register_irq(WDT_IRQn, wdt_handler);
+ 191              		.loc 1 116 0
+ 192 004c 3200A0E3 		mov	r0, #50
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_CR	|=	WDT_RPL;
+ 193              		.loc 1 113 0
+ 194 0050 002093E5 		ldr	r2, [r3]
+ 195 0054 002083E5 		str	r2, [r3]
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_CR	|=	WDT_EN_IRQ;
+ 196              		.loc 1 114 0
+ 197 0058 001093E5 		ldr	r1, [r3]
+ 198 005c 021081E3 		orr	r1, r1, #2
+ 199 0060 001083E5 		str	r1, [r3]
+ 200              		.loc 1 116 0
+ 201 0064 20109FE5 		ldr	r1, .L25+4
+ 202 0068 FEFFFFEB 		bl	vic_register_irq
+ 203              	.LVL13:
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	vic_set_priority_irq(WDT_IRQn, priority);
+ 204              		.loc 1 117 0
+ 205 006c 3200A0E3 		mov	r0, #50
+ 206 0070 0510A0E1 		mov	r1, r5
+ 207 0074 FEFFFFEB 		bl	vic_set_priority_irq
+ 208              	.LVL14:
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Initialize a call back function. */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	if(clb_func)
+ 209              		.loc 1 119 0
+ 210 0078 000054E3 		cmp	r4, #0
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	{
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 		wdt_clb = clb_func;
+ 211              		.loc 1 121 0
+ 212 007c 0C309F15 		ldrne	r3, .L25+8
+ 213 0080 00408315 		strne	r4, [r3]
+ 214 0084 3880BDE8 		ldmfd	sp!, {r3, r4, r5, pc}
+ 215              	.L26:
+ 216              		.align	2
+ 217              	.L25:
+ 218 0088 00200002 		.word	33562624
+ 219 008c 00000000 		.word	wdt_handler
+ 220 0090 00000000 		.word	.LANCHOR0
+ 221              		.cfi_endproc
+ 222              	.LFE3:
+ 224              		.section	.text.hal_wdt_start,"ax",%progbits
+ 225              		.align	2
+ 226              		.global	hal_wdt_start
+ 228              	hal_wdt_start:
+ 229              	.LFB4:
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	}
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** }
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** void hal_wdt_start(void)
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+ 230              		.loc 1 126 0
+ 231              		.cfi_startproc
+ 232              		@ args = 0, pretend = 0, frame = 0
+ 233              		@ frame_needed = 0, uses_anonymous_args = 0
+ 234              		@ link register save eliminated.
+ 235              	.LVL15:
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdt_reg_t *wdtx = (wdt_reg_t *)WDT_BASE;
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_CR |= WDT_EN ;	/* Enable Watchdog */
+ 236              		.loc 1 128 0
+ 237 0000 0C209FE5 		ldr	r2, .L28
+ 238 0004 003092E5 		ldr	r3, [r2]
+ 239 0008 013083E3 		orr	r3, r3, #1
+ 240 000c 003082E5 		str	r3, [r2]
+ 241 0010 1EFF2FE1 		bx	lr
+ 242              	.L29:
+ 243              		.align	2
+ 244              	.L28:
+ 245 0014 00200002 		.word	33562624
+ 246              		.cfi_endproc
+ 247              	.LFE4:
+ 249              		.section	.text.hal_wdt_stop,"ax",%progbits
+ 250              		.align	2
+ 251              		.global	hal_wdt_stop
+ 253              	hal_wdt_stop:
+ 254              	.LFB5:
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** }
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** void hal_wdt_stop(void)
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+ 255              		.loc 1 132 0
+ 256              		.cfi_startproc
+ 257              		@ args = 0, pretend = 0, frame = 0
+ 258              		@ frame_needed = 0, uses_anonymous_args = 0
+ 259              		@ link register save eliminated.
+ 260              	.LVL16:
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdt_reg_t *wdtx = (wdt_reg_t *)WDT_BASE;
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_CR &= ~WDT_EN;	/* Disable Watchdog */
+ 261              		.loc 1 134 0
+ 262 0000 0C209FE5 		ldr	r2, .L31
+ 263 0004 003092E5 		ldr	r3, [r2]
+ 264 0008 0130C3E3 		bic	r3, r3, #1
+ 265 000c 003082E5 		str	r3, [r2]
+ 266 0010 1EFF2FE1 		bx	lr
+ 267              	.L32:
+ 268              		.align	2
+ 269              	.L31:
+ 270 0014 00200002 		.word	33562624
+ 271              		.cfi_endproc
+ 272              	.LFE5:
+ 274              		.section	.text.hal_wdt_kick_dog,"ax",%progbits
+ 275              		.align	2
+ 276              		.global	hal_wdt_kick_dog
+ 278              	hal_wdt_kick_dog:
+ 279              	.LFB6:
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** }
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** void hal_wdt_kick_dog(void)
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** {
+ 280              		.loc 1 138 0
+ 281              		.cfi_startproc
+ 282              		@ args = 0, pretend = 0, frame = 0
+ 283              		@ frame_needed = 0, uses_anonymous_args = 0
+ 284              		@ link register save eliminated.
+ 285              	.LVL17:
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdt_reg_t *wdtx = (wdt_reg_t *)WDT_BASE;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	/* Restart the counter Watchdog. */
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_wdt.c **** 	wdtx->WDT_CRR = 	WDT_RESTART;
+ 286              		.loc 1 141 0
+ 287 0000 7620A0E3 		mov	r2, #118
+ 288 0004 04309FE5 		ldr	r3, .L34
+ 289 0008 0C2083E5 		str	r2, [r3, #12]
+ 290 000c 1EFF2FE1 		bx	lr
+ 291              	.L35:
+ 292              		.align	2
+ 293              	.L34:
+ 294 0010 00200002 		.word	33562624
+ 295              		.cfi_endproc
+ 296              	.LFE6:
+ 298              		.section	.bss.wdt_clb,"aw",%nobits
+ 299              		.align	2
+ 300              		.set	.LANCHOR0,. + 0
+ 303              	wdt_clb:
+ 304 0000 00000000 		.space	4
+ 305              		.text
+ 306              	.Letext0:
+ 307              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 308              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 309              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+ 310              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_wdt.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_wdt.c
+     /tmp/ccb5ZIZf.s:17     .text.wdt_handler:00000000 $a
+     /tmp/ccb5ZIZf.s:19     .text.wdt_handler:00000000 wdt_handler
+     /tmp/ccb5ZIZf.s:48     .text.wdt_handler:00000024 $d
+     /tmp/ccb5ZIZf.s:55     .text.wdt_set_timeout:00000000 $a
+     /tmp/ccb5ZIZf.s:58     .text.wdt_set_timeout:00000000 wdt_set_timeout
+     /tmp/ccb5ZIZf.s:130    .text.wdt_set_timeout:00000064 $d
+     /tmp/ccb5ZIZf.s:136    .text.hal_wdt_init:00000000 $a
+     /tmp/ccb5ZIZf.s:139    .text.hal_wdt_init:00000000 hal_wdt_init
+     /tmp/ccb5ZIZf.s:218    .text.hal_wdt_init:00000088 $d
+     /tmp/ccb5ZIZf.s:225    .text.hal_wdt_start:00000000 $a
+     /tmp/ccb5ZIZf.s:228    .text.hal_wdt_start:00000000 hal_wdt_start
+     /tmp/ccb5ZIZf.s:245    .text.hal_wdt_start:00000014 $d
+     /tmp/ccb5ZIZf.s:250    .text.hal_wdt_stop:00000000 $a
+     /tmp/ccb5ZIZf.s:253    .text.hal_wdt_stop:00000000 hal_wdt_stop
+     /tmp/ccb5ZIZf.s:270    .text.hal_wdt_stop:00000014 $d
+     /tmp/ccb5ZIZf.s:275    .text.hal_wdt_kick_dog:00000000 $a
+     /tmp/ccb5ZIZf.s:278    .text.hal_wdt_kick_dog:00000000 hal_wdt_kick_dog
+     /tmp/ccb5ZIZf.s:294    .text.hal_wdt_kick_dog:00000010 $d
+     /tmp/ccb5ZIZf.s:299    .bss.wdt_clb:00000000 $d
+     /tmp/ccb5ZIZf.s:303    .bss.wdt_clb:00000000 wdt_clb
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+__aeabi_idiv
+vic_register_irq
+vic_set_priority_irq

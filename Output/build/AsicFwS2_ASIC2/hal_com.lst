@@ -1,0 +1,999 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"hal_com.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.UART0_IRQHandler,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	UART0_IRQHandler:
+  24              	.LFB6:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @file	hal_com.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @author	The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @version	V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @date	Jan-28-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief	This file contains expand of hal_com
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Includes ------------------------------------------------------------------*/
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #include "cortex_r4.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #include "board_config.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #include "assert.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #include "hal_vic.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #include "hal_com.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Private typedef -----------------------------------------------------------*/
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief uart_reg_t
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  *
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * COM UART registers
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** typedef struct uart_reg
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	union
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t RBR;		/* Receiver Buffer Register */
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__O  uint32_t THR;		/* Transmitter Holding Register */
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t DLL;		/* Divisor Latch (Low) Register */
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	};
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	union
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t DLH;		/* Divisor Latch (High) Register */
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t IER;		/* Interrupt Enable Register */
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	};
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	union
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t IIR;		/* Interrupt Identification Register */
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__O  uint32_t FCR;		/* FIFO Control Register */
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	};
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t LCR;		/* Line Control Register */
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t MCR;		/* Modem Control Register */
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t LSR;		/* Line Status Register */
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t MSR;		/* Modem Status Register */
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t SCR;		/* Scratchpad Register */
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t LPDLL;	/* Low Power Divisor Latch (Low) Register */
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t LPDLH;	/* Low Power Divisor Latch (High) Register */
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t Rsvd1[2];	/* Reserved */
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	union
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t SRBR[16];	/* Shadow Receive Buffer Register */
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__O  uint32_t STHR[16];	/* Shadow Transmit Holding Register */
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	};
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t FAR;		/* FIFO Access Register */
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t TFR;		/* Transmit FIFO Read Register */
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__O  uint32_t RFW;		/* Receive FIFO Write Register */
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t USR;		/* UART Status Register */
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t TFL;		/* Transmit FIFO Level Register */
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t RFL;		/* Receive FIFO Level Register */
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__O  uint32_t SRR;		/* Software Reset Register */
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t SRTS;		/* Shadow Request to Send Register */
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t SBCR;		/* Shadow Break Control Register */
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t SDMAM;	/* Shadow DMA Mode Register */
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t SFE;		/* Shadow FIFO Enable Register */
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t SRT;		/* Shadow RCVR Trigger Register */
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t STET;		/* Shadow TX Empty Trigger Register */
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t HTX;		/* Halt TX Register */
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__O  uint32_t DMASA;	/* DMA Software Acknowledge Register */
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t TCR;		/* Transceiver Control Register Register */
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t DE_EN;	/* Driver Output Enable Register */
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t RE_EN;	/* Receiver Output Enable Register */
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t DET;		/* Driver Output Enable Timing Register */
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t TAT;		/* TurnAround Timing Register */
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t DLF;		/* Divisor Latch Fractional Value Register */
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t RAR;		/* Receive Address Register */
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t TAR;		/* Transmit Address Register */
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__IO uint32_t LCR_EXT;	/* Line Extended Control Register */
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t Rsvd2[9];	/* Reserved */
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t CPR;		/* Component Parameter Register */
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t UCV;		/* UART Component Version Register */
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		__I  uint32_t CTR;		/* Component Type Register */
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** } uart_reg_t;
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief uart_config_t
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  *
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * COM configuration structure
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** typedef struct uart_config
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t		*handle;	/* UART handle */
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	void			(*data_received_handler)(uint8_t c); /* Interrupt handler */
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** } uart_config_t;
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Private define ------------------------------------------------------------*/
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Define for LCR register */
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define COM_LCR_DLAB				BIT7
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define COM_LCR_DLS_MASK			(BIT0 | BIT1)
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define COM_LCR_DLS_8BITS			0x03
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Define for IER register */
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define COM_IER_RXNE				BIT0
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define COM_IER_THRE				BIT1
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Define for LSR register */
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define COM_LSR_RXNE				BIT0
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define COM_LSR_THRE				BIT5
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Transceiver timeout setting */
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define HAL_COM_TIMEOUT				10000000
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* UART0 handle */
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** #define UART0						((uart_reg_t *)UART_BASE)
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Private typedef -----------------------------------------------------------*/
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Private function prototypes -----------------------------------------------*/
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** static void UART0_IRQHandler(void);
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** static void hal_com_irq(uint8_t port_name);
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Private variables ---------------------------------------------------------*/
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* COM configurations */
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** static uart_config_t	uart_configs[COM_MAX_IDX] =
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* COM1 */
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		.handle = UART0,
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		.data_received_handler = NULL_PTR
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** };
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Exported functions ------------------------------------------------------- */
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief hal_com_init
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Initializes independent COM channel
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** void hal_com_init(hal_com_t *com)
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart_reg_t	*uart;
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uint32_t	baud_rate_divisor;
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Assert input parameters */
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 assert_param(NULL_PTR != com);
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 assert_param(IS_COM_PORT(com->port_name));
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart = uart_configs[com->port_name].handle;
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Calculate divisor */
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Get the integer part of baud rate divisor */
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 baud_rate_divisor = CLOCK_133MHZ / (16 * com->baudrate);
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Accommodate divisor for more accurate baud rate */
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 if((CLOCK_133MHZ - (baud_rate_divisor * 16 * com->baudrate)) >
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 	(8 * com->baudrate))
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 {
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 	baud_rate_divisor++;
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 }
+ 161:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set DLAB bit to access DLL, DLH */
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->LCR |= COM_LCR_DLAB;
+ 163:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set baud rate divisor for the DLL register */
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->DLL = baud_rate_divisor & 0xFF;
+ 165:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set baud rate divisor for the DLH register */
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->DLH = baud_rate_divisor >> 8;
+ 167:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Clear DLAB bit to access other registers */
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->LCR &= (~COM_LCR_DLAB);
+ 169:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Disable FIFO to avoid Character Timeout interrupt */
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->FCR = 0;
+ 171:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 172:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set data length as 8 bits */
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->LCR &= (~COM_LCR_DLS_MASK);
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->LCR |= COM_LCR_DLS_8BITS;
+ 175:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 176:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 177:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+ 178:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief hal_com_sendbyte
+ 179:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Send one byte to hardware
+ 180:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+ 181:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** hal_com_return_t hal_com_sendbyte(hal_com_t *com)
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+ 183:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t			*uart;
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uint32_t			timeout = HAL_COM_TIMEOUT;
+ 185:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	hal_com_return_t	ret;
+ 186:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 187:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Assert input parameters */
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com);
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com->data);
+ 191:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart = uart_configs[com->port_name].handle;
+ 193:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 194:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Wait until THR is ready for a new character */
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	while ((COM_LSR_THRE != (uart->LSR & COM_LSR_THRE)) && (--timeout));
+ 196:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 197:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Check whether last transmission timeout */
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	if (0 == timeout)
+ 199:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_TIMEOUT;
+ 201:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 202:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	else
+ 203:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 204:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		/* Transmit data */
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		uart->THR = (uint8_t)(*(com->data));
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_OK;
+ 207:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 208:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 209:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	return ret;
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 211:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 212:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+ 213:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief hal_com_readbyte
+ 214:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Read one byte from hardware
+ 215:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+ 216:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** hal_com_return_t hal_com_readbyte(hal_com_t *com)
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+ 218:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t			*uart;
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uint32_t			timeout = HAL_COM_TIMEOUT;
+ 220:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	hal_com_return_t	ret;
+ 221:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 222:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Assert input parameters */
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com);
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com->data);
+ 226:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart = uart_configs[com->port_name].handle;
+ 228:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 229:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Wait until a new character is received */
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	while ((COM_LSR_RXNE != (uart->LSR & COM_LSR_RXNE)) && (--timeout));
+ 231:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 232:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Check whether last reception timeout */
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	if (0 == timeout)
+ 234:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_TIMEOUT;
+ 236:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 237:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	else
+ 238:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 239:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		/* Read data */
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		*(com->data) = (uint8_t)uart->RBR;
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_OK;
+ 242:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 243:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 244:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	return ret;
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 246:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 247:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+ 248:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief hal_com_enable_irq
+ 249:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Enable UART interrupt
+ 250:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+ 251:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** void hal_com_enable_irq(hal_com_t *com)
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+ 253:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t	*uart;
+ 254:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 255:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Assert input parameters */
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com);
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 258:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart = uart_configs[com->port_name].handle;
+ 260:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 261:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Clear interrupt pending */
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart->USR;
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart->RBR;
+ 264:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Set interrupt handler */
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_configs[com->port_name].data_received_handler = com->irq_handler;
+ 266:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Register interrupt handler*/
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	vic_register_irq(UART_IRQn, UART0_IRQHandler);
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	vic_set_priority_irq(UART_IRQn, 5);
+ 269:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Enable RX interrupt */
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart->IER |= COM_IER_RXNE;
+ 271:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 272:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 273:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+ 274:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief hal_com_disable_irq
+ 275:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Disable UART interrupt
+ 276:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+ 277:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** void hal_com_disable_irq(hal_com_t *com)
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+ 279:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t	*uart;
+ 280:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 281:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Assert input parameters */
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com);
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 284:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart = uart_configs[com->port_name].handle;
+ 286:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 287:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Disable RX interrupt */
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart->IER &= (~COM_IER_RXNE);
+ 289:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Clear interrupt handler */
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_configs[com->port_name].data_received_handler = NULL_PTR;
+ 291:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Unregister interrupt handler*/
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	vic_unregister_irq(UART_IRQn);
+ 293:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 294:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 295:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /*
+ 296:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief UART0_IRQHandler
+ 297:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+ 298:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** static void UART0_IRQHandler(void)
+ 299:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+  26              		.loc 1 299 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              		@ link register save eliminated.
+  31              	.LVL0:
+  32              	.LBB6:
+  33              	.LBB7:
+ 300:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	hal_com_irq(COM1);
+ 301:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 302:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 303:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /* Private functions -------------------------------------------------------- */
+ 304:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 305:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** /**
+ 306:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * @brief hal_com_irq
+ 307:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  * Processes UART interrupt
+ 308:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c ****  */
+ 309:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** static void hal_com_irq(uint8_t port_name)
+ 310:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** {
+ 311:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	if(NULL_PTR != uart_configs[port_name].data_received_handler)
+  34              		.loc 1 311 0
+  35 0000 034A     		ldr	r2, .L4
+  36 0002 5368     		ldr	r3, [r2, #4]
+  37 0004 1BB1     		cbz	r3, .L1
+  38              	.LBB8:
+ 312:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 313:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		/* Read data and clear interrupt pending */
+ 314:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		uint8_t c = (uint8_t)(uart_configs[port_name].handle->RBR);
+  39              		.loc 1 314 0
+  40 0006 1268     		ldr	r2, [r2]
+  41 0008 1068     		ldr	r0, [r2]
+  42              	.LVL1:
+ 315:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		/* Call back function to transfer data to upper module */
+ 316:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		(*(uart_configs[port_name].data_received_handler))(c);
+  43              		.loc 1 316 0
+  44 000a C0B2     		uxtb	r0, r0
+  45 000c 1847     		bx	r3	@ indirect register sibling call
+  46              	.LVL2:
+  47              	.L1:
+  48 000e 7047     		bx	lr
+  49              	.L5:
+  50              		.align	2
+  51              	.L4:
+  52 0010 00000000 		.word	.LANCHOR0
+  53              	.LBE8:
+  54              	.LBE7:
+  55              	.LBE6:
+  56              		.cfi_endproc
+  57              	.LFE6:
+  59              		.section	.text.hal_com_init,"ax",%progbits
+  60              		.align	1
+  61              		.global	hal_com_init
+  62              		.thumb
+  63              		.thumb_func
+  65              	hal_com_init:
+  66              	.LFB1:
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart_reg_t	*uart;
+  67              		.loc 1 142 0
+  68              		.cfi_startproc
+  69              		@ args = 0, pretend = 0, frame = 0
+  70              		@ frame_needed = 0, uses_anonymous_args = 0
+  71              	.LVL3:
+  72 0000 10B5     		push	{r4, lr}
+  73              	.LCFI0:
+  74              		.cfi_def_cfa_offset 8
+  75              		.cfi_offset 4, -8
+  76              		.cfi_offset 14, -4
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 assert_param(IS_COM_PORT(com->port_name));
+  77              		.loc 1 147 0
+  78 0002 0446     		mov	r4, r0
+  79 0004 18B9     		cbnz	r0, .L7
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 assert_param(IS_COM_PORT(com->port_name));
+  80              		.loc 1 147 0 is_stmt 0 discriminator 1
+  81 0006 1A48     		ldr	r0, .L13
+  82              	.LVL4:
+  83 0008 9321     		movs	r1, #147
+  84 000a 1A4B     		ldr	r3, .L13+4
+  85 000c 9847     		blx	r3
+  86              	.LVL5:
+  87              	.L7:
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+  88              		.loc 1 148 0 is_stmt 1
+  89 000e 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+  90 0010 1BB1     		cbz	r3, .L8
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+  91              		.loc 1 148 0 is_stmt 0 discriminator 1
+  92 0012 1748     		ldr	r0, .L13
+  93 0014 9421     		movs	r1, #148
+  94 0016 174B     		ldr	r3, .L13+4
+  95 0018 9847     		blx	r3
+  96              	.LVL6:
+  97              	.L8:
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+  98              		.loc 1 150 0 is_stmt 1
+  99 001a 174B     		ldr	r3, .L13+8
+ 100 001c 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Accommodate divisor for more accurate baud rate */
+ 101              		.loc 1 154 0
+ 102 001e 6468     		ldr	r4, [r4, #4]
+ 103              	.LVL7:
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 	(8 * com->baudrate))
+ 104              		.loc 1 156 0
+ 105 0020 1648     		ldr	r0, .L13+12
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 106              		.loc 1 150 0
+ 107 0022 53F83230 		ldr	r3, [r3, r2, lsl #3]
+ 108              	.LVL8:
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Accommodate divisor for more accurate baud rate */
+ 109              		.loc 1 154 0
+ 110 0026 154A     		ldr	r2, .L13+12
+ 111 0028 2101     		lsls	r1, r4, #4
+ 112 002a B2FBF1F2 		udiv	r2, r2, r1
+ 113              	.LVL9:
+ 114 002e 6FF00F01 		mvn	r1, #15
+ 115 0032 6143     		muls	r1, r4, r1
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 	(8 * com->baudrate))
+ 116              		.loc 1 156 0
+ 117 0034 5143     		muls	r1, r2, r1
+ 118 0036 0844     		add	r0, r0, r1
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set baud rate divisor for the DLL register */
+ 119              		.loc 1 162 0
+ 120 0038 D968     		ldr	r1, [r3, #12]
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 	(8 * com->baudrate))
+ 121              		.loc 1 156 0
+ 122 003a B0EBC40F 		cmp	r0, r4, lsl #3
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 }
+ 123              		.loc 1 159 0
+ 124 003e 88BF     		it	hi
+ 125 0040 0132     		addhi	r2, r2, #1
+ 126              	.LVL10:
+ 162:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set baud rate divisor for the DLL register */
+ 127              		.loc 1 162 0
+ 128 0042 41F08001 		orr	r1, r1, #128
+ 129 0046 D960     		str	r1, [r3, #12]
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set baud rate divisor for the DLH register */
+ 130              		.loc 1 164 0
+ 131 0048 D1B2     		uxtb	r1, r2
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Clear DLAB bit to access other registers */
+ 132              		.loc 1 166 0
+ 133 004a 120A     		lsrs	r2, r2, #8
+ 134              	.LVL11:
+ 164:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Set baud rate divisor for the DLH register */
+ 135              		.loc 1 164 0
+ 136 004c 1960     		str	r1, [r3]
+ 166:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Clear DLAB bit to access other registers */
+ 137              		.loc 1 166 0
+ 138 004e 5A60     		str	r2, [r3, #4]
+ 168:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 /* Disable FIFO to avoid Character Timeout interrupt */
+ 139              		.loc 1 168 0
+ 140 0050 DA68     		ldr	r2, [r3, #12]
+ 141 0052 22F08002 		bic	r2, r2, #128
+ 142 0056 DA60     		str	r2, [r3, #12]
+ 170:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 143              		.loc 1 170 0
+ 144 0058 0022     		movs	r2, #0
+ 145 005a 9A60     		str	r2, [r3, #8]
+ 173:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	 uart->LCR |= COM_LCR_DLS_8BITS;
+ 146              		.loc 1 173 0
+ 147 005c DA68     		ldr	r2, [r3, #12]
+ 148 005e 22F00302 		bic	r2, r2, #3
+ 149 0062 DA60     		str	r2, [r3, #12]
+ 174:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 150              		.loc 1 174 0
+ 151 0064 DA68     		ldr	r2, [r3, #12]
+ 152 0066 42F00302 		orr	r2, r2, #3
+ 153 006a DA60     		str	r2, [r3, #12]
+ 154 006c 10BD     		pop	{r4, pc}
+ 155              	.LVL12:
+ 156              	.L14:
+ 157 006e 00BF     		.align	2
+ 158              	.L13:
+ 159 0070 00000000 		.word	.LANCHOR1
+ 160 0074 00000000 		.word	assert_failed
+ 161 0078 00000000 		.word	.LANCHOR0
+ 162 007c 406BED07 		.word	133000000
+ 163              		.cfi_endproc
+ 164              	.LFE1:
+ 166              		.section	.text.hal_com_sendbyte,"ax",%progbits
+ 167              		.align	1
+ 168              		.global	hal_com_sendbyte
+ 169              		.thumb
+ 170              		.thumb_func
+ 172              	hal_com_sendbyte:
+ 173              	.LFB2:
+ 182:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t			*uart;
+ 174              		.loc 1 182 0
+ 175              		.cfi_startproc
+ 176              		@ args = 0, pretend = 0, frame = 0
+ 177              		@ frame_needed = 0, uses_anonymous_args = 0
+ 178              	.LVL13:
+ 179 0000 10B5     		push	{r4, lr}
+ 180              	.LCFI1:
+ 181              		.cfi_def_cfa_offset 8
+ 182              		.cfi_offset 4, -8
+ 183              		.cfi_offset 14, -4
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 184              		.loc 1 188 0
+ 185 0002 0446     		mov	r4, r0
+ 186 0004 18B9     		cbnz	r0, .L16
+ 188:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 187              		.loc 1 188 0 is_stmt 0 discriminator 1
+ 188 0006 1148     		ldr	r0, .L27
+ 189              	.LVL14:
+ 190 0008 BC21     		movs	r1, #188
+ 191 000a 114B     		ldr	r3, .L27+4
+ 192 000c 9847     		blx	r3
+ 193              	.LVL15:
+ 194              	.L16:
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com->data);
+ 195              		.loc 1 189 0 is_stmt 1
+ 196 000e 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 197 0010 1BB1     		cbz	r3, .L17
+ 189:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com->data);
+ 198              		.loc 1 189 0 is_stmt 0 discriminator 1
+ 199 0012 0E48     		ldr	r0, .L27
+ 200 0014 BD21     		movs	r1, #189
+ 201 0016 0E4B     		ldr	r3, .L27+4
+ 202 0018 9847     		blx	r3
+ 203              	.LVL16:
+ 204              	.L17:
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 205              		.loc 1 190 0 is_stmt 1
+ 206 001a E368     		ldr	r3, [r4, #12]
+ 207 001c 1BB9     		cbnz	r3, .L18
+ 190:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 208              		.loc 1 190 0 is_stmt 0 discriminator 1
+ 209 001e 0B48     		ldr	r0, .L27
+ 210 0020 BE21     		movs	r1, #190
+ 211 0022 0B4B     		ldr	r3, .L27+4
+ 212 0024 9847     		blx	r3
+ 213              	.LVL17:
+ 214              	.L18:
+ 192:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 215              		.loc 1 192 0 is_stmt 1
+ 216 0026 0B4B     		ldr	r3, .L27+8
+ 217 0028 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 218 002a 53F83220 		ldr	r2, [r3, r2, lsl #3]
+ 219              	.LVL18:
+ 184:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	hal_com_return_t	ret;
+ 220              		.loc 1 184 0
+ 221 002e 0A4B     		ldr	r3, .L27+12
+ 222              	.LVL19:
+ 223              	.L20:
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 224              		.loc 1 195 0 discriminator 2
+ 225 0030 5169     		ldr	r1, [r2, #20]
+ 226 0032 8906     		lsls	r1, r1, #26
+ 227 0034 02D4     		bmi	.L19
+ 228              	.LVL20:
+ 195:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 229              		.loc 1 195 0 is_stmt 0 discriminator 1
+ 230 0036 013B     		subs	r3, r3, #1
+ 231              	.LVL21:
+ 232 0038 FAD1     		bne	.L20
+ 233 003a 05E0     		b	.L22
+ 234              	.LVL22:
+ 235              	.L19:
+ 198:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 236              		.loc 1 198 0 is_stmt 1
+ 237 003c 23B1     		cbz	r3, .L22
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_OK;
+ 238              		.loc 1 205 0
+ 239 003e E368     		ldr	r3, [r4, #12]
+ 206:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 240              		.loc 1 206 0
+ 241 0040 0020     		movs	r0, #0
+ 205:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_OK;
+ 242              		.loc 1 205 0
+ 243 0042 1B78     		ldrb	r3, [r3]	@ zero_extendqisi2
+ 244 0044 1360     		str	r3, [r2]
+ 245              	.LVL23:
+ 246 0046 10BD     		pop	{r4, pc}
+ 247              	.LVL24:
+ 248              	.L22:
+ 200:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 249              		.loc 1 200 0
+ 250 0048 0120     		movs	r0, #1
+ 251              	.LVL25:
+ 210:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 252              		.loc 1 210 0
+ 253 004a 10BD     		pop	{r4, pc}
+ 254              	.LVL26:
+ 255              	.L28:
+ 256              		.align	2
+ 257              	.L27:
+ 258 004c 00000000 		.word	.LANCHOR2
+ 259 0050 00000000 		.word	assert_failed
+ 260 0054 00000000 		.word	.LANCHOR0
+ 261 0058 80969800 		.word	10000000
+ 262              		.cfi_endproc
+ 263              	.LFE2:
+ 265              		.section	.text.hal_com_readbyte,"ax",%progbits
+ 266              		.align	1
+ 267              		.global	hal_com_readbyte
+ 268              		.thumb
+ 269              		.thumb_func
+ 271              	hal_com_readbyte:
+ 272              	.LFB3:
+ 217:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t			*uart;
+ 273              		.loc 1 217 0
+ 274              		.cfi_startproc
+ 275              		@ args = 0, pretend = 0, frame = 0
+ 276              		@ frame_needed = 0, uses_anonymous_args = 0
+ 277              	.LVL27:
+ 278 0000 10B5     		push	{r4, lr}
+ 279              	.LCFI2:
+ 280              		.cfi_def_cfa_offset 8
+ 281              		.cfi_offset 4, -8
+ 282              		.cfi_offset 14, -4
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 283              		.loc 1 223 0
+ 284 0002 0446     		mov	r4, r0
+ 285 0004 18B9     		cbnz	r0, .L30
+ 223:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 286              		.loc 1 223 0 is_stmt 0 discriminator 1
+ 287 0006 1148     		ldr	r0, .L41
+ 288              	.LVL28:
+ 289 0008 DF21     		movs	r1, #223
+ 290 000a 114B     		ldr	r3, .L41+4
+ 291 000c 9847     		blx	r3
+ 292              	.LVL29:
+ 293              	.L30:
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com->data);
+ 294              		.loc 1 224 0 is_stmt 1
+ 295 000e 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 296 0010 1BB1     		cbz	r3, .L31
+ 224:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(NULL_PTR != com->data);
+ 297              		.loc 1 224 0 is_stmt 0 discriminator 1
+ 298 0012 0E48     		ldr	r0, .L41
+ 299 0014 E021     		movs	r1, #224
+ 300 0016 0E4B     		ldr	r3, .L41+4
+ 301 0018 9847     		blx	r3
+ 302              	.LVL30:
+ 303              	.L31:
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 304              		.loc 1 225 0 is_stmt 1
+ 305 001a E368     		ldr	r3, [r4, #12]
+ 306 001c 1BB9     		cbnz	r3, .L32
+ 225:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 307              		.loc 1 225 0 is_stmt 0 discriminator 1
+ 308 001e 0B48     		ldr	r0, .L41
+ 309 0020 E121     		movs	r1, #225
+ 310 0022 0B4B     		ldr	r3, .L41+4
+ 311 0024 9847     		blx	r3
+ 312              	.LVL31:
+ 313              	.L32:
+ 227:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 314              		.loc 1 227 0 is_stmt 1
+ 315 0026 0B4B     		ldr	r3, .L41+8
+ 316 0028 2278     		ldrb	r2, [r4]	@ zero_extendqisi2
+ 317 002a 53F83220 		ldr	r2, [r3, r2, lsl #3]
+ 318              	.LVL32:
+ 219:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	hal_com_return_t	ret;
+ 319              		.loc 1 219 0
+ 320 002e 0A4B     		ldr	r3, .L41+12
+ 321              	.LVL33:
+ 322              	.L34:
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 323              		.loc 1 230 0 discriminator 2
+ 324 0030 5169     		ldr	r1, [r2, #20]
+ 325 0032 C907     		lsls	r1, r1, #31
+ 326 0034 02D4     		bmi	.L33
+ 327              	.LVL34:
+ 230:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 328              		.loc 1 230 0 is_stmt 0 discriminator 1
+ 329 0036 013B     		subs	r3, r3, #1
+ 330              	.LVL35:
+ 331 0038 FAD1     		bne	.L34
+ 332 003a 05E0     		b	.L36
+ 333              	.LVL36:
+ 334              	.L33:
+ 233:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	{
+ 335              		.loc 1 233 0 is_stmt 1
+ 336 003c 23B1     		cbz	r3, .L36
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_OK;
+ 337              		.loc 1 240 0
+ 338 003e E368     		ldr	r3, [r4, #12]
+ 241:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 339              		.loc 1 241 0
+ 340 0040 0020     		movs	r0, #0
+ 240:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 		ret = COM_OK;
+ 341              		.loc 1 240 0
+ 342 0042 1268     		ldr	r2, [r2]
+ 343              	.LVL37:
+ 344 0044 1A70     		strb	r2, [r3]
+ 345              	.LVL38:
+ 346 0046 10BD     		pop	{r4, pc}
+ 347              	.LVL39:
+ 348              	.L36:
+ 235:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	}
+ 349              		.loc 1 235 0
+ 350 0048 0120     		movs	r0, #1
+ 351              	.LVL40:
+ 245:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 352              		.loc 1 245 0
+ 353 004a 10BD     		pop	{r4, pc}
+ 354              	.LVL41:
+ 355              	.L42:
+ 356              		.align	2
+ 357              	.L41:
+ 358 004c 00000000 		.word	.LANCHOR3
+ 359 0050 00000000 		.word	assert_failed
+ 360 0054 00000000 		.word	.LANCHOR0
+ 361 0058 80969800 		.word	10000000
+ 362              		.cfi_endproc
+ 363              	.LFE3:
+ 365              		.section	.text.hal_com_enable_irq,"ax",%progbits
+ 366              		.align	1
+ 367              		.global	hal_com_enable_irq
+ 368              		.thumb
+ 369              		.thumb_func
+ 371              	hal_com_enable_irq:
+ 372              	.LFB4:
+ 252:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t	*uart;
+ 373              		.loc 1 252 0
+ 374              		.cfi_startproc
+ 375              		@ args = 0, pretend = 0, frame = 0
+ 376              		@ frame_needed = 0, uses_anonymous_args = 0
+ 377              	.LVL42:
+ 378 0000 38B5     		push	{r3, r4, r5, lr}
+ 379              	.LCFI3:
+ 380              		.cfi_def_cfa_offset 16
+ 381              		.cfi_offset 3, -16
+ 382              		.cfi_offset 4, -12
+ 383              		.cfi_offset 5, -8
+ 384              		.cfi_offset 14, -4
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 385              		.loc 1 256 0
+ 386 0002 0546     		mov	r5, r0
+ 387 0004 20B9     		cbnz	r0, .L44
+ 256:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 388              		.loc 1 256 0 is_stmt 0 discriminator 1
+ 389 0006 1148     		ldr	r0, .L49
+ 390              	.LVL43:
+ 391 0008 4FF48071 		mov	r1, #256
+ 392 000c 104B     		ldr	r3, .L49+4
+ 393 000e 9847     		blx	r3
+ 394              	.LVL44:
+ 395              	.L44:
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 396              		.loc 1 257 0 is_stmt 1
+ 397 0010 2B78     		ldrb	r3, [r5]	@ zero_extendqisi2
+ 398 0012 23B1     		cbz	r3, .L45
+ 257:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 399              		.loc 1 257 0 is_stmt 0 discriminator 1
+ 400 0014 0D48     		ldr	r0, .L49
+ 401 0016 40F20111 		movw	r1, #257
+ 402 001a 0D4B     		ldr	r3, .L49+4
+ 403 001c 9847     		blx	r3
+ 404              	.LVL45:
+ 405              	.L45:
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 406              		.loc 1 259 0 is_stmt 1
+ 407 001e 0D4B     		ldr	r3, .L49+8
+ 408 0020 2A78     		ldrb	r2, [r5]	@ zero_extendqisi2
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	vic_set_priority_irq(UART_IRQn, 5);
+ 409              		.loc 1 267 0
+ 410 0022 3120     		movs	r0, #49
+ 259:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 411              		.loc 1 259 0
+ 412 0024 53F83240 		ldr	r4, [r3, r2, lsl #3]
+ 413              	.LVL46:
+ 265:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Register interrupt handler*/
+ 414              		.loc 1 265 0
+ 415 0028 03EBC203 		add	r3, r3, r2, lsl #3
+ 416 002c AA68     		ldr	r2, [r5, #8]
+ 417 002e 5A60     		str	r2, [r3, #4]
+ 262:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart->RBR;
+ 418              		.loc 1 262 0
+ 419 0030 E16F     		ldr	r1, [r4, #124]
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	vic_set_priority_irq(UART_IRQn, 5);
+ 420              		.loc 1 267 0
+ 421 0032 094B     		ldr	r3, .L49+12
+ 263:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Set interrupt handler */
+ 422              		.loc 1 263 0
+ 423 0034 2168     		ldr	r1, [r4]
+ 267:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	vic_set_priority_irq(UART_IRQn, 5);
+ 424              		.loc 1 267 0
+ 425 0036 0949     		ldr	r1, .L49+16
+ 426 0038 9847     		blx	r3
+ 427              	.LVL47:
+ 268:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Enable RX interrupt */
+ 428              		.loc 1 268 0
+ 429 003a 094B     		ldr	r3, .L49+20
+ 430 003c 3120     		movs	r0, #49
+ 431 003e 0521     		movs	r1, #5
+ 432 0040 9847     		blx	r3
+ 433              	.LVL48:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 434              		.loc 1 270 0
+ 435 0042 6368     		ldr	r3, [r4, #4]
+ 436 0044 43F00103 		orr	r3, r3, #1
+ 437 0048 6360     		str	r3, [r4, #4]
+ 438 004a 38BD     		pop	{r3, r4, r5, pc}
+ 439              	.LVL49:
+ 440              	.L50:
+ 441              		.align	2
+ 442              	.L49:
+ 443 004c 00000000 		.word	.LANCHOR4
+ 444 0050 00000000 		.word	assert_failed
+ 445 0054 00000000 		.word	.LANCHOR0
+ 446 0058 00000000 		.word	vic_register_irq
+ 447 005c 00000000 		.word	UART0_IRQHandler
+ 448 0060 00000000 		.word	vic_set_priority_irq
+ 449              		.cfi_endproc
+ 450              	.LFE4:
+ 452              		.section	.text.hal_com_disable_irq,"ax",%progbits
+ 453              		.align	1
+ 454              		.global	hal_com_disable_irq
+ 455              		.thumb
+ 456              		.thumb_func
+ 458              	hal_com_disable_irq:
+ 459              	.LFB5:
+ 278:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	uart_reg_t	*uart;
+ 460              		.loc 1 278 0
+ 461              		.cfi_startproc
+ 462              		@ args = 0, pretend = 0, frame = 0
+ 463              		@ frame_needed = 0, uses_anonymous_args = 0
+ 464              	.LVL50:
+ 465 0000 10B5     		push	{r4, lr}
+ 466              	.LCFI4:
+ 467              		.cfi_def_cfa_offset 8
+ 468              		.cfi_offset 4, -8
+ 469              		.cfi_offset 14, -4
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 470              		.loc 1 282 0
+ 471 0002 0446     		mov	r4, r0
+ 472 0004 20B9     		cbnz	r0, .L52
+ 282:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	assert_param(IS_COM_PORT(com->port_name));
+ 473              		.loc 1 282 0 is_stmt 0 discriminator 1
+ 474 0006 0E48     		ldr	r0, .L57
+ 475              	.LVL51:
+ 476 0008 4FF48D71 		mov	r1, #282
+ 477 000c 0D4B     		ldr	r3, .L57+4
+ 478 000e 9847     		blx	r3
+ 479              	.LVL52:
+ 480              	.L52:
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 481              		.loc 1 283 0 is_stmt 1
+ 482 0010 2378     		ldrb	r3, [r4]	@ zero_extendqisi2
+ 483 0012 23B1     		cbz	r3, .L53
+ 283:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 484              		.loc 1 283 0 is_stmt 0 discriminator 1
+ 485 0014 0A48     		ldr	r0, .L57
+ 486 0016 40F21B11 		movw	r1, #283
+ 487 001a 0A4B     		ldr	r3, .L57+4
+ 488 001c 9847     		blx	r3
+ 489              	.LVL53:
+ 490              	.L53:
+ 285:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 
+ 491              		.loc 1 285 0 is_stmt 1
+ 492 001e 0A4B     		ldr	r3, .L57+8
+ 493 0020 2178     		ldrb	r1, [r4]	@ zero_extendqisi2
+ 494 0022 53F83100 		ldr	r0, [r3, r1, lsl #3]
+ 495              	.LVL54:
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Unregister interrupt handler*/
+ 496              		.loc 1 290 0
+ 497 0026 03EBC103 		add	r3, r3, r1, lsl #3
+ 288:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Clear interrupt handler */
+ 498              		.loc 1 288 0
+ 499 002a 4268     		ldr	r2, [r0, #4]
+ 500 002c 22F00102 		bic	r2, r2, #1
+ 501 0030 4260     		str	r2, [r0, #4]
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Unregister interrupt handler*/
+ 502              		.loc 1 290 0
+ 503 0032 0022     		movs	r2, #0
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 504              		.loc 1 292 0
+ 505 0034 3120     		movs	r0, #49
+ 506              	.LVL55:
+ 290:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** 	/* Unregister interrupt handler*/
+ 507              		.loc 1 290 0
+ 508 0036 5A60     		str	r2, [r3, #4]
+ 292:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_com.c **** }
+ 509              		.loc 1 292 0
+ 510 0038 044B     		ldr	r3, .L57+12
+ 511              	.LVL56:
+ 512 003a 9847     		blx	r3
+ 513              	.LVL57:
+ 514 003c 10BD     		pop	{r4, pc}
+ 515              	.LVL58:
+ 516              	.L58:
+ 517 003e 00BF     		.align	2
+ 518              	.L57:
+ 519 0040 00000000 		.word	.LANCHOR5
+ 520 0044 00000000 		.word	assert_failed
+ 521 0048 00000000 		.word	.LANCHOR0
+ 522 004c 00000000 		.word	vic_unregister_irq
+ 523              		.cfi_endproc
+ 524              	.LFE5:
+ 526              		.section	.data.uart_configs,"aw",%progbits
+ 527              		.align	2
+ 528              		.set	.LANCHOR0,. + 0
+ 531              	uart_configs:
+ 532 0000 00300002 		.word	33566720
+ 533 0004 00000000 		.word	0
+ 534              		.section	.rodata.__FUNCTION__.6347,"a",%progbits
+ 535              		.set	.LANCHOR1,. + 0
+ 538              	__FUNCTION__.6347:
+ 539 0000 68616C5F 		.ascii	"hal_com_init\000"
+ 539      636F6D5F 
+ 539      696E6974 
+ 539      00
+ 540              		.section	.rodata.__FUNCTION__.6354,"a",%progbits
+ 541              		.set	.LANCHOR2,. + 0
+ 544              	__FUNCTION__.6354:
+ 545 0000 68616C5F 		.ascii	"hal_com_sendbyte\000"
+ 545      636F6D5F 
+ 545      73656E64 
+ 545      62797465 
+ 545      00
+ 546              		.section	.rodata.__FUNCTION__.6364,"a",%progbits
+ 547              		.set	.LANCHOR3,. + 0
+ 550              	__FUNCTION__.6364:
+ 551 0000 68616C5F 		.ascii	"hal_com_readbyte\000"
+ 551      636F6D5F 
+ 551      72656164 
+ 551      62797465 
+ 551      00
+ 552              		.section	.rodata.__FUNCTION__.6372,"a",%progbits
+ 553              		.set	.LANCHOR4,. + 0
+ 556              	__FUNCTION__.6372:
+ 557 0000 68616C5F 		.ascii	"hal_com_enable_irq\000"
+ 557      636F6D5F 
+ 557      656E6162 
+ 557      6C655F69 
+ 557      727100
+ 558              		.section	.rodata.__FUNCTION__.6377,"a",%progbits
+ 559              		.set	.LANCHOR5,. + 0
+ 562              	__FUNCTION__.6377:
+ 563 0000 68616C5F 		.ascii	"hal_com_disable_irq\000"
+ 563      636F6D5F 
+ 563      64697361 
+ 563      626C655F 
+ 563      69727100 
+ 564              		.text
+ 565              	.Letext0:
+ 566              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 567              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 568              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 569              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_vic.h"
+ 570              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_com.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_com.c
+     /tmp/cc3sIRSc.s:19     .text.UART0_IRQHandler:00000000 $t
+     /tmp/cc3sIRSc.s:23     .text.UART0_IRQHandler:00000000 UART0_IRQHandler
+     /tmp/cc3sIRSc.s:52     .text.UART0_IRQHandler:00000010 $d
+     /tmp/cc3sIRSc.s:60     .text.hal_com_init:00000000 $t
+     /tmp/cc3sIRSc.s:65     .text.hal_com_init:00000000 hal_com_init
+     /tmp/cc3sIRSc.s:159    .text.hal_com_init:00000070 $d
+     /tmp/cc3sIRSc.s:167    .text.hal_com_sendbyte:00000000 $t
+     /tmp/cc3sIRSc.s:172    .text.hal_com_sendbyte:00000000 hal_com_sendbyte
+     /tmp/cc3sIRSc.s:258    .text.hal_com_sendbyte:0000004c $d
+     /tmp/cc3sIRSc.s:266    .text.hal_com_readbyte:00000000 $t
+     /tmp/cc3sIRSc.s:271    .text.hal_com_readbyte:00000000 hal_com_readbyte
+     /tmp/cc3sIRSc.s:358    .text.hal_com_readbyte:0000004c $d
+     /tmp/cc3sIRSc.s:366    .text.hal_com_enable_irq:00000000 $t
+     /tmp/cc3sIRSc.s:371    .text.hal_com_enable_irq:00000000 hal_com_enable_irq
+     /tmp/cc3sIRSc.s:443    .text.hal_com_enable_irq:0000004c $d
+     /tmp/cc3sIRSc.s:453    .text.hal_com_disable_irq:00000000 $t
+     /tmp/cc3sIRSc.s:458    .text.hal_com_disable_irq:00000000 hal_com_disable_irq
+     /tmp/cc3sIRSc.s:519    .text.hal_com_disable_irq:00000040 $d
+     /tmp/cc3sIRSc.s:527    .data.uart_configs:00000000 $d
+     /tmp/cc3sIRSc.s:531    .data.uart_configs:00000000 uart_configs
+     /tmp/cc3sIRSc.s:538    .rodata.__FUNCTION__.6347:00000000 __FUNCTION__.6347
+     /tmp/cc3sIRSc.s:544    .rodata.__FUNCTION__.6354:00000000 __FUNCTION__.6354
+     /tmp/cc3sIRSc.s:550    .rodata.__FUNCTION__.6364:00000000 __FUNCTION__.6364
+     /tmp/cc3sIRSc.s:556    .rodata.__FUNCTION__.6372:00000000 __FUNCTION__.6372
+     /tmp/cc3sIRSc.s:562    .rodata.__FUNCTION__.6377:00000000 __FUNCTION__.6377
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed
+vic_register_irq
+vic_set_priority_irq
+vic_unregister_irq

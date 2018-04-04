@@ -1,0 +1,386 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"test_ddr.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.lpddr_test,"ax",%progbits
+  19              		.align	1
+  20              		.global	lpddr_test
+  21              		.thumb
+  22              		.thumb_func
+  24              	lpddr_test:
+  25              	.LFB4:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * @file	test_lpddr.c
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * @author	The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * @version	V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * @date	May-12-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  * @brief
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #include <stdint.h>
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #include <stdlib.h>
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #include <stdio.h>
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #include "os.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #include "board_config.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #include "log.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #include "test_ddr.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** /* Privated define------------------------------------------------------------*/
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** #define SLOGF_ID				SLOG_ID_LPDDR3
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** /* Privated functions prototypes ---------------------------------------------*/
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** /* Privated variables --------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** static unsigned int compare_32(unsigned int addr, unsigned int pat)
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** {
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	unsigned int ret = 0;
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	unsigned int val = readl(addr);
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	if (val != pat) {
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		ret = 1;
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	}
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	return ret;
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** }
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** static unsigned int lpddr_test_address(void)
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** {
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	static unsigned int addr = 0;
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	unsigned int i, ret = 0;
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //	if (addr == 0)
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //		SLOGF(SLOG_INFO, "LPDDR TEST ADDRESS\r\n");
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	while(addr <= 0x40000000)
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	{
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		for (i = 0 ; i < 0x100 ; i += 0x4) {
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			writel(DDR_BASE + addr + i, addr + i);
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		}
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		for (i = 0 ; i < 0x100 ; i += 0x4) {
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			ret |= compare_32(DDR_BASE + addr + i, addr + i);
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			if(ret)
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			{
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //				SLOGF(SLOG_ERROR, "Address test failed at add 0x%08X", addr);
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 				printf("LPDDR address test failed at [0x%08x]\r\n", addr);
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 				return TEST_FAIL;
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			}
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		}
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		addr += 0x1000;
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	}
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	if(!ret)
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	{
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //		SLOGF(SLOG_INFO, "Address test PASS");
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		printf("LPDDR address test pass \r\n");
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	}
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	addr = 0;
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	return TEST_PASS;
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** }
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** static unsigned int lpddr_test_pattern(void)
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** {
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	static unsigned int addr = 0;
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	unsigned int ret = 0;
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //	if (addr == 0)
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //		SLOGF(SLOG_INFO, "LPDDR TEST PATTERN\r\n");
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	while(addr <= 0x40000000)
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	{
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		for (unsigned int i = 0 ; i < 0x100 ; i += 4) {
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			writel(DDR_BASE + addr + i, (0xFEDCBA00 + i));}
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		for (unsigned int i = 0 ; i < 0x100 ; i += 4) {
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			ret |= compare_32(DDR_BASE + addr + i, (0xFEDCBA00 + i));
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			if(ret)
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			{
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //				SLOGF(SLOG_ERROR, "Pattern test failed at add 0x%08X", addr);
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 				printf("LPDDR Pattern test failed at [0x%08x]\r\n", addr);
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 				return TEST_FAIL;
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			}
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		}
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		addr += 0x1000;
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	}
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	if(!ret)
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	{
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** //		SLOGF(SLOG_INFO, "Pattern test PASS");
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		printf("LPDDR Pattern test pass \r\n");
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	}
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	addr = 0;
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	return TEST_PASS;
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** }
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** /* Exported functions implementation -----------------------------------------*/
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** unsigned int lpddr_test(void)
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** {
+  27              		.loc 1 107 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 70B5     		push	{r4, r5, r6, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 16
+  35              		.cfi_offset 4, -16
+  36              		.cfi_offset 5, -12
+  37              		.cfi_offset 6, -8
+  38              		.cfi_offset 14, -4
+  39 0002 254C     		ldr	r4, .L20
+  40 0004 2168     		ldr	r1, [r4]
+  41              	.L2:
+  42              	.LBB18:
+  43              	.LBB19:
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	{
+  44              		.loc 1 47 0
+  45 0006 B1F1804F 		cmp	r1, #1073741824
+  46 000a 1AD8     		bhi	.L7
+  47 000c 0B46     		mov	r3, r1
+  48 000e 01F58072 		add	r2, r1, #256
+  49              	.L3:
+  50 0012 03F18060 		add	r0, r3, #67108864
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		}
+  51              		.loc 1 50 0
+  52 0016 0360     		str	r3, [r0]
+  53              	.LVL1:
+  54 0018 0433     		adds	r3, r3, #4
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			writel(DDR_BASE + addr + i, addr + i);
+  55              		.loc 1 49 0
+  56 001a 9342     		cmp	r3, r2
+  57 001c F9D1     		bne	.L3
+  58 001e 01F18063 		add	r3, r1, #67108864
+  59 0022 03F58072 		add	r2, r3, #256
+  60              	.L6:
+  61              	.LVL2:
+  62              	.LBB20:
+  63              	.LBB21:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	if (val != pat) {
+  64              		.loc 1 33 0
+  65 0026 1D68     		ldr	r5, [r3]
+  66              	.LVL3:
+  67 0028 03F17C40 		add	r0, r3, #-67108864
+  68              	.LVL4:
+  69              	.LBE21:
+  70              	.LBE20:
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			{
+  71              		.loc 1 55 0
+  72 002c 8542     		cmp	r5, r0
+  73 002e 02D0     		beq	.L4
+  74 0030 2160     		str	r1, [r4]
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 				return TEST_FAIL;
+  75              		.loc 1 58 0
+  76 0032 1A48     		ldr	r0, .L20+4
+  77              	.LVL5:
+  78 0034 24E0     		b	.L17
+  79              	.LVL6:
+  80              	.L4:
+  81 0036 0433     		adds	r3, r3, #4
+  82              	.LVL7:
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			ret |= compare_32(DDR_BASE + addr + i, addr + i);
+  83              		.loc 1 53 0
+  84 0038 9342     		cmp	r3, r2
+  85 003a F4D1     		bne	.L6
+  86 003c 01F58051 		add	r1, r1, #4096
+  87 0040 E1E7     		b	.L2
+  88              	.LVL8:
+  89              	.L7:
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	}
+  90              		.loc 1 67 0
+  91 0042 1748     		ldr	r0, .L20+8
+  92 0044 174D     		ldr	r5, .L20+12
+  93 0046 2160     		str	r1, [r4]
+  94 0048 A847     		blx	r5
+  95              	.LVL9:
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	return TEST_PASS;
+  96              		.loc 1 69 0
+  97 004a 0023     		movs	r3, #0
+  98 004c 2360     		str	r3, [r4]
+  99              	.LVL10:
+ 100 004e 164C     		ldr	r4, .L20+16
+ 101 0050 2168     		ldr	r1, [r4]
+ 102 0052 04E0     		b	.L8
+ 103              	.LVL11:
+ 104              	.L10:
+ 105 0054 0433     		adds	r3, r3, #4
+ 106              	.LVL12:
+ 107              	.LBE19:
+ 108              	.LBE18:
+ 109              	.LBB22:
+ 110              	.LBB23:
+ 111              	.LBB24:
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			ret |= compare_32(DDR_BASE + addr + i, (0xFEDCBA00 + i));
+ 112              		.loc 1 85 0
+ 113 0056 9342     		cmp	r3, r2
+ 114 0058 0DD1     		bne	.L11
+ 115 005a 01F58051 		add	r1, r1, #4096
+ 116              	.LVL13:
+ 117              	.L8:
+ 118              	.LBE24:
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	{
+ 119              		.loc 1 80 0
+ 120 005e B1F1804F 		cmp	r1, #1073741824
+ 121 0062 11D8     		bhi	.L19
+ 122 0064 114B     		ldr	r3, .L20+20
+ 123              	.L9:
+ 124              	.LVL14:
+ 125 0066 1248     		ldr	r0, .L20+24
+ 126              	.LBB27:
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			writel(DDR_BASE + addr + i, (0xFEDCBA00 + i));}
+ 127              		.loc 1 82 0
+ 128 0068 124A     		ldr	r2, .L20+28
+ 129 006a 0844     		add	r0, r0, r1
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 
+ 130              		.loc 1 83 0
+ 131 006c C350     		str	r3, [r0, r3]
+ 132              	.LVL15:
+ 133 006e 0433     		adds	r3, r3, #4
+ 134              	.LVL16:
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			writel(DDR_BASE + addr + i, (0xFEDCBA00 + i));}
+ 135              		.loc 1 82 0
+ 136 0070 9342     		cmp	r3, r2
+ 137 0072 F8D1     		bne	.L9
+ 138 0074 0D4B     		ldr	r3, .L20+20
+ 139              	.LVL17:
+ 140              	.L11:
+ 141              	.LBE27:
+ 142              	.LBB28:
+ 143              	.LBB25:
+ 144              	.LBB26:
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	if (val != pat) {
+ 145              		.loc 1 33 0
+ 146 0076 C658     		ldr	r6, [r0, r3]
+ 147              	.LVL18:
+ 148              	.LBE26:
+ 149              	.LBE25:
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			{
+ 150              		.loc 1 87 0
+ 151 0078 9E42     		cmp	r6, r3
+ 152 007a EBD0     		beq	.L10
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 				return TEST_FAIL;
+ 153              		.loc 1 90 0
+ 154 007c 0E48     		ldr	r0, .L20+32
+ 155 007e 2160     		str	r1, [r4]
+ 156              	.LVL19:
+ 157              	.L17:
+ 158 0080 0E4B     		ldr	r3, .L20+36
+ 159 0082 9847     		blx	r3
+ 160              	.LVL20:
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 			}
+ 161              		.loc 1 91 0
+ 162 0084 0020     		movs	r0, #0
+ 163 0086 70BD     		pop	{r4, r5, r6, pc}
+ 164              	.LVL21:
+ 165              	.L19:
+ 166              	.LBE28:
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	}
+ 167              		.loc 1 99 0
+ 168 0088 0D48     		ldr	r0, .L20+40
+ 169 008a 2160     		str	r1, [r4]
+ 170 008c A847     		blx	r5
+ 171              	.LVL22:
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	return TEST_PASS;
+ 172              		.loc 1 101 0
+ 173 008e 0023     		movs	r3, #0
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** }
+ 174              		.loc 1 102 0
+ 175 0090 0120     		movs	r0, #1
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	return TEST_PASS;
+ 176              		.loc 1 101 0
+ 177 0092 2360     		str	r3, [r4]
+ 178              	.LBE23:
+ 179              	.LBE22:
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	//static uint8_t tc = 0;
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	unsigned int ret = TEST_PASS;
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	ret = lpddr_test_address();
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	if(TEST_FAIL == ret)
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 		return ret;
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	ret = lpddr_test_pattern();
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** 	return ret;
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/test_ddr.c **** }
+ 180              		.loc 1 115 0
+ 181 0094 70BD     		pop	{r4, r5, r6, pc}
+ 182              	.L21:
+ 183 0096 00BF     		.align	2
+ 184              	.L20:
+ 185 0098 00000000 		.word	.LANCHOR0
+ 186 009c 00000000 		.word	.LC0
+ 187 00a0 28000000 		.word	.LC1
+ 188 00a4 00000000 		.word	puts
+ 189 00a8 00000000 		.word	.LANCHOR1
+ 190 00ac 00BADCFE 		.word	-19088896
+ 191 00b0 00462305 		.word	86197760
+ 192 00b4 00BBDCFE 		.word	-19088640
+ 193 00b8 42000000 		.word	.LC2
+ 194 00bc 00000000 		.word	printf
+ 195 00c0 6A000000 		.word	.LC3
+ 196              		.cfi_endproc
+ 197              	.LFE4:
+ 199              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 200              	.LC0:
+ 201 0000 4C504444 		.ascii	"LPDDR address test failed at [0x%08x]\015\012\000"
+ 201      52206164 
+ 201      64726573 
+ 201      73207465 
+ 201      73742066 
+ 202              	.LC1:
+ 203 0028 4C504444 		.ascii	"LPDDR address test pass \015\000"
+ 203      52206164 
+ 203      64726573 
+ 203      73207465 
+ 203      73742070 
+ 204              	.LC2:
+ 205 0042 4C504444 		.ascii	"LPDDR Pattern test failed at [0x%08x]\015\012\000"
+ 205      52205061 
+ 205      74746572 
+ 205      6E207465 
+ 205      73742066 
+ 206              	.LC3:
+ 207 006a 4C504444 		.ascii	"LPDDR Pattern test pass \015\000"
+ 207      52205061 
+ 207      74746572 
+ 207      6E207465 
+ 207      73742070 
+ 208              		.section	.bss.addr.8818,"aw",%nobits
+ 209              		.align	2
+ 210              		.set	.LANCHOR0,. + 0
+ 213              	addr.8818:
+ 214 0000 00000000 		.space	4
+ 215              		.section	.bss.addr.8833,"aw",%nobits
+ 216              		.align	2
+ 217              		.set	.LANCHOR1,. + 0
+ 220              	addr.8833:
+ 221 0000 00000000 		.space	4
+ 222              		.text
+ 223              	.Letext0:
+ 224              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 225              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 test_ddr.c
+     /tmp/cc9XJQU1.s:19     .text.lpddr_test:00000000 $t
+     /tmp/cc9XJQU1.s:24     .text.lpddr_test:00000000 lpddr_test
+     /tmp/cc9XJQU1.s:185    .text.lpddr_test:00000098 $d
+     /tmp/cc9XJQU1.s:209    .bss.addr.8818:00000000 $d
+     /tmp/cc9XJQU1.s:213    .bss.addr.8818:00000000 addr.8818
+     /tmp/cc9XJQU1.s:216    .bss.addr.8833:00000000 $d
+     /tmp/cc9XJQU1.s:220    .bss.addr.8833:00000000 addr.8833
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+puts
+printf

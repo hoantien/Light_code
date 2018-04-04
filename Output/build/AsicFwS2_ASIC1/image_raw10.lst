@@ -1,0 +1,266 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"image_raw10.cpp"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text._ZN11image_raw10C2EPKvt,"ax",%progbits
+  19              		.align	1
+  20              		.global	_ZN11image_raw10C2EPKvt
+  21              		.thumb
+  22              		.thumb_func
+  24              	_ZN11image_raw10C2EPKvt:
+  25              	.LFB19:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * @file    image_raw10.cpp
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * @date    August-15-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  * @brief   Raw10 image pixel forward iterator
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** #include "rectangle.h"
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** #include "image_raw10.h"
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** image_raw10::image_raw10(const void* image_startp, std::uint16_t width) :
+  27              		.loc 1 19 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  33              	.LBB4:
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****         image_startp_{static_cast<const unsigned char*>(image_startp)},
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****         width_{width} {
+  34              		.loc 1 21 0
+  35 0000 0160     		str	r1, [r0]
+  36 0002 8280     		strh	r2, [r0, #4]	@ movhi
+  37              	.LBE4:
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** }
+  38              		.loc 1 22 0
+  39 0004 7047     		bx	lr
+  40              		.cfi_endproc
+  41              	.LFE19:
+  43              		.global	_ZN11image_raw10C1EPKvt
+  44              		.thumb_set _ZN11image_raw10C1EPKvt,_ZN11image_raw10C2EPKvt
+  45              		.section	.text._ZN11image_raw108get_iterEtt,"ax",%progbits
+  46              		.align	1
+  47              		.global	_ZN11image_raw108get_iterEtt
+  48              		.thumb
+  49              		.thumb_func
+  51              	_ZN11image_raw108get_iterEtt:
+  52              	.LFB21:
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** image_pixel_iter image_raw10::get_iter(std::uint16_t line_n, std::uint16_t pixel_n) {
+  53              		.loc 1 24 0
+  54              		.cfi_startproc
+  55              		@ args = 0, pretend = 0, frame = 0
+  56              		@ frame_needed = 0, uses_anonymous_args = 0
+  57              	.LVL1:
+  58 0000 70B5     		push	{r4, r5, r6, lr}
+  59              	.LCFI0:
+  60              		.cfi_def_cfa_offset 16
+  61              		.cfi_offset 4, -16
+  62              		.cfi_offset 5, -12
+  63              		.cfi_offset 6, -8
+  64              		.cfi_offset 14, -4
+  65              	.LBB12:
+  66              	.LBB13:
+  67              	.LBB14:
+  68              	.LBB15:
+  69              	.LBB16:
+  70              	.LBB17:
+  71              	.LBB18:
+  72              		.file 2 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @file    roi.h
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @date    August-8-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  * @brief   Region of interest rectangle
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #ifndef __RECTANGLE_H__
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #define __RECTANGLE_H__
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #ifdef __cplusplus
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #include <cstdint>
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** #include "img_sensor.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** class rectangle {
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** public:
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     rectangle(std::int16_t left_x, std::int16_t top_y, std::uint16_t width, std::uint16_t height);
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     rectangle() :
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****             rectangle{0,0,0,0} {
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     void set(std::int16_t left_x, std::int16_t top_y, std::uint16_t width, std::uint16_t height);
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::int16_t left_x() const {
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return left_x_;
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::int16_t top_y() const {
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return top_y_;
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::uint16_t width() const {
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return width_;
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::uint16_t height() const {
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return height_;
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     std::uint32_t area() const {
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return static_cast<std::uint32_t>(width_) * height_;
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     void translate(std::int16_t delta_x, std::int16_t delta_y);
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t scaled_width(std::uint16_t width, std::uint16_t scale) {
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return (width + scale - 1) / scale;
+  73              		.loc 2 57 0
+  74 0002 8E88     		ldrh	r6, [r1, #4]
+  75              	.LBE18:
+  76              	.LBE17:
+  77              	.LBE16:
+  78              	.LBE15:
+  79              	.LBE14:
+  80              	.LBE13:
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****     std::uint32_t line_size16 = rectangle::image_line_size_padded(width_, 1);
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****     const unsigned char* pp = image_startp_ + line_n * line_size16;
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****     std::uint32_t bits_to_skip = pixel_n * 10;
+  81              		.loc 1 27 0
+  82 0004 0A24     		movs	r4, #10
+  83 0006 1201     		lsls	r2, r2, #4
+  84              	.LVL2:
+  85 0008 6343     		muls	r3, r4, r3
+  86              	.LVL3:
+  87              	.LBB28:
+  88              	.LBB25:
+  89              	.LBB22:
+  90              	.LBB19:
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t scaled_height(std::uint16_t height, std::uint16_t scale) {
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return (height + scale - 1) / scale;
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t image_line_size(std::uint16_t width, std::uint16_t scale) {
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return (10*static_cast<std::uint32_t>(scaled_width(width, scale)) + 7) / 8;
+  91              		.loc 2 65 0
+  92 000a 7443     		muls	r4, r6, r4
+  93              	.LBE19:
+  94              	.LBE22:
+  95              	.LBE25:
+  96              	.LBE28:
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****     pp += bits_to_skip / 8;
+  97              		.loc 1 28 0
+  98 000c DE08     		lsrs	r6, r3, #3
+  99              	.LBB29:
+ 100              	.LBB26:
+ 101              	.LBB23:
+ 102              	.LBB20:
+ 103              		.loc 2 65 0
+ 104 000e 0734     		adds	r4, r4, #7
+ 105              	.LBE20:
+ 106              	.LBE23:
+ 107              	.LBE26:
+ 108              	.LBE29:
+ 109              		.loc 1 28 0
+ 110 0010 0968     		ldr	r1, [r1]
+ 111              	.LVL4:
+ 112              	.LBE12:
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****     std::uint32_t line_size16 = rectangle::image_line_size_padded(width_, 1);
+ 113              		.loc 1 24 0
+ 114 0012 0546     		mov	r5, r0
+ 115              	.LBB31:
+ 116              	.LBB30:
+ 117              	.LBB27:
+ 118              	.LBB24:
+ 119              	.LBB21:
+ 120              		.loc 2 65 0
+ 121 0014 E408     		lsrs	r4, r4, #3
+ 122              	.LBE21:
+ 123              	.LBE24:
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     }
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h **** 
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****     static std::size_t image_line_size_padded(std::uint16_t width, std::uint16_t scale) {
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/rectangle.h ****         return ((image_line_size(width, scale) + 15) / 16) * 16;
+ 124              		.loc 2 69 0
+ 125 0016 0F34     		adds	r4, r4, #15
+ 126 0018 2409     		lsrs	r4, r4, #4
+ 127 001a 04FB0264 		mla	r4, r4, r2, r6
+ 128              	.LBE27:
+ 129              	.LBE30:
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****     std::uint8_t bits_rem = bits_to_skip & 0x7;
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp ****     return image_pixel_iter{pp, bits_rem};
+ 130              		.loc 1 30 0
+ 131 001e 03F00602 		and	r2, r3, #6
+ 132 0022 2144     		add	r1, r1, r4
+ 133 0024 014B     		ldr	r3, .L3
+ 134              	.LVL5:
+ 135 0026 9847     		blx	r3
+ 136              	.LVL6:
+ 137              	.LBE31:
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS2/src/image_raw10.cpp **** }
+ 138              		.loc 1 31 0
+ 139 0028 2846     		mov	r0, r5
+ 140 002a 70BD     		pop	{r4, r5, r6, pc}
+ 141              	.LVL7:
+ 142              	.L4:
+ 143              		.align	2
+ 144              	.L3:
+ 145 002c 00000000 		.word	_ZN16image_pixel_iterC1EPKvh
+ 146              		.cfi_endproc
+ 147              	.LFE21:
+ 149              		.text
+ 150              	.Letext0:
+ 151              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 152              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 153              		.file 5 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/cstdint"
+ 154              		.file 6 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/c++/4.9.3/arm-none-eab
+ 155              		.file 7 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/image_pixel_iter.h"
+ 156              		.file 8 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/image_raw10.h"
+ 157              		.file 9 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 image_raw10.cpp
+     /tmp/ccu3cDhb.s:19     .text._ZN11image_raw10C2EPKvt:00000000 $t
+     /tmp/ccu3cDhb.s:24     .text._ZN11image_raw10C2EPKvt:00000000 _ZN11image_raw10C2EPKvt
+     /tmp/ccu3cDhb.s:24     .text._ZN11image_raw10C2EPKvt:00000000 _ZN11image_raw10C1EPKvt
+     /tmp/ccu3cDhb.s:46     .text._ZN11image_raw108get_iterEtt:00000000 $t
+     /tmp/ccu3cDhb.s:51     .text._ZN11image_raw108get_iterEtt:00000000 _ZN11image_raw108get_iterEtt
+     /tmp/ccu3cDhb.s:145    .text._ZN11image_raw108get_iterEtt:0000002c $d
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+_ZN16image_pixel_iterC1EPKvh

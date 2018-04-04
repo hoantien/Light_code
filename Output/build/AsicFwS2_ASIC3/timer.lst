@@ -1,0 +1,1005 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"timer.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.timer_hw_irq,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	timer_hw_irq:
+  24              	.LFB6:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @file    timer.h
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @author  The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @version V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @date    Mar-10-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @brief   This file contains expand of the timer driver
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /* Includes ------------------------------------------------------------------*/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** #include "os.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** #include "assert.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** #include "hal_timer.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** #include "timer.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** #include "log.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /* Privated define------------------------------------------------------------*/
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** #define SLOGF_ID			SLOG_ID_TIMER
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /* Privated typedef  ---------------------------------------------------------*/
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /*
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * Timer list typedef
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  */
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** typedef struct timer_list
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** {
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	struct ltimer_t *head;
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	struct ltimer_t *tail;
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	uint32_t total;
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** } timer_list_t;
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /* Privated variables---------------------------------------------------------*/
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /* Timer list */
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** static hal_timer_t hw_timer;
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** static timer_list_t		*timers;
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** static volatile uint8_t hw_timer_enabled = FALSE;
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /* Privated functions---------------------------------------------------------*/
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** static void timer_hw_irq(void *params);
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /* Exported functions --------------------------------------------------------*/
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /**
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @brief timer_init(void)
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * The function init system timer
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @param None
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @return None
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  */
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** void timer_init(void)
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** {
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* Allocate memory */
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers = (timer_list_t *)assert_malloc(timers, sizeof(timer_list_t));
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->head = (struct ltimer_t *)assert_malloc(timers->head,
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->head));
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->tail = (struct ltimer_t *)assert_malloc(timers->tail,
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->tail));
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->head->next = timers->tail;
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->tail->next = timers->tail;
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->total = 0;
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* Initialize timer */
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	hw_timer.chid = HAL_TIM_CH2;
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* 10 micro second */
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	hw_timer.period = 10;
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	hw_timer.callback_handler = timer_hw_irq;
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	hal_timer_init(&hw_timer);
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /**
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @brief timer_create(void)
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @param None
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @return struct ltimer_t
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * NULL: timer create unsuccessful, valid pointer: create successful
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  */
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** struct ltimer_t *timer_create(void)
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** {
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	struct ltimer_t *tim = NULL;
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	struct ltimer_t *ptr = NULL;
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* Valid number of timer to create */
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	if(timers->total < TIMER_MAX_NBR)
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim = (struct ltimer_t *) assert_malloc(tim, sizeof(*tim));
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Set default value for new timer */
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->id				= timers->total + 1;
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->autoreload		= OFF;
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->state			= TIMER_STOPPED;
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->interval		= 0;
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->time_expired	= 0;
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->handler		= NULL;
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->param			= NULL;
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Create new timer */
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->next			= timers->tail;
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		ptr = timers->head;
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		while (ptr->next != timers->tail) ptr = ptr->next;
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		ptr->next = tim;
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Increment total msg is pushed */
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		timers->total++;
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	else
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim = NULL;
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	return tim;
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /**
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @brief timer_start(void)
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * The function starts timer
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @param *timer - point to timer valid
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @return 0: Start successful, Start failed
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  */
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** int timer_start(struct ltimer_t *timer)
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** {
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	if(timer)
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		if(!hw_timer_enabled)
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			hw_timer_enabled = TRUE;
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			hal_timer_start(hw_timer.chid);
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		timer->time_expired = 0;
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		timer->state = TIMER_STARTED;
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return 0;
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	return -1;
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /**
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @brief timer_stop(void)
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * The function stops timer
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @param *timer - point to timer valid
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @return 0: stop successful, stop failed
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  */
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** int timer_stop(struct ltimer_t *timer)
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** {
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	if(timer)
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		struct ltimer_t *ptr = timers->head->next;
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		uint8_t timers_running = FALSE;
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		timer->state = TIMER_STOPPED;
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		while (ptr != timers->tail)
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			/* check if exist timer is running */
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			if(ptr->state == TIMER_STARTED)
+ 148:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			{
+ 149:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				timers_running = TRUE;
+ 150:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				break;
+ 151:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			}
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			ptr = ptr->next;
+ 153:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		if(hw_timer_enabled && !timers_running)
+ 155:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			hw_timer_enabled = FALSE;
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			hal_timer_stop(hw_timer.chid);
+ 158:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return 0;
+ 160:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	return -1;
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+ 163:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 164:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /**
+ 165:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @brief timer_delete(void)
+ 166:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * The function deletes timer
+ 167:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @param *timer - point to timer valid
+ 168:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * @return 0: delete successful, delete failed
+ 169:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  */
+ 170:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** int timer_delete(struct ltimer_t **timer)
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** {
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	if ((timer == NULL) || (*timer == NULL) || (timers->total == 0))
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return -1;
+ 174:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	else
+ 175:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		struct ltimer_t *ptr = timers->head;
+ 177:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		while (ptr->next != timers->tail)
+ 178:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			if (ptr->next->id == (*timer)->id)
+ 180:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			{
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				ptr->next = (*timer)->next;
+ 182:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				vPortFree(*timer);
+ 183:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				*timer = NULL;
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				timers->total--;
+ 185:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				/* Check if all SW timers were deleted */
+ 186:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				if(!timers->total)
+ 187:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				{
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 					hw_timer_enabled = FALSE;
+ 189:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 					hal_timer_stop(hw_timer.chid);
+ 190:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				}
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				return 0;
+ 192:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			}
+ 193:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			ptr = ptr->next;
+ 194:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 195:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return -1;
+ 196:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+ 198:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 199:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** /*
+ 200:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  * timer_hw_irq
+ 201:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c ****  */
+ 202:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** static void timer_hw_irq(void *params)
+ 203:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** {
+  26              		.loc 1 203 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+  31 0000 38B5     		push	{r3, r4, r5, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 16
+  34              		.cfi_offset 3, -16
+  35              		.cfi_offset 4, -12
+  36              		.cfi_offset 5, -8
+  37              		.cfi_offset 14, -4
+ 204:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	struct ltimer_t *tim = NULL;
+ 205:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* Scan timer. */
+ 206:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	tim = timers->head->next;
+  38              		.loc 1 206 0
+  39 0002 124B     		ldr	r3, .L14
+  40 0004 1D46     		mov	r5, r3
+  41 0006 1A68     		ldr	r2, [r3]
+  42 0008 1268     		ldr	r2, [r2]
+  43 000a 9469     		ldr	r4, [r2, #24]
+  44              	.LVL1:
+  45              	.L2:
+ 207:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	while (tim != timers->tail)
+  46              		.loc 1 207 0
+  47 000c 2B68     		ldr	r3, [r5]
+  48 000e 5B68     		ldr	r3, [r3, #4]
+  49 0010 9C42     		cmp	r4, r3
+  50 0012 19D0     		beq	.L13
+ 208:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 209:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Timer expire. */
+ 210:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		if(tim->time_expired == tim->interval && tim->state == TIMER_STARTED)
+  51              		.loc 1 210 0
+  52 0014 6268     		ldr	r2, [r4, #4]
+  53 0016 A368     		ldr	r3, [r4, #8]
+  54 0018 9342     		cmp	r3, r2
+  55 001a 227B     		ldrb	r2, [r4, #12]	@ zero_extendqisi2
+  56 001c 0ED1     		bne	.L3
+  57              		.loc 1 210 0 is_stmt 0 discriminator 1
+  58 001e 012A     		cmp	r2, #1
+  59 0020 0CD1     		bne	.L3
+ 211:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 212:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			/* Excute timer irq handler. */
+ 213:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			if(tim->handler)
+  60              		.loc 1 213 0 is_stmt 1
+  61 0022 2369     		ldr	r3, [r4, #16]
+  62 0024 0BB1     		cbz	r3, .L4
+ 214:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			{
+ 215:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				(*tim->handler)(tim->param);
+  63              		.loc 1 215 0
+  64 0026 6069     		ldr	r0, [r4, #20]
+  65 0028 9847     		blx	r3
+  66              	.LVL2:
+  67              	.L4:
+ 216:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			}
+ 217:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			/* Check auto reload. */
+ 218:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			if(tim->autoreload == ON)
+  68              		.loc 1 218 0
+  69 002a 6278     		ldrb	r2, [r4, #1]	@ zero_extendqisi2
+  70 002c 012A     		cmp	r2, #1
+  71 002e 4FF00003 		mov	r3, #0
+  72 0032 01D1     		bne	.L5
+ 219:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			{
+ 220:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				tim->state = TIMER_STARTED;
+  73              		.loc 1 220 0
+  74 0034 2273     		strb	r2, [r4, #12]
+  75 0036 04E0     		b	.L11
+  76              	.L5:
+ 221:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				/* Reset interval. */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				tim->time_expired = 0;
+ 223:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			}
+ 224:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			else
+ 225:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			{
+ 226:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				tim->state = TIMER_STOPPED;
+  77              		.loc 1 226 0
+  78 0038 2373     		strb	r3, [r4, #12]
+  79 003a 03E0     		b	.L6
+  80              	.L3:
+ 227:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			}
+ 228:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 229:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Timer is start. */
+ 230:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		else if(tim->state == TIMER_STARTED)
+  81              		.loc 1 230 0
+  82 003c 012A     		cmp	r2, #1
+  83 003e 01D1     		bne	.L6
+ 231:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 232:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			/* Increment Interval */
+ 233:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			tim->time_expired++;
+  84              		.loc 1 233 0
+  85 0040 0133     		adds	r3, r3, #1
+  86              	.L11:
+  87 0042 A360     		str	r3, [r4, #8]
+  88              	.L6:
+ 234:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 235:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Next timer */
+ 236:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim = tim->next;
+  89              		.loc 1 236 0
+  90 0044 A469     		ldr	r4, [r4, #24]
+  91              	.LVL3:
+  92 0046 E1E7     		b	.L2
+  93              	.L13:
+ 237:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 238:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+  94              		.loc 1 238 0
+  95 0048 38BD     		pop	{r3, r4, r5, pc}
+  96              	.LVL4:
+  97              	.L15:
+  98 004a 00BF     		.align	2
+  99              	.L14:
+ 100 004c 00000000 		.word	.LANCHOR0
+ 101              		.cfi_endproc
+ 102              	.LFE6:
+ 104              		.section	.text.timer_init,"ax",%progbits
+ 105              		.align	1
+ 106              		.global	timer_init
+ 107              		.thumb
+ 108              		.thumb_func
+ 110              	timer_init:
+ 111              	.LFB1:
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* Allocate memory */
+ 112              		.loc 1 54 0
+ 113              		.cfi_startproc
+ 114              		@ args = 0, pretend = 0, frame = 0
+ 115              		@ frame_needed = 0, uses_anonymous_args = 0
+ 116 0000 70B5     		push	{r4, r5, r6, lr}
+ 117              	.LCFI1:
+ 118              		.cfi_def_cfa_offset 16
+ 119              		.cfi_offset 4, -16
+ 120              		.cfi_offset 5, -12
+ 121              		.cfi_offset 6, -8
+ 122              		.cfi_offset 14, -4
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->head = (struct ltimer_t *)assert_malloc(timers->head,
+ 123              		.loc 1 56 0
+ 124 0002 0C20     		movs	r0, #12
+ 125 0004 1E49     		ldr	r1, .L23
+ 126 0006 3822     		movs	r2, #56
+ 127 0008 1E4E     		ldr	r6, .L23+4
+ 128 000a B047     		blx	r6
+ 129              	.LVL5:
+ 130 000c 1E4D     		ldr	r5, .L23+8
+ 131 000e 2860     		str	r0, [r5]
+ 132 0010 18B9     		cbnz	r0, .L22
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->head = (struct ltimer_t *)assert_malloc(timers->head,
+ 133              		.loc 1 56 0 is_stmt 0 discriminator 2
+ 134 0012 1B48     		ldr	r0, .L23
+ 135 0014 3821     		movs	r1, #56
+ 136 0016 1D4B     		ldr	r3, .L23+12
+ 137 0018 9847     		blx	r3
+ 138              	.LVL6:
+ 139              	.L22:
+ 140 001a 0446     		mov	r4, r0
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->head));
+ 141              		.loc 1 57 0 is_stmt 1
+ 142 001c 3A22     		movs	r2, #58
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->head = (struct ltimer_t *)assert_malloc(timers->head,
+ 143              		.loc 1 56 0
+ 144 001e 2860     		str	r0, [r5]
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->head));
+ 145              		.loc 1 57 0
+ 146 0020 1C20     		movs	r0, #28
+ 147 0022 1749     		ldr	r1, .L23
+ 148 0024 B047     		blx	r6
+ 149              	.LVL7:
+ 150 0026 2060     		str	r0, [r4]
+ 151 0028 18B1     		cbz	r0, .L18
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->head));
+ 152              		.loc 1 57 0 is_stmt 0 discriminator 1
+ 153 002a 174B     		ldr	r3, .L23+8
+ 154 002c 1C68     		ldr	r4, [r3]
+ 155 002e 2068     		ldr	r0, [r4]
+ 156 0030 03E0     		b	.L19
+ 157              	.L18:
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->head));
+ 158              		.loc 1 57 0 discriminator 2
+ 159 0032 1348     		ldr	r0, .L23
+ 160 0034 3A21     		movs	r1, #58
+ 161 0036 154B     		ldr	r3, .L23+12
+ 162 0038 9847     		blx	r3
+ 163              	.LVL8:
+ 164              	.L19:
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->head));
+ 165              		.loc 1 57 0 discriminator 4
+ 166 003a 2060     		str	r0, [r4]
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->tail));
+ 167              		.loc 1 59 0 is_stmt 1 discriminator 4
+ 168 003c 3C22     		movs	r2, #60
+ 169 003e 1C20     		movs	r0, #28
+ 170 0040 0F49     		ldr	r1, .L23
+ 171 0042 2C68     		ldr	r4, [r5]
+ 172 0044 B047     		blx	r6
+ 173              	.LVL9:
+ 174 0046 6060     		str	r0, [r4, #4]
+ 175 0048 18B1     		cbz	r0, .L20
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->tail));
+ 176              		.loc 1 59 0 is_stmt 0 discriminator 1
+ 177 004a 0F4B     		ldr	r3, .L23+8
+ 178 004c 1C68     		ldr	r4, [r3]
+ 179 004e 6068     		ldr	r0, [r4, #4]
+ 180 0050 03E0     		b	.L21
+ 181              	.L20:
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->tail));
+ 182              		.loc 1 59 0 discriminator 2
+ 183 0052 0B48     		ldr	r0, .L23
+ 184 0054 3C21     		movs	r1, #60
+ 185 0056 0D4B     		ldr	r3, .L23+12
+ 186 0058 9847     		blx	r3
+ 187              	.LVL10:
+ 188              	.L21:
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->tail->next = timers->tail;
+ 189              		.loc 1 61 0 is_stmt 1 discriminator 4
+ 190 005a 2B68     		ldr	r3, [r5]
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 														sizeof(*timers->tail));
+ 191              		.loc 1 59 0 discriminator 4
+ 192 005c 6060     		str	r0, [r4, #4]
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* 10 micro second */
+ 193              		.loc 1 65 0 discriminator 4
+ 194 005e 0C48     		ldr	r0, .L23+16
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->tail->next = timers->tail;
+ 195              		.loc 1 61 0 discriminator 4
+ 196 0060 93E80600 		ldmia	r3, {r1, r2}
+ 197 0064 8A61     		str	r2, [r1, #24]
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	timers->total = 0;
+ 198              		.loc 1 62 0 discriminator 4
+ 199 0066 9261     		str	r2, [r2, #24]
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* Initialize timer */
+ 200              		.loc 1 63 0 discriminator 4
+ 201 0068 0022     		movs	r2, #0
+ 202 006a 9A60     		str	r2, [r3, #8]
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	/* 10 micro second */
+ 203              		.loc 1 65 0 discriminator 4
+ 204 006c 0123     		movs	r3, #1
+ 205 006e 0370     		strb	r3, [r0]
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	hw_timer.callback_handler = timer_hw_irq;
+ 206              		.loc 1 67 0 discriminator 4
+ 207 0070 0A23     		movs	r3, #10
+ 208 0072 4360     		str	r3, [r0, #4]
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	hal_timer_init(&hw_timer);
+ 209              		.loc 1 68 0 discriminator 4
+ 210 0074 074B     		ldr	r3, .L23+20
+ 211 0076 8360     		str	r3, [r0, #8]
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+ 212              		.loc 1 69 0 discriminator 4
+ 213 0078 074B     		ldr	r3, .L23+24
+ 214 007a 9847     		blx	r3
+ 215              	.LVL11:
+ 216 007c 70BD     		pop	{r4, r5, r6, pc}
+ 217              	.L24:
+ 218 007e 00BF     		.align	2
+ 219              	.L23:
+ 220 0080 00000000 		.word	.LANCHOR1
+ 221 0084 00000000 		.word	pvPortMalloc1
+ 222 0088 00000000 		.word	.LANCHOR0
+ 223 008c 00000000 		.word	malloc_failed
+ 224 0090 00000000 		.word	.LANCHOR2
+ 225 0094 00000000 		.word	timer_hw_irq
+ 226 0098 00000000 		.word	hal_timer_init
+ 227              		.cfi_endproc
+ 228              	.LFE1:
+ 230              		.section	.text.timer_create,"ax",%progbits
+ 231              		.align	1
+ 232              		.global	timer_create
+ 233              		.thumb
+ 234              		.thumb_func
+ 236              	timer_create:
+ 237              	.LFB2:
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	struct ltimer_t *tim = NULL;
+ 238              		.loc 1 79 0
+ 239              		.cfi_startproc
+ 240              		@ args = 0, pretend = 0, frame = 0
+ 241              		@ frame_needed = 0, uses_anonymous_args = 0
+ 242              	.LVL12:
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 243              		.loc 1 83 0
+ 244 0000 154B     		ldr	r3, .L32
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	struct ltimer_t *tim = NULL;
+ 245              		.loc 1 79 0
+ 246 0002 10B5     		push	{r4, lr}
+ 247              	.LCFI2:
+ 248              		.cfi_def_cfa_offset 8
+ 249              		.cfi_offset 4, -8
+ 250              		.cfi_offset 14, -4
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 251              		.loc 1 83 0
+ 252 0004 1A68     		ldr	r2, [r3]
+ 253 0006 1C46     		mov	r4, r3
+ 254 0008 9268     		ldr	r2, [r2, #8]
+ 255 000a 132A     		cmp	r2, #19
+ 256 000c 21D8     		bhi	.L29
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Set default value for new timer */
+ 257              		.loc 1 85 0
+ 258 000e 1C20     		movs	r0, #28
+ 259 0010 1249     		ldr	r1, .L32+4
+ 260 0012 5522     		movs	r2, #85
+ 261 0014 124B     		ldr	r3, .L32+8
+ 262 0016 9847     		blx	r3
+ 263              	.LVL13:
+ 264 0018 18B9     		cbnz	r0, .L27
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Set default value for new timer */
+ 265              		.loc 1 85 0 is_stmt 0 discriminator 2
+ 266 001a 1048     		ldr	r0, .L32+4
+ 267              	.LVL14:
+ 268 001c 5521     		movs	r1, #85
+ 269 001e 114B     		ldr	r3, .L32+12
+ 270 0020 9847     		blx	r3
+ 271              	.LVL15:
+ 272              	.L27:
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->autoreload		= OFF;
+ 273              		.loc 1 87 0 is_stmt 1 discriminator 4
+ 274 0022 2268     		ldr	r2, [r4]
+ 275 0024 9368     		ldr	r3, [r2, #8]
+ 276 0026 0133     		adds	r3, r3, #1
+ 277 0028 0370     		strb	r3, [r0]
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->state			= TIMER_STOPPED;
+ 278              		.loc 1 88 0 discriminator 4
+ 279 002a 0023     		movs	r3, #0
+ 280 002c 4370     		strb	r3, [r0, #1]
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->interval		= 0;
+ 281              		.loc 1 89 0 discriminator 4
+ 282 002e 0373     		strb	r3, [r0, #12]
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->time_expired	= 0;
+ 283              		.loc 1 90 0 discriminator 4
+ 284 0030 4360     		str	r3, [r0, #4]
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->handler		= NULL;
+ 285              		.loc 1 91 0 discriminator 4
+ 286 0032 8360     		str	r3, [r0, #8]
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		tim->param			= NULL;
+ 287              		.loc 1 92 0 discriminator 4
+ 288 0034 0361     		str	r3, [r0, #16]
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Create new timer */
+ 289              		.loc 1 93 0 discriminator 4
+ 290 0036 4361     		str	r3, [r0, #20]
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		while (ptr->next != timers->tail) ptr = ptr->next;
+ 291              		.loc 1 96 0 discriminator 4
+ 292 0038 1368     		ldr	r3, [r2]
+ 293              	.LVL16:
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		ptr = timers->head;
+ 294              		.loc 1 95 0 discriminator 4
+ 295 003a 5168     		ldr	r1, [r2, #4]
+ 296 003c 8161     		str	r1, [r0, #24]
+ 297              	.LVL17:
+ 298              	.L28:
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		ptr->next = tim;
+ 299              		.loc 1 97 0 discriminator 1
+ 300 003e 9C69     		ldr	r4, [r3, #24]
+ 301 0040 8C42     		cmp	r4, r1
+ 302 0042 01D0     		beq	.L31
+ 303 0044 2346     		mov	r3, r4
+ 304              	.LVL18:
+ 305 0046 FAE7     		b	.L28
+ 306              	.LVL19:
+ 307              	.L31:
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		/* Increment total msg is pushed */
+ 308              		.loc 1 98 0
+ 309 0048 9861     		str	r0, [r3, #24]
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 310              		.loc 1 100 0
+ 311 004a 9368     		ldr	r3, [r2, #8]
+ 312              	.LVL20:
+ 313 004c 0133     		adds	r3, r3, #1
+ 314 004e 9360     		str	r3, [r2, #8]
+ 315 0050 10BD     		pop	{r4, pc}
+ 316              	.LVL21:
+ 317              	.L29:
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 318              		.loc 1 104 0
+ 319 0052 0020     		movs	r0, #0
+ 320              	.LVL22:
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 321              		.loc 1 107 0
+ 322 0054 10BD     		pop	{r4, pc}
+ 323              	.L33:
+ 324 0056 00BF     		.align	2
+ 325              	.L32:
+ 326 0058 00000000 		.word	.LANCHOR0
+ 327 005c 00000000 		.word	.LANCHOR3
+ 328 0060 00000000 		.word	pvPortMalloc1
+ 329 0064 00000000 		.word	malloc_failed
+ 330              		.cfi_endproc
+ 331              	.LFE2:
+ 333              		.section	.text.timer_start,"ax",%progbits
+ 334              		.align	1
+ 335              		.global	timer_start
+ 336              		.thumb
+ 337              		.thumb_func
+ 339              	timer_start:
+ 340              	.LFB3:
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	if(timer)
+ 341              		.loc 1 116 0
+ 342              		.cfi_startproc
+ 343              		@ args = 0, pretend = 0, frame = 0
+ 344              		@ frame_needed = 0, uses_anonymous_args = 0
+ 345              	.LVL23:
+ 346 0000 10B5     		push	{r4, lr}
+ 347              	.LCFI3:
+ 348              		.cfi_def_cfa_offset 8
+ 349              		.cfi_offset 4, -8
+ 350              		.cfi_offset 14, -4
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 351              		.loc 1 117 0
+ 352 0002 0446     		mov	r4, r0
+ 353 0004 68B1     		cbz	r0, .L37
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 354              		.loc 1 119 0
+ 355 0006 084B     		ldr	r3, .L38
+ 356 0008 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 357 000a 2AB9     		cbnz	r2, .L36
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			hal_timer_start(hw_timer.chid);
+ 358              		.loc 1 121 0
+ 359 000c 0122     		movs	r2, #1
+ 360 000e 1A70     		strb	r2, [r3]
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 361              		.loc 1 122 0
+ 362 0010 064B     		ldr	r3, .L38+4
+ 363 0012 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 364              	.LVL24:
+ 365 0014 064B     		ldr	r3, .L38+8
+ 366 0016 9847     		blx	r3
+ 367              	.LVL25:
+ 368              	.L36:
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		timer->state = TIMER_STARTED;
+ 369              		.loc 1 124 0
+ 370 0018 0020     		movs	r0, #0
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return 0;
+ 371              		.loc 1 125 0
+ 372 001a 0123     		movs	r3, #1
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		timer->state = TIMER_STARTED;
+ 373              		.loc 1 124 0
+ 374 001c A060     		str	r0, [r4, #8]
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return 0;
+ 375              		.loc 1 125 0
+ 376 001e 2373     		strb	r3, [r4, #12]
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 377              		.loc 1 126 0
+ 378 0020 10BD     		pop	{r4, pc}
+ 379              	.LVL26:
+ 380              	.L37:
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+ 381              		.loc 1 128 0
+ 382 0022 4FF0FF30 		mov	r0, #-1
+ 383              	.LVL27:
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 384              		.loc 1 129 0
+ 385 0026 10BD     		pop	{r4, pc}
+ 386              	.LVL28:
+ 387              	.L39:
+ 388              		.align	2
+ 389              	.L38:
+ 390 0028 00000000 		.word	.LANCHOR4
+ 391 002c 00000000 		.word	.LANCHOR2
+ 392 0030 00000000 		.word	hal_timer_start
+ 393              		.cfi_endproc
+ 394              	.LFE3:
+ 396              		.section	.text.timer_stop,"ax",%progbits
+ 397              		.align	1
+ 398              		.global	timer_stop
+ 399              		.thumb
+ 400              		.thumb_func
+ 402              	timer_stop:
+ 403              	.LFB4:
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	if(timer)
+ 404              		.loc 1 138 0
+ 405              		.cfi_startproc
+ 406              		@ args = 0, pretend = 0, frame = 0
+ 407              		@ frame_needed = 0, uses_anonymous_args = 0
+ 408              	.LVL29:
+ 409 0000 10B5     		push	{r4, lr}
+ 410              	.LCFI4:
+ 411              		.cfi_def_cfa_offset 8
+ 412              		.cfi_offset 4, -8
+ 413              		.cfi_offset 14, -4
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	{
+ 414              		.loc 1 139 0
+ 415 0002 D0B1     		cbz	r0, .L45
+ 416              	.LBB2:
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		uint8_t timers_running = FALSE;
+ 417              		.loc 1 141 0
+ 418 0004 0F4B     		ldr	r3, .L50
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		while (ptr != timers->tail)
+ 419              		.loc 1 143 0
+ 420 0006 0021     		movs	r1, #0
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		uint8_t timers_running = FALSE;
+ 421              		.loc 1 141 0
+ 422 0008 1A68     		ldr	r2, [r3]
+ 423 000a 1368     		ldr	r3, [r2]
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 424              		.loc 1 144 0
+ 425 000c 5268     		ldr	r2, [r2, #4]
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		uint8_t timers_running = FALSE;
+ 426              		.loc 1 141 0
+ 427 000e 9B69     		ldr	r3, [r3, #24]
+ 428              	.LVL30:
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		while (ptr != timers->tail)
+ 429              		.loc 1 143 0
+ 430 0010 0173     		strb	r1, [r0, #12]
+ 431              	.L42:
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 432              		.loc 1 144 0
+ 433 0012 9342     		cmp	r3, r2
+ 434 0014 04D0     		beq	.L49
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			{
+ 435              		.loc 1 147 0
+ 436 0016 1C7B     		ldrb	r4, [r3, #12]	@ zero_extendqisi2
+ 437 0018 012C     		cmp	r4, #1
+ 438 001a 02D0     		beq	.L43
+ 152:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 439              		.loc 1 152 0
+ 440 001c 9B69     		ldr	r3, [r3, #24]
+ 441              	.LVL31:
+ 442 001e F8E7     		b	.L42
+ 443              	.L49:
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		timer->state = TIMER_STOPPED;
+ 444              		.loc 1 142 0
+ 445 0020 0024     		movs	r4, #0
+ 446              	.L43:
+ 447              	.LVL32:
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 448              		.loc 1 154 0
+ 449 0022 094B     		ldr	r3, .L50+4
+ 450              	.LVL33:
+ 451 0024 1A78     		ldrb	r2, [r3]	@ zero_extendqisi2
+ 452 0026 02F0FF00 		and	r0, r2, #255
+ 453              	.LVL34:
+ 454 002a 52B1     		cbz	r2, .L41
+ 154:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 455              		.loc 1 154 0 is_stmt 0 discriminator 1
+ 456 002c 44B9     		cbnz	r4, .L48
+ 156:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			hal_timer_stop(hw_timer.chid);
+ 457              		.loc 1 156 0 is_stmt 1
+ 458 002e 1C70     		strb	r4, [r3]
+ 157:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		}
+ 459              		.loc 1 157 0
+ 460 0030 064B     		ldr	r3, .L50+8
+ 461 0032 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 462 0034 064B     		ldr	r3, .L50+12
+ 463 0036 9847     		blx	r3
+ 464              	.LVL35:
+ 465 0038 02E0     		b	.L48
+ 466              	.LVL36:
+ 467              	.L45:
+ 468              	.LBE2:
+ 161:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** }
+ 469              		.loc 1 161 0
+ 470 003a 4FF0FF30 		mov	r0, #-1
+ 471              	.LVL37:
+ 472 003e 10BD     		pop	{r4, pc}
+ 473              	.LVL38:
+ 474              	.L48:
+ 475              	.LBB3:
+ 159:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	}
+ 476              		.loc 1 159 0
+ 477 0040 0020     		movs	r0, #0
+ 478              	.L41:
+ 479              	.LBE3:
+ 162:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 480              		.loc 1 162 0
+ 481 0042 10BD     		pop	{r4, pc}
+ 482              	.LVL39:
+ 483              	.L51:
+ 484              		.align	2
+ 485              	.L50:
+ 486 0044 00000000 		.word	.LANCHOR0
+ 487 0048 00000000 		.word	.LANCHOR4
+ 488 004c 00000000 		.word	.LANCHOR2
+ 489 0050 00000000 		.word	hal_timer_stop
+ 490              		.cfi_endproc
+ 491              	.LFE4:
+ 493              		.section	.text.timer_delete,"ax",%progbits
+ 494              		.align	1
+ 495              		.global	timer_delete
+ 496              		.thumb
+ 497              		.thumb_func
+ 499              	timer_delete:
+ 500              	.LFB5:
+ 171:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	if ((timer == NULL) || (*timer == NULL) || (timers->total == 0))
+ 501              		.loc 1 171 0
+ 502              		.cfi_startproc
+ 503              		@ args = 0, pretend = 0, frame = 0
+ 504              		@ frame_needed = 0, uses_anonymous_args = 0
+ 505              	.LVL40:
+ 506 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 507              	.LCFI5:
+ 508              		.cfi_def_cfa_offset 24
+ 509              		.cfi_offset 3, -24
+ 510              		.cfi_offset 4, -20
+ 511              		.cfi_offset 5, -16
+ 512              		.cfi_offset 6, -12
+ 513              		.cfi_offset 7, -8
+ 514              		.cfi_offset 14, -4
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return -1;
+ 515              		.loc 1 172 0
+ 516 0002 0446     		mov	r4, r0
+ 517 0004 0028     		cmp	r0, #0
+ 518 0006 27D0     		beq	.L58
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return -1;
+ 519              		.loc 1 172 0 is_stmt 0 discriminator 1
+ 520 0008 0168     		ldr	r1, [r0]
+ 521 000a 29B3     		cbz	r1, .L58
+ 172:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		return -1;
+ 522              		.loc 1 172 0 discriminator 2
+ 523 000c 144A     		ldr	r2, .L61
+ 524 000e 1546     		mov	r5, r2
+ 525 0010 1368     		ldr	r3, [r2]
+ 526 0012 9868     		ldr	r0, [r3, #8]
+ 527              	.LVL41:
+ 528 0014 00B3     		cbz	r0, .L58
+ 529              	.LBB4:
+ 176:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		while (ptr->next != timers->tail)
+ 530              		.loc 1 176 0 is_stmt 1
+ 531 0016 1A68     		ldr	r2, [r3]
+ 532              	.LVL42:
+ 177:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 		{
+ 533              		.loc 1 177 0
+ 534 0018 5868     		ldr	r0, [r3, #4]
+ 535              	.LVL43:
+ 536              	.L54:
+ 537 001a 9369     		ldr	r3, [r2, #24]
+ 538 001c 8342     		cmp	r3, r0
+ 539 001e 1BD0     		beq	.L58
+ 179:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			{
+ 540              		.loc 1 179 0
+ 541 0020 1E78     		ldrb	r6, [r3]	@ zero_extendqisi2
+ 542 0022 0F78     		ldrb	r7, [r1]	@ zero_extendqisi2
+ 543 0024 B742     		cmp	r7, r6
+ 544 0026 15D1     		bne	.L59
+ 181:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				vPortFree(*timer);
+ 545              		.loc 1 181 0
+ 546 0028 8B69     		ldr	r3, [r1, #24]
+ 547 002a 9361     		str	r3, [r2, #24]
+ 182:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				*timer = NULL;
+ 548              		.loc 1 182 0
+ 549 002c B622     		movs	r2, #182
+ 550              	.LVL44:
+ 551 002e 2068     		ldr	r0, [r4]
+ 552 0030 0C4B     		ldr	r3, .L61+4
+ 553 0032 0D49     		ldr	r1, .L61+8
+ 554 0034 9847     		blx	r3
+ 555              	.LVL45:
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				/* Check if all SW timers were deleted */
+ 556              		.loc 1 184 0
+ 557 0036 2B68     		ldr	r3, [r5]
+ 183:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				timers->total--;
+ 558              		.loc 1 183 0
+ 559 0038 0020     		movs	r0, #0
+ 560 003a 2060     		str	r0, [r4]
+ 184:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				/* Check if all SW timers were deleted */
+ 561              		.loc 1 184 0
+ 562 003c 9C68     		ldr	r4, [r3, #8]
+ 563              	.LVL46:
+ 564 003e 013C     		subs	r4, r4, #1
+ 565 0040 9C60     		str	r4, [r3, #8]
+ 186:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				{
+ 566              		.loc 1 186 0
+ 567 0042 5CB9     		cbnz	r4, .L53
+ 188:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 					hal_timer_stop(hw_timer.chid);
+ 568              		.loc 1 188 0
+ 569 0044 094B     		ldr	r3, .L61+12
+ 570 0046 1C70     		strb	r4, [r3]
+ 189:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 				}
+ 571              		.loc 1 189 0
+ 572 0048 094B     		ldr	r3, .L61+16
+ 573 004a 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 574 004c 094B     		ldr	r3, .L61+20
+ 575 004e 9847     		blx	r3
+ 576              	.LVL47:
+ 191:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 			}
+ 577              		.loc 1 191 0
+ 578 0050 2046     		mov	r0, r4
+ 579 0052 F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 580              	.LVL48:
+ 581              	.L59:
+ 582 0054 1A46     		mov	r2, r3
+ 583              	.LVL49:
+ 584 0056 E0E7     		b	.L54
+ 585              	.L58:
+ 586              	.LBE4:
+ 173:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 	else
+ 587              		.loc 1 173 0
+ 588 0058 4FF0FF30 		mov	r0, #-1
+ 589              	.LVL50:
+ 590              	.L53:
+ 197:/home/tienluong/workspace/atlantis_fw/platform/driver/src/timer.c **** 
+ 591              		.loc 1 197 0
+ 592 005c F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 593              	.L62:
+ 594 005e 00BF     		.align	2
+ 595              	.L61:
+ 596 0060 00000000 		.word	.LANCHOR0
+ 597 0064 00000000 		.word	vPortFree1
+ 598 0068 00000000 		.word	.LANCHOR5
+ 599 006c 00000000 		.word	.LANCHOR4
+ 600 0070 00000000 		.word	.LANCHOR2
+ 601 0074 00000000 		.word	hal_timer_stop
+ 602              		.cfi_endproc
+ 603              	.LFE5:
+ 605              		.section	.rodata.__FUNCTION__.8850,"a",%progbits
+ 606              		.set	.LANCHOR1,. + 0
+ 609              	__FUNCTION__.8850:
+ 610 0000 74696D65 		.ascii	"timer_init\000"
+ 610      725F696E 
+ 610      697400
+ 611              		.section	.rodata.__FUNCTION__.8856,"a",%progbits
+ 612              		.set	.LANCHOR3,. + 0
+ 615              	__FUNCTION__.8856:
+ 616 0000 74696D65 		.ascii	"timer_create\000"
+ 616      725F6372 
+ 616      65617465 
+ 616      00
+ 617              		.section	.bss.hw_timer_enabled,"aw",%nobits
+ 618              		.set	.LANCHOR4,. + 0
+ 621              	hw_timer_enabled:
+ 622 0000 00       		.space	1
+ 623              		.section	.rodata.__FUNCTION__.8875,"a",%progbits
+ 624              		.set	.LANCHOR5,. + 0
+ 627              	__FUNCTION__.8875:
+ 628 0000 74696D65 		.ascii	"timer_delete\000"
+ 628      725F6465 
+ 628      6C657465 
+ 628      00
+ 629              		.section	.bss.timers,"aw",%nobits
+ 630              		.align	2
+ 631              		.set	.LANCHOR0,. + 0
+ 634              	timers:
+ 635 0000 00000000 		.space	4
+ 636              		.section	.bss.hw_timer,"aw",%nobits
+ 637              		.align	2
+ 638              		.set	.LANCHOR2,. + 0
+ 641              	hw_timer:
+ 642 0000 00000000 		.space	16
+ 642      00000000 
+ 642      00000000 
+ 642      00000000 
+ 643              		.text
+ 644              	.Letext0:
+ 645              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 646              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 647              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 648              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_timer.h"
+ 649              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/timer.h"
+ 650              		.file 7 "/home/tienluong/workspace/atlantis_fw/AsicFwS2/include/img_sensor.h"
+ 651              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 timer.c
+     /tmp/ccCPTybh.s:19     .text.timer_hw_irq:00000000 $t
+     /tmp/ccCPTybh.s:23     .text.timer_hw_irq:00000000 timer_hw_irq
+     /tmp/ccCPTybh.s:100    .text.timer_hw_irq:0000004c $d
+     /tmp/ccCPTybh.s:105    .text.timer_init:00000000 $t
+     /tmp/ccCPTybh.s:110    .text.timer_init:00000000 timer_init
+     /tmp/ccCPTybh.s:220    .text.timer_init:00000080 $d
+     /tmp/ccCPTybh.s:231    .text.timer_create:00000000 $t
+     /tmp/ccCPTybh.s:236    .text.timer_create:00000000 timer_create
+     /tmp/ccCPTybh.s:326    .text.timer_create:00000058 $d
+     /tmp/ccCPTybh.s:334    .text.timer_start:00000000 $t
+     /tmp/ccCPTybh.s:339    .text.timer_start:00000000 timer_start
+     /tmp/ccCPTybh.s:390    .text.timer_start:00000028 $d
+     /tmp/ccCPTybh.s:397    .text.timer_stop:00000000 $t
+     /tmp/ccCPTybh.s:402    .text.timer_stop:00000000 timer_stop
+     /tmp/ccCPTybh.s:486    .text.timer_stop:00000044 $d
+     /tmp/ccCPTybh.s:494    .text.timer_delete:00000000 $t
+     /tmp/ccCPTybh.s:499    .text.timer_delete:00000000 timer_delete
+     /tmp/ccCPTybh.s:596    .text.timer_delete:00000060 $d
+     /tmp/ccCPTybh.s:609    .rodata.__FUNCTION__.8850:00000000 __FUNCTION__.8850
+     /tmp/ccCPTybh.s:615    .rodata.__FUNCTION__.8856:00000000 __FUNCTION__.8856
+     /tmp/ccCPTybh.s:621    .bss.hw_timer_enabled:00000000 hw_timer_enabled
+     /tmp/ccCPTybh.s:622    .bss.hw_timer_enabled:00000000 $d
+     /tmp/ccCPTybh.s:627    .rodata.__FUNCTION__.8875:00000000 __FUNCTION__.8875
+     /tmp/ccCPTybh.s:630    .bss.timers:00000000 $d
+     /tmp/ccCPTybh.s:634    .bss.timers:00000000 timers
+     /tmp/ccCPTybh.s:637    .bss.hw_timer:00000000 $d
+     /tmp/ccCPTybh.s:641    .bss.hw_timer:00000000 hw_timer
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+pvPortMalloc1
+malloc_failed
+hal_timer_init
+hal_timer_start
+hal_timer_stop
+vPortFree1

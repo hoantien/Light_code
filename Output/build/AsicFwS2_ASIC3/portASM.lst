@@ -1,0 +1,507 @@
+ARM GAS  /tmp/ccryld0n.s 			page 1
+
+
+   1              	# 1 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s"
+   1              	/*
+   0              	
+   0              	
+   2              	    FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3              	    All rights reserved
+   4              	
+   5              	
+   6              	    ***************************************************************************
+   7              	     *                                                                       *
+   8              	     *    FreeRTOS tutorial books are available in pdf and paperback.        *
+   9              	     *    Complete, revised, and edited pdf reference manuals are also       *
+  10              	     *    available.                                                         *
+  11              	     *                                                                       *
+  12              	     *    Purchasing FreeRTOS documentation will not only help you, by       *
+  13              	     *    ensuring you get running as quickly as possible and with an        *
+  14              	     *    in-depth knowledge of how to use FreeRTOS, it will also help       *
+  15              	     *    the FreeRTOS project to continue with its mission of providing     *
+  16              	     *    professional grade, cross platform, de facto standard solutions    *
+  17              	     *    for microcontrollers - completely free of charge!                  *
+  18              	     *                                                                       *
+  19              	     *    >>> See http://www.FreeRTOS.org/Documentation for details. <<<     *
+  20              	     *                                                                       *
+  21              	     *    Thank you for using FreeRTOS, and thank you for your support!      *
+  22              	     *                                                                       *
+  23              	    ***************************************************************************
+  24              	
+  25              	
+  26              	    This file is part of the FreeRTOS distribution.
+  27              	
+  28              	    FreeRTOS is free software; you can redistribute it and/or modify it under
+  29              	    the terms of the GNU General Public License (version 2) as published by the
+  30              	    Free Software Foundation AND MODIFIED BY the FreeRTOS exception.
+  31              	    >>>NOTE<<< The modification to the GPL is included to allow you to
+  32              	    distribute a combined work that includes FreeRTOS without being obliged to
+  33              	    provide the source code for proprietary components outside of the FreeRTOS
+  34              	    kernel.  FreeRTOS is distributed in the hope that it will be useful, but
+  35              	    WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+  36              	    or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+  37              	    more details. You should have received a copy of the GNU General Public
+  38              	    License and the FreeRTOS license exception along with FreeRTOS; if not it
+  39              	    can be viewed here: http://www.freertos.org/a00114.html and also obtained
+  40              	    by writing to Richard Barry, contact details for whom are available on the
+  41              	    FreeRTOS WEB site.
+  42              	
+  43              	    1 tab == 4 spaces!
+  44              	
+  45              	    http://www.FreeRTOS.org - Documentation, latest information, license and
+  46              	    contact details.
+  47              	
+  48              	    http://www.SafeRTOS.com - A version that is certified for use in safety
+  49              	    critical systems.
+  50              	
+  51              	    http://www.OpenRTOS.com - Commercial support, development, porting,
+  52              	    licensing and training services.
+  53              	*/
+  54              	
+ARM GAS  /tmp/ccryld0n.s 			page 2
+
+
+  55              		.text
+  56              		.arm
+  57              	
+  58              		.set SYS_MODE,	0x1f
+  59              		.set SVC_MODE,	0x13
+  60              		.set IRQ_MODE,	0x12
+  61              	
+  62              		/* Variables and functions. */
+  63              		.extern ulMaxAPIPriorityMask
+  64              		.extern _freertos_vector_table
+  65              		.extern pxCurrentTCB
+  66              		.extern vTaskSwitchContext
+  67              		.extern vApplicationIRQHandler
+  68              		.extern ulPortInterruptNesting
+  69              		.extern ulPortTaskHasFPUContext
+  70              		.extern ulICCEOIR
+  71              		.extern ulPortYieldRequired
+  72              	
+  73              		.global FreeRTOS_IRQ_Handler
+  74              		.global FreeRTOS_SVC_Handler
+  75              		.global vPortRestoreTaskContext
+  76              	
+  77              	
+  78              	.macro portSAVE_CONTEXT
+  79              	
+  80              		/* Save the LR and SPSR onto the system mode stack before switching to
+  81              		system mode to save the remaining system mode registers. */
+  82              		SRSDB	sp!, #SYS_MODE
+  83              		CPS		#SYS_MODE
+  84              		PUSH	{R0-R12, R14}
+  85              	
+  86              		/* Push the critical nesting count. */
+  87              		LDR		R2, ulCriticalNestingConst
+  88              		LDR		R1, [R2]
+  89              		PUSH	{R1}
+  90              	
+  91              		/* Does the task have a floating point context that needs saving?  If
+  92              		ulPortTaskHasFPUContext is 0 then no. */
+  93              		LDR		R2, ulPortTaskHasFPUContextConst
+  94              		LDR		R3, [R2]
+  95              		CMP		R3, #0
+  96              	
+  97              		/* Save the floating point context, if any. */
+  98              		/*
+  99              		FMRXNE  R1,  FPSCR
+ 100              		VPUSHNE {D0-D15}
+ 101              		*/
+ 102              		PUSHNE	{R1}
+ 103              	
+ 104              		/* Save ulPortTaskHasFPUContext itself. */
+ 105              		PUSH	{R3}
+ 106              	
+ 107              		/* Save the stack pointer in the TCB. */
+ 108              		LDR		R0, pxCurrentTCBConst
+ 109              		LDR		R1, [R0]
+ 110              		STR		SP, [R1]
+ 111              	
+ARM GAS  /tmp/ccryld0n.s 			page 3
+
+
+ 112              		.endm
+ 113              	
+ 114              	; /**********************************************************************/
+ 115              	
+ 116              	.macro portRESTORE_CONTEXT
+ 117              	
+ 118              		/* Set the SP to point to the stack of the task being restored. */
+ 119              		LDR		R0, pxCurrentTCBConst
+ 120              		LDR		R1, [R0]
+ 121              		LDR		SP, [R1]
+ 122              	
+ 123              		/* Is there a floating point context to restore?  If the restored
+ 124              		ulPortTaskHasFPUContext is zero then no. */
+ 125              		LDR		R0, ulPortTaskHasFPUContextConst
+ 126              		POP		{R1}
+ 127              		STR		R1, [R0]
+ 128              		CMP		R1, #0
+ 129              	
+ 130              		/* Restore the floating point context, if any. */
+ 131              		POPNE 	{R0}
+ 132              		/*
+ 133              		VPOPNE	{D0-D15}
+ 134              		VMSRNE  FPSCR, R0
+ 135              		*/
+ 136              		/* Restore the critical section nesting depth. */
+ 137              		LDR		R0, ulCriticalNestingConst
+ 138              		POP		{R1}
+ 139              		STR		R1, [R0]
+ 140              	
+ 141              		/* Restore all system mode registers other than the SP (which is already
+ 142              		being used). */
+ 143              		POP		{R0-R12, R14}
+ 144              	
+ 145              		/* Return to the task code, loading CPSR on the way. */
+ 146              		RFEIA	sp!
+ 147              	
+ 148              		.endm
+ 149              	
+ 150              	
+ 151              	
+ 152              	
+ 153              	/******************************************************************************
+ 154              	 * SVC handler is used to yield.
+ 155              	 *****************************************************************************/
+ 156              	.align 4
+ 157              	.type FreeRTOS_SVC_Handler, %function
+ 158              	FreeRTOS_SVC_Handler:
+ 159              		/* Save the context of the current task and select a new task to run. */
+ 160              		portSAVE_CONTEXT
+ 160              	> 
+ 160              	> 
+ 160              	> 
+ 160 0000 1F056DF9 	>  SRSDB sp!,#SYS_MODE
+ 160 0004 1F0002F1 	>  CPS #SYS_MODE
+ 160 0008 FF5F2DE9 	>  PUSH {R0-R12,R14}
+ 160              	> 
+ 160              	> 
+ARM GAS  /tmp/ccryld0n.s 			page 4
+
+
+ 160 000c D8219FE5 	>  LDR R2,ulCriticalNestingConst
+ 160 0010 001092E5 	>  LDR R1,[R2]
+ 160 0014 04102DE5 	>  PUSH {R1}
+ 160              	> 
+ 160              	> 
+ 160              	> 
+ 160 0018 D0219FE5 	>  LDR R2,ulPortTaskHasFPUContextConst
+ 160 001c 003092E5 	>  LDR R3,[R2]
+ 160 0020 000053E3 	>  CMP R3,#0
+ 160              	> 
+ 160              	> 
+ 160              	> 
+ 160              	> 
+ 160              	> 
+ 160              	> 
+ 160 0024 04102D15 	>  PUSHNE {R1}
+ 160              	> 
+ 160              	> 
+ 160 0028 04302DE5 	>  PUSH {R3}
+ 160              	> 
+ 160              	> 
+ 160 002c B4019FE5 	>  LDR R0,pxCurrentTCBConst
+ 160 0030 001090E5 	>  LDR R1,[R0]
+ 160 0034 00D081E5 	>  STR SP,[R1]
+ 160              	> 
+ 161 0038 B4019FE5 		LDR R0, vTaskSwitchContextConst
+ 162 003c 30FF2FE1 		BLX	R0
+ 163              		portRESTORE_CONTEXT
+ 163              	> 
+ 163              	> 
+ 163 0040 A0019FE5 	>  LDR R0,pxCurrentTCBConst
+ 163 0044 001090E5 	>  LDR R1,[R0]
+ 163 0048 00D091E5 	>  LDR SP,[R1]
+ 163              	> 
+ 163              	> 
+ 163              	> 
+ 163 004c 9C019FE5 	>  LDR R0,ulPortTaskHasFPUContextConst
+ 163 0050 04109DE4 	>  POP {R1}
+ 163 0054 001080E5 	>  STR R1,[R0]
+ 163 0058 000051E3 	>  CMP R1,#0
+ 163              	> 
+ 163              	> 
+ 163 005c 04009D14 	>  POPNE {R0}
+ 163              	> 
+ 163              	> 
+ 163              	> 
+ 163              	> 
+ 163              	> 
+ 163 0060 84019FE5 	>  LDR R0,ulCriticalNestingConst
+ 163 0064 04109DE4 	>  POP {R1}
+ 163 0068 001080E5 	>  STR R1,[R0]
+ 163              	> 
+ 163              	> 
+ 163              	> 
+ 163 006c FF5FBDE8 	>  POP {R0-R12,R14}
+ 163              	> 
+ 163              	> 
+ARM GAS  /tmp/ccryld0n.s 			page 5
+
+
+ 163 0070 000ABDF8 	>  RFEIA sp!
+ 163              	> 
+ 164              	
+ 165              	
+ 166              	/******************************************************************************
+ 167              	 * vPortRestoreTaskContext is used to start the scheduler.
+ 168              	 *****************************************************************************/
+ 169 0074 00F020E3 	.align 4
+ 169      00F020E3 
+ 169      00F020E3 
+ 170              	.type vPortRestoreTaskContext, %function
+ 171              	vPortRestoreTaskContext:
+ 172              		/* Switch to system mode. */
+ 173 0080 1F0002F1 		CPS		#SYS_MODE
+ 174              		portRESTORE_CONTEXT
+ 174              	> 
+ 174              	> 
+ 174 0084 5C019FE5 	>  LDR R0,pxCurrentTCBConst
+ 174 0088 001090E5 	>  LDR R1,[R0]
+ 174 008c 00D091E5 	>  LDR SP,[R1]
+ 174              	> 
+ 174              	> 
+ 174              	> 
+ 174 0090 58019FE5 	>  LDR R0,ulPortTaskHasFPUContextConst
+ 174 0094 04109DE4 	>  POP {R1}
+ 174 0098 001080E5 	>  STR R1,[R0]
+ 174 009c 000051E3 	>  CMP R1,#0
+ 174              	> 
+ 174              	> 
+ 174 00a0 04009D14 	>  POPNE {R0}
+ 174              	> 
+ 174              	> 
+ 174              	> 
+ 174              	> 
+ 174              	> 
+ 174 00a4 40019FE5 	>  LDR R0,ulCriticalNestingConst
+ 174 00a8 04109DE4 	>  POP {R1}
+ 174 00ac 001080E5 	>  STR R1,[R0]
+ 174              	> 
+ 174              	> 
+ 174              	> 
+ 174 00b0 FF5FBDE8 	>  POP {R0-R12,R14}
+ 174              	> 
+ 174              	> 
+ 174 00b4 000ABDF8 	>  RFEIA sp!
+ 174              	> 
+ 175              	
+ 176 00b8 00F020E3 	.align 4
+ 176      00F020E3 
+ 177              	.type FreeRTOS_IRQ_Handler, %function
+ 178              	FreeRTOS_IRQ_Handler:
+ 179              		/* Return to the interrupted instruction. */
+ 180 00c0 04E04EE2 		SUB		lr, lr, #4
+ 181              	
+ 182              		/* Push the return address and SPSR. */
+ 183 00c4 04E02DE5 		PUSH	{lr}
+ 184 00c8 00E04FE1 		MRS		lr, SPSR
+ARM GAS  /tmp/ccryld0n.s 			page 6
+
+
+ 185 00cc 04E02DE5 		PUSH	{lr}
+ 186              	
+ 187              		/* Change to supervisor mode to allow reentry. */
+ 188 00d0 130002F1 		CPS		#0x13
+ 189              	
+ 190              		/* Push used registers. */
+ 191 00d4 0F102DE9 		PUSH	{r0-r3, r12}
+ 192              	
+ 193              		/* Increment nesting count.  r3 holds the address of ulPortInterruptNesting
+ 194              		for future use.  r1 holds the original ulPortInterruptNesting value for
+ 195              		future use. */
+ 196 00d8 1C319FE5 		LDR		r3, ulPortInterruptNestingConst
+ 197 00dc 001093E5 		LDR		r1, [r3]
+ 198 00e0 010081E2 		ADD		r0, r1, #1
+ 199 00e4 000083E5 		STR		r0, [r3]
+ 200              	
+ 201              		/* Ensure bit 2 of the stack pointer is clear.  r2 holds the bit 2 value for
+ 202              		future use. */
+ 203 00e8 0D00A0E1 		MOV		r0, sp
+ 204 00ec 042000E2 		AND		r2, r0, #4
+ 205 00f0 02D04DE0 		SUB		sp, sp, r2
+ 206              	
+ 207              		/* Call the interrupt handler. */
+ 208 00f4 0F402DE9 		PUSH	{r0-r3, lr}
+ 209 00f8 F8109FE5 		LDR		r1, vApplicationIRQHandlerConst
+ 210 00fc 31FF2FE1 		BLX		r1
+ 211 0100 0F40BDE8 		POP		{r0-r3, lr}
+ 212 0104 02D08DE0 		ADD		sp, sp, r2
+ 213              	
+ 214 0108 80000CF1 		CPSID	i
+ 215 010c 4FF07FF5 		DSB
+ 216 0110 6FF07FF5 		ISB
+ 217              	
+ 218              		/* Write to the EOI register. */
+ 219 0114 C8009FE5 		LDR 	r0, ulICCEOIRConst
+ 220 0118 002090E5 		LDR		r2, [r0]
+ 221 011c 000082E5 		STR		r0, [r2]
+ 222              	
+ 223              		/* Restore the old nesting count. */
+ 224 0120 001083E5 		STR		r1, [r3]
+ 225              	
+ 226              		/* A context switch is never performed if the nesting count is not 0. */
+ 227 0124 000051E3 		CMP		r1, #0
+ 228 0128 0300001A 		BNE		exit_without_switch
+ 229              	
+ 230              		/* Did the interrupt request a context switch?  r1 holds the address of
+ 231              		ulPortYieldRequired and r0 the value of ulPortYieldRequired for future
+ 232              		use. */
+ 233 012c CC109FE5 		LDR		r1, ulPortYieldRequiredConst
+ 234 0130 000091E5 		LDR		r0, [r1]
+ 235 0134 000050E3 		CMP		r0, #0
+ 236 0138 0500001A 		BNE		switch_before_exit
+ 237              	
+ 238              	exit_without_switch:
+ 239              		/* No context switch.  Restore used registers, LR_irq and SPSR before
+ 240              		returning. */
+ 241 013c 0F10BDE8 		POP		{r0-r3, r12}
+ARM GAS  /tmp/ccryld0n.s 			page 7
+
+
+ 242 0140 120002F1 		CPS		#IRQ_MODE
+ 243 0144 04E09DE4 		POP		{LR}
+ 244 0148 0EF06FE1 		MSR		SPSR_cxsf, LR
+ 245 014c 04E09DE4 		POP		{LR}
+ 246 0150 0EF0B0E1 		MOVS	PC, LR
+ 247              	
+ 248              	switch_before_exit:
+ 249              		/* A context swtich is to be performed.  Clear the context switch pending
+ 250              		flag. */
+ 251 0154 0000A0E3 		MOV		r0, #0
+ 252 0158 000081E5 		STR		r0, [r1]
+ 253              	
+ 254              		/* Restore used registers, LR-irq and SPSR before saving the context
+ 255              		to the task stack. */
+ 256 015c 0F10BDE8 		POP		{r0-r3, r12}
+ 257 0160 120002F1 		CPS		#IRQ_MODE
+ 258 0164 04E09DE4 		POP		{LR}
+ 259 0168 0EF06FE1 		MSR		SPSR_cxsf, LR
+ 260 016c 04E09DE4 		POP		{LR}
+ 261              		portSAVE_CONTEXT
+ 261              	> 
+ 261              	> 
+ 261              	> 
+ 261 0170 1F056DF9 	>  SRSDB sp!,#SYS_MODE
+ 261 0174 1F0002F1 	>  CPS #SYS_MODE
+ 261 0178 FF5F2DE9 	>  PUSH {R0-R12,R14}
+ 261              	> 
+ 261              	> 
+ 261 017c 68209FE5 	>  LDR R2,ulCriticalNestingConst
+ 261 0180 001092E5 	>  LDR R1,[R2]
+ 261 0184 04102DE5 	>  PUSH {R1}
+ 261              	> 
+ 261              	> 
+ 261              	> 
+ 261 0188 60209FE5 	>  LDR R2,ulPortTaskHasFPUContextConst
+ 261 018c 003092E5 	>  LDR R3,[R2]
+ 261 0190 000053E3 	>  CMP R3,#0
+ 261              	> 
+ 261              	> 
+ 261              	> 
+ 261              	> 
+ 261              	> 
+ 261              	> 
+ 261 0194 04102D15 	>  PUSHNE {R1}
+ 261              	> 
+ 261              	> 
+ 261 0198 04302DE5 	>  PUSH {R3}
+ 261              	> 
+ 261              	> 
+ 261 019c 44009FE5 	>  LDR R0,pxCurrentTCBConst
+ 261 01a0 001090E5 	>  LDR R1,[R0]
+ 261 01a4 00D081E5 	>  STR SP,[R1]
+ 261              	> 
+ 262              	
+ 263              		/* Call the function that selects the new task to execute.
+ 264              		vTaskSwitchContext() if vTaskSwitchContext() uses LDRD or STRD
+ 265              		instructions, or 8 byte aligned stack allocated data.  LR does not need
+ARM GAS  /tmp/ccryld0n.s 			page 8
+
+
+ 266              		saving as a new LR will be loaded by portRESTORE_CONTEXT anyway. */
+ 267 01a8 44009FE5 		LDR		R0, vTaskSwitchContextConst
+ 268 01ac 30FF2FE1 		BLX		R0
+ 269              	
+ 270              		/* Restore the context of, and branch to, the task selected to execute
+ 271              		next. */
+ 272              		portRESTORE_CONTEXT
+ 272              	> 
+ 272              	> 
+ 272 01b0 30009FE5 	>  LDR R0,pxCurrentTCBConst
+ 272 01b4 001090E5 	>  LDR R1,[R0]
+ 272 01b8 00D091E5 	>  LDR SP,[R1]
+ 272              	> 
+ 272              	> 
+ 272              	> 
+ 272 01bc 2C009FE5 	>  LDR R0,ulPortTaskHasFPUContextConst
+ 272 01c0 04109DE4 	>  POP {R1}
+ 272 01c4 001080E5 	>  STR R1,[R0]
+ 272 01c8 000051E3 	>  CMP R1,#0
+ 272              	> 
+ 272              	> 
+ 272 01cc 04009D14 	>  POPNE {R0}
+ 272              	> 
+ 272              	> 
+ 272              	> 
+ 272              	> 
+ 272              	> 
+ 272 01d0 14009FE5 	>  LDR R0,ulCriticalNestingConst
+ 272 01d4 04109DE4 	>  POP {R1}
+ 272 01d8 001080E5 	>  STR R1,[R0]
+ 272              	> 
+ 272              	> 
+ 272              	> 
+ 272 01dc FF5FBDE8 	>  POP {R0-R12,R14}
+ 272              	> 
+ 272              	> 
+ 272 01e0 000ABDF8 	>  RFEIA sp!
+ 272              	> 
+ 273              	
+ 274 01e4 00000000 	ulICCEOIRConst:	.word ulICCEOIR
+ 275 01e8 00000000 	pxCurrentTCBConst: .word pxCurrentTCB
+ 276 01ec 00000000 	ulCriticalNestingConst: .word ulCriticalNesting
+ 277 01f0 00000000 	ulPortTaskHasFPUContextConst: .word ulPortTaskHasFPUContext
+ 278 01f4 00000000 	vTaskSwitchContextConst: .word vTaskSwitchContext
+ 279 01f8 00000000 	vApplicationIRQHandlerConst: .word vApplicationIRQHandler
+ 280 01fc 00000000 	ulPortInterruptNestingConst: .word ulPortInterruptNesting
+ 281 0200 00000000 	ulPortYieldRequiredConst: .word ulPortYieldRequired
+ 282              	
+ 283 0204 00F020E3 	.end
+ 283      00F020E3 
+ 283      00F020E3 
+ARM GAS  /tmp/ccryld0n.s 			page 9
+
+
+DEFINED SYMBOLS
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:58     *ABS*:0000001f SYS_MODE
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:59     *ABS*:00000013 SVC_MODE
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:60     *ABS*:00000012 IRQ_MODE
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:178    .text:000000c0 FreeRTOS_IRQ_Handler
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:158    .text:00000000 FreeRTOS_SVC_Handler
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:171    .text:00000080 vPortRestoreTaskContext
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:156    .text:00000000 $a
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:276    .text:000001ec ulCriticalNestingConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:277    .text:000001f0 ulPortTaskHasFPUContextConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:275    .text:000001e8 pxCurrentTCBConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:278    .text:000001f4 vTaskSwitchContextConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:280    .text:000001fc ulPortInterruptNestingConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:279    .text:000001f8 vApplicationIRQHandlerConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:274    .text:000001e4 ulICCEOIRConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:238    .text:0000013c exit_without_switch
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:281    .text:00000200 ulPortYieldRequiredConst
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:248    .text:00000154 switch_before_exit
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:274    .text:000001e4 $d
+/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portASM.s:283    .text:00000204 $a
+
+UNDEFINED SYMBOLS
+ulICCEOIR
+pxCurrentTCB
+ulCriticalNesting
+ulPortTaskHasFPUContext
+vTaskSwitchContext
+vApplicationIRQHandler
+ulPortInterruptNesting
+ulPortYieldRequired

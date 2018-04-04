@@ -1,0 +1,615 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"hal_qspi.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.transfer_cmd,"ax",%progbits
+  17              		.align	2
+  18              		.global	transfer_cmd
+  20              	transfer_cmd:
+  21              	.LFB2:
+  22              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * Copyright (c) 2015, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  *
+   7:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * @file	hal_qspi.c
+   8:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * @author	The LightCo
+   9:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * @version	V1.0.0
+  10:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * @date	Mar-10-2016
+  11:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * @brief	This file contains definitions of the Qspi driver
+  12:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  *
+  13:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  ******************************************************************************/
+  14:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  15:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** #include "assert.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** #include "std_type.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** #include "cortex_r4.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** #include "hal_qspi.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  21:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /* Private define ------------------------------------------------------------*/
+  22:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** #define		TIMEOUT				1000000000
+  23:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** #define		ENABLE_SPI_MODE		0x01
+  24:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /* Private variables ---------------------------------------------------------*/
+  26:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /* Qspi address */
+  27:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** #define QSPI_ADDR				((qspi_register_t *)(uint32_t)(QSPI_BASE))
+  28:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /* Private functions ---------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /*
+  30:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * qspi_wait_busy
+  31:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  */
+  32:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** static qspi_status_t qspi_wait_busy(void)
+  33:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** {
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	volatile uint32_t tmp, timeout = TIMEOUT;
+  35:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  36:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	do
+  37:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	{
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		switch(QSPI_ADDR->SPI_MODE)
+  39:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		{
+  40:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			case PIO1_GO_MODE:
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				tmp = QSPI_ADDR->PIO1_GO;
+  42:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			break;
+  43:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  44:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			case PIO2_GO_MODE:
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				tmp = QSPI_ADDR->PIO2_GO;
+  46:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			break;
+  47:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  48:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			case PP_GO_MODE:
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				tmp = QSPI_ADDR->PP_GO;
+  50:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			break;
+  51:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  52:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			default:
+  53:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				tmp = QSPI_ADDR->PIO1_GO;
+  54:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			break;
+  55:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		}
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	} while((tmp & 0x00000001) && (--timeout));
+  57:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	if(timeout)
+  59:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		return QSPI_SUCCESS;
+  60:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	else
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		return QSPI_TIMEOUT;
+  62:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** }
+  63:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  64:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /**
+  65:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * @brief transfer_cmd
+  66:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * Qspi transfer command
+  67:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  */
+  68:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** qspi_status_t transfer_cmd(qspi_transfer_cmd_t *qspi_transfer_cmd)
+  69:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** {
+  23              		.loc 1 69 0
+  24              		.cfi_startproc
+  25              		@ args = 0, pretend = 0, frame = 8
+  26              		@ frame_needed = 0, uses_anonymous_args = 0
+  27              	.LVL0:
+  28 0000 13402DE9 		stmfd	sp!, {r0, r1, r4, lr}
+  29              	.LCFI0:
+  30              		.cfi_def_cfa_offset 16
+  31              		.cfi_offset 4, -8
+  32              		.cfi_offset 14, -4
+  70:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	uint32_t *tmp;
+  71:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  72:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	/* check parameters */
+  73:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	assert_param(qspi_transfer_cmd);
+  33              		.loc 1 73 0
+  34 0004 004050E2 		subs	r4, r0, #0
+  35 0008 0200001A 		bne	.L2
+  36              		.loc 1 73 0 is_stmt 0 discriminator 1
+  37 000c 30039FE5 		ldr	r0, .L62
+  38              	.LVL1:
+  39 0010 4910A0E3 		mov	r1, #73
+  40 0014 FEFFFFEB 		bl	assert_failed
+  41              	.LVL2:
+  42              	.L2:
+  74:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	assert_param(IS_QSPI_MODE(qspi_transfer_cmd->spi_mode_reg));
+  43              		.loc 1 74 0 is_stmt 1
+  44 0018 B030D4E1 		ldrh	r3, [r4]
+  45 001c 012043E2 		sub	r2, r3, #1
+  46 0020 010C53E3 		cmp	r3, #256
+  47 0024 01005213 		cmpne	r2, #1
+  48 0028 0200009A 		bls	.L3
+  49              		.loc 1 74 0 is_stmt 0 discriminator 1
+  50 002c 10039FE5 		ldr	r0, .L62
+  51 0030 4A10A0E3 		mov	r1, #74
+  52 0034 FEFFFFEB 		bl	assert_failed
+  53              	.LVL3:
+  54              	.L3:
+  75:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	assert_param(qspi_transfer_cmd->tx_buff_reg);
+  55              		.loc 1 75 0 is_stmt 1
+  56 0038 403094E5 		ldr	r3, [r4, #64]
+  57 003c 000053E3 		cmp	r3, #0
+  58 0040 0200001A 		bne	.L4
+  59              		.loc 1 75 0 is_stmt 0 discriminator 1
+  60 0044 F8029FE5 		ldr	r0, .L62
+  61 0048 4B10A0E3 		mov	r1, #75
+  62 004c FEFFFFEB 		bl	assert_failed
+  63              	.LVL4:
+  64              	.L4:
+  76:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	assert_param(qspi_transfer_cmd->tx_buff_reg8);
+  65              		.loc 1 76 0 is_stmt 1
+  66 0050 443094E5 		ldr	r3, [r4, #68]
+  67 0054 000053E3 		cmp	r3, #0
+  68 0058 0200001A 		bne	.L5
+  69              		.loc 1 76 0 is_stmt 0 discriminator 1
+  70 005c E0029FE5 		ldr	r0, .L62
+  71 0060 4C10A0E3 		mov	r1, #76
+  72 0064 FEFFFFEB 		bl	assert_failed
+  73              	.LVL5:
+  74              	.L5:
+  77:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	assert_param(qspi_transfer_cmd->rx_buff_reg);
+  75              		.loc 1 77 0 is_stmt 1
+  76 0068 483094E5 		ldr	r3, [r4, #72]
+  77 006c 000053E3 		cmp	r3, #0
+  78 0070 0200001A 		bne	.L6
+  79              		.loc 1 77 0 is_stmt 0 discriminator 1
+  80 0074 C8029FE5 		ldr	r0, .L62
+  81 0078 4D10A0E3 		mov	r1, #77
+  82 007c FEFFFFEB 		bl	assert_failed
+  83              	.LVL6:
+  84              	.L6:
+  78:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	assert_param(qspi_transfer_cmd->rx_buff_reg8);
+  85              		.loc 1 78 0 is_stmt 1
+  86 0080 4C3094E5 		ldr	r3, [r4, #76]
+  87 0084 000053E3 		cmp	r3, #0
+  88 0088 0200001A 		bne	.L7
+  89              		.loc 1 78 0 is_stmt 0 discriminator 1
+  90 008c B0029FE5 		ldr	r0, .L62
+  91 0090 4E10A0E3 		mov	r1, #78
+  92 0094 FEFFFFEB 		bl	assert_failed
+  93              	.LVL7:
+  94              	.L7:
+  79:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	QSPI_ADDR->SPI_MODE	= qspi_transfer_cmd->spi_mode_reg;
+  95              		.loc 1 80 0 is_stmt 1
+  96 0098 B030D4E1 		ldrh	r3, [r4]
+  97 009c 2326A0E3 		mov	r2, #36700160
+  81:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  82:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	if(qspi_transfer_cmd->spi_mode_reg == PIO1_GO_MODE)
+  98              		.loc 1 82 0
+  99 00a0 010053E3 		cmp	r3, #1
+  80:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 100              		.loc 1 80 0
+ 101 00a4 003082E5 		str	r3, [r2]
+ 102              		.loc 1 82 0
+ 103 00a8 2700001A 		bne	.L8
+  83:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	{
+  84:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_LANES\
+ 104              		.loc 1 84 0
+ 105 00ac 0630D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+ 106 00b0 073003E2 		and	r3, r3, #7
+ 107 00b4 040053E3 		cmp	r3, #4
+ 108 00b8 02005313 		cmpne	r3, #2
+ 109 00bc 0200009A 		bls	.L9
+ 110              		.loc 1 84 0 is_stmt 0 discriminator 1
+ 111 00c0 7C029FE5 		ldr	r0, .L62
+ 112 00c4 5510A0E3 		mov	r1, #85
+ 113 00c8 FEFFFFEB 		bl	assert_failed
+ 114              	.LVL8:
+ 115              	.L9:
+  85:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pio_mode1.pio_step0_conf.pio_lanes));
+  86:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_PIO_OUTPUT\
+ 116              		.loc 1 86 0 is_stmt 1
+ 117 00cc 0630D4E5 		ldrb	r3, [r4, #6]	@ zero_extendqisi2
+ 118 00d0 E00013E3 		tst	r3, #224
+ 119 00d4 F02003E2 		and	r2, r3, #240
+ 120 00d8 0130A013 		movne	r3, #1
+ 121 00dc 0030A003 		moveq	r3, #0
+ 122 00e0 300052E3 		cmp	r2, #48
+ 123 00e4 0030A003 		moveq	r3, #0
+ 124 00e8 01300312 		andne	r3, r3, #1
+ 125 00ec F00052E3 		cmp	r2, #240
+ 126 00f0 0030A003 		moveq	r3, #0
+ 127 00f4 01300312 		andne	r3, r3, #1
+ 128 00f8 000053E3 		cmp	r3, #0
+ 129 00fc 0200000A 		beq	.L10
+ 130              		.loc 1 86 0 is_stmt 0 discriminator 3
+ 131 0100 3C029FE5 		ldr	r0, .L62
+ 132 0104 5710A0E3 		mov	r1, #87
+ 133 0108 FEFFFFEB 		bl	assert_failed
+ 134              	.LVL9:
+ 135              	.L10:
+  87:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pio_mode1.pio_step0_conf.pio_output_en));
+  88:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+  89:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode1.pio_step0_conf;
+  90:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO1_STEP0_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 136              		.loc 1 90 0 is_stmt 1
+ 137 010c 042094E5 		ldr	r2, [r4, #4]
+ 138 0110 2336A0E3 		mov	r3, #36700160
+ 139 0114 FF24C2E3 		bic	r2, r2, #-16777216
+ 140 0118 202083E5 		str	r2, [r3, #32]
+ 141              	.LVL10:
+  91:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode1.pio_step1_conf;
+  92:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO1_STEP1_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 142              		.loc 1 92 0
+ 143 011c 082094E5 		ldr	r2, [r4, #8]
+ 144 0120 FF24C2E3 		bic	r2, r2, #-16777216
+ 145 0124 242083E5 		str	r2, [r3, #36]
+ 146              	.LVL11:
+  93:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode1.pio_step2_conf;
+  94:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO1_STEP2_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 147              		.loc 1 94 0
+ 148 0128 0C2094E5 		ldr	r2, [r4, #12]
+ 149 012c FF24C2E3 		bic	r2, r2, #-16777216
+ 150 0130 282083E5 		str	r2, [r3, #40]
+ 151              	.LVL12:
+  95:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode1.pio_step3_conf;
+  96:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO1_STEP3_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 152              		.loc 1 96 0
+ 153 0134 102094E5 		ldr	r2, [r4, #16]
+ 154 0138 FF24C2E3 		bic	r2, r2, #-16777216
+ 155 013c 2C2083E5 		str	r2, [r3, #44]
+  97:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO1_GO			= ENABLE_SPI_MODE;
+ 156              		.loc 1 97 0
+ 157 0140 0120A0E3 		mov	r2, #1
+ 158 0144 102083E5 		str	r2, [r3, #16]
+ 159 0148 600000EA 		b	.L11
+ 160              	.LVL13:
+ 161              	.L8:
+  98:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	}
+  99:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	else if(qspi_transfer_cmd->spi_mode_reg == PIO2_GO_MODE)
+ 162              		.loc 1 99 0
+ 163 014c 020053E3 		cmp	r3, #2
+ 164 0150 2700001A 		bne	.L12
+ 100:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	{
+ 101:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_LANES\
+ 165              		.loc 1 101 0
+ 166 0154 1630D4E5 		ldrb	r3, [r4, #22]	@ zero_extendqisi2
+ 167 0158 073003E2 		and	r3, r3, #7
+ 168 015c 040053E3 		cmp	r3, #4
+ 169 0160 02005313 		cmpne	r3, #2
+ 170 0164 0200009A 		bls	.L13
+ 171              		.loc 1 101 0 is_stmt 0 discriminator 1
+ 172 0168 D4019FE5 		ldr	r0, .L62
+ 173 016c 6610A0E3 		mov	r1, #102
+ 174 0170 FEFFFFEB 		bl	assert_failed
+ 175              	.LVL14:
+ 176              	.L13:
+ 102:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pio_mode2.pio_step0_conf.pio_lanes));
+ 103:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_PIO_OUTPUT\
+ 177              		.loc 1 103 0 is_stmt 1
+ 178 0174 1630D4E5 		ldrb	r3, [r4, #22]	@ zero_extendqisi2
+ 179 0178 E00013E3 		tst	r3, #224
+ 180 017c F02003E2 		and	r2, r3, #240
+ 181 0180 0130A013 		movne	r3, #1
+ 182 0184 0030A003 		moveq	r3, #0
+ 183 0188 300052E3 		cmp	r2, #48
+ 184 018c 0030A003 		moveq	r3, #0
+ 185 0190 01300312 		andne	r3, r3, #1
+ 186 0194 F00052E3 		cmp	r2, #240
+ 187 0198 0030A003 		moveq	r3, #0
+ 188 019c 01300312 		andne	r3, r3, #1
+ 189 01a0 000053E3 		cmp	r3, #0
+ 190 01a4 0200000A 		beq	.L14
+ 191              		.loc 1 103 0 is_stmt 0 discriminator 3
+ 192 01a8 94019FE5 		ldr	r0, .L62
+ 193 01ac 6810A0E3 		mov	r1, #104
+ 194 01b0 FEFFFFEB 		bl	assert_failed
+ 195              	.LVL15:
+ 196              	.L14:
+ 104:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pio_mode2.pio_step0_conf.pio_output_en));
+ 105:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 106:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode2.pio_step0_conf;
+ 107:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO2_STEP0_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 197              		.loc 1 107 0 is_stmt 1
+ 198 01b4 142094E5 		ldr	r2, [r4, #20]
+ 199 01b8 2336A0E3 		mov	r3, #36700160
+ 200 01bc FF24C2E3 		bic	r2, r2, #-16777216
+ 201 01c0 402083E5 		str	r2, [r3, #64]
+ 202              	.LVL16:
+ 108:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode2.pio_step1_conf;
+ 109:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO2_STEP1_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 203              		.loc 1 109 0
+ 204 01c4 182094E5 		ldr	r2, [r4, #24]
+ 205 01c8 FF24C2E3 		bic	r2, r2, #-16777216
+ 206 01cc 442083E5 		str	r2, [r3, #68]
+ 207              	.LVL17:
+ 110:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode2.pio_step2_conf;
+ 111:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO2_STEP2_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 208              		.loc 1 111 0
+ 209 01d0 1C2094E5 		ldr	r2, [r4, #28]
+ 210 01d4 FF24C2E3 		bic	r2, r2, #-16777216
+ 211 01d8 482083E5 		str	r2, [r3, #72]
+ 212              	.LVL18:
+ 112:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pio_mode2.pio_step3_conf;
+ 113:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO2_STEP3_CONF	= (uint32_t) (*tmp & 0xFFFFFF);
+ 213              		.loc 1 113 0
+ 214 01dc 202094E5 		ldr	r2, [r4, #32]
+ 215 01e0 FF24C2E3 		bic	r2, r2, #-16777216
+ 216 01e4 4C2083E5 		str	r2, [r3, #76]
+ 114:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PIO2_GO			= ENABLE_SPI_MODE;
+ 217              		.loc 1 114 0
+ 218 01e8 0120A0E3 		mov	r2, #1
+ 219 01ec 302083E5 		str	r2, [r3, #48]
+ 220 01f0 360000EA 		b	.L11
+ 221              	.LVL19:
+ 222              	.L12:
+ 115:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	}
+ 116:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	else if(qspi_transfer_cmd->spi_mode_reg == PP_GO_MODE)
+ 223              		.loc 1 116 0
+ 224 01f4 010C53E3 		cmp	r3, #256
+ 225 01f8 3400001A 		bne	.L11
+ 117:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	{
+ 118:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_LANES\
+ 226              		.loc 1 118 0
+ 227 01fc 3230D4E5 		ldrb	r3, [r4, #50]	@ zero_extendqisi2
+ 228 0200 073003E2 		and	r3, r3, #7
+ 229 0204 040053E3 		cmp	r3, #4
+ 230 0208 02005313 		cmpne	r3, #2
+ 231 020c 0200009A 		bls	.L15
+ 232              		.loc 1 118 0 is_stmt 0 discriminator 1
+ 233 0210 2C019FE5 		ldr	r0, .L62
+ 234 0214 7710A0E3 		mov	r1, #119
+ 235 0218 FEFFFFEB 		bl	assert_failed
+ 236              	.LVL20:
+ 237              	.L15:
+ 119:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pp_mode.pp_addr_conf.pp_lanes));
+ 120:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_LANES\
+ 238              		.loc 1 120 0 is_stmt 1
+ 239 021c 3E30D4E5 		ldrb	r3, [r4, #62]	@ zero_extendqisi2
+ 240 0220 073003E2 		and	r3, r3, #7
+ 241 0224 040053E3 		cmp	r3, #4
+ 242 0228 02005313 		cmpne	r3, #2
+ 243 022c 0200009A 		bls	.L16
+ 244              		.loc 1 120 0 is_stmt 0 discriminator 1
+ 245 0230 0C019FE5 		ldr	r0, .L62
+ 246 0234 7910A0E3 		mov	r1, #121
+ 247 0238 FEFFFFEB 		bl	assert_failed
+ 248              	.LVL21:
+ 249              	.L16:
+ 121:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pp_mode.pp_data_conf.pp_lanes));
+ 122:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_LANES\
+ 250              		.loc 1 122 0 is_stmt 1
+ 251 023c 2A30D4E5 		ldrb	r3, [r4, #42]	@ zero_extendqisi2
+ 252 0240 073003E2 		and	r3, r3, #7
+ 253 0244 040053E3 		cmp	r3, #4
+ 254 0248 02005313 		cmpne	r3, #2
+ 255 024c 0200009A 		bls	.L17
+ 256              		.loc 1 122 0 is_stmt 0 discriminator 1
+ 257 0250 EC009FE5 		ldr	r0, .L62
+ 258 0254 7B10A0E3 		mov	r1, #123
+ 259 0258 FEFFFFEB 		bl	assert_failed
+ 260              	.LVL22:
+ 261              	.L17:
+ 123:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pp_mode.pp_cmd_conf.pp_lanes));
+ 124:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		assert_param(IS_QSPI_LANES\
+ 262              		.loc 1 124 0 is_stmt 1
+ 263 025c 3A30D4E5 		ldrb	r3, [r4, #58]	@ zero_extendqisi2
+ 264 0260 073003E2 		and	r3, r3, #7
+ 265 0264 040053E3 		cmp	r3, #4
+ 266 0268 02005313 		cmpne	r3, #2
+ 267 026c 0200009A 		bls	.L18
+ 268              		.loc 1 124 0 is_stmt 0 discriminator 1
+ 269 0270 CC009FE5 		ldr	r0, .L62
+ 270 0274 7D10A0E3 		mov	r1, #125
+ 271 0278 FEFFFFEB 		bl	assert_failed
+ 272              	.LVL23:
+ 273              	.L18:
+ 125:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 				(qspi_transfer_cmd->pp_mode.pp_dummy_conf.pp_lanes));
+ 126:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 127:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_CMD_CODE		= qspi_transfer_cmd->pp_mode.pp_cmd_code;
+ 274              		.loc 1 127 0 is_stmt 1
+ 275 027c 2336A0E3 		mov	r3, #36700160
+ 276 0280 242094E5 		ldr	r2, [r4, #36]
+ 277 0284 902083E5 		str	r2, [r3, #144]
+ 278              	.LVL24:
+ 128:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pp_mode.pp_cmd_conf;
+ 129:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_CMD_CONF		= (uint32_t) (*tmp & 0x7FFFF);
+ 279              		.loc 1 129 0
+ 280 0288 282094E5 		ldr	r2, [r4, #40]
+ 281 028c 5220F2E7 		ubfx	r2, r2, #0, #19
+ 282 0290 942083E5 		str	r2, [r3, #148]
+ 130:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_ADDR_CODE		= qspi_transfer_cmd->pp_mode.pp_addr_code;
+ 283              		.loc 1 130 0
+ 284 0294 2C2094E5 		ldr	r2, [r4, #44]
+ 285 0298 982083E5 		str	r2, [r3, #152]
+ 286              	.LVL25:
+ 131:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pp_mode.pp_addr_conf;
+ 132:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_ADDR_CONF		= (uint32_t) (*tmp & 0x7FFFF);
+ 287              		.loc 1 132 0
+ 288 029c 302094E5 		ldr	r2, [r4, #48]
+ 289 02a0 5220F2E7 		ubfx	r2, r2, #0, #19
+ 290 02a4 9C2083E5 		str	r2, [r3, #156]
+ 133:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_DUMMY_CODE	= qspi_transfer_cmd->pp_mode.pp_dummy_code;
+ 291              		.loc 1 133 0
+ 292 02a8 342094E5 		ldr	r2, [r4, #52]
+ 293 02ac A02083E5 		str	r2, [r3, #160]
+ 294              	.LVL26:
+ 134:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pp_mode.pp_dummy_conf;
+ 135:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_DUMMY_CONF	= (uint32_t) (*tmp & 0x7FFFF);
+ 295              		.loc 1 135 0
+ 296 02b0 382094E5 		ldr	r2, [r4, #56]
+ 297 02b4 5220F2E7 		ubfx	r2, r2, #0, #19
+ 298 02b8 A42083E5 		str	r2, [r3, #164]
+ 299              	.LVL27:
+ 136:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		tmp = (uint32_t *) &qspi_transfer_cmd->pp_mode.pp_data_conf;
+ 137:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_DATA_CONF		= (uint32_t) (*tmp & 0x7FFFF);
+ 300              		.loc 1 137 0
+ 301 02bc 3C2094E5 		ldr	r2, [r4, #60]
+ 302 02c0 5220F2E7 		ubfx	r2, r2, #0, #19
+ 303 02c4 A82083E5 		str	r2, [r3, #168]
+ 138:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		QSPI_ADDR->PP_GO			= ENABLE_SPI_MODE;
+ 304              		.loc 1 138 0
+ 305 02c8 0120A0E3 		mov	r2, #1
+ 306 02cc 802083E5 		str	r2, [r3, #128]
+ 307              	.LVL28:
+ 308              	.L11:
+ 309              	.LBB4:
+ 310              	.LBB5:
+  34:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 311              		.loc 1 34 0
+ 312 02d0 70309FE5 		ldr	r3, .L62+4
+ 313 02d4 04308DE5 		str	r3, [sp, #4]
+ 314              	.L26:
+  38:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		{
+ 315              		.loc 1 38 0
+ 316 02d8 2336A0E3 		mov	r3, #36700160
+ 317 02dc 002093E5 		ldr	r2, [r3]
+ 318 02e0 020052E3 		cmp	r2, #2
+ 319 02e4 0400000A 		beq	.L20
+ 320 02e8 010C52E3 		cmp	r2, #256
+ 321 02ec 0400000A 		beq	.L21
+  41:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			break;
+ 322              		.loc 1 41 0
+ 323 02f0 103093E5 		ldr	r3, [r3, #16]
+ 324 02f4 00308DE5 		str	r3, [sp]
+ 325 02f8 030000EA 		b	.L23
+ 326              	.L20:
+  45:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			break;
+ 327              		.loc 1 45 0
+ 328 02fc 303093E5 		ldr	r3, [r3, #48]
+ 329 0300 000000EA 		b	.L60
+ 330              	.L21:
+  49:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 			break;
+ 331              		.loc 1 49 0
+ 332 0304 803093E5 		ldr	r3, [r3, #128]
+ 333              	.L60:
+ 334 0308 00308DE5 		str	r3, [sp]
+ 335              	.L23:
+  56:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 336              		.loc 1 56 0
+ 337 030c 00309DE5 		ldr	r3, [sp]
+ 338 0310 010013E3 		tst	r3, #1
+ 339 0314 0400000A 		beq	.L27
+ 340 0318 04309DE5 		ldr	r3, [sp, #4]
+ 341 031c 013043E2 		sub	r3, r3, #1
+ 342 0320 000053E3 		cmp	r3, #0
+ 343 0324 04308DE5 		str	r3, [sp, #4]
+ 344 0328 EAFFFF1A 		bne	.L26
+ 345              	.L27:
+  58:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 		return QSPI_SUCCESS;
+ 346              		.loc 1 58 0
+ 347 032c 04309DE5 		ldr	r3, [sp, #4]
+  61:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** }
+ 348              		.loc 1 61 0
+ 349 0330 000053E3 		cmp	r3, #0
+ 350 0334 0300A013 		movne	r0, #3
+ 351 0338 0200A003 		moveq	r0, #2
+ 352              	.LBE5:
+ 353              	.LBE4:
+ 139:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	}
+ 140:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	return qspi_wait_busy();
+ 141:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** }
+ 354              		.loc 1 141 0
+ 355 033c 08D08DE2 		add	sp, sp, #8
+ 356              	.LCFI1:
+ 357              		.cfi_def_cfa_offset 8
+ 358              		@ sp needed
+ 359 0340 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 360              	.LVL29:
+ 361              	.L63:
+ 362              		.align	2
+ 363              	.L62:
+ 364 0344 00000000 		.word	.LANCHOR0
+ 365 0348 00CA9A3B 		.word	1000000000
+ 366              		.cfi_endproc
+ 367              	.LFE2:
+ 369              		.section	.text.qspi_init,"ax",%progbits
+ 370              		.align	2
+ 371              		.global	qspi_init
+ 373              	qspi_init:
+ 374              	.LFB3:
+ 142:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 143:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** /*
+ 144:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  * qspi_init
+ 145:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c ****  */
+ 146:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** void qspi_init(qspi_ctrl_mode_t *qspi_ctrl_mode)
+ 147:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** {
+ 375              		.loc 1 147 0
+ 376              		.cfi_startproc
+ 377              		@ args = 0, pretend = 0, frame = 0
+ 378              		@ frame_needed = 0, uses_anonymous_args = 0
+ 379              	.LVL30:
+ 380 0000 10402DE9 		stmfd	sp!, {r4, lr}
+ 381              	.LCFI2:
+ 382              		.cfi_def_cfa_offset 8
+ 383              		.cfi_offset 4, -8
+ 384              		.cfi_offset 14, -4
+ 148:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	uint32_t *tmp;
+ 149:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	/* check parameters */
+ 151:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	assert_param(qspi_ctrl_mode);
+ 385              		.loc 1 151 0
+ 386 0004 004050E2 		subs	r4, r0, #0
+ 387 0008 0200001A 		bne	.L65
+ 388              		.loc 1 151 0 is_stmt 0 discriminator 1
+ 389 000c 30009FE5 		ldr	r0, .L67
+ 390              	.LVL31:
+ 391 0010 9710A0E3 		mov	r1, #151
+ 392 0014 FEFFFFEB 		bl	assert_failed
+ 393              	.LVL32:
+ 394              	.L65:
+ 152:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 153:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	tmp = (uint32_t *) &qspi_ctrl_mode->pio1_ctrl;
+ 154:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	QSPI_ADDR->PIO1_CTRL	= (uint32_t) (*tmp & 0x3FFFFFF);
+ 395              		.loc 1 154 0 is_stmt 1
+ 396 0018 002094E5 		ldr	r2, [r4]
+ 397 001c 2336A0E3 		mov	r3, #36700160
+ 398 0020 3F23C2E3 		bic	r2, r2, #-67108864
+ 399 0024 142083E5 		str	r2, [r3, #20]
+ 400              	.LVL33:
+ 155:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 156:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	tmp = (uint32_t *) &qspi_ctrl_mode->pio2_ctrl;
+ 157:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	QSPI_ADDR->PIO2_CTRL	= (uint32_t) (*tmp & 0x3FFFFFF);
+ 401              		.loc 1 157 0
+ 402 0028 042094E5 		ldr	r2, [r4, #4]
+ 403 002c 3F23C2E3 		bic	r2, r2, #-67108864
+ 404 0030 342083E5 		str	r2, [r3, #52]
+ 405              	.LVL34:
+ 158:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 
+ 159:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	tmp = (uint32_t *) &qspi_ctrl_mode->pp_ctrl;
+ 160:/home/tienluong/workspace/atlantis_fw/platform/asic/hal/src/hal_qspi.c **** 	QSPI_ADDR->PP_CTRL		= (uint32_t) (*tmp & 0x3FFFFFF);
+ 406              		.loc 1 160 0
+ 407 0034 082094E5 		ldr	r2, [r4, #8]
+ 408 0038 3F23C2E3 		bic	r2, r2, #-67108864
+ 409 003c 842083E5 		str	r2, [r3, #132]
+ 410 0040 1080BDE8 		ldmfd	sp!, {r4, pc}
+ 411              	.L68:
+ 412              		.align	2
+ 413              	.L67:
+ 414 0044 00000000 		.word	.LANCHOR1
+ 415              		.cfi_endproc
+ 416              	.LFE3:
+ 418              		.section	.rodata.__FUNCTION__.6334,"a",%progbits
+ 419              		.set	.LANCHOR0,. + 0
+ 422              	__FUNCTION__.6334:
+ 423 0000 7472616E 		.ascii	"transfer_cmd\000"
+ 423      73666572 
+ 423      5F636D64 
+ 423      00
+ 424              		.section	.rodata.__FUNCTION__.6339,"a",%progbits
+ 425              		.set	.LANCHOR1,. + 0
+ 428              	__FUNCTION__.6339:
+ 429 0000 71737069 		.ascii	"qspi_init\000"
+ 429      5F696E69 
+ 429      7400
+ 430              		.text
+ 431              	.Letext0:
+ 432              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 433              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 434              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_qspi.h"
+ 435              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/common/assert.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 hal_qspi.c
+     /tmp/ccNY251I.s:17     .text.transfer_cmd:00000000 $a
+     /tmp/ccNY251I.s:20     .text.transfer_cmd:00000000 transfer_cmd
+     /tmp/ccNY251I.s:364    .text.transfer_cmd:00000344 $d
+     /tmp/ccNY251I.s:370    .text.qspi_init:00000000 $a
+     /tmp/ccNY251I.s:373    .text.qspi_init:00000000 qspi_init
+     /tmp/ccNY251I.s:414    .text.qspi_init:00000044 $d
+     /tmp/ccNY251I.s:422    .rodata.__FUNCTION__.6334:00000000 __FUNCTION__.6334
+     /tmp/ccNY251I.s:428    .rodata.__FUNCTION__.6339:00000000 __FUNCTION__.6339
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed

@@ -1,0 +1,652 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"i2cs.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.i2c_handler,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	i2c_handler:
+  24              	.LFB3:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * modification, are strictly prohibited without prior permission
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * of The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @file    i2c_slave.c
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @date    April-5-2016
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @brief   This file contains I2C Slave source code
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** #include "os.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** #include "lcc_system.h"
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** #include "assert.h"
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** #include "i2cs.h"
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* Private define ------------------------------------------------------------*/
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* Private typedef -----------------------------------------------------------*/
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* Private functions prototype -----------------------------------------------*/
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* I2C handler function implemented here */
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* i2c event handler */
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static void i2c_handler(hal_i2c_channel_t chid, hal_i2c_status_t status);
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* Private variable ---------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* I2C configuration */
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static hal_i2c_t i2c =
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** {
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** #if   (ASIC_NUM == ASIC1)
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.chid = 			I2C_SLAVE_HW_CHANNEL,
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.clock_speed =		I2C_SPEED_400KHz,
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** #else
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.chid = 			I2C_CH9,
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.clock_speed =		I2C_SPEED_1MHz,
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** #endif
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.address_mode =		I2C_7BIT,
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.operation_mode = 	I2C_SLAVE,
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.owner_addr = 		I2C_SLAVE_ADDRESS,
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	.irq_handler = 		i2c_handler,
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** };
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* I2C configuration */
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static hal_i2c_buffer_t tx_buf;
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static SemaphoreHandle_t sem_tx_data_ready;
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static SemaphoreHandle_t sem_tx_data_pending;
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static void  (*rx_hdl)(uint8_t data);
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static void  (*receiver_hdl)(void);
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static void  (*transmitter_hdl)(void);
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static void  (*restart_hdl)(void);
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /* Exported functions --------------------------------------------------------*/
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /**
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @brief i2c_slave_init
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * The function shall initialize i2c slave driver
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @param event - point to event flag at upper layer
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @return None
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  */
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** void i2c_slave_init(i2c_slave_t *i2c_slave)
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** {
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	/* Store rx call back function */
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	rx_hdl = i2c_slave->clbk_hdl;
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	receiver_hdl = i2c_slave->receiver_hdl;
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	transmitter_hdl = i2c_slave->transmitter_hdl;
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	restart_hdl = i2c_slave->restart_hdl;
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	/* Init i2c */
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	hal_i2c_init(&i2c);
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	hal_i2c_enable_irq(&i2c);
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	tx_buf.bytes = NULL;
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	tx_buf.length = 0;
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	sem_tx_data_ready = xSemaphoreCreateBinary();
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	sem_tx_data_pending = xSemaphoreCreateBinary();
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** }
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /**
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @brief i2c_slave_write
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * The function writes data to i2c slave
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @param buf - point to buffer write
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @param len - data length to write
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * @return None
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  */
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** void i2c_slave_write(uint8_t *buf, uint16_t len)
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** {
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     assert((buf != NULL) && (len > 0));
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     // Free previous buffer
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     vPortFree(tx_buf.bytes);
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     tx_buf.bytes = buf;
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     tx_buf.length = len;
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     // Notify interrupt handler that data is ready
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	xSemaphoreGive(sem_tx_data_ready);
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	if (xSemaphoreTake(sem_tx_data_pending, 0) == pdTRUE)
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	{
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	    // Interrupt handler run before data was ready, start transmission here
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	    xSemaphoreTake(sem_tx_data_ready, 0);
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	    hal_i2c_slave_tx(i2c.chid, &tx_buf);
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	}
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** }
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** /*
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  * i2c_slave_evt_handler
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****  */
+ 108:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** static void i2c_handler(hal_i2c_channel_t chid, hal_i2c_status_t status)
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** {
+  26              		.loc 1 109 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 16
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+ 110:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	/* Preparing buffer to receive */
+ 111:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	switch(status)
+  31              		.loc 1 111 0
+  32 0000 0229     		cmp	r1, #2
+ 109:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	/* Preparing buffer to receive */
+  33              		.loc 1 109 0
+  34 0002 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+  35              	.LCFI0:
+  36              		.cfi_def_cfa_offset 24
+  37              		.cfi_offset 14, -4
+  38              		.loc 1 111 0
+  39 0004 34D0     		beq	.L3
+  40 0006 0529     		cmp	r1, #5
+  41 0008 13D0     		beq	.L4
+  42 000a 0129     		cmp	r1, #1
+  43 000c 33D1     		bne	.L1
+  44              	.LBB7:
+ 112:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	{
+ 113:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		case I2C_READ_REQUESTED:
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			(*restart_hdl)();
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			if (xSemaphoreTakeFromISR(sem_tx_data_ready, NULL))
+ 116:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			{
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****                 assert((tx_buf.length > 0) && (tx_buf.bytes != NULL));
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****                 hal_i2c_slave_tx(i2c.chid, &tx_buf);
+ 119:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			}
+ 120:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			else
+ 121:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			{
+ 122:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			    // Data still no ready, notify task that transmission is pending
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			    xSemaphoreGiveFromISR(sem_tx_data_pending, NULL);
+ 124:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			}
+ 125:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			break;
+ 126:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		case I2C_RX_RECEIVING:
+ 127:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		    {
+ 128:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		        hal_i2c_buffer_t buf;
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		        uint8_t data = 0xFF;
+  45              		.loc 1 129 0
+  46 000e 04AB     		add	r3, sp, #16
+  47 0010 FF22     		movs	r2, #255
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		        buf.bytes = &data;
+ 131:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		        buf.length = 1;
+  48              		.loc 1 131 0
+  49 0012 ADF80C10 		strh	r1, [sp, #12]	@ movhi
+ 132:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****                 hal_i2c_slave_rx(i2c.chid, &buf);
+  50              		.loc 1 132 0
+  51 0016 02A9     		add	r1, sp, #8
+  52              	.LVL1:
+ 129:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		        buf.bytes = &data;
+  53              		.loc 1 129 0
+  54 0018 03F8092D 		strb	r2, [r3, #-9]!
+ 130:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		        buf.bytes = &data;
+  55              		.loc 1 130 0
+  56 001c 0293     		str	r3, [sp, #8]
+  57              		.loc 1 132 0
+  58 001e 174B     		ldr	r3, .L13
+  59 0020 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+  60              	.LVL2:
+  61 0022 174B     		ldr	r3, .L13+4
+  62 0024 9847     		blx	r3
+  63              	.LVL3:
+ 133:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****                 /* Transfer to upper layer */
+ 134:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****                 (*rx_hdl)(data);
+  64              		.loc 1 134 0
+  65 0026 174B     		ldr	r3, .L13+8
+  66 0028 9DF80700 		ldrb	r0, [sp, #7]	@ zero_extendqisi2
+  67 002c 1B68     		ldr	r3, [r3]
+  68 002e 9847     		blx	r3
+  69              	.LVL4:
+  70              	.LBE7:
+ 135:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		    }
+ 136:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			break;
+  71              		.loc 1 136 0
+  72 0030 21E0     		b	.L1
+  73              	.LVL5:
+  74              	.L4:
+  75              	.LBB8:
+  76              	.LBB9:
+ 114:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			if (xSemaphoreTakeFromISR(sem_tx_data_ready, NULL))
+  77              		.loc 1 114 0
+  78 0032 154B     		ldr	r3, .L13+12
+  79 0034 1B68     		ldr	r3, [r3]
+  80 0036 9847     		blx	r3
+  81              	.LVL6:
+ 115:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			{
+  82              		.loc 1 115 0
+  83 0038 144B     		ldr	r3, .L13+16
+  84 003a 0021     		movs	r1, #0
+  85 003c 0A46     		mov	r2, r1
+  86 003e 1868     		ldr	r0, [r3]
+  87 0040 134B     		ldr	r3, .L13+20
+  88 0042 9847     		blx	r3
+  89              	.LVL7:
+  90 0044 0146     		mov	r1, r0
+  91 0046 70B1     		cbz	r0, .L6
+ 117:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****                 hal_i2c_slave_tx(i2c.chid, &tx_buf);
+  92              		.loc 1 117 0
+  93 0048 124B     		ldr	r3, .L13+24
+  94 004a 9A88     		ldrh	r2, [r3, #4]
+  95 004c 0AB1     		cbz	r2, .L7
+  96 004e 1B68     		ldr	r3, [r3]
+  97 0050 1BB9     		cbnz	r3, .L8
+  98              	.L7:
+  99 0052 1148     		ldr	r0, .L13+28
+ 100 0054 7521     		movs	r1, #117
+ 101 0056 114B     		ldr	r3, .L13+32
+ 102 0058 9847     		blx	r3
+ 103              	.LVL8:
+ 104              	.L8:
+ 118:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			}
+ 105              		.loc 1 118 0
+ 106 005a 084B     		ldr	r3, .L13
+ 107 005c 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 108 005e 0D49     		ldr	r1, .L13+24
+ 109 0060 0F4B     		ldr	r3, .L13+36
+ 110 0062 9847     		blx	r3
+ 111              	.LVL9:
+ 112 0064 07E0     		b	.L1
+ 113              	.L6:
+ 123:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			}
+ 114              		.loc 1 123 0
+ 115 0066 0F4B     		ldr	r3, .L13+40
+ 116 0068 1868     		ldr	r0, [r3]
+ 117 006a 0F4B     		ldr	r3, .L13+44
+ 118 006c 9847     		blx	r3
+ 119              	.LVL10:
+ 120 006e 02E0     		b	.L1
+ 121              	.LVL11:
+ 122              	.L3:
+ 123              	.LBE9:
+ 124              	.LBE8:
+ 137:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		case I2C_RX_COMPLETED:
+ 138:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			(*receiver_hdl)();
+ 125              		.loc 1 138 0
+ 126 0070 0E4B     		ldr	r3, .L13+48
+ 127 0072 1B68     		ldr	r3, [r3]
+ 128 0074 9847     		blx	r3
+ 129              	.LVL12:
+ 130              	.L1:
+ 139:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			break;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		case I2C_RESTARTED:
+ 141:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			break;
+ 142:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		case I2C_ERROR:
+ 143:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 			break;
+ 144:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		default:
+ 145:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 		    break;
+ 146:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	}
+ 147:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** }
+ 131              		.loc 1 147 0
+ 132 0076 05B0     		add	sp, sp, #20
+ 133              	.LCFI1:
+ 134              		.cfi_def_cfa_offset 4
+ 135              		@ sp needed
+ 136 0078 5DF804FB 		ldr	pc, [sp], #4
+ 137              	.L14:
+ 138              		.align	2
+ 139              	.L13:
+ 140 007c 00000000 		.word	.LANCHOR4
+ 141 0080 00000000 		.word	hal_i2c_slave_rx
+ 142 0084 00000000 		.word	.LANCHOR6
+ 143 0088 00000000 		.word	.LANCHOR0
+ 144 008c 00000000 		.word	.LANCHOR1
+ 145 0090 00000000 		.word	xQueueReceiveFromISR
+ 146 0094 00000000 		.word	.LANCHOR2
+ 147 0098 00000000 		.word	.LANCHOR3
+ 148 009c 00000000 		.word	assert_failed
+ 149 00a0 00000000 		.word	hal_i2c_slave_tx
+ 150 00a4 00000000 		.word	.LANCHOR5
+ 151 00a8 00000000 		.word	xQueueGiveFromISR
+ 152 00ac 00000000 		.word	.LANCHOR7
+ 153              		.cfi_endproc
+ 154              	.LFE3:
+ 156              		.section	.text.i2c_slave_init,"ax",%progbits
+ 157              		.align	1
+ 158              		.global	i2c_slave_init
+ 159              		.thumb
+ 160              		.thumb_func
+ 162              	i2c_slave_init:
+ 163              	.LFB1:
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	/* Store rx call back function */
+ 164              		.loc 1 63 0
+ 165              		.cfi_startproc
+ 166              		@ args = 0, pretend = 0, frame = 0
+ 167              		@ frame_needed = 0, uses_anonymous_args = 0
+ 168              	.LVL13:
+ 169 0000 38B5     		push	{r3, r4, r5, lr}
+ 170              	.LCFI2:
+ 171              		.cfi_def_cfa_offset 16
+ 172              		.cfi_offset 3, -16
+ 173              		.cfi_offset 4, -12
+ 174              		.cfi_offset 5, -8
+ 175              		.cfi_offset 14, -4
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	receiver_hdl = i2c_slave->receiver_hdl;
+ 176              		.loc 1 65 0
+ 177 0002 0268     		ldr	r2, [r0]
+ 178 0004 114B     		ldr	r3, .L16
+ 179 0006 1A60     		str	r2, [r3]
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	transmitter_hdl = i2c_slave->transmitter_hdl;
+ 180              		.loc 1 66 0
+ 181 0008 4268     		ldr	r2, [r0, #4]
+ 182 000a 114B     		ldr	r3, .L16+4
+ 183 000c 1A60     		str	r2, [r3]
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	restart_hdl = i2c_slave->restart_hdl;
+ 184              		.loc 1 67 0
+ 185 000e 8268     		ldr	r2, [r0, #8]
+ 186 0010 104B     		ldr	r3, .L16+8
+ 187 0012 1A60     		str	r2, [r3]
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	hal_i2c_enable_irq(&i2c);
+ 188              		.loc 1 70 0
+ 189 0014 104C     		ldr	r4, .L16+12
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	/* Init i2c */
+ 190              		.loc 1 68 0
+ 191 0016 C268     		ldr	r2, [r0, #12]
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	hal_i2c_enable_irq(&i2c);
+ 192              		.loc 1 70 0
+ 193 0018 2046     		mov	r0, r4
+ 194              	.LVL14:
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	/* Init i2c */
+ 195              		.loc 1 68 0
+ 196 001a 104B     		ldr	r3, .L16+16
+ 197 001c 1A60     		str	r2, [r3]
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	hal_i2c_enable_irq(&i2c);
+ 198              		.loc 1 70 0
+ 199 001e 104B     		ldr	r3, .L16+20
+ 200 0020 9847     		blx	r3
+ 201              	.LVL15:
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+ 202              		.loc 1 71 0
+ 203 0022 2046     		mov	r0, r4
+ 204 0024 0F4B     		ldr	r3, .L16+24
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	tx_buf.length = 0;
+ 205              		.loc 1 73 0
+ 206 0026 0024     		movs	r4, #0
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+ 207              		.loc 1 71 0
+ 208 0028 9847     		blx	r3
+ 209              	.LVL16:
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	sem_tx_data_pending = xSemaphoreCreateBinary();
+ 210              		.loc 1 75 0
+ 211 002a 0F4D     		ldr	r5, .L16+28
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	tx_buf.length = 0;
+ 212              		.loc 1 73 0
+ 213 002c 0F4B     		ldr	r3, .L16+32
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	sem_tx_data_pending = xSemaphoreCreateBinary();
+ 214              		.loc 1 75 0
+ 215 002e 2146     		mov	r1, r4
+ 216 0030 0322     		movs	r2, #3
+ 217 0032 0120     		movs	r0, #1
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	tx_buf.length = 0;
+ 218              		.loc 1 73 0
+ 219 0034 1C60     		str	r4, [r3]
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	sem_tx_data_ready = xSemaphoreCreateBinary();
+ 220              		.loc 1 74 0
+ 221 0036 9C80     		strh	r4, [r3, #4]	@ movhi
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	sem_tx_data_pending = xSemaphoreCreateBinary();
+ 222              		.loc 1 75 0
+ 223 0038 A847     		blx	r5
+ 224              	.LVL17:
+ 225 003a 0D4B     		ldr	r3, .L16+36
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** }
+ 226              		.loc 1 76 0
+ 227 003c 2146     		mov	r1, r4
+ 228 003e 0322     		movs	r2, #3
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	sem_tx_data_pending = xSemaphoreCreateBinary();
+ 229              		.loc 1 75 0
+ 230 0040 1860     		str	r0, [r3]
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** }
+ 231              		.loc 1 76 0
+ 232 0042 0120     		movs	r0, #1
+ 233 0044 A847     		blx	r5
+ 234              	.LVL18:
+ 235 0046 0B4B     		ldr	r3, .L16+40
+ 236 0048 1860     		str	r0, [r3]
+ 237 004a 38BD     		pop	{r3, r4, r5, pc}
+ 238              	.L17:
+ 239              		.align	2
+ 240              	.L16:
+ 241 004c 00000000 		.word	.LANCHOR6
+ 242 0050 00000000 		.word	.LANCHOR7
+ 243 0054 00000000 		.word	.LANCHOR8
+ 244 0058 00000000 		.word	.LANCHOR4
+ 245 005c 00000000 		.word	.LANCHOR0
+ 246 0060 00000000 		.word	hal_i2c_init
+ 247 0064 00000000 		.word	hal_i2c_enable_irq
+ 248 0068 00000000 		.word	xQueueGenericCreate
+ 249 006c 00000000 		.word	.LANCHOR2
+ 250 0070 00000000 		.word	.LANCHOR1
+ 251 0074 00000000 		.word	.LANCHOR5
+ 252              		.cfi_endproc
+ 253              	.LFE1:
+ 255              		.section	.text.i2c_slave_write,"ax",%progbits
+ 256              		.align	1
+ 257              		.global	i2c_slave_write
+ 258              		.thumb
+ 259              		.thumb_func
+ 261              	i2c_slave_write:
+ 262              	.LFB2:
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     assert((buf != NULL) && (len > 0));
+ 263              		.loc 1 87 0
+ 264              		.cfi_startproc
+ 265              		@ args = 0, pretend = 0, frame = 0
+ 266              		@ frame_needed = 0, uses_anonymous_args = 0
+ 267              	.LVL19:
+ 268 0000 70B5     		push	{r4, r5, r6, lr}
+ 269              	.LCFI3:
+ 270              		.cfi_def_cfa_offset 16
+ 271              		.cfi_offset 4, -16
+ 272              		.cfi_offset 5, -12
+ 273              		.cfi_offset 6, -8
+ 274              		.cfi_offset 14, -4
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     assert((buf != NULL) && (len > 0));
+ 275              		.loc 1 87 0
+ 276 0002 0D46     		mov	r5, r1
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     // Free previous buffer
+ 277              		.loc 1 88 0
+ 278 0004 0646     		mov	r6, r0
+ 279 0006 00B1     		cbz	r0, .L19
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     // Free previous buffer
+ 280              		.loc 1 88 0 is_stmt 0 discriminator 2
+ 281 0008 19B9     		cbnz	r1, .L20
+ 282              	.L19:
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     // Free previous buffer
+ 283              		.loc 1 88 0 discriminator 3
+ 284 000a 1348     		ldr	r0, .L25
+ 285              	.LVL20:
+ 286 000c 5821     		movs	r1, #88
+ 287              	.LVL21:
+ 288 000e 134B     		ldr	r3, .L25+4
+ 289 0010 9847     		blx	r3
+ 290              	.LVL22:
+ 291              	.L20:
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+ 292              		.loc 1 90 0 is_stmt 1
+ 293 0012 134C     		ldr	r4, .L25+8
+ 294 0014 5A22     		movs	r2, #90
+ 295 0016 1049     		ldr	r1, .L25
+ 296 0018 124B     		ldr	r3, .L25+12
+ 297 001a 2068     		ldr	r0, [r4]
+ 298 001c 9847     		blx	r3
+ 299              	.LVL23:
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     tx_buf.length = len;
+ 300              		.loc 1 92 0
+ 301 001e 2660     		str	r6, [r4]
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+ 302              		.loc 1 95 0
+ 303 0020 114E     		ldr	r6, .L25+16
+ 304              	.LVL24:
+ 305 0022 0021     		movs	r1, #0
+ 306 0024 0A46     		mov	r2, r1
+ 307 0026 0B46     		mov	r3, r1
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c ****     // Notify interrupt handler that data is ready
+ 308              		.loc 1 93 0
+ 309 0028 A580     		strh	r5, [r4, #4]	@ movhi
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 
+ 310              		.loc 1 95 0
+ 311 002a 3068     		ldr	r0, [r6]
+ 312 002c 0F4D     		ldr	r5, .L25+20
+ 313 002e A847     		blx	r5
+ 314              	.LVL25:
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	{
+ 315              		.loc 1 97 0
+ 316 0030 0F4B     		ldr	r3, .L25+24
+ 317 0032 0021     		movs	r1, #0
+ 318 0034 0A46     		mov	r2, r1
+ 319 0036 1868     		ldr	r0, [r3]
+ 320 0038 0B46     		mov	r3, r1
+ 321 003a 0E4D     		ldr	r5, .L25+28
+ 322 003c A847     		blx	r5
+ 323              	.LVL26:
+ 324 003e 0128     		cmp	r0, #1
+ 325 0040 09D1     		bne	.L18
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	    hal_i2c_slave_tx(i2c.chid, &tx_buf);
+ 326              		.loc 1 100 0
+ 327 0042 0021     		movs	r1, #0
+ 328 0044 0B46     		mov	r3, r1
+ 329 0046 0A46     		mov	r2, r1
+ 330 0048 3068     		ldr	r0, [r6]
+ 331 004a A847     		blx	r5
+ 332              	.LVL27:
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/i2cs.c **** 	}
+ 333              		.loc 1 101 0
+ 334 004c 0A4B     		ldr	r3, .L25+32
+ 335 004e 2146     		mov	r1, r4
+ 336 0050 1878     		ldrb	r0, [r3]	@ zero_extendqisi2
+ 337 0052 0A4B     		ldr	r3, .L25+36
+ 338 0054 9847     		blx	r3
+ 339              	.LVL28:
+ 340              	.L18:
+ 341 0056 70BD     		pop	{r4, r5, r6, pc}
+ 342              	.L26:
+ 343              		.align	2
+ 344              	.L25:
+ 345 0058 00000000 		.word	.LANCHOR9
+ 346 005c 00000000 		.word	assert_failed
+ 347 0060 00000000 		.word	.LANCHOR2
+ 348 0064 00000000 		.word	vPortFree1
+ 349 0068 00000000 		.word	.LANCHOR1
+ 350 006c 00000000 		.word	xQueueGenericSend
+ 351 0070 00000000 		.word	.LANCHOR5
+ 352 0074 00000000 		.word	xQueueGenericReceive
+ 353 0078 00000000 		.word	.LANCHOR4
+ 354 007c 00000000 		.word	hal_i2c_slave_tx
+ 355              		.cfi_endproc
+ 356              	.LFE2:
+ 358              		.section	.bss.sem_tx_data_ready,"aw",%nobits
+ 359              		.align	2
+ 360              		.set	.LANCHOR1,. + 0
+ 363              	sem_tx_data_ready:
+ 364 0000 00000000 		.space	4
+ 365              		.section	.bss.transmitter_hdl,"aw",%nobits
+ 366              		.align	2
+ 367              		.set	.LANCHOR8,. + 0
+ 370              	transmitter_hdl:
+ 371 0000 00000000 		.space	4
+ 372              		.section	.data.i2c,"aw",%progbits
+ 373              		.align	2
+ 374              		.set	.LANCHOR4,. + 0
+ 377              	i2c:
+ 378 0000 13       		.byte	19
+ 379 0001 01       		.byte	1
+ 380 0002 00       		.byte	0
+ 381 0003 01       		.byte	1
+ 382 0004 0800     		.short	8
+ 383 0006 0000     		.space	2
+ 384 0008 00000000 		.word	i2c_handler
+ 385              		.section	.bss.rx_hdl,"aw",%nobits
+ 386              		.align	2
+ 387              		.set	.LANCHOR6,. + 0
+ 390              	rx_hdl:
+ 391 0000 00000000 		.space	4
+ 392              		.section	.bss.sem_tx_data_pending,"aw",%nobits
+ 393              		.align	2
+ 394              		.set	.LANCHOR5,. + 0
+ 397              	sem_tx_data_pending:
+ 398 0000 00000000 		.space	4
+ 399              		.section	.rodata.__FUNCTION__.7252,"a",%progbits
+ 400              		.set	.LANCHOR9,. + 0
+ 403              	__FUNCTION__.7252:
+ 404 0000 6932635F 		.ascii	"i2c_slave_write\000"
+ 404      736C6176 
+ 404      655F7772 
+ 404      69746500 
+ 405              		.section	.bss.tx_buf,"aw",%nobits
+ 406              		.align	2
+ 407              		.set	.LANCHOR2,. + 0
+ 410              	tx_buf:
+ 411 0000 00000000 		.space	8
+ 411      00000000 
+ 412              		.section	.rodata.__FUNCTION__.7258,"a",%progbits
+ 413              		.set	.LANCHOR3,. + 0
+ 416              	__FUNCTION__.7258:
+ 417 0000 6932635F 		.ascii	"i2c_handler\000"
+ 417      68616E64 
+ 417      6C657200 
+ 418              		.section	.bss.restart_hdl,"aw",%nobits
+ 419              		.align	2
+ 420              		.set	.LANCHOR0,. + 0
+ 423              	restart_hdl:
+ 424 0000 00000000 		.space	4
+ 425              		.section	.bss.receiver_hdl,"aw",%nobits
+ 426              		.align	2
+ 427              		.set	.LANCHOR7,. + 0
+ 430              	receiver_hdl:
+ 431 0000 00000000 		.space	4
+ 432              		.text
+ 433              	.Letext0:
+ 434              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 435              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 436              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 437              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 438              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/semphr.h"
+ 439              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 440              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cs.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 i2cs.c
+     /tmp/ccOZFh3Y.s:19     .text.i2c_handler:00000000 $t
+     /tmp/ccOZFh3Y.s:23     .text.i2c_handler:00000000 i2c_handler
+     /tmp/ccOZFh3Y.s:140    .text.i2c_handler:0000007c $d
+     /tmp/ccOZFh3Y.s:157    .text.i2c_slave_init:00000000 $t
+     /tmp/ccOZFh3Y.s:162    .text.i2c_slave_init:00000000 i2c_slave_init
+     /tmp/ccOZFh3Y.s:241    .text.i2c_slave_init:0000004c $d
+     /tmp/ccOZFh3Y.s:256    .text.i2c_slave_write:00000000 $t
+     /tmp/ccOZFh3Y.s:261    .text.i2c_slave_write:00000000 i2c_slave_write
+     /tmp/ccOZFh3Y.s:345    .text.i2c_slave_write:00000058 $d
+     /tmp/ccOZFh3Y.s:359    .bss.sem_tx_data_ready:00000000 $d
+     /tmp/ccOZFh3Y.s:363    .bss.sem_tx_data_ready:00000000 sem_tx_data_ready
+     /tmp/ccOZFh3Y.s:366    .bss.transmitter_hdl:00000000 $d
+     /tmp/ccOZFh3Y.s:370    .bss.transmitter_hdl:00000000 transmitter_hdl
+     /tmp/ccOZFh3Y.s:373    .data.i2c:00000000 $d
+     /tmp/ccOZFh3Y.s:377    .data.i2c:00000000 i2c
+     /tmp/ccOZFh3Y.s:386    .bss.rx_hdl:00000000 $d
+     /tmp/ccOZFh3Y.s:390    .bss.rx_hdl:00000000 rx_hdl
+     /tmp/ccOZFh3Y.s:393    .bss.sem_tx_data_pending:00000000 $d
+     /tmp/ccOZFh3Y.s:397    .bss.sem_tx_data_pending:00000000 sem_tx_data_pending
+     /tmp/ccOZFh3Y.s:403    .rodata.__FUNCTION__.7252:00000000 __FUNCTION__.7252
+     /tmp/ccOZFh3Y.s:406    .bss.tx_buf:00000000 $d
+     /tmp/ccOZFh3Y.s:410    .bss.tx_buf:00000000 tx_buf
+     /tmp/ccOZFh3Y.s:416    .rodata.__FUNCTION__.7258:00000000 __FUNCTION__.7258
+     /tmp/ccOZFh3Y.s:419    .bss.restart_hdl:00000000 $d
+     /tmp/ccOZFh3Y.s:423    .bss.restart_hdl:00000000 restart_hdl
+     /tmp/ccOZFh3Y.s:426    .bss.receiver_hdl:00000000 $d
+     /tmp/ccOZFh3Y.s:430    .bss.receiver_hdl:00000000 receiver_hdl
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+hal_i2c_slave_rx
+xQueueReceiveFromISR
+assert_failed
+hal_i2c_slave_tx
+xQueueGiveFromISR
+hal_i2c_init
+hal_i2c_enable_irq
+xQueueGenericCreate
+vPortFree1
+xQueueGenericSend
+xQueueGenericReceive

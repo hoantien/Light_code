@@ -1,0 +1,147 @@
+#******************************************************************************
+#
+# Bootflow State
+#
+#******************************************************************************
+APPLI_START_ADDRESS=0x022a0000
+READ_COMMAND=0x12
+TARGET_DESC=${BOOT_S2_DIR}_${ASIC_NUM}
+TARGET_ASIC_STARTUP=${BOOT_S2_DIR}
+
+################################### ASIC Entry Point ##########################
+
+TARGET_ENTRY_POINT=start
+
+export COMPILER=${OBJ_BUILD}/${TARGET_DESC}
+
+#******************************************************************************
+#
+# The compiler to be used.
+#
+#******************************************************************************
+DIR_APP=${PWD}/src
+
+VPATH+=:${DIR_APP}
+
+################################### STARTUP CODE ##############################
+VPATH+=:${STARTUP_DIR}/${TARGET_ASIC_STARTUP}
+LINKER_FILE=${STARTUP_DIR}/${TARGET_ASIC_STARTUP}/linker.ld
+
+#******************************************************************************
+#
+# Make/clean all targets
+#
+#******************************************************************************
+OBJ_APP=${COMPILER}/main.o					\
+		${COMPILER}/lcc_cmd.o				\
+		${COMPILER}/lcc_cmd_base_0000.o		\
+		${COMPILER}/lcc_cmd_base_0200.o		\
+		${COMPILER}/lcc_cmd_base_1000.o		\
+		${COMPILER}/lcc_cmd_log.o			\
+		${COMPILER}/task_cam_ctrl.o			\
+		${COMPILER}/task_ccb_ctrl.o			\
+		${COMPILER}/vcm.o					\
+		${COMPILER}/actuator.o				\
+		${COMPILER}/optical.o				\
+		${COMPILER}/img_sensor.o			\
+		${COMPILER}/usecase.o				\
+		${COMPILER}/light_system.o			\
+		${COMPILER}/usecase_hires.o			\
+		${COMPILER}/timestamp.o				\
+		${COMPILER}/camera_id.pb-c.o		\
+		${COMPILER}/camera_module.pb-c.o	\
+		${COMPILER}/point2f.pb-c.o			\
+		${COMPILER}/point2i.pb-c.o			\
+		${COMPILER}/protobuf-c.o			\
+		${COMPILER}/lightheader.pb-c.o		\
+		${COMPILER}/light_header.o			\
+		${COMPILER}/af_helper.o				\
+		${COMPILER}/test_ddr.o				\
+
+OBJ_OS=	${COMPILER}/croutine.o				\
+		${COMPILER}/list.o					\
+		${COMPILER}/queue.o					\
+		${COMPILER}/tasks.o					\
+		${COMPILER}/event_groups.o			\
+		${COMPILER}/timers.o				\
+		${COMPILER}/port.o					\
+		${COMPILER}/os_port.o				\
+		${COMPILER}/portASM.o				\
+		${COMPILER}/heap_4.o				\
+
+OBJ_DRIVER=	${COMPILER}/log.o				\
+			${COMPILER}/assert.o			\
+			${COMPILER}/i2cm.o				\
+			${COMPILER}/i2cs.o				\
+			${COMPILER}/spis.o				\
+			${COMPILER}/timer.o				\
+			${COMPILER}/rtc.o				\
+			${COMPILER}/ina231.o			\
+			${COMPILER}/tof.o				\
+			${COMPILER}/gyro.o				\
+			${COMPILER}/ar1335.o			\
+			${COMPILER}/eeprom.o			\
+			${COMPILER}/hall_a1457.o		\
+			${COMPILER}/hall_as5510.o		\
+			${COMPILER}/temperature.o		\
+			${COMPILER}/task_list.o			\
+
+OBJ_HAL=${COMPILER}/hal_com.o				\
+		${COMPILER}/hal_gpio.o				\
+		${COMPILER}/hal_timer.o				\
+		${COMPILER}/hal_wdt.o				\
+		${COMPILER}/hal_i2c.o				\
+		${COMPILER}/hal_spi.o				\
+		${COMPILER}/hal_syncio.o			\
+		${COMPILER}/hal_pwm.o				\
+		${COMPILER}/hal_vic.o				\
+		${COMPILER}/hal_dma.o				\
+		${COMPILER}/hal_mipi2axi.o			\
+		${COMPILER}/hal_axi2mipi.o			\
+		${COMPILER}/hal_ddr.o				\
+
+OBJ_ASIC_START=	${COMPILER}/armv7_start.o	\
+				${COMPILER}/armv7_cache.o	\
+				${COMPILER}/int_vectors.o	\
+				${COMPILER}/reset_handler.o	\
+				${COMPILER}/startup.o		\
+
+#******************************************************************************
+#
+# The compiler to be used.
+#
+#******************************************************************************
+COMMON_CFLAGS=-mthumb -mlong-calls -fno-common
+COMMON_CFLAGS+=-D ASIC_NUM=${ASIC_NUM} -DOS -DASIC_FWS2
+COMMON_CFLAGS+=-D CAMERA_TBL=${LOOKUP_TBL_${ASIC_NUM}}
+COMMON_CFLAGS+=-D BUILD_ID=${BUILD_ID}
+COMMON_CFLAGS+=-DMIPI_SPEED_1500MHZ -DMICRON_LPDDR3 -DP2 -DDEBUG_CAM -DPREVIEW_TEST
+CFLAGS+=${COMMON_CFLAGS}
+CCFLAGS+=${COMMON_CFLAGS}
+CCFLAGS+=-fno-exceptions
+AFLAGS+=-D ASIC_NUM=${ASIC_NUM} -DOS -DP2 -DDEBUG_CAM -DMIPI_SPEED_1500MHZ -DPREVIEW_TEST
+LDFLAGS+=-Wl,--start-group -lc -lgcc -lnosys -Wl,--end-group
+#LDFLAGS+= --specs=nano.specs --enable-newlib-nano-formatted-io
+
+BUILD_TARGET=S2_TARGET
+all: ${COMPILER}					\
+	 ${COMPILER}/${TARGET_DESC}.elf \
+	 showsize
+
+showsize: ${COMPILER}
+	  	  @$(OBJSIZE) -B ${COMPILER}/${TARGET_DESC}.elf
+
+-include ${PROJECT_ROOT}/common.mk
+-include ${PROJECT_ROOT}/lookup_tbl.mk
+
+#
+# The rule to create the target directory
+#
+
+${COMPILER}/${TARGET_DESC}.elf: ${OBJ_ASIC_START} ${OBJ_HAL} ${OBJ_DRIVER} ${OBJ_OS} ${OBJ_APP}
+
+#
+#
+# Include the automatically generated dependency files.
+#
+-include ${wildcard ${COMPILER}/*.d} __dummy__

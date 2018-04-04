@@ -1,0 +1,97 @@
+ARM GAS  /tmp/cck5O0Tf.s 			page 1
+
+
+   1              	# 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/jump.s"
+   1              	/******************************************************************************
+   0              	
+   0              	
+   2              	 * Copyright (c) 2016, The LightCo
+   3              	 * All rights reserved.
+   4              	 * Redistribution and use in source and binary forms, with or without
+   5              	 * modification, are strictly prohibited without prior permission
+   6              	 * of The LightCo.
+   7              	 *
+   8              	 * @file    jump.s
+   9              	 * @author  The LightCo
+  10              	 * @version V1.0.0
+  11              	 * @date    Mar-15-2016
+  12              	 * @brief
+  13              	 *
+  14              	 ******************************************************************************/
+  15              	
+  16              	#define	REMAP_REG_ADDR		0x02000028
+  17              	#define	REMAP_SRAM		    0x00000002
+  18              	
+  19              		.syntax unified
+  20              		.arch   armv7-r
+  21              	
+  22              		.section .text
+  23              	
+  24              		.globl jump_to_SRAM
+  25              		.extern flush_dcache_all
+  26              	
+  27              	jump_to_SRAM:
+  28              	
+  29              		/* disable FIQ and IRQ */
+  30 0000 00000FE1 		mrs r0, cpsr
+  31 0004 C00080E3 		orr r0, r0, #0x000000C0
+  32 0008 00F029E1 		msr cpsr, r0
+  33 000c 6FF07FF5 		isb
+  34              	
+  35              		/* clean and invalidate d-cache */
+  36 0010 FEFFFFEB 		bl	flush_dcache_all
+  37              	
+  38              		/* disable I/D cache */
+  39 0014 58009FE5 		ldr  r0, =0xFFFFEFFB          /*Set SCTLR.I and C bit to 0 */
+  40 0018 101F11EE 		mrc  p15, 0, r1, c1, c0, 0
+  41 001c 001001E0 		and  r1, r1, r0
+  42 0020 4FF07FF5 		dsb
+  43 0024 101F01EE 		mcr  p15, 0, r1, c1, c0, 0
+  44 0028 6FF07FF5 		isb
+  45              	
+  46              		/* invalidate I/D cache */
+  47 002c 0000A0E3 		mov  r0, #0
+  48 0030 150F07EE 		mcr  p15, #0, r0, c7, c5, #0   /* Invalidate all Instruction Caches (Write-value is Ignored) */
+  49 0034 6FF07FF5 		isb
+  50 0038 150F0FEE 		mcr  p15, #0, r0, c15, c5, #0  /*Invalidate all Data Caches (Write-value is Ignored) */
+  51 003c 6FF07FF5 		isb
+  52              	
+  53              		/* disable MPU */
+  54 0040 0100E0E3 		ldr  r0, =0xFFFFFFFE            /* Set SCTLR.M bit to 0 */
+ARM GAS  /tmp/cck5O0Tf.s 			page 2
+
+
+  55 0044 101F11EE 		mrc  p15, 0, r1, c1, c0, 0
+  56 0048 001001E0 		and  r1, r1, r0
+  57 004c 4FF07FF5 		dsb
+  58 0050 101F01EE 		mcr  p15, 0, r1, c1, c0, 0
+  59 0054 6FF07FF5 		isb
+  60              	
+  61              		/* prepare registers */
+  62 0058 18409FE5 		ldr  r4, =REMAP_REG_ADDR
+  63 005c 0250A0E3 		ldr  r5, =REMAP_SRAM
+  64 0060 0060A0E3 		ldr  r6, =0x00000000
+  65              	
+  66              		/* jump to SRAM to do the real switch and jump */
+  67              	jump_code:
+  68              		/* r4: remap register address */
+  69              		/* r5: remap register value */
+  70              		/* r6: target address */
+  71 0064 005084E5 		str  r5, [r4]
+  72 0068 4FF07FF5 		dsb
+  73 006c 6FF07FF5 		isb
+  74 0070 06F0A0E1 		mov  pc, r6
+  75              	
+  76 0074 FBEFFFFF 		.end
+  76      28000002 
+ARM GAS  /tmp/cck5O0Tf.s 			page 3
+
+
+DEFINED SYMBOLS
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/jump.s:27     .text:00000000 jump_to_SRAM
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/jump.s:30     .text:00000000 $a
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/jump.s:67     .text:00000064 jump_code
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS1/jump.s:76     .text:00000074 $d
+
+UNDEFINED SYMBOLS
+flush_dcache_all

@@ -1,0 +1,152 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"sensor_type.pb-c.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.global	ltpb__sensor_type__descriptor
+  19              		.section	.rodata.ltpb__sensor_type__descriptor,"a",%progbits
+  20              		.align	2
+  23              	ltpb__sensor_type__descriptor:
+  24 0000 AF154311 		.word	289609135
+  25 0004 00000000 		.word	.LC0
+  26 0008 10000000 		.word	.LC1
+  27 000c 1B000000 		.word	.LC2
+  28 0010 2C000000 		.word	.LC3
+  29 0014 04000000 		.word	4
+  30 0018 00000000 		.word	ltpb__sensor_type__enum_values_by_number
+  31 001c 04000000 		.word	4
+  32 0020 00000000 		.word	ltpb__sensor_type__enum_values_by_name
+  33 0024 01000000 		.word	1
+  34 0028 00000000 		.word	ltpb__sensor_type__value_ranges
+  35 002c 00000000 		.word	0
+  36 0030 00000000 		.word	0
+  37 0034 00000000 		.word	0
+  38 0038 00000000 		.word	0
+  39              		.section	.rodata.ltpb__sensor_type__enum_values_by_number,"a",%progbits
+  40              		.align	2
+  43              	ltpb__sensor_type__enum_values_by_number:
+  44 0000 5F000000 		.word	.LC7
+  45 0004 6E000000 		.word	.LC8
+  46 0008 00000000 		.word	0
+  47 000c 52000000 		.word	.LC6
+  48 0010 90000000 		.word	.LC9
+  49 0014 01000000 		.word	1
+  50 0018 31000000 		.word	.LC4
+  51 001c B0000000 		.word	.LC10
+  52 0020 02000000 		.word	2
+  53 0024 3F000000 		.word	.LC5
+  54 0028 D1000000 		.word	.LC11
+  55 002c 03000000 		.word	3
+  56              		.section	.rodata.str1.1,"aMS",%progbits,1
+  57              	.LC0:
+  58 0000 6C747062 		.ascii	"ltpb.SensorType\000"
+  58      2E53656E 
+  58      736F7254 
+  58      79706500 
+  59              	.LC1:
+  60 0010 53656E73 		.ascii	"SensorType\000"
+  60      6F725479 
+  60      706500
+  61              	.LC2:
+  62 001b 4C747062 		.ascii	"Ltpb__SensorType\000"
+  62      5F5F5365 
+  62      6E736F72 
+  62      54797065 
+  62      00
+  63              	.LC3:
+  64 002c 6C747062 		.ascii	"ltpb\000"
+  64      00
+  65              	.LC4:
+  66 0031 53454E53 		.ascii	"SENSOR_AR1335\000"
+  66      4F525F41 
+  66      52313333 
+  66      3500
+  67              	.LC5:
+  68 003f 53454E53 		.ascii	"SENSOR_AR1335_MONO\000"
+  68      4F525F41 
+  68      52313333 
+  68      355F4D4F 
+  68      4E4F00
+  69              	.LC6:
+  70 0052 53454E53 		.ascii	"SENSOR_AR835\000"
+  70      4F525F41 
+  70      52383335 
+  70      00
+  71              	.LC7:
+  72 005f 53454E53 		.ascii	"SENSOR_UNKNOWN\000"
+  72      4F525F55 
+  72      4E4B4E4F 
+  72      574E00
+  73              	.LC8:
+  74 006e 4C545042 		.ascii	"LTPB__SENSOR_TYPE__SENSOR_UNKNOWN\000"
+  74      5F5F5345 
+  74      4E534F52 
+  74      5F545950 
+  74      455F5F53 
+  75              	.LC9:
+  76 0090 4C545042 		.ascii	"LTPB__SENSOR_TYPE__SENSOR_AR835\000"
+  76      5F5F5345 
+  76      4E534F52 
+  76      5F545950 
+  76      455F5F53 
+  77              	.LC10:
+  78 00b0 4C545042 		.ascii	"LTPB__SENSOR_TYPE__SENSOR_AR1335\000"
+  78      5F5F5345 
+  78      4E534F52 
+  78      5F545950 
+  78      455F5F53 
+  79              	.LC11:
+  80 00d1 4C545042 		.ascii	"LTPB__SENSOR_TYPE__SENSOR_AR1335_MONO\000"
+  80      5F5F5345 
+  80      4E534F52 
+  80      5F545950 
+  80      455F5F53 
+  81              		.section	.rodata.ltpb__sensor_type__value_ranges,"a",%progbits
+  82              		.align	2
+  85              	ltpb__sensor_type__value_ranges:
+  86 0000 00000000 		.word	0
+  87 0004 00000000 		.word	0
+  88 0008 00000000 		.word	0
+  89 000c 04000000 		.word	4
+  90              		.section	.rodata.ltpb__sensor_type__enum_values_by_name,"a",%progbits
+  91              		.align	2
+  94              	ltpb__sensor_type__enum_values_by_name:
+  95 0000 31000000 		.word	.LC4
+  96 0004 02000000 		.word	2
+  97 0008 3F000000 		.word	.LC5
+  98 000c 03000000 		.word	3
+  99 0010 52000000 		.word	.LC6
+ 100 0014 01000000 		.word	1
+ 101 0018 5F000000 		.word	.LC7
+ 102 001c 00000000 		.word	0
+ 103              		.text
+ 104              	.Letext0:
+ 105              		.file 1 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 106              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 107              		.file 3 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 108              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/common/lightheader/include/protobuf-c/prot
+ 109              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/common/lightheader/src/sensor_type.pb-c.c"
+DEFINED SYMBOLS
+                            *ABS*:00000000 sensor_type.pb-c.c
+     /tmp/ccm2nrdm.s:23     .rodata.ltpb__sensor_type__descriptor:00000000 ltpb__sensor_type__descriptor
+     /tmp/ccm2nrdm.s:20     .rodata.ltpb__sensor_type__descriptor:00000000 $d
+     /tmp/ccm2nrdm.s:43     .rodata.ltpb__sensor_type__enum_values_by_number:00000000 ltpb__sensor_type__enum_values_by_number
+     /tmp/ccm2nrdm.s:94     .rodata.ltpb__sensor_type__enum_values_by_name:00000000 ltpb__sensor_type__enum_values_by_name
+     /tmp/ccm2nrdm.s:85     .rodata.ltpb__sensor_type__value_ranges:00000000 ltpb__sensor_type__value_ranges
+     /tmp/ccm2nrdm.s:40     .rodata.ltpb__sensor_type__enum_values_by_number:00000000 $d
+     /tmp/ccm2nrdm.s:82     .rodata.ltpb__sensor_type__value_ranges:00000000 $d
+     /tmp/ccm2nrdm.s:91     .rodata.ltpb__sensor_type__enum_values_by_name:00000000 $d
+
+NO UNDEFINED SYMBOLS

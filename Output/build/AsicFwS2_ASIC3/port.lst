@@ -1,0 +1,1219 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"port.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.vPortTickISR,"ax",%progbits
+  19              		.align	1
+  20              		.global	vPortTickISR
+  21              		.thumb
+  22              		.thumb_func
+  24              	vPortTickISR:
+  25              	.LFB7:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+   2:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     All rights reserved
+   4:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+   5:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
+   6:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+   7:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     This file is part of the FreeRTOS distribution.
+   8:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+   9:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     FreeRTOS is free software; you can redistribute it and/or modify it under
+  10:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     the terms of the GNU General Public License (version 2) as published by the
+  11:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
+  12:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  13:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     ***************************************************************************
+  14:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+  15:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     >>!   distribute a combined work that includes FreeRTOS without being   !<<
+  16:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     >>!   obliged to provide the source code for proprietary components     !<<
+  17:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     >>!   outside of the FreeRTOS kernel.                                   !<<
+  18:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     ***************************************************************************
+  19:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+  21:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  22:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+  23:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     link: http://www.freertos.org/a00114.html
+  24:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     ***************************************************************************
+  26:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *                                                                       *
+  27:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    FreeRTOS provides completely free yet professionally developed,    *
+  28:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    robust, strictly quality controlled, supported, and cross          *
+  29:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    platform software that is more than just the market leader, it     *
+  30:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    is the industry's de facto standard.                               *
+  31:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *                                                                       *
+  32:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    Help yourself get started quickly while simultaneously helping     *
+  33:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+  34:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    tutorial book, reference manual, or both:                          *
+  35:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *    http://www.FreeRTOS.org/Documentation                              *
+  36:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****      *                                                                       *
+  37:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     ***************************************************************************
+  38:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+  40:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     the FAQ page "My application does not run, what could be wrong?".  Have you
+  41:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     defined configASSERT()?
+  42:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     http://www.FreeRTOS.org/support - In return for receiving this top quality
+  44:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     embedded software for free we request you assist our global community by
+  45:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     participating in the support forum.
+  46:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     http://www.FreeRTOS.org/training - Investing in training allows your team to
+  48:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     be as productive as possible as early as possible.  Now you can receive
+  49:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+  50:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     Ltd, and the world's leading authority on the world's leading RTOS.
+  51:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  52:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+  53:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+  54:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     compatible FAT file system, and our tiny thread aware UDP/IP stack.
+  55:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+  57:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+  58:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  59:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+  60:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+  61:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     licenses offer ticketed support, indemnification and commercial middleware.
+  62:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+  64:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     engineered and independently SIL3 certified version for use in safety and
+  65:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     mission critical applications that require provable dependability.
+  66:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****     1 tab == 4 spaces!
+  68:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** */
+  69:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Standard includes. */
+  71:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #include <stdlib.h>
+  72:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Scheduler includes. */
+  74:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #include "FreeRTOS.h"
+  75:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #include "task.h"
+  76:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  77:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #if configUSE_PORT_OPTIMISED_TASK_SELECTION == 1
+  78:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Check the configuration. */
+  79:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	#if( configMAX_PRIORITIES > 32 )
+  80:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		#error configUSE_PORT_OPTIMISED_TASK_SELECTION can only be set to 1 when configMAX_PRIORITIES is 
+  81:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	#endif
+  82:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #endif /* configUSE_PORT_OPTIMISED_TASK_SELECTION */
+  83:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+  85:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #ifndef configSETUP_TICK_INTERRUPT
+  86:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	#error configSETUP_TICK_INTERRUPT() must be defined in FreeRTOSConfig.h to call the function that 
+  87:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #endif
+  88:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** */
+  89:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*#ifndef configCLEAR_TICK_INTERRUPT
+  90:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	#error configCLEAR_TICK_INTERRUPT must be defined in FreeRTOSConfig.h to clear which ever interrup
+  91:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #endif
+  92:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** */
+  93:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* A critical section is exited when the critical section nesting count reaches
+  94:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** this value. */
+  95:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #define portNO_CRITICAL_NESTING			( ( uint32_t ) 0 )
+  96:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  97:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Tasks are not created with a floating point context, but can be given a
+  98:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** floating point context after they have been created.  A variable is stored as
+  99:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** part of the tasks context that holds portNO_FLOATING_POINT_CONTEXT if the task
+ 100:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** does not have an FPU context, or any other value if the task does have an FPU
+ 101:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** context. */
+ 102:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #define portNO_FLOATING_POINT_CONTEXT	( ( StackType_t ) 0 )
+ 103:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 104:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Constants required to setup the initial task context. */
+ 105:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #define portINITIAL_SPSR				( ( StackType_t ) 0x1f ) /* System mode, ARM mode, IRQ enabled FIQ enab
+ 106:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #define portTHUMB_MODE_BIT				( ( StackType_t ) 0x20 )
+ 107:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #define portTHUMB_MODE_ADDRESS			( 0x01UL )
+ 108:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 109:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Masks all bits in the APSR other than the mode bits. */
+ 110:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #define portAPSR_MODE_BITS_MASK			( 0x1F )
+ 111:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 112:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* The value of the mode bits in the APSR when the CPU is executing in user
+ 113:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** mode. */
+ 114:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #define portAPSR_USER_MODE				( 0x10 )
+ 115:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 116:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Let the user override the pre-loading of the initial LR with the address of
+ 117:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** prvTaskExitError() in case it messes up unwinding of the stack in the
+ 118:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** debugger. */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #ifdef configTASK_RETURN_ADDRESS
+ 120:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	#define portTASK_RETURN_ADDRESS	configTASK_RETURN_ADDRESS
+ 121:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #else
+ 122:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	#define portTASK_RETURN_ADDRESS	prvTaskExitError
+ 123:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #endif
+ 124:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 125:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 126:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 127:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+ 128:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * Starts the first task executing.  This function is necessarily written in
+ 129:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * assembly code so is implemented in portASM.s.
+ 130:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  */
+ 131:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** extern void vPortRestoreTaskContext( void );
+ 132:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 133:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+ 134:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * Used to catch tasks that attempt to return from their implementing function.
+ 135:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  */
+ 136:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** static void prvTaskExitError( void );
+ 137:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 138:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+ 139:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * Setup the system tick for FreeRTOS using Timer 1
+ 140:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  */
+ 141:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** static void vPortSetupTickInterrupt( void );
+ 142:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 143:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+ 144:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * Update the RTC timer
+ 145:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  */
+ 146:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** static void rtc_update(void);
+ 147:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 148:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 149:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* A variable is used to keep track of the critical section nesting.  This
+ 151:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** variable has to be stored as part of the task context and must be initialised to
+ 152:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** a non zero value to ensure interrupts don't inadvertently become unmasked before
+ 153:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** the scheduler starts.  As it is stored as part of the task context it will
+ 154:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** automatically be set to 0 when the first task is started. */
+ 155:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** volatile uint32_t ulCriticalNesting = 9999UL;
+ 156:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 157:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Saved as part of the task context.  If ulPortTaskHasFPUContext is non-zero then
+ 158:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** a floating point context must be saved and restored for the task. */
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** volatile uint32_t ulPortTaskHasFPUContext = pdFALSE;
+ 160:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 161:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Set to 1 to pend a context switch from an ISR. */
+ 162:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** volatile uint32_t ulPortYieldRequired = pdFALSE;
+ 163:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 164:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Counts the interrupt nesting depth.  A context switch is only performed if
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** if the nesting depth is 0. */
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** volatile uint32_t ulPortInterruptNesting = 0UL;
+ 167:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 168:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Used in the asm file to clear an interrupt. */
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** __attribute__(( used )) const uint32_t ulICCEOIR = configEOI_ADDRESS;
+ 170:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 171:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 172:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 173:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+ 174:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * See header file for description.
+ 175:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  */
+ 176:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** StackType_t *pxPortInitialiseStack( StackType_t *pxTopOfStack, TaskFunction_t pxCode, void *pvParam
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 178:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Setup the initial stack of the task.  The stack is set exactly as
+ 179:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	expected by the portRESTORE_CONTEXT() macro.
+ 180:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 181:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	The fist real value on the stack is the status register, which is set for
+ 182:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	system mode, with interrupts enabled.  A few NULLs are added first to ensure
+ 183:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	GDB does not try decoding a non-existent return address. */
+ 184:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) NULL;
+ 185:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 186:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) NULL;
+ 187:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 188:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) NULL;
+ 189:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 190:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) portINITIAL_SPSR;
+ 191:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	if( ( ( uint32_t ) pxCode & portTHUMB_MODE_ADDRESS ) != 0x00UL )
+ 193:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 194:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		/* The task will start in THUMB mode. */
+ 195:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		*pxTopOfStack |= portTHUMB_MODE_BIT;
+ 196:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 197:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 198:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 199:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 200:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Next the return address, which in this case is the start of the task. */
+ 201:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) pxCode;
+ 202:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 203:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 204:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Next all the registers other than the stack pointer. */
+ 205:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) portTASK_RETURN_ADDRESS;	/* R14 */
+ 206:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 207:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x12121212;	/* R12 */
+ 208:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 209:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x11111111;	/* R11 */
+ 210:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 211:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x10101010;	/* R10 */
+ 212:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 213:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x09090909;	/* R9 */
+ 214:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 215:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x08080808;	/* R8 */
+ 216:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 217:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x07070707;	/* R7 */
+ 218:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 219:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x06060606;	/* R6 */
+ 220:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 221:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x05050505;	/* R5 */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 223:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x04040404;	/* R4 */
+ 224:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 225:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x03030303;	/* R3 */
+ 226:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 227:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x02020202;	/* R2 */
+ 228:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 229:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) 0x01010101;	/* R1 */
+ 230:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 231:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = ( StackType_t ) pvParameters; /* R0 */
+ 232:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 233:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 234:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* The task will start with a critical nesting count of 0 as interrupts are
+ 235:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	enabled. */
+ 236:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = portNO_CRITICAL_NESTING;
+ 237:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 238:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 239:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* The task will start without a floating point context.  A task that uses
+ 240:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	the floating point hardware must call vPortTaskUsesFPU() before executing
+ 241:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	any floating point instructions. */
+ 242:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	*pxTopOfStack = portNO_FLOATING_POINT_CONTEXT;
+ 243:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 244:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	return pxTopOfStack;
+ 245:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 246:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 247:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 248:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** static void prvTaskExitError( void )
+ 249:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 250:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* A function that implements a task must not exit or attempt to return to
+ 251:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	its caller as there is nothing to return to.  If a task wants to exit it
+ 252:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	should instead call vTaskDelete( NULL ).
+ 253:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 254:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	Artificially force an assert() to be triggered if configASSERT() is
+ 255:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	defined, then stop here so application writers can catch the error. */
+ 256:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	configASSERT( ulPortInterruptNesting == ~0UL );
+ 257:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	portDISABLE_INTERRUPTS();
+ 258:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	for( ;; );
+ 259:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 260:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 261:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 262:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** BaseType_t xPortStartScheduler( void )
+ 263:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 264:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** uint32_t ulAPSR;
+ 265:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 266:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Only continue if the CPU is not in User mode.  The CPU must be in a
+ 267:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	Privileged mode for the scheduler to start. */
+ 268:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	__asm volatile ( "MRS %0, APSR" : "=r" ( ulAPSR ) );
+ 269:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	ulAPSR &= portAPSR_MODE_BITS_MASK;
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	configASSERT( ulAPSR != portAPSR_USER_MODE );
+ 271:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 272:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	if( ulAPSR != portAPSR_USER_MODE )
+ 273:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 274:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		/* Start the timer that generates the tick ISR. */
+ 275:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		portDISABLE_INTERRUPTS();
+ 276:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		vPortSetupTickInterrupt();
+ 277:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 278:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		/* Start the first task executing. */
+ 279:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		vPortRestoreTaskContext();
+ 280:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 281:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 282:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Will only get here if xTaskStartScheduler() was called with the CPU in
+ 283:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	a non-privileged mode or the binary point register was not set to its lowest
+ 284:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	possible value.  prvTaskExitError() is referenced to prevent a compiler
+ 285:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	warning about it being defined but not referenced in the case that the user
+ 286:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	defines their own exit address. */
+ 287:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	( void ) prvTaskExitError;
+ 288:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	return 0;
+ 289:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 290:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 291:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 292:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** void vPortEndScheduler( void )
+ 293:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 294:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Not implemented in ports where there is nothing to return to.
+ 295:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	Artificially force an assert. */
+ 296:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	configASSERT( ulCriticalNesting == 1000UL );
+ 297:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 298:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 299:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 300:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** void vPortEnterCritical( void )
+ 301:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 302:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	portDISABLE_INTERRUPTS();
+ 303:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 304:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Now interrupts are disabled ulCriticalNesting can be accessed
+ 305:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	directly.  Increment ulCriticalNesting to keep a count of how many times
+ 306:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	portENTER_CRITICAL() has been called. */
+ 307:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	ulCriticalNesting++;
+ 308:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 309:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* This is not the interrupt safe version of the enter critical function so
+ 310:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	assert() if it is being called from an interrupt context.  Only API
+ 311:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	functions that end in "FromISR" can be used in an interrupt.  Only assert if
+ 312:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	the critical nesting count is 1 to protect against recursive calls if the
+ 313:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	assert function also uses a critical section. */
+ 314:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	if( ulCriticalNesting == 1 )
+ 315:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 316:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		configASSERT( ulPortInterruptNesting == 0 );
+ 317:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 318:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 319:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 320:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 321:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** void vPortExitCritical( void )
+ 322:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 323:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	if( ulCriticalNesting > portNO_CRITICAL_NESTING )
+ 324:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 325:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		/* Decrement the nesting count as the critical section is being
+ 326:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		exited. */
+ 327:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		ulCriticalNesting--;
+ 328:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 329:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		/* If the nesting level has reached zero then all interrupt
+ 330:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		priorities must be re-enabled. */
+ 331:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		if( ulCriticalNesting == portNO_CRITICAL_NESTING )
+ 332:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		{
+ 333:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 			/* Critical nesting has reached zero so all interrupt priorities
+ 334:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 			should be unmasked. */
+ 335:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 			portENABLE_INTERRUPTS();
+ 336:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		}
+ 337:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 338:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 339:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 340:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 341:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** void vPortTickISR( void *params)
+ 342:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+  27              		.loc 1 342 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 8
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 13B5     		push	{r0, r1, r4, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 16
+  35              		.cfi_offset 4, -8
+  36              		.cfi_offset 14, -4
+  37              	.LBB6:
+  38              	.LBB7:
+  39              		.file 2 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+   1:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*
+   2:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     All rights reserved
+   4:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+   5:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
+   6:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+   7:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     This file is part of the FreeRTOS distribution.
+   8:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+   9:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS is free software; you can redistribute it and/or modify it under
+  10:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     the terms of the GNU General Public License (version 2) as published by the
+  11:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
+  12:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  13:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  14:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+  15:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   distribute a combined work that includes FreeRTOS without being   !<<
+  16:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   obliged to provide the source code for proprietary components     !<<
+  17:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   outside of the FreeRTOS kernel.                                   !<<
+  18:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  19:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+  21:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  22:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+  23:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     link: http://www.freertos.org/a00114.html
+  24:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  26:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *                                                                       *
+  27:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    FreeRTOS provides completely free yet professionally developed,    *
+  28:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    robust, strictly quality controlled, supported, and cross          *
+  29:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    platform software that is more than just the market leader, it     *
+  30:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    is the industry's de facto standard.                               *
+  31:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *                                                                       *
+  32:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    Help yourself get started quickly while simultaneously helping     *
+  33:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+  34:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    tutorial book, reference manual, or both:                          *
+  35:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    http://www.FreeRTOS.org/Documentation                              *
+  36:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *                                                                       *
+  37:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  38:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+  40:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     the FAQ page "My application does not run, what could be wrong?".  Have you
+  41:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     defined configASSERT()?
+  42:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/support - In return for receiving this top quality
+  44:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     embedded software for free we request you assist our global community by
+  45:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     participating in the support forum.
+  46:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/training - Investing in training allows your team to
+  48:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     be as productive as possible as early as possible.  Now you can receive
+  49:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+  50:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Ltd, and the world's leading authority on the world's leading RTOS.
+  51:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  52:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+  53:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+  54:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     compatible FAT file system, and our tiny thread aware UDP/IP stack.
+  55:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+  57:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+  58:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  59:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+  60:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+  61:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     licenses offer ticketed support, indemnification and commercial middleware.
+  62:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+  64:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     engineered and independently SIL3 certified version for use in safety and
+  65:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     mission critical applications that require provable dependability.
+  66:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     1 tab == 4 spaces!
+  68:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** */
+  69:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #ifndef PORTMACRO_H
+  71:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define PORTMACRO_H
+  72:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #ifdef __cplusplus
+  74:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     extern "C" {
+  75:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #endif
+  76:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  77:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------
+  78:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * Port specific definitions.
+  79:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *
+  80:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * The settings in this file configure FreeRTOS correctly for the given hardware
+  81:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * and compiler.
+  82:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *
+  83:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * These settings should not be altered.
+  84:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *-----------------------------------------------------------
+  85:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  */
+  86:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  87:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Type definitions. */
+  88:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portCHAR        char
+  89:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portFLOAT       float
+  90:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portDOUBLE      double
+  91:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portLONG        long
+  92:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portSHORT       short
+  93:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portSTACK_TYPE  uint32_t
+  94:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portBASE_TYPE   long
+  95:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  96:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef portSTACK_TYPE StackType_t;
+  97:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef long BaseType_t;
+  98:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef unsigned long UBaseType_t;
+  99:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 100:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef uint32_t TickType_t;
+ 101:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+ 102:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 103:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* 32-bit tick type on a 32-bit architecture, so reads of the tick count do
+ 104:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** not need to be guarded with a critical section. */
+ 105:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portTICK_TYPE_IS_ATOMIC 1
+ 106:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 107:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------*/
+ 108:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 109:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Hardware specifics. */
+ 110:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portSTACK_GROWTH            ( -1 )
+ 111:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portTICK_PERIOD_MS          ( ( TickType_t ) 1000 / configTICK_RATE_HZ )
+ 112:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portBYTE_ALIGNMENT          8
+ 113:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 114:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------*/
+ 115:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 116:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Task utilities. */
+ 117:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 118:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Called at the end of an ISR that can cause a context switch. */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portEND_SWITCHING_ISR( xSwitchRequired )\
+ 120:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** {                                               \
+ 121:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern volatile uint32_t ulPortYieldRequired;   \
+ 122:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                                 \
+ 123:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     if( xSwitchRequired != pdFALSE )            \
+ 124:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     {                                           \
+ 125:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****         ulPortYieldRequired = pdTRUE;           \
+ 126:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     }                                           \
+ 127:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** }
+ 128:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 129:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
+ 130:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portYIELD() __asm volatile ( "SWI 0     \n"             \
+ 131:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                      "ISB         " );
+ 132:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 133:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 134:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------
+ 135:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * Critical section control
+ 136:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *----------------------------------------------------------*/
+ 137:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 138:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortEnterCritical( void );
+ 139:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortExitCritical( void );
+ 140:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern uint32_t ulPortSetInterruptMask( void );
+ 141:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortClearInterruptMask( uint32_t ulNewMaskValue );
+ 142:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortInstallFreeRTOSVectorTable( void );
+ 143:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 144:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* The I bit within the CPSR. */
+ 145:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portINTERRUPT_ENABLE_BIT    ( 1 << 7 )
+ 146:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 147:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* In the absence of a priority mask register, these functions and macros
+ 148:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** globally enable and disable interrupts. */
+ 149:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portENTER_CRITICAL()        vPortEnterCritical();
+ 150:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portEXIT_CRITICAL()         vPortExitCritical();
+ 151:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portENABLE_INTERRUPTS()     __asm volatile ( "CPSIE i   \n" );
+ 152:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portDISABLE_INTERRUPTS()    __asm volatile ( "CPSID i   \n"     \
+ 153:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                                      "DSB       \n"     \
+ 154:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                                      "ISB         " );
+ 155:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 156:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define __disable_irq()             portDISABLE_INTERRUPTS()
+ 157:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define __enable_irq()              portENABLE_INTERRUPTS()
+ 158:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** __attribute__( ( always_inline ) ) static __inline uint32_t portINLINE_SET_INTERRUPT_MASK_FROM_ISR(
+ 160:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** {
+ 161:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** volatile uint32_t ulCPSR;
+ 162:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 163:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     __asm volatile ( "MRS %0, CPSR" : "=r" (ulCPSR) );
+  40              		.loc 2 163 0
+  41              	@ 163 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h"
+  42 0002 EFF30083 		MRS r3, CPSR
+  43              	@ 0 "" 2
+  44              		.thumb
+  45 0006 0193     		str	r3, [sp, #4]
+ 164:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ulCPSR &= portINTERRUPT_ENABLE_BIT;
+  46              		.loc 2 164 0
+  47 0008 019B     		ldr	r3, [sp, #4]
+  48 000a 03F08003 		and	r3, r3, #128
+  49 000e 0193     		str	r3, [sp, #4]
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     portDISABLE_INTERRUPTS();
+  50              		.loc 2 165 0
+  51              	@ 165 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h"
+  52 0010 72B6     		CPSID i   
+  53 0012 BFF34F8F 	DSB       
+  54 0016 BFF36F8F 	ISB         
+  55              	@ 0 "" 2
+  56              		.thumb
+  57              	.LBE7:
+  58              	.LBE6:
+ 343:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	uint32_t ulInterruptStatus;
+ 344:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 345:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	ulInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+ 346:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 347:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Increment the RTOS tick. */
+ 348:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	if( xTaskIncrementTick() != pdFALSE )
+  59              		.loc 1 348 0
+  60 001a 064B     		ldr	r3, .L8
+  61              	.LBB9:
+  62              	.LBB8:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     return ulCPSR;
+  63              		.loc 2 166 0
+  64 001c 019C     		ldr	r4, [sp, #4]
+  65              	.LBE8:
+  66              	.LBE9:
+  67              		.loc 1 348 0
+  68 001e 9847     		blx	r3
+  69              	.LVL1:
+  70 0020 10B1     		cbz	r0, .L2
+ 349:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 350:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		ulPortYieldRequired = pdTRUE;
+  71              		.loc 1 350 0
+  72 0022 0122     		movs	r2, #1
+  73 0024 044B     		ldr	r3, .L8+4
+  74 0026 1A60     		str	r2, [r3]
+  75              	.L2:
+  76              	.LBB10:
+  77              	.LBB11:
+ 351:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 352:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	rtc_update();
+ 353:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	portCLEAR_INTERRUPT_MASK_FROM_ISR( ulInterruptStatus );
+ 354:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 355:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	//configCLEAR_TICK_INTERRUPT();
+ 356:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 357:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 358:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 359:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** void vPortTaskUsesFPU( void )
+ 360:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 361:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #ifdef _HAVE_FPU
+ 362:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	uint32_t ulInitialFPSCR = 0;
+ 363:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 364:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* A task is registering the fact that it needs an FPU context.  Set the
+ 365:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	FPU flag (which is saved as part of the task context). */
+ 366:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	ulPortTaskHasFPUContext = pdTRUE;
+ 367:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 368:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Initialise the floating point status register. */
+ 369:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	__asm volatile ( "FMXR 	FPSCR, %0" :: "r" (ulInitialFPSCR) );
+ 370:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #endif
+ 371:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 372:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 373:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /* Include HAL Timer and Vic */
+ 374:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #include "board_config.h"
+ 375:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #include "hal_vic.h"
+ 376:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #include "hal_timer.h"
+ 377:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #include "rtc.h"
+ 378:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+ 379:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * Setup the system tick for FreeRTOS using Timer 1
+ 380:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  */
+ 381:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** static void vPortSetupTickInterrupt( void )
+ 382:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 383:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	hal_timer_t tick =
+ 384:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 385:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		.chid = FREERTOS_SYSTEM_TICK,
+ 386:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		.period = 1000,
+ 387:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		.callback_handler = vPortTickISR
+ 388:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	};
+ 389:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Configure the timer 1 has period is 1ms. */
+ 390:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	hal_timer_init(&tick);
+ 391:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	hal_timer_start(tick.chid);
+ 392:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 393:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 394:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*
+ 395:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  * Update the RTC timer
+ 396:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c ****  */
+ 397:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** static void rtc_update(void)
+ 398:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** {
+ 399:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	rtc_timer_update_ms();
+  78              		.loc 1 399 0
+  79 0028 044B     		ldr	r3, .L8+8
+  80 002a 9847     		blx	r3
+  81              	.LVL2:
+  82              	.LBE11:
+  83              	.LBE10:
+ 353:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  84              		.loc 1 353 0
+  85 002c 04B9     		cbnz	r4, .L1
+ 353:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+  86              		.loc 1 353 0 is_stmt 0 discriminator 1
+  87              	@ 353 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+  88 002e 62B6     		CPSIE i   
+  89              	
+  90              	@ 0 "" 2
+  91              		.thumb
+  92              	.L1:
+ 356:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+  93              		.loc 1 356 0 is_stmt 1
+  94 0030 02B0     		add	sp, sp, #8
+  95              	.LCFI1:
+  96              		.cfi_def_cfa_offset 8
+  97              		@ sp needed
+  98 0032 10BD     		pop	{r4, pc}
+  99              	.L9:
+ 100              		.align	2
+ 101              	.L8:
+ 102 0034 00000000 		.word	xTaskIncrementTick
+ 103 0038 00000000 		.word	.LANCHOR0
+ 104 003c 00000000 		.word	rtc_timer_update_ms
+ 105              		.cfi_endproc
+ 106              	.LFE7:
+ 108              		.section	.text.pxPortInitialiseStack,"ax",%progbits
+ 109              		.align	1
+ 110              		.global	pxPortInitialiseStack
+ 111              		.thumb
+ 112              		.thumb_func
+ 114              	pxPortInitialiseStack:
+ 115              	.LFB1:
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Setup the initial stack of the task.  The stack is set exactly as
+ 116              		.loc 1 177 0
+ 117              		.cfi_startproc
+ 118              		@ args = 0, pretend = 0, frame = 0
+ 119              		@ frame_needed = 0, uses_anonymous_args = 0
+ 120              	.LVL3:
+ 192:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 121              		.loc 1 192 0
+ 122 0000 11F0010F 		tst	r1, #1
+ 201:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 123              		.loc 1 201 0
+ 124 0004 40F8101C 		str	r1, [r0, #-16]
+ 207:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 125              		.loc 1 207 0
+ 126 0008 4FF01231 		mov	r1, #303174162
+ 127              	.LVL4:
+ 184:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 128              		.loc 1 184 0
+ 129 000c 4FF00003 		mov	r3, #0
+ 207:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 130              		.loc 1 207 0
+ 131 0010 40F8181C 		str	r1, [r0, #-24]
+ 209:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 132              		.loc 1 209 0
+ 133 0014 4FF01131 		mov	r1, #286331153
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Setup the initial stack of the task.  The stack is set exactly as
+ 134              		.loc 1 177 0
+ 135 0018 10B5     		push	{r4, lr}
+ 136              	.LCFI2:
+ 137              		.cfi_def_cfa_offset 8
+ 138              		.cfi_offset 4, -8
+ 139              		.cfi_offset 14, -4
+ 209:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 140              		.loc 1 209 0
+ 141 001a 40F81C1C 		str	r1, [r0, #-28]
+ 211:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 142              		.loc 1 211 0
+ 143 001e 4FF01031 		mov	r1, #269488144
+ 195:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 144              		.loc 1 195 0
+ 145 0022 08BF     		it	eq
+ 146 0024 1F24     		moveq	r4, #31
+ 211:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 147              		.loc 1 211 0
+ 148 0026 40F8201C 		str	r1, [r0, #-32]
+ 213:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 149              		.loc 1 213 0
+ 150 002a 4FF00931 		mov	r1, #151587081
+ 195:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 151              		.loc 1 195 0
+ 152 002e 18BF     		it	ne
+ 153 0030 3F24     		movne	r4, #63
+ 213:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 154              		.loc 1 213 0
+ 155 0032 40F8241C 		str	r1, [r0, #-36]
+ 215:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 156              		.loc 1 215 0
+ 157 0036 4FF00831 		mov	r1, #134744072
+ 184:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 158              		.loc 1 184 0
+ 159 003a 0360     		str	r3, [r0]
+ 160              	.LVL5:
+ 215:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 161              		.loc 1 215 0
+ 162 003c 40F8281C 		str	r1, [r0, #-40]
+ 217:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 163              		.loc 1 217 0
+ 164 0040 4FF00731 		mov	r1, #117901063
+ 186:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 165              		.loc 1 186 0
+ 166 0044 40F8043C 		str	r3, [r0, #-4]
+ 167              	.LVL6:
+ 217:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 168              		.loc 1 217 0
+ 169 0048 40F82C1C 		str	r1, [r0, #-44]
+ 219:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 170              		.loc 1 219 0
+ 171 004c 4FF00631 		mov	r1, #101058054
+ 188:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 172              		.loc 1 188 0
+ 173 0050 40F8083C 		str	r3, [r0, #-8]
+ 174              	.LVL7:
+ 219:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 175              		.loc 1 219 0
+ 176 0054 40F8301C 		str	r1, [r0, #-48]
+ 221:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 177              		.loc 1 221 0
+ 178 0058 4FF00531 		mov	r1, #84215045
+ 179 005c 40F80C4C 		str	r4, [r0, #-12]
+ 180              	.LVL8:
+ 181 0060 40F8341C 		str	r1, [r0, #-52]
+ 223:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 182              		.loc 1 223 0
+ 183 0064 4FF00431 		mov	r1, #67372036
+ 205:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 184              		.loc 1 205 0
+ 185 0068 40F8143C 		str	r3, [r0, #-20]
+ 186              	.LVL9:
+ 223:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 187              		.loc 1 223 0
+ 188 006c 40F8381C 		str	r1, [r0, #-56]
+ 189              	.LVL10:
+ 225:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 190              		.loc 1 225 0
+ 191 0070 4FF00331 		mov	r1, #50529027
+ 231:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 192              		.loc 1 231 0
+ 193 0074 40F8482C 		str	r2, [r0, #-72]
+ 225:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 194              		.loc 1 225 0
+ 195 0078 40F83C1C 		str	r1, [r0, #-60]
+ 196              	.LVL11:
+ 227:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 197              		.loc 1 227 0
+ 198 007c 4FF00231 		mov	r1, #33686018
+ 236:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 199              		.loc 1 236 0
+ 200 0080 40F84C3C 		str	r3, [r0, #-76]
+ 227:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 201              		.loc 1 227 0
+ 202 0084 40F8401C 		str	r1, [r0, #-64]
+ 203              	.LVL12:
+ 229:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	pxTopOfStack--;
+ 204              		.loc 1 229 0
+ 205 0088 4FF00131 		mov	r1, #16843009
+ 206 008c 40F8441C 		str	r1, [r0, #-68]
+ 207              	.LVL13:
+ 242:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 208              		.loc 1 242 0
+ 209 0090 40F8503D 		str	r3, [r0, #-80]!
+ 210              	.LVL14:
+ 245:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 211              		.loc 1 245 0
+ 212 0094 10BD     		pop	{r4, pc}
+ 213              		.cfi_endproc
+ 214              	.LFE1:
+ 216              		.section	.text.xPortStartScheduler,"ax",%progbits
+ 217              		.align	1
+ 218              		.global	xPortStartScheduler
+ 219              		.thumb
+ 220              		.thumb_func
+ 222              	xPortStartScheduler:
+ 223              	.LFB3:
+ 263:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** uint32_t ulAPSR;
+ 224              		.loc 1 263 0
+ 225              		.cfi_startproc
+ 226              		@ args = 0, pretend = 0, frame = 16
+ 227              		@ frame_needed = 0, uses_anonymous_args = 0
+ 228 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 229              	.LCFI3:
+ 230              		.cfi_def_cfa_offset 24
+ 231              		.cfi_offset 14, -4
+ 268:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	ulAPSR &= portAPSR_MODE_BITS_MASK;
+ 232              		.loc 1 268 0
+ 233              	@ 268 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+ 234 0002 EFF30083 		MRS r3, APSR
+ 235              	@ 0 "" 2
+ 236              	.LVL15:
+ 269:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	configASSERT( ulAPSR != portAPSR_USER_MODE );
+ 237              		.loc 1 269 0
+ 238              		.thumb
+ 239 0006 03F01F03 		and	r3, r3, #31
+ 240              	.LVL16:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 241              		.loc 1 270 0
+ 242 000a 102B     		cmp	r3, #16
+ 243 000c 0BD1     		bne	.L14
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 244              		.loc 1 270 0 is_stmt 0 discriminator 1
+ 245              	@ 270 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+ 246 000e 72B6     		CPSID i   
+ 247 0010 BFF34F8F 	DSB       
+ 248 0014 BFF36F8F 	ISB         
+ 249              	@ 0 "" 2
+ 250              		.thumb
+ 251 0018 1148     		ldr	r0, .L16
+ 252 001a 4FF48772 		mov	r2, #270
+ 253 001e 1149     		ldr	r1, .L16+4
+ 254 0020 114B     		ldr	r3, .L16+8
+ 255              	.LVL17:
+ 256 0022 9847     		blx	r3
+ 257              	.LVL18:
+ 258              	.L15:
+ 259 0024 FEE7     		b	.L15
+ 260              	.LVL19:
+ 261              	.L14:
+ 275:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		vPortSetupTickInterrupt();
+ 262              		.loc 1 275 0 is_stmt 1
+ 263              	@ 275 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+ 264 0026 72B6     		CPSID i   
+ 265 0028 BFF34F8F 	DSB       
+ 266 002c BFF36F8F 	ISB         
+ 267              	@ 0 "" 2
+ 268              		.thumb
+ 269              	.LBB14:
+ 270              	.LBB15:
+ 383:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 271              		.loc 1 383 0
+ 272 0030 0021     		movs	r1, #0
+ 273 0032 1022     		movs	r2, #16
+ 274 0034 6846     		mov	r0, sp
+ 275 0036 0D4B     		ldr	r3, .L16+12
+ 276              	.LVL20:
+ 277 0038 9847     		blx	r3
+ 278              	.LVL21:
+ 279 003a 4FF47A73 		mov	r3, #1000
+ 390:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	hal_timer_start(tick.chid);
+ 280              		.loc 1 390 0
+ 281 003e 6846     		mov	r0, sp
+ 383:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 282              		.loc 1 383 0
+ 283 0040 0193     		str	r3, [sp, #4]
+ 284 0042 0B4B     		ldr	r3, .L16+16
+ 285 0044 0293     		str	r3, [sp, #8]
+ 390:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	hal_timer_start(tick.chid);
+ 286              		.loc 1 390 0
+ 287 0046 0B4B     		ldr	r3, .L16+20
+ 288 0048 9847     		blx	r3
+ 289              	.LVL22:
+ 391:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 290              		.loc 1 391 0
+ 291 004a 9DF80000 		ldrb	r0, [sp]	@ zero_extendqisi2
+ 292 004e 0A4B     		ldr	r3, .L16+24
+ 293 0050 9847     		blx	r3
+ 294              	.LVL23:
+ 295              	.LBE15:
+ 296              	.LBE14:
+ 279:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 297              		.loc 1 279 0
+ 298 0052 0A4B     		ldr	r3, .L16+28
+ 299 0054 9847     		blx	r3
+ 300              	.LVL24:
+ 289:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** /*-----------------------------------------------------------*/
+ 301              		.loc 1 289 0
+ 302 0056 0020     		movs	r0, #0
+ 303 0058 05B0     		add	sp, sp, #20
+ 304              	.LCFI4:
+ 305              		.cfi_def_cfa_offset 4
+ 306              		@ sp needed
+ 307 005a 5DF804FB 		ldr	pc, [sp], #4
+ 308              	.L17:
+ 309 005e 00BF     		.align	2
+ 310              	.L16:
+ 311 0060 00000000 		.word	.LC0
+ 312 0064 00000000 		.word	.LANCHOR1
+ 313 0068 00000000 		.word	printf
+ 314 006c 00000000 		.word	memset
+ 315 0070 00000000 		.word	vPortTickISR
+ 316 0074 00000000 		.word	hal_timer_init
+ 317 0078 00000000 		.word	hal_timer_start
+ 318 007c 00000000 		.word	vPortRestoreTaskContext
+ 319              		.cfi_endproc
+ 320              	.LFE3:
+ 322              		.section	.text.vPortEndScheduler,"ax",%progbits
+ 323              		.align	1
+ 324              		.global	vPortEndScheduler
+ 325              		.thumb
+ 326              		.thumb_func
+ 328              	vPortEndScheduler:
+ 329              	.LFB4:
+ 293:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	/* Not implemented in ports where there is nothing to return to.
+ 330              		.loc 1 293 0
+ 331              		.cfi_startproc
+ 332              		@ args = 0, pretend = 0, frame = 0
+ 333              		@ frame_needed = 0, uses_anonymous_args = 0
+ 334 0000 08B5     		push	{r3, lr}
+ 335              	.LCFI5:
+ 336              		.cfi_def_cfa_offset 8
+ 337              		.cfi_offset 3, -8
+ 338              		.cfi_offset 14, -4
+ 296:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 339              		.loc 1 296 0
+ 340 0002 094B     		ldr	r3, .L21
+ 341 0004 1B68     		ldr	r3, [r3]
+ 342 0006 B3F57A7F 		cmp	r3, #1000
+ 343 000a 0BD0     		beq	.L18
+ 296:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** }
+ 344              		.loc 1 296 0 is_stmt 0 discriminator 1
+ 345              	@ 296 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+ 346 000c 72B6     		CPSID i   
+ 347 000e BFF34F8F 	DSB       
+ 348 0012 BFF36F8F 	ISB         
+ 349              	@ 0 "" 2
+ 350              		.thumb
+ 351 0016 0548     		ldr	r0, .L21+4
+ 352 0018 4FF49472 		mov	r2, #296
+ 353 001c 0449     		ldr	r1, .L21+8
+ 354 001e 054B     		ldr	r3, .L21+12
+ 355 0020 9847     		blx	r3
+ 356              	.LVL25:
+ 357              	.L20:
+ 358 0022 FEE7     		b	.L20
+ 359              	.L18:
+ 360 0024 08BD     		pop	{r3, pc}
+ 361              	.L22:
+ 362 0026 00BF     		.align	2
+ 363              	.L21:
+ 364 0028 00000000 		.word	.LANCHOR2
+ 365 002c 00000000 		.word	.LC0
+ 366 0030 00000000 		.word	.LANCHOR3
+ 367 0034 00000000 		.word	printf
+ 368              		.cfi_endproc
+ 369              	.LFE4:
+ 371              		.section	.text.vPortEnterCritical,"ax",%progbits
+ 372              		.align	1
+ 373              		.global	vPortEnterCritical
+ 374              		.thumb
+ 375              		.thumb_func
+ 377              	vPortEnterCritical:
+ 378              	.LFB5:
+ 301:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	portDISABLE_INTERRUPTS();
+ 379              		.loc 1 301 0 is_stmt 1
+ 380              		.cfi_startproc
+ 381              		@ args = 0, pretend = 0, frame = 0
+ 382              		@ frame_needed = 0, uses_anonymous_args = 0
+ 383 0000 08B5     		push	{r3, lr}
+ 384              	.LCFI6:
+ 385              		.cfi_def_cfa_offset 8
+ 386              		.cfi_offset 3, -8
+ 387              		.cfi_offset 14, -4
+ 302:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 388              		.loc 1 302 0
+ 389              	@ 302 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+ 390 0002 72B6     		CPSID i   
+ 391 0004 BFF34F8F 	DSB       
+ 392 0008 BFF36F8F 	ISB         
+ 393              	@ 0 "" 2
+ 307:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 394              		.loc 1 307 0
+ 395              		.thumb
+ 396 000c 0B4B     		ldr	r3, .L29
+ 397 000e 1A68     		ldr	r2, [r3]
+ 398 0010 0132     		adds	r2, r2, #1
+ 399 0012 1A60     		str	r2, [r3]
+ 314:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 400              		.loc 1 314 0
+ 401 0014 1B68     		ldr	r3, [r3]
+ 402 0016 012B     		cmp	r3, #1
+ 403 0018 0ED1     		bne	.L23
+ 316:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 404              		.loc 1 316 0
+ 405 001a 094B     		ldr	r3, .L29+4
+ 406 001c 1B68     		ldr	r3, [r3]
+ 407 001e 5BB1     		cbz	r3, .L23
+ 316:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	}
+ 408              		.loc 1 316 0 is_stmt 0 discriminator 1
+ 409              	@ 316 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+ 410 0020 72B6     		CPSID i   
+ 411 0022 BFF34F8F 	DSB       
+ 412 0026 BFF36F8F 	ISB         
+ 413              	@ 0 "" 2
+ 414              		.thumb
+ 415 002a 0648     		ldr	r0, .L29+8
+ 416 002c 4FF49E72 		mov	r2, #316
+ 417 0030 0549     		ldr	r1, .L29+12
+ 418 0032 064B     		ldr	r3, .L29+16
+ 419 0034 9847     		blx	r3
+ 420              	.LVL26:
+ 421              	.L25:
+ 422 0036 FEE7     		b	.L25
+ 423              	.L23:
+ 424 0038 08BD     		pop	{r3, pc}
+ 425              	.L30:
+ 426 003a 00BF     		.align	2
+ 427              	.L29:
+ 428 003c 00000000 		.word	.LANCHOR2
+ 429 0040 00000000 		.word	.LANCHOR4
+ 430 0044 00000000 		.word	.LC0
+ 431 0048 00000000 		.word	.LANCHOR5
+ 432 004c 00000000 		.word	printf
+ 433              		.cfi_endproc
+ 434              	.LFE5:
+ 436              		.section	.text.vPortExitCritical,"ax",%progbits
+ 437              		.align	1
+ 438              		.global	vPortExitCritical
+ 439              		.thumb
+ 440              		.thumb_func
+ 442              	vPortExitCritical:
+ 443              	.LFB6:
+ 322:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	if( ulCriticalNesting > portNO_CRITICAL_NESTING )
+ 444              		.loc 1 322 0 is_stmt 1
+ 445              		.cfi_startproc
+ 446              		@ args = 0, pretend = 0, frame = 0
+ 447              		@ frame_needed = 0, uses_anonymous_args = 0
+ 448              		@ link register save eliminated.
+ 323:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 	{
+ 449              		.loc 1 323 0
+ 450 0000 044B     		ldr	r3, .L35
+ 451 0002 1A68     		ldr	r2, [r3]
+ 452 0004 2AB1     		cbz	r2, .L31
+ 327:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 
+ 453              		.loc 1 327 0
+ 454 0006 1A68     		ldr	r2, [r3]
+ 455 0008 013A     		subs	r2, r2, #1
+ 456 000a 1A60     		str	r2, [r3]
+ 331:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		{
+ 457              		.loc 1 331 0
+ 458 000c 1B68     		ldr	r3, [r3]
+ 459 000e 03B9     		cbnz	r3, .L31
+ 335:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** 		}
+ 460              		.loc 1 335 0
+ 461              	@ 335 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c" 1
+ 462 0010 62B6     		CPSIE i   
+ 463              	
+ 464              	@ 0 "" 2
+ 465              		.thumb
+ 466              	.L31:
+ 467 0012 7047     		bx	lr
+ 468              	.L36:
+ 469              		.align	2
+ 470              	.L35:
+ 471 0014 00000000 		.word	.LANCHOR2
+ 472              		.cfi_endproc
+ 473              	.LFE6:
+ 475              		.section	.text.vPortTaskUsesFPU,"ax",%progbits
+ 476              		.align	1
+ 477              		.global	vPortTaskUsesFPU
+ 478              		.thumb
+ 479              		.thumb_func
+ 481              	vPortTaskUsesFPU:
+ 482              	.LFB8:
+ 360:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/port.c **** #ifdef _HAVE_FPU
+ 483              		.loc 1 360 0
+ 484              		.cfi_startproc
+ 485              		@ args = 0, pretend = 0, frame = 0
+ 486              		@ frame_needed = 0, uses_anonymous_args = 0
+ 487              		@ link register save eliminated.
+ 488 0000 7047     		bx	lr
+ 489              		.cfi_endproc
+ 490              	.LFE8:
+ 492              		.global	ulICCEOIR
+ 493              		.global	ulPortInterruptNesting
+ 494              		.global	ulPortYieldRequired
+ 495              		.global	ulPortTaskHasFPUContext
+ 496              		.global	ulCriticalNesting
+ 497              		.section	.rodata.ulICCEOIR,"a",%progbits
+ 498              		.align	2
+ 501              	ulICCEOIR:
+ 502 0000 002F0302 		.word	33763072
+ 503              		.section	.rodata.__FUNCTION__.5780,"a",%progbits
+ 504              		.set	.LANCHOR3,. + 0
+ 507              	__FUNCTION__.5780:
+ 508 0000 76506F72 		.ascii	"vPortEndScheduler\000"
+ 508      74456E64 
+ 508      53636865 
+ 508      64756C65 
+ 508      7200
+ 509              		.section	.bss.ulPortTaskHasFPUContext,"aw",%nobits
+ 510              		.align	2
+ 513              	ulPortTaskHasFPUContext:
+ 514 0000 00000000 		.space	4
+ 515              		.section	.bss.ulPortInterruptNesting,"aw",%nobits
+ 516              		.align	2
+ 517              		.set	.LANCHOR4,. + 0
+ 520              	ulPortInterruptNesting:
+ 521 0000 00000000 		.space	4
+ 522              		.section	.bss.ulPortYieldRequired,"aw",%nobits
+ 523              		.align	2
+ 524              		.set	.LANCHOR0,. + 0
+ 527              	ulPortYieldRequired:
+ 528 0000 00000000 		.space	4
+ 529              		.section	.data.ulCriticalNesting,"aw",%progbits
+ 530              		.align	2
+ 531              		.set	.LANCHOR2,. + 0
+ 534              	ulCriticalNesting:
+ 535 0000 0F270000 		.word	9999
+ 536              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 537              	.LC0:
+ 538 0000 0D0A5B25 		.ascii	"\015\012[%s: %d]: Invalid argument!\015\012\000"
+ 538      733A2025 
+ 538      645D3A20 
+ 538      496E7661 
+ 538      6C696420 
+ 539              		.section	.rodata.__FUNCTION__.5775,"a",%progbits
+ 540              		.set	.LANCHOR1,. + 0
+ 543              	__FUNCTION__.5775:
+ 544 0000 78506F72 		.ascii	"xPortStartScheduler\000"
+ 544      74537461 
+ 544      72745363 
+ 544      68656475 
+ 544      6C657200 
+ 545              		.section	.rodata.__FUNCTION__.5785,"a",%progbits
+ 546              		.set	.LANCHOR5,. + 0
+ 549              	__FUNCTION__.5785:
+ 550 0000 76506F72 		.ascii	"vPortEnterCritical\000"
+ 550      74456E74 
+ 550      65724372 
+ 550      69746963 
+ 550      616C00
+ 551              		.text
+ 552              	.Letext0:
+ 553              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 554              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 555              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/projdefs.h"
+ 556              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_timer.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 port.c
+     /tmp/ccwrmRoe.s:19     .text.vPortTickISR:00000000 $t
+     /tmp/ccwrmRoe.s:24     .text.vPortTickISR:00000000 vPortTickISR
+     /tmp/ccwrmRoe.s:102    .text.vPortTickISR:00000034 $d
+     /tmp/ccwrmRoe.s:109    .text.pxPortInitialiseStack:00000000 $t
+     /tmp/ccwrmRoe.s:114    .text.pxPortInitialiseStack:00000000 pxPortInitialiseStack
+     /tmp/ccwrmRoe.s:217    .text.xPortStartScheduler:00000000 $t
+     /tmp/ccwrmRoe.s:222    .text.xPortStartScheduler:00000000 xPortStartScheduler
+     /tmp/ccwrmRoe.s:311    .text.xPortStartScheduler:00000060 $d
+     /tmp/ccwrmRoe.s:323    .text.vPortEndScheduler:00000000 $t
+     /tmp/ccwrmRoe.s:328    .text.vPortEndScheduler:00000000 vPortEndScheduler
+     /tmp/ccwrmRoe.s:364    .text.vPortEndScheduler:00000028 $d
+     /tmp/ccwrmRoe.s:372    .text.vPortEnterCritical:00000000 $t
+     /tmp/ccwrmRoe.s:377    .text.vPortEnterCritical:00000000 vPortEnterCritical
+     /tmp/ccwrmRoe.s:428    .text.vPortEnterCritical:0000003c $d
+     /tmp/ccwrmRoe.s:437    .text.vPortExitCritical:00000000 $t
+     /tmp/ccwrmRoe.s:442    .text.vPortExitCritical:00000000 vPortExitCritical
+     /tmp/ccwrmRoe.s:471    .text.vPortExitCritical:00000014 $d
+     /tmp/ccwrmRoe.s:476    .text.vPortTaskUsesFPU:00000000 $t
+     /tmp/ccwrmRoe.s:481    .text.vPortTaskUsesFPU:00000000 vPortTaskUsesFPU
+     /tmp/ccwrmRoe.s:501    .rodata.ulICCEOIR:00000000 ulICCEOIR
+     /tmp/ccwrmRoe.s:520    .bss.ulPortInterruptNesting:00000000 ulPortInterruptNesting
+     /tmp/ccwrmRoe.s:527    .bss.ulPortYieldRequired:00000000 ulPortYieldRequired
+     /tmp/ccwrmRoe.s:513    .bss.ulPortTaskHasFPUContext:00000000 ulPortTaskHasFPUContext
+     /tmp/ccwrmRoe.s:534    .data.ulCriticalNesting:00000000 ulCriticalNesting
+     /tmp/ccwrmRoe.s:498    .rodata.ulICCEOIR:00000000 $d
+     /tmp/ccwrmRoe.s:507    .rodata.__FUNCTION__.5780:00000000 __FUNCTION__.5780
+     /tmp/ccwrmRoe.s:510    .bss.ulPortTaskHasFPUContext:00000000 $d
+     /tmp/ccwrmRoe.s:516    .bss.ulPortInterruptNesting:00000000 $d
+     /tmp/ccwrmRoe.s:523    .bss.ulPortYieldRequired:00000000 $d
+     /tmp/ccwrmRoe.s:530    .data.ulCriticalNesting:00000000 $d
+     /tmp/ccwrmRoe.s:543    .rodata.__FUNCTION__.5775:00000000 __FUNCTION__.5775
+     /tmp/ccwrmRoe.s:549    .rodata.__FUNCTION__.5785:00000000 __FUNCTION__.5785
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+xTaskIncrementTick
+rtc_timer_update_ms
+printf
+memset
+hal_timer_init
+hal_timer_start
+vPortRestoreTaskContext

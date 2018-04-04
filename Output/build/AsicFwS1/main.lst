@@ -1,0 +1,1327 @@
+   1              		.cpu cortex-r4
+   2              		.fpu softvfp
+   3              		.eabi_attribute 20, 1
+   4              		.eabi_attribute 21, 1
+   5              		.eabi_attribute 23, 3
+   6              		.eabi_attribute 24, 1
+   7              		.eabi_attribute 25, 1
+   8              		.eabi_attribute 26, 1
+   9              		.eabi_attribute 30, 4
+  10              		.eabi_attribute 34, 1
+  11              		.eabi_attribute 18, 4
+  12              		.file	"main.c"
+  13              		.text
+  14              	.Ltext0:
+  15              		.cfi_sections	.debug_frame
+  16              		.section	.text.authenticate_s2fw_flash,"ax",%progbits
+  17              		.align	2
+  19              	authenticate_s2fw_flash:
+  20              	.LFB1:
+  21              		.file 1 "/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c"
+   1:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * modification, are strictly prohibited without prior permission of
+   6:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * The LightCo.
+   7:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  *
+   8:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * @file    main.c
+   9:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * @author  The LightCo
+  10:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * @version V1.0.0
+  11:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * @date    Jan-28-2016
+  12:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * @brief   This file contains expand of the main application.
+  13:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  *
+  14:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  ******************************************************************************/
+  15:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Includes ------------------------------------------------------------------*/
+  16:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include <stdlib.h>
+  17:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include <stdio.h>
+  18:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include <string.h>
+  19:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include "hal_com.h"
+  20:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include "hal_gpio.h"
+  21:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include "hal_pwm.h"
+  22:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include "hal_ddr.h"
+  23:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include "hal_cache.h"
+  24:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include "flash.h"
+  25:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #include "sb.h"
+  26:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+  27:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Exported define -----------------------------------------------------------*/
+  28:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define ASICFW_S2_ADDR			0x02280000
+  29:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define TCM_BASE_ADDR			0x03300000
+  30:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define	ACTIVE_FW_ID			0x060000
+  31:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define FLASH_SPACE_1			0x010000
+  32:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define FLASH_SPACE_2			0x070000
+  33:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define FLASH_SPACE_3			0x0C0000
+  34:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define SYSIMG_HDR_MAX_SIZE		512
+  35:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define SYSIMG_HDR_SIZE			340
+  36:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #define	EFUSE_PUB_KEY			0x02031008
+  37:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** extern void udelay( unsigned long usec );
+  38:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Private typedef -----------------------------------------------------------*/
+  39:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /**
+  40:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * @brief firmware_header_t
+  41:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  */
+  42:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** typedef struct s2_section_header
+  43:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+  44:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	uint32_t	ext_linear_addr;
+  45:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	uint32_t	data_size;
+  46:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** } s2_section_header_t;
+  47:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+  48:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** static const qspi_ctrl_mode_t qspi_ctrl =
+  49:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+  50:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.div_sclk			= 4,
+  51:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.chip_select		= 1,
+  52:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.sout1_default	= 1,
+  53:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.sout2_default	= 1,
+  54:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.sout3_default	= 1,
+  55:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.sclk_default		= 1,
+  56:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.post_cycle		= 1,
+  57:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.pre_cycle		= 2,
+  58:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pio1_ctrl.idle_cycle		= 2,
+  59:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+  60:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.div_sclk			= 1,
+  61:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.chip_select		= 1,
+  62:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.sout1_default		= 1,
+  63:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.sout2_default		= 1,
+  64:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.sout3_default		= 1,
+  65:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.sclk_default		= 1,
+  66:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.post_cycle			= 1,
+  67:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.pre_cycle			= 2,
+  68:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.pp_ctrl.idle_cycle			= 2
+  69:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** };
+  70:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+  71:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Global function -----------------------------------------------------------*/
+  72:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** extern void jump_to_SRAM(void);
+  73:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** extern void timestamp_start(void);
+  74:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** extern unsigned int timestamp_ms(void);
+  75:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** extern void timerN_enable( int n );
+  76:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** extern void timerN_config( int n, unsigned int rate, int enable_int);
+  77:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Local function ------------------------------------------------------------*/
+  78:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Polynomial Used : a001 (hex) */
+  79:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+  80:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** static uint8_t usart_data;
+  81:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Local com driver configure */
+  82:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** static hal_com_t uart =
+  83:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+  84:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.port_name		= COM1,
+  85:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.baudrate		= COM_BAUD_115200,
+  86:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.irq_handler	= NULL,
+  87:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	.data			= &usart_data
+  88:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** };
+  89:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+  90:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** unsigned long src_addr;
+  91:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+  92:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /*
+  93:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * _write
+  94:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  * Retarget printf function with USART IP
+  95:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****  */
+  96:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** int _write(int file, char *ptr, int len)
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+  98:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int n;
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	for (n = 0; n < len; n++)
+ 100:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		*(uart.data) = *ptr++;
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		hal_com_sendbyte(&uart);
+ 103:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	}
+ 104:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	return n;
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** }
+ 106:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #ifndef BYPASS_AUTHENTICATE
+ 107:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** static int proxy_read_flash(unsigned char *dst, unsigned long long src,
+ 108:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 															unsigned long len)
+ 109:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+ 110:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	if(src >= ASICFW_S2_ADDR)
+ 111:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 112:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		sb_proxy_read(dst, src, len);
+ 113:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	}
+ 114:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	else
+ 115:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 116:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		if(flash_read(src, len, (uint8_t *)dst, QSPI_MODE) != FLASH_SUCCESS)
+ 117:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			return SB_CANNOT_READ;
+ 118:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	}
+ 119:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	return SB_OK;
+ 120:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** }
+ 121:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 122:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** static int proxy_write_flash(unsigned long long dst, const unsigned char *src,
+ 123:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 															unsigned long len)
+ 124:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+ 125:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	return sb_proxy_write(dst, src, len);
+ 126:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** }
+ 127:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #endif
+ 128:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 129:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** static int authenticate_s2fw_flash(void)
+ 130:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+  22              		.loc 1 130 0
+  23              		.cfi_startproc
+  24              		@ args = 0, pretend = 0, frame = 1800
+  25              		@ frame_needed = 0, uses_anonymous_args = 0
+  26              	.LVL0:
+  27 0000 30402DE9 		stmfd	sp!, {r4, r5, lr}
+  28              	.LCFI0:
+  29              		.cfi_def_cfa_offset 12
+  30              		.cfi_offset 4, -12
+  31              		.cfi_offset 5, -8
+  32              		.cfi_offset 14, -4
+  33 0004 07DC4DE2 		sub	sp, sp, #1792
+  34              	.LCFI1:
+  35              		.cfi_def_cfa_offset 1804
+  36 0008 0CD04DE2 		sub	sp, sp, #12
+  37              	.LCFI2:
+  38              		.cfi_def_cfa_offset 1816
+ 131:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned char active_fw_id;
+ 132:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned long s1_length;
+ 133:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int stat = 1;
+ 134:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned char page_buf[512], sys_buf[1024];
+ 135:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned char *eFuse = (unsigned char *)EFUSE_PUB_KEY;
+ 136:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned char pub_key[260];
+ 137:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	memcpy(pub_key, eFuse, 128);
+  39              		.loc 1 137 0
+  40 000c E8109FE5 		ldr	r1, .L9
+  41 0010 8020A0E3 		mov	r2, #128
+  42 0014 04008DE2 		add	r0, sp, #4
+  43 0018 FEFFFFEB 		bl	memcpy
+  44              	.LVL1:
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	memcpy(pub_key + 256, eFuse + 128, 4);
+  45              		.loc 1 138 0
+  46 001c DC309FE5 		ldr	r3, .L9+4
+ 139:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Read firmware S1 header */
+ 140:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	flash_read(ACTIVE_FW_ID, 1, (unsigned char *) &active_fw_id, QSPI_MODE);
+  47              		.loc 1 140 0
+  48 0020 0110A0E3 		mov	r1, #1
+  49 0024 03208DE2 		add	r2, sp, #3
+  50 0028 0608A0E3 		mov	r0, #393216
+ 138:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	memcpy(pub_key + 256, eFuse + 128, 4);
+  51              		.loc 1 138 0
+  52 002c 883093E5 		ldr	r3, [r3, #136]
+  53 0030 04318DE5 		str	r3, [sp, #260]
+  54              		.loc 1 140 0
+  55 0034 0130A0E1 		mov	r3, r1
+  56 0038 FEFFFFEB 		bl	flash_read
+  57              	.LVL2:
+ 141:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("ACTIVE_FW_ID: %d\r\n", (unsigned int)active_fw_id);
+  58              		.loc 1 141 0
+  59 003c C0009FE5 		ldr	r0, .L9+8
+  60 0040 0310DDE5 		ldrb	r1, [sp, #3]	@ zero_extendqisi2
+  61 0044 FEFFFFEB 		bl	printf
+  62              	.LVL3:
+ 142:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	if(active_fw_id == 1)
+  63              		.loc 1 143 0
+  64 0048 0330DDE5 		ldrb	r3, [sp, #3]	@ zero_extendqisi2
+  65 004c 010053E3 		cmp	r3, #1
+ 144:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		src_addr = FLASH_SPACE_1;
+  66              		.loc 1 144 0
+  67 0050 0128A003 		moveq	r2, #65536
+ 143:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		src_addr = FLASH_SPACE_1;
+  68              		.loc 1 143 0
+  69 0054 0300000A 		beq	.L7
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	else if (active_fw_id == 2)
+  70              		.loc 1 145 0
+  71 0058 020053E3 		cmp	r3, #2
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		src_addr = FLASH_SPACE_2;
+ 147:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	else
+ 148:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		return 0;
+  72              		.loc 1 148 0
+  73 005c 0000A013 		movne	r0, #0
+ 145:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	else if (active_fw_id == 2)
+  74              		.loc 1 145 0
+  75 0060 2200001A 		bne	.L4
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		src_addr = FLASH_SPACE_2;
+  76              		.loc 1 146 0
+  77 0064 0728A0E3 		mov	r2, #458752
+  78              	.L7:
+ 149:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	flash_read(src_addr + 24, 4, page_buf, QSPI_MODE);
+  79              		.loc 1 150 0
+  80 0068 98509FE5 		ldr	r5, .L9+12
+  81 006c 0410A0E3 		mov	r1, #4
+ 146:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		src_addr = FLASH_SPACE_2;
+  82              		.loc 1 146 0
+  83 0070 90309FE5 		ldr	r3, .L9+12
+  84 0074 002083E5 		str	r2, [r3]
+  85              		.loc 1 150 0
+  86 0078 422F8DE2 		add	r2, sp, #264
+  87 007c 000095E5 		ldr	r0, [r5]
+  88 0080 0130A0E3 		mov	r3, #1
+  89 0084 180080E2 		add	r0, r0, #24
+  90 0088 FEFFFFEB 		bl	flash_read
+  91              	.LVL4:
+ 151:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_length = page_buf[0] << 24;
+ 153:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_length |= page_buf[1] << 16;
+  92              		.loc 1 153 0
+  93 008c 0931DDE5 		ldrb	r3, [sp, #265]	@ zero_extendqisi2
+  94 0090 0338A0E1 		mov	r3, r3, asl #16
+ 152:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_length |= page_buf[1] << 16;
+  95              		.loc 1 152 0
+  96 0094 0841DDE5 		ldrb	r4, [sp, #264]	@ zero_extendqisi2
+  97              	.LVL5:
+  98              		.loc 1 153 0
+  99 0098 044C83E1 		orr	r4, r3, r4, asl #24
+ 100              	.LVL6:
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_length |= page_buf[2] << 8;
+ 155:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_length |= page_buf[3];
+ 101              		.loc 1 155 0
+ 102 009c 0B31DDE5 		ldrb	r3, [sp, #267]	@ zero_extendqisi2
+ 103 00a0 033084E1 		orr	r3, r4, r3
+ 154:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_length |= page_buf[2] << 8;
+ 104              		.loc 1 154 0
+ 105 00a4 0A41DDE5 		ldrb	r4, [sp, #266]	@ zero_extendqisi2
+ 106              		.loc 1 155 0
+ 107 00a8 044483E1 		orr	r4, r3, r4, asl #8
+ 108              	.LVL7:
+ 156:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("S1 firmware length: %x\r\n", (unsigned int)s1_length);
+ 109              		.loc 1 156 0
+ 110 00ac 0410A0E1 		mov	r1, r4
+ 111 00b0 54009FE5 		ldr	r0, .L9+16
+ 112 00b4 FEFFFFEB 		bl	printf
+ 113              	.LVL8:
+ 114 00b8 001095E5 		ldr	r1, [r5]
+ 157:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* memory map:
+ 158:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	 * +0			  +340           +S1 size       +340
+ 159:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	 * [S1 sys header][    S1 fw    ][S2 sys header][    S2 fw     ]
+ 160:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	 */
+ 161:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("S2 offset: %x\r\n", (unsigned int)(src_addr + s1_length + 340));
+ 115              		.loc 1 161 0
+ 116 00bc 4C009FE5 		ldr	r0, .L9+20
+ 117 00c0 551F81E2 		add	r1, r1, #340
+ 118 00c4 041081E0 		add	r1, r1, r4
+ 119 00c8 FEFFFFEB 		bl	printf
+ 120              	.LVL9:
+ 162:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 163:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	memset(page_buf, 0, sizeof(page_buf));
+ 121              		.loc 1 163 0
+ 122 00cc 0010A0E3 		mov	r1, #0
+ 123 00d0 022CA0E3 		mov	r2, #512
+ 124 00d4 420F8DE2 		add	r0, sp, #264
+ 125 00d8 FEFFFFEB 		bl	memset
+ 126              	.LVL10:
+ 164:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	memset(sys_buf, 0, sizeof(sys_buf));
+ 127              		.loc 1 164 0
+ 128 00dc C20F8DE2 		add	r0, sp, #776
+ 129 00e0 0010A0E3 		mov	r1, #0
+ 130 00e4 012BA0E3 		mov	r2, #1024
+ 131 00e8 FEFFFFEB 		bl	memset
+ 132              	.LVL11:
+ 165:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #ifndef BYPASS_AUTHENTICATE
+ 166:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned long long first_address = 0;
+ 167:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned long version = 0;
+ 168:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int elp_ret = elp_secureboot_phase0b(proxy_read_flash, proxy_write_flash,
+ 169:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									NULL,
+ 170:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									pub_key, sizeof(pub_key),
+ 171:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									(unsigned long long)(src_addr + s1_length + 340),
+ 172:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									&first_address,
+ 173:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									&version,
+ 174:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									&stat,
+ 175:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									page_buf, sizeof(page_buf),
+ 176:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									sys_buf, sizeof(sys_buf)
+ 177:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 									);
+ 178:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	if(elp_ret != SB_OK)
+ 179:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 180:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		printf("Authentication failed. SB error code [%x] \r\n", elp_ret);
+ 181:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		return 0;
+ 182:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	}
+ 183:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #endif
+ 184:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	return stat;
+ 133              		.loc 1 184 0
+ 134 00ec 0100A0E3 		mov	r0, #1
+ 135              	.LVL12:
+ 136              	.L4:
+ 185:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** }
+ 137              		.loc 1 185 0
+ 138 00f0 07DC8DE2 		add	sp, sp, #1792
+ 139 00f4 0CD08DE2 		add	sp, sp, #12
+ 140              	.LCFI3:
+ 141              		.cfi_def_cfa_offset 12
+ 142              		@ sp needed
+ 143 00f8 3080BDE8 		ldmfd	sp!, {r4, r5, pc}
+ 144              	.L10:
+ 145              		.align	2
+ 146              	.L9:
+ 147 00fc 08100302 		.word	33755144
+ 148 0100 00100302 		.word	33755136
+ 149 0104 00000000 		.word	.LC0
+ 150 0108 00000000 		.word	src_addr
+ 151 010c 13000000 		.word	.LC1
+ 152 0110 2C000000 		.word	.LC2
+ 153              		.cfi_endproc
+ 154              	.LFE1:
+ 156              		.section	.text._write,"ax",%progbits
+ 157              		.align	2
+ 158              		.global	_write
+ 160              	_write:
+ 161              	.LFB0:
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int n;
+ 162              		.loc 1 97 0
+ 163              		.cfi_startproc
+ 164              		@ args = 0, pretend = 0, frame = 0
+ 165              		@ frame_needed = 0, uses_anonymous_args = 0
+ 166              	.LVL13:
+ 167 0000 70402DE9 		stmfd	sp!, {r4, r5, r6, lr}
+ 168              	.LCFI4:
+ 169              		.cfi_def_cfa_offset 16
+ 170              		.cfi_offset 4, -16
+ 171              		.cfi_offset 5, -12
+ 172              		.cfi_offset 6, -8
+ 173              		.cfi_offset 14, -4
+  97:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int n;
+ 174              		.loc 1 97 0
+ 175 0004 0160A0E1 		mov	r6, r1
+ 176 0008 0250A0E1 		mov	r5, r2
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 177              		.loc 1 99 0
+ 178 000c 0140A0E1 		mov	r4, r1
+ 179              	.LVL14:
+ 180              	.L12:
+ 181 0010 043066E0 		rsb	r3, r6, r4
+ 182              	.LVL15:
+  99:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 183              		.loc 1 99 0 is_stmt 0 discriminator 1
+ 184 0014 050053E1 		cmp	r3, r5
+ 185 0018 050000AA 		bge	.L15
+ 101:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		hal_com_sendbyte(&uart);
+ 186              		.loc 1 101 0 is_stmt 1 discriminator 3
+ 187 001c 18009FE5 		ldr	r0, .L16
+ 188 0020 0120D4E4 		ldrb	r2, [r4], #1	@ zero_extendqisi2
+ 189              	.LVL16:
+ 190 0024 0C3090E5 		ldr	r3, [r0, #12]
+ 191              	.LVL17:
+ 192 0028 0020C3E5 		strb	r2, [r3]
+ 102:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	}
+ 193              		.loc 1 102 0 discriminator 3
+ 194 002c FEFFFFEB 		bl	hal_com_sendbyte
+ 195              	.LVL18:
+ 196 0030 F6FFFFEA 		b	.L12
+ 197              	.LVL19:
+ 198              	.L15:
+ 105:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #ifndef BYPASS_AUTHENTICATE
+ 199              		.loc 1 105 0
+ 200 0034 C50FC5E1 		bic	r0, r5, r5, asr #31
+ 201 0038 7080BDE8 		ldmfd	sp!, {r4, r5, r6, pc}
+ 202              	.L17:
+ 203              		.align	2
+ 204              	.L16:
+ 205 003c 00000000 		.word	.LANCHOR0
+ 206              		.cfi_endproc
+ 207              	.LFE0:
+ 209              		.section	.text.load_fws2,"ax",%progbits
+ 210              		.align	2
+ 211              		.global	load_fws2
+ 213              	load_fws2:
+ 214              	.LFB2:
+ 186:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 187:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** int load_fws2(void)
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+ 215              		.loc 1 188 0
+ 216              		.cfi_startproc
+ 217              		@ args = 0, pretend = 0, frame = 24
+ 218              		@ frame_needed = 0, uses_anonymous_args = 0
+ 219              	.LVL20:
+ 220 0000 F0472DE9 		stmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, lr}
+ 221              	.LCFI5:
+ 222              		.cfi_def_cfa_offset 32
+ 223              		.cfi_offset 4, -32
+ 224              		.cfi_offset 5, -28
+ 225              		.cfi_offset 6, -24
+ 226              		.cfi_offset 7, -20
+ 227              		.cfi_offset 8, -16
+ 228              		.cfi_offset 9, -12
+ 229              		.cfi_offset 10, -8
+ 230              		.cfi_offset 14, -4
+ 189:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned char       s2_fw_header[4];
+ 190:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned char       s1_fw_header[4];
+ 191:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned int		s2_fw_offset = 0, s2_hdr_offset = 0;
+ 193:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned int        s1_fw_size = 0;
+ 194:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned int        s2_fw_size = 0;
+ 195:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	uint8_t				*code_ptr = (uint8_t *)ASICFW_S2_ADDR;
+ 196:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 197:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Read firmware S1 header */
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	flash_read(src_addr + 24, sizeof(s1_fw_header), s1_fw_header, QSPI_MODE);
+ 231              		.loc 1 198 0
+ 232 0004 B8419FE5 		ldr	r4, .L24
+ 188:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned char       s2_fw_header[4];
+ 233              		.loc 1 188 0
+ 234 0008 18D04DE2 		sub	sp, sp, #24
+ 235              	.LCFI6:
+ 236              		.cfi_def_cfa_offset 56
+ 237              		.loc 1 198 0
+ 238 000c 0410A0E3 		mov	r1, #4
+ 239 0010 0130A0E3 		mov	r3, #1
+ 240 0014 01208DE0 		add	r2, sp, r1
+ 241 0018 000094E5 		ldr	r0, [r4]
+ 199:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[0]) << 24);
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[1]) << 16);
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[2]) << 8);
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[3]));
+ 204:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_hdr_offset = src_addr + SYSIMG_HDR_SIZE + s1_fw_size;
+ 206:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("S1 firmware size: %x\r\n", s1_fw_size);
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("S2 header offset: %x\r\n", s2_hdr_offset);
+ 209:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Read firmware S2 header*/
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	flash_read(s2_hdr_offset + 24, sizeof(s2_fw_header), s2_fw_header, QSPI_MODE);
+ 211:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[0]) << 24);
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[1]) << 16);
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[2]) << 8);
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[3]));
+ 216:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("S2 firmware size: %x\r\n", s2_fw_size);
+ 218:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	memset(code_ptr, 0, s2_fw_size);
+ 220:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_offset = s2_hdr_offset + SYSIMG_HDR_SIZE;
+ 222:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("S2 firmware offset without header: %x\r\n", s2_fw_size);
+ 224:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Start Load S2 Firmware */
+ 225:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_section_header_t section_header;
+ 226:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	uint32_t     flash_offset		= s2_fw_offset;
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	uint8_t      tmp_buf[8]			= {0x00};
+ 242              		.loc 1 227 0
+ 243 001c 0070A0E3 		mov	r7, #0
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int          section_count		= 0;
+ 229:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	unsigned int section_total_size	= 0;
+ 244              		.loc 1 229 0
+ 245 0020 0780A0E1 		mov	r8, r7
+ 228:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int          section_count		= 0;
+ 246              		.loc 1 228 0
+ 247 0024 0790A0E1 		mov	r9, r7
+ 198:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 248              		.loc 1 198 0
+ 249 0028 180080E2 		add	r0, r0, #24
+ 250 002c FEFFFFEB 		bl	flash_read
+ 251              	.LVL21:
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[2]) << 8);
+ 252              		.loc 1 201 0
+ 253 0030 0510DDE5 		ldrb	r1, [sp, #5]	@ zero_extendqisi2
+ 254 0034 0118A0E1 		mov	r1, r1, asl #16
+ 200:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[1]) << 16);
+ 255              		.loc 1 200 0
+ 256 0038 0430DDE5 		ldrb	r3, [sp, #4]	@ zero_extendqisi2
+ 201:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[2]) << 8);
+ 257              		.loc 1 201 0
+ 258 003c 031C81E1 		orr	r1, r1, r3, asl #24
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 259              		.loc 1 203 0
+ 260 0040 0730DDE5 		ldrb	r3, [sp, #7]	@ zero_extendqisi2
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 261              		.loc 1 205 0
+ 262 0044 004094E5 		ldr	r4, [r4]
+ 263 0048 031081E1 		orr	r1, r1, r3
+ 202:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s1_fw_size |= (uint32_t)((uint32_t)(s1_fw_header[3]));
+ 264              		.loc 1 202 0
+ 265 004c 0630DDE5 		ldrb	r3, [sp, #6]	@ zero_extendqisi2
+ 203:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 266              		.loc 1 203 0
+ 267 0050 031481E1 		orr	r1, r1, r3, asl #8
+ 268              	.LVL22:
+ 205:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 269              		.loc 1 205 0
+ 270 0054 044081E0 		add	r4, r1, r4
+ 271              	.LVL23:
+ 207:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("S2 header offset: %x\r\n", s2_hdr_offset);
+ 272              		.loc 1 207 0
+ 273 0058 68019FE5 		ldr	r0, .L24+4
+ 274 005c FEFFFFEB 		bl	printf
+ 275              	.LVL24:
+ 208:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Read firmware S2 header*/
+ 276              		.loc 1 208 0
+ 277 0060 551F84E2 		add	r1, r4, #340
+ 278              	.LVL25:
+ 279 0064 60019FE5 		ldr	r0, .L24+8
+ 280 0068 FEFFFFEB 		bl	printf
+ 281              	.LVL26:
+ 210:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 282              		.loc 1 210 0
+ 283 006c 0D20A0E1 		mov	r2, sp
+ 284 0070 5B0F84E2 		add	r0, r4, #364
+ 285 0074 0410A0E3 		mov	r1, #4
+ 286 0078 0130A0E3 		mov	r3, #1
+ 287 007c FEFFFFEB 		bl	flash_read
+ 288              	.LVL27:
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[2]) << 8);
+ 289              		.loc 1 213 0
+ 290 0080 0130DDE5 		ldrb	r3, [sp, #1]	@ zero_extendqisi2
+ 291 0084 0338A0E1 		mov	r3, r3, asl #16
+ 212:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[1]) << 16);
+ 292              		.loc 1 212 0
+ 293 0088 0060DDE5 		ldrb	r6, [sp]	@ zero_extendqisi2
+ 213:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[2]) << 8);
+ 294              		.loc 1 213 0
+ 295 008c 063C83E1 		orr	r3, r3, r6, asl #24
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 296              		.loc 1 215 0
+ 297 0090 0360DDE5 		ldrb	r6, [sp, #3]	@ zero_extendqisi2
+ 298 0094 063083E1 		orr	r3, r3, r6
+ 214:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	s2_fw_size |= (uint32_t)((uint32_t)(s2_fw_header[3]));
+ 299              		.loc 1 214 0
+ 300 0098 0260DDE5 		ldrb	r6, [sp, #2]	@ zero_extendqisi2
+ 215:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 301              		.loc 1 215 0
+ 302 009c 066483E1 		orr	r6, r3, r6, asl #8
+ 303              	.LVL28:
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 304              		.loc 1 217 0
+ 305 00a0 0610A0E1 		mov	r1, r6
+ 221:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 306              		.loc 1 221 0
+ 307 00a4 AA4F84E2 		add	r4, r4, #680
+ 308              	.LVL29:
+ 217:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 309              		.loc 1 217 0
+ 310 00a8 20019FE5 		ldr	r0, .L24+12
+ 311 00ac FEFFFFEB 		bl	printf
+ 312              	.LVL30:
+ 219:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 313              		.loc 1 219 0
+ 314 00b0 0010A0E3 		mov	r1, #0
+ 315 00b4 0620A0E1 		mov	r2, r6
+ 316 00b8 8A07A0E3 		mov	r0, #36175872
+ 317 00bc FEFFFFEB 		bl	memset
+ 318              	.LVL31:
+ 223:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Start Load S2 Firmware */
+ 319              		.loc 1 223 0
+ 320 00c0 0C019FE5 		ldr	r0, .L24+16
+ 321 00c4 0610A0E1 		mov	r1, r6
+ 322 00c8 FEFFFFEB 		bl	printf
+ 323              	.LVL32:
+ 227:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int          section_count		= 0;
+ 324              		.loc 1 227 0
+ 325 00cc 10708DE5 		str	r7, [sp, #16]
+ 326 00d0 14708DE5 		str	r7, [sp, #20]
+ 327              	.LVL33:
+ 328              	.L21:
+ 230:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int          is_first_section	= 0;
+ 231:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 232:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	while(1)
+ 233:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		memset(&section_header, 0x00, sizeof(s2_section_header_t));
+ 329              		.loc 1 234 0
+ 330 00d4 0030A0E3 		mov	r3, #0
+ 235:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 236:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		flash_read(flash_offset, sizeof(s2_section_header_t), \
+ 331              		.loc 1 236 0
+ 332 00d8 10208DE2 		add	r2, sp, #16
+ 333 00dc 0400A0E1 		mov	r0, r4
+ 334 00e0 0810A0E3 		mov	r1, #8
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 335              		.loc 1 234 0
+ 336 00e4 08308DE5 		str	r3, [sp, #8]
+ 237:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			(uint8_t *) &tmp_buf, QSPI_MODE);
+ 238:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		if(!is_first_section)
+ 240:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		{
+ 241:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			is_first_section = 0xFFFF;
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr = ASICFW_S2_ADDR;
+ 243:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 244:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		else
+ 245:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		{
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[0] << 24);
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[1] << 16);
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[2] << 8);
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[3]);
+ 250:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 251:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_header.data_size |= (uint32_t)(tmp_buf[4] << 24);
+ 253:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_header.data_size |= (uint32_t)(tmp_buf[5] << 16);
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_header.data_size |= (uint32_t)(tmp_buf[6] << 8);
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_header.data_size |= (uint32_t)(tmp_buf[7]);
+ 256:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		printf("Programming section %d address 0x%08X size %d\r\n", section_count,
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 								(unsigned int)section_header.ext_linear_addr,
+ 259:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 								(unsigned int)section_header.data_size);
+ 260:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 261:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 262:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		flash_offset += sizeof(s2_section_header_t);
+ 337              		.loc 1 262 0
+ 338 00e8 084084E2 		add	r4, r4, #8
+ 339              	.LVL34:
+ 234:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 340              		.loc 1 234 0
+ 341 00ec 0C308DE5 		str	r3, [sp, #12]
+ 236:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			(uint8_t *) &tmp_buf, QSPI_MODE);
+ 342              		.loc 1 236 0
+ 343 00f0 0130A0E3 		mov	r3, #1
+ 344 00f4 FEFFFFEB 		bl	flash_read
+ 345              	.LVL35:
+ 239:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		{
+ 346              		.loc 1 239 0
+ 347 00f8 000057E3 		cmp	r7, #0
+ 348              	.LVL36:
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[2] << 8);
+ 349              		.loc 1 247 0
+ 350 00fc 1130DD15 		ldrneb	r3, [sp, #17]	@ zero_extendqisi2
+ 246:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[1] << 16);
+ 351              		.loc 1 246 0
+ 352 0100 1020DD15 		ldrneb	r2, [sp, #16]	@ zero_extendqisi2
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 353              		.loc 1 242 0
+ 354 0104 8A37A003 		moveq	r3, #36175872
+ 252:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_header.data_size |= (uint32_t)(tmp_buf[5] << 16);
+ 355              		.loc 1 252 0
+ 356 0108 1450DDE5 		ldrb	r5, [sp, #20]	@ zero_extendqisi2
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 								(unsigned int)section_header.ext_linear_addr,
+ 357              		.loc 1 257 0
+ 358 010c 0910A0E1 		mov	r1, r9
+ 241:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr = ASICFW_S2_ADDR;
+ 359              		.loc 1 241 0
+ 360 0110 FF7F0F03 		movweq	r7, #65535
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 								(unsigned int)section_header.ext_linear_addr,
+ 361              		.loc 1 257 0
+ 362 0114 BC009FE5 		ldr	r0, .L24+20
+ 263:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		code_ptr = (uint8_t *)(section_header.ext_linear_addr);
+ 264:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		flash_read(flash_offset, section_header.data_size, (uint8_t *) code_ptr, QSPI_MODE);
+ 266:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		flash_offset += section_header.data_size;
+ 268:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		/* increment section counter */
+ 269:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_count++;
+ 363              		.loc 1 269 0
+ 364 0118 019089E2 		add	r9, r9, #1
+ 365              	.LVL37:
+ 247:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[2] << 8);
+ 366              		.loc 1 247 0
+ 367 011c 0338A011 		movne	r3, r3, asl #16
+ 368 0120 023C8311 		orrne	r3, r3, r2, asl #24
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 369              		.loc 1 249 0
+ 370 0124 1320DD15 		ldrneb	r2, [sp, #19]	@ zero_extendqisi2
+ 371 0128 02308311 		orrne	r3, r3, r2
+ 248:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			section_header.ext_linear_addr |= (uint32_t)(tmp_buf[3]);
+ 372              		.loc 1 248 0
+ 373 012c 1220DD15 		ldrneb	r2, [sp, #18]	@ zero_extendqisi2
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 374              		.loc 1 249 0
+ 375 0130 02348311 		orrne	r3, r3, r2, asl #8
+ 242:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 376              		.loc 1 242 0
+ 377 0134 08308D05 		streq	r3, [sp, #8]
+ 249:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 378              		.loc 1 249 0
+ 379 0138 08308D15 		strne	r3, [sp, #8]
+ 380              	.LVL38:
+ 253:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_header.data_size |= (uint32_t)(tmp_buf[6] << 8);
+ 381              		.loc 1 253 0
+ 382 013c 1530DDE5 		ldrb	r3, [sp, #21]	@ zero_extendqisi2
+ 383 0140 0338A0E1 		mov	r3, r3, asl #16
+ 384 0144 055C83E1 		orr	r5, r3, r5, asl #24
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 385              		.loc 1 255 0
+ 386 0148 1730DDE5 		ldrb	r3, [sp, #23]	@ zero_extendqisi2
+ 387 014c 033085E1 		orr	r3, r5, r3
+ 254:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_header.data_size |= (uint32_t)(tmp_buf[7]);
+ 388              		.loc 1 254 0
+ 389 0150 1650DDE5 		ldrb	r5, [sp, #22]	@ zero_extendqisi2
+ 258:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 								(unsigned int)section_header.data_size);
+ 390              		.loc 1 258 0
+ 391 0154 08A09DE5 		ldr	r10, [sp, #8]
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 392              		.loc 1 255 0
+ 393 0158 055483E1 		orr	r5, r3, r5, asl #8
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 								(unsigned int)section_header.ext_linear_addr,
+ 394              		.loc 1 257 0
+ 395 015c 0530A0E1 		mov	r3, r5
+ 396 0160 0A20A0E1 		mov	r2, r10
+ 255:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 397              		.loc 1 255 0
+ 398 0164 0C508DE5 		str	r5, [sp, #12]
+ 257:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 								(unsigned int)section_header.ext_linear_addr,
+ 399              		.loc 1 257 0
+ 400 0168 FEFFFFEB 		bl	printf
+ 401              	.LVL39:
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 402              		.loc 1 265 0
+ 403 016c 0400A0E1 		mov	r0, r4
+ 404 0170 0510A0E1 		mov	r1, r5
+ 267:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		/* increment section counter */
+ 405              		.loc 1 267 0
+ 406 0174 054084E0 		add	r4, r4, r5
+ 407              	.LVL40:
+ 408 0178 085085E2 		add	r5, r5, #8
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 409              		.loc 1 265 0
+ 410 017c 0A20A0E1 		mov	r2, r10
+ 411 0180 0130A0E3 		mov	r3, #1
+ 270:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		section_total_size += sizeof(s2_section_header_t) + section_header.data_size;
+ 412              		.loc 1 270 0
+ 413 0184 058088E0 		add	r8, r8, r5
+ 414              	.LVL41:
+ 265:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 415              		.loc 1 265 0
+ 416 0188 FEFFFFEB 		bl	flash_read
+ 417              	.LVL42:
+ 271:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 272:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		/* check all section are loaded */
+ 273:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		if(section_total_size >= s2_fw_size)
+ 418              		.loc 1 273 0
+ 419 018c 060058E1 		cmp	r8, r6
+ 420 0190 CFFFFF3A 		bcc	.L21
+ 274:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		{
+ 275:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			printf("Done\r\n");
+ 421              		.loc 1 275 0
+ 422 0194 40009FE5 		ldr	r0, .L24+24
+ 423 0198 FEFFFFEB 		bl	puts
+ 424              	.LVL43:
+ 276:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 			break;
+ 277:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		}
+ 278:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	}
+ 279:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("Loaded Time %d ms\r\n", timestamp_ms());
+ 425              		.loc 1 279 0
+ 426 019c FEFFFFEB 		bl	timestamp_ms
+ 427              	.LVL44:
+ 428 01a0 0010A0E1 		mov	r1, r0
+ 429 01a4 34009FE5 		ldr	r0, .L24+28
+ 430 01a8 FEFFFFEB 		bl	printf
+ 431              	.LVL45:
+ 280:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("Jump to Firmware S2\r\n");
+ 432              		.loc 1 280 0
+ 433 01ac 30009FE5 		ldr	r0, .L24+32
+ 434 01b0 FEFFFFEB 		bl	puts
+ 435              	.LVL46:
+ 281:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 282:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Jump to firmware S2 */
+ 283:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	jump_to_SRAM();
+ 436              		.loc 1 283 0
+ 437 01b4 FEFFFFEB 		bl	jump_to_SRAM
+ 438              	.LVL47:
+ 284:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 285:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	return 0;
+ 286:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** }
+ 439              		.loc 1 286 0
+ 440 01b8 0000A0E3 		mov	r0, #0
+ 441 01bc 18D08DE2 		add	sp, sp, #24
+ 442              	.LCFI7:
+ 443              		.cfi_def_cfa_offset 32
+ 444              		@ sp needed
+ 445 01c0 F087BDE8 		ldmfd	sp!, {r4, r5, r6, r7, r8, r9, r10, pc}
+ 446              	.LVL48:
+ 447              	.L25:
+ 448              		.align	2
+ 449              	.L24:
+ 450 01c4 00000000 		.word	src_addr
+ 451 01c8 3C000000 		.word	.LC3
+ 452 01cc 53000000 		.word	.LC4
+ 453 01d0 6A000000 		.word	.LC5
+ 454 01d4 81000000 		.word	.LC6
+ 455 01d8 A9000000 		.word	.LC7
+ 456 01dc D9000000 		.word	.LC8
+ 457 01e0 DF000000 		.word	.LC9
+ 458 01e4 F3000000 		.word	.LC10
+ 459              		.cfi_endproc
+ 460              	.LFE2:
+ 462              		.section	.text.startup.main,"ax",%progbits
+ 463              		.align	2
+ 464              		.global	main
+ 466              	main:
+ 467              	.LFB3:
+ 287:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 288:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /* Main function ------------------------------------------------------------*/
+ 289:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** int main(void)
+ 290:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** {
+ 468              		.loc 1 290 0
+ 469              		.cfi_startproc
+ 470              		@ args = 0, pretend = 0, frame = 16
+ 471              		@ frame_needed = 0, uses_anonymous_args = 0
+ 472              	.LVL49:
+ 473 0000 7F402DE9 		stmfd	sp!, {r0, r1, r2, r3, r4, r5, r6, lr}
+ 474              	.LCFI8:
+ 475              		.cfi_def_cfa_offset 32
+ 476              		.cfi_offset 4, -16
+ 477              		.cfi_offset 5, -12
+ 478              		.cfi_offset 6, -8
+ 479              		.cfi_offset 14, -4
+ 291:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int loop = 0;
+ 292:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int ret = 0;
+ 293:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	int tmp = 0;
+ 294:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	timerN_config(2, 0, 0);
+ 480              		.loc 1 295 0
+ 481 0004 0010A0E3 		mov	r1, #0
+ 482 0008 0200A0E3 		mov	r0, #2
+ 483 000c 0120A0E1 		mov	r2, r1
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	timerN_enable(2);
+ 297:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #ifndef REWORK
+ 298:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Bit [7:8] of OxA8 register have to be high */
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	uint32_t scu_val = readl(SCU_BASE + 0xA8);
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	scu_val |= 0x00000180;
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	writel(SCU_BASE + 0xA8, scu_val);
+ 302:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #endif
+ 303:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Power on sequence for ASIC2, 3 */
+ 304:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** /*	hal_gpio_t asic2_pwr_on_seq;
+ 305:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	asic2_pwr_on_seq.port      = GPIO_PORTC;
+ 306:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	asic2_pwr_on_seq.pin       = GPIO_PIN_10;
+ 307:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	asic2_pwr_on_seq.direction = GPIO_DIR_OUT;
+ 308:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_low(PWM1_CH1, PWM_PIN_POS);
+ 309:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_low(PWM1_CH3, PWM_PIN_POS);
+ 310:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_init(&asic2_pwr_on_seq);
+ 311:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_set_high(&asic2_pwr_on_seq);
+ 312:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	udelay(11000);
+ 313:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_high(PWM1_CH1, PWM_PIN_POS);
+ 314:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	udelay(1000);
+ 315:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_high(PWM1_CH3, PWM_PIN_POS);
+ 316:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 317:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 318:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_t asic3_pwr_on_seq;
+ 319:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	asic3_pwr_on_seq.port      = GPIO_PORTC;
+ 320:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	asic3_pwr_on_seq.pin       = GPIO_PIN_11;
+ 321:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	asic3_pwr_on_seq.direction = GPIO_DIR_OUT;
+ 322:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_low(PWM1_CH1, PWM_PIN_NEG);
+ 323:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_low(PWM1_CH3, PWM_PIN_NEG);
+ 324:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_init(&asic3_pwr_on_seq);
+ 325:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_set_high(&asic3_pwr_on_seq);
+ 326:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	udelay(11000);
+ 327:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_high(PWM1_CH1, PWM_PIN_NEG);
+ 328:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	udelay(1000);
+ 329:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_pwm_set_high(PWM1_CH3, PWM_PIN_NEG);
+ 330:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** */
+ 331:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_t			gpio_irq;
+ 332:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	gpio_irq.direction	= GPIO_DIR_OUT;
+ 484              		.loc 1 332 0
+ 485 0010 0140A0E3 		mov	r4, #1
+ 295:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	timerN_enable(2);
+ 486              		.loc 1 295 0
+ 487 0014 FEFFFFEB 		bl	timerN_config
+ 488              	.LVL50:
+ 296:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	timerN_enable(2);
+ 489              		.loc 1 296 0
+ 490 0018 0200A0E3 		mov	r0, #2
+ 491 001c FEFFFFEB 		bl	timerN_enable
+ 492              	.LVL51:
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	scu_val |= 0x00000180;
+ 493              		.loc 1 299 0
+ 494 0020 0224A0E3 		mov	r2, #33554432
+ 333:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	gpio_irq.port		= GPIO_PORTA;
+ 495              		.loc 1 333 0
+ 496 0024 0050A0E3 		mov	r5, #0
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	gpio_irq.pin		= 0;
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_init(&gpio_irq);
+ 497              		.loc 1 335 0
+ 498 0028 04008DE2 		add	r0, sp, #4
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_set_low(&gpio_irq);
+ 337:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 338:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 339:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	dcache_disable();
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_ddr_init();
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	dcache_invalidate();
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	dcache_enable();
+ 344:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 345:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     /* Power on sequence for ASIC2, 3 */
+ 346:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_gpio_t asic2_pwr_on_seq;
+ 347:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic2_pwr_on_seq.port      = GPIO_PORTC;
+ 499              		.loc 1 347 0
+ 500 002c 0260A0E3 		mov	r6, #2
+ 299:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	scu_val |= 0x00000180;
+ 501              		.loc 1 299 0
+ 502 0030 A83092E5 		ldr	r3, [r2, #168]
+ 503              	.LVL52:
+ 300:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	writel(SCU_BASE + 0xA8, scu_val);
+ 504              		.loc 1 300 0
+ 505 0034 063D83E3 		orr	r3, r3, #384
+ 506              	.LVL53:
+ 301:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** #endif
+ 507              		.loc 1 301 0
+ 508 0038 A83082E5 		str	r3, [r2, #168]
+ 332:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	gpio_irq.port		= GPIO_PORTA;
+ 509              		.loc 1 332 0
+ 510 003c 0640CDE5 		strb	r4, [sp, #6]
+ 333:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	gpio_irq.pin		= 0;
+ 511              		.loc 1 333 0
+ 512 0040 0450CDE5 		strb	r5, [sp, #4]
+ 334:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_init(&gpio_irq);
+ 513              		.loc 1 334 0
+ 514 0044 0550CDE5 		strb	r5, [sp, #5]
+ 335:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_gpio_set_low(&gpio_irq);
+ 515              		.loc 1 335 0
+ 516 0048 FEFFFFEB 		bl	hal_gpio_init
+ 517              	.LVL54:
+ 336:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 518              		.loc 1 336 0
+ 519 004c 04008DE2 		add	r0, sp, #4
+ 520 0050 FEFFFFEB 		bl	hal_gpio_set_low
+ 521              	.LVL55:
+ 340:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	hal_ddr_init();
+ 522              		.loc 1 340 0
+ 523 0054 FEFFFFEB 		bl	dcache_disable
+ 524              	.LVL56:
+ 341:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	dcache_invalidate();
+ 525              		.loc 1 341 0
+ 526 0058 FEFFFFEB 		bl	hal_ddr_init
+ 527              	.LVL57:
+ 342:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	dcache_enable();
+ 528              		.loc 1 342 0
+ 529 005c FEFFFFEB 		bl	dcache_invalidate
+ 530              	.LVL58:
+ 343:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 531              		.loc 1 343 0
+ 532 0060 FEFFFFEB 		bl	dcache_enable
+ 533              	.LVL59:
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic2_pwr_on_seq.pin       = GPIO_PIN_10;
+ 534              		.loc 1 348 0
+ 535 0064 0A30A0E3 		mov	r3, #10
+ 349:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic2_pwr_on_seq.direction = GPIO_DIR_OUT;
+ 350:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_low(PWM1_CH1, PWM_PIN_POS);
+ 536              		.loc 1 350 0
+ 537 0068 0600A0E3 		mov	r0, #6
+ 538 006c 0510A0E1 		mov	r1, r5
+ 348:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic2_pwr_on_seq.pin       = GPIO_PIN_10;
+ 539              		.loc 1 348 0
+ 540 0070 0930CDE5 		strb	r3, [sp, #9]
+ 349:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic2_pwr_on_seq.direction = GPIO_DIR_OUT;
+ 541              		.loc 1 349 0
+ 542 0074 0A40CDE5 		strb	r4, [sp, #10]
+ 347:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic2_pwr_on_seq.pin       = GPIO_PIN_10;
+ 543              		.loc 1 347 0
+ 544 0078 0860CDE5 		strb	r6, [sp, #8]
+ 545              		.loc 1 350 0
+ 546 007c FEFFFFEB 		bl	hal_pwm_set_low
+ 547              	.LVL60:
+ 351:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_low(PWM1_CH3, PWM_PIN_POS);
+ 548              		.loc 1 351 0
+ 549 0080 0510A0E1 		mov	r1, r5
+ 550 0084 0800A0E3 		mov	r0, #8
+ 551 0088 FEFFFFEB 		bl	hal_pwm_set_low
+ 552              	.LVL61:
+ 352:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_gpio_init(&asic2_pwr_on_seq);
+ 553              		.loc 1 352 0
+ 554 008c 08008DE2 		add	r0, sp, #8
+ 555 0090 FEFFFFEB 		bl	hal_gpio_init
+ 556              	.LVL62:
+ 353:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_gpio_set_high(&asic2_pwr_on_seq);
+ 557              		.loc 1 353 0
+ 558 0094 08008DE2 		add	r0, sp, #8
+ 559 0098 FEFFFFEB 		bl	hal_gpio_set_high
+ 560              	.LVL63:
+ 354:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     udelay(11000);
+ 561              		.loc 1 354 0
+ 562 009c F80A02E3 		movw	r0, #11000
+ 563 00a0 FEFFFFEB 		bl	udelay
+ 564              	.LVL64:
+ 355:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_high(PWM1_CH1, PWM_PIN_POS);
+ 565              		.loc 1 355 0
+ 566 00a4 0510A0E1 		mov	r1, r5
+ 567 00a8 0600A0E3 		mov	r0, #6
+ 568 00ac FEFFFFEB 		bl	hal_pwm_set_high
+ 569              	.LVL65:
+ 356:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     udelay(1000);
+ 570              		.loc 1 356 0
+ 571 00b0 FA0FA0E3 		mov	r0, #1000
+ 572 00b4 FEFFFFEB 		bl	udelay
+ 573              	.LVL66:
+ 357:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_high(PWM1_CH3, PWM_PIN_POS);
+ 574              		.loc 1 357 0
+ 575 00b8 0800A0E3 		mov	r0, #8
+ 576 00bc 0510A0E1 		mov	r1, r5
+ 577 00c0 FEFFFFEB 		bl	hal_pwm_set_high
+ 578              	.LVL67:
+ 358:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 359:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 360:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_gpio_t asic3_pwr_on_seq;
+ 361:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic3_pwr_on_seq.port      = GPIO_PORTC;
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic3_pwr_on_seq.pin       = GPIO_PIN_11;
+ 579              		.loc 1 362 0
+ 580 00c4 0B30A0E3 		mov	r3, #11
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic3_pwr_on_seq.direction = GPIO_DIR_OUT;
+ 364:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_low(PWM1_CH1, PWM_PIN_NEG);
+ 581              		.loc 1 364 0
+ 582 00c8 0410A0E1 		mov	r1, r4
+ 583 00cc 0600A0E3 		mov	r0, #6
+ 362:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic3_pwr_on_seq.direction = GPIO_DIR_OUT;
+ 584              		.loc 1 362 0
+ 585 00d0 0D30CDE5 		strb	r3, [sp, #13]
+ 363:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic3_pwr_on_seq.direction = GPIO_DIR_OUT;
+ 586              		.loc 1 363 0
+ 587 00d4 0E40CDE5 		strb	r4, [sp, #14]
+ 361:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     asic3_pwr_on_seq.pin       = GPIO_PIN_11;
+ 588              		.loc 1 361 0
+ 589 00d8 0C60CDE5 		strb	r6, [sp, #12]
+ 590              		.loc 1 364 0
+ 591 00dc FEFFFFEB 		bl	hal_pwm_set_low
+ 592              	.LVL68:
+ 365:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_low(PWM1_CH3, PWM_PIN_NEG);
+ 593              		.loc 1 365 0
+ 594 00e0 0410A0E1 		mov	r1, r4
+ 595 00e4 0800A0E3 		mov	r0, #8
+ 596 00e8 FEFFFFEB 		bl	hal_pwm_set_low
+ 597              	.LVL69:
+ 366:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_gpio_init(&asic3_pwr_on_seq);
+ 598              		.loc 1 366 0
+ 599 00ec 0C008DE2 		add	r0, sp, #12
+ 600 00f0 FEFFFFEB 		bl	hal_gpio_init
+ 601              	.LVL70:
+ 367:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_gpio_set_high(&asic3_pwr_on_seq);
+ 602              		.loc 1 367 0
+ 603 00f4 0C008DE2 		add	r0, sp, #12
+ 604 00f8 FEFFFFEB 		bl	hal_gpio_set_high
+ 605              	.LVL71:
+ 368:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     udelay(11000);
+ 606              		.loc 1 368 0
+ 607 00fc F80A02E3 		movw	r0, #11000
+ 608 0100 FEFFFFEB 		bl	udelay
+ 609              	.LVL72:
+ 369:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_high(PWM1_CH1, PWM_PIN_NEG);
+ 610              		.loc 1 369 0
+ 611 0104 0410A0E1 		mov	r1, r4
+ 612 0108 0600A0E3 		mov	r0, #6
+ 613 010c FEFFFFEB 		bl	hal_pwm_set_high
+ 614              	.LVL73:
+ 370:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     udelay(1000);
+ 615              		.loc 1 370 0
+ 616 0110 FA0FA0E3 		mov	r0, #1000
+ 617 0114 FEFFFFEB 		bl	udelay
+ 618              	.LVL74:
+ 371:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c ****     hal_pwm_set_high(PWM1_CH3, PWM_PIN_NEG);
+ 619              		.loc 1 371 0
+ 620 0118 0410A0E1 		mov	r1, r4
+ 621 011c 0800A0E3 		mov	r0, #8
+ 622 0120 FEFFFFEB 		bl	hal_pwm_set_high
+ 623              	.LVL75:
+ 372:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 373:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Initialize UART, QSPI, FLASH */
+ 374:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	qspi_init((qspi_ctrl_mode_t *)&qspi_ctrl);
+ 624              		.loc 1 374 0
+ 625 0124 48009FE5 		ldr	r0, .L33
+ 626 0128 FEFFFFEB 		bl	qspi_init
+ 627              	.LVL76:
+ 375:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	flash_init();
+ 628              		.loc 1 375 0
+ 629 012c FEFFFFEB 		bl	flash_init
+ 630              	.LVL77:
+ 376:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 377:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* check build included Secure Boot or not */
+ 378:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* ISP mode, we need to verify firmware on flash */
+ 379:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	timestamp_start();
+ 631              		.loc 1 379 0
+ 632 0130 FEFFFFEB 		bl	timestamp_start
+ 633              	.LVL78:
+ 380:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	ret = authenticate_s2fw_flash();
+ 634              		.loc 1 380 0
+ 635 0134 FEFFFFEB 		bl	authenticate_s2fw_flash
+ 636              	.LVL79:
+ 637 0138 0040A0E1 		mov	r4, r0
+ 638              	.LVL80:
+ 381:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	tmp = timestamp_ms();
+ 639              		.loc 1 381 0
+ 640 013c FEFFFFEB 		bl	timestamp_ms
+ 641              	.LVL81:
+ 382:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	if(ret)
+ 642              		.loc 1 382 0
+ 643 0140 050054E1 		cmp	r4, r5
+ 644 0144 0700000A 		beq	.L27
+ 645 0148 0010A0E1 		mov	r1, r0
+ 383:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	{
+ 384:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		printf("Authentication Time %d ms\r\n", tmp);
+ 646              		.loc 1 384 0
+ 647 014c 24009FE5 		ldr	r0, .L33+4
+ 648 0150 FEFFFFEB 		bl	printf
+ 649              	.LVL82:
+ 385:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		printf("Loading S2 Firmware ...\r\n");
+ 650              		.loc 1 385 0
+ 651 0154 20009FE5 		ldr	r0, .L33+8
+ 652 0158 FEFFFFEB 		bl	puts
+ 653              	.LVL83:
+ 386:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		/* Start load S2 firmware */
+ 387:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		load_fws2();
+ 654              		.loc 1 387 0
+ 655 015c FEFFFFEB 		bl	load_fws2
+ 656              	.LVL84:
+ 388:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 389:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		printf("Failed\r\n");
+ 657              		.loc 1 389 0
+ 658 0160 18009FE5 		ldr	r0, .L33+12
+ 659 0164 FEFFFFEB 		bl	puts
+ 660              	.LVL85:
+ 661              	.L27:
+ 390:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 
+ 391:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	}
+ 392:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	printf("Authentication Failed !!!\r\n");
+ 662              		.loc 1 392 0
+ 663 0168 14009FE5 		ldr	r0, .L33+16
+ 664 016c FEFFFFEB 		bl	puts
+ 665              	.LVL86:
+ 666              	.L28:
+ 393:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	/* Infinitive loop  */
+ 394:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 	while(1)
+ 395:/home/tienluong/workspace/atlantis_fw/AsicFwS1/src/main.c **** 		loop++;
+ 667              		.loc 1 395 0 discriminator 1
+ 668 0170 FEFFFFEA 		b	.L28
+ 669              	.L34:
+ 670              		.align	2
+ 671              	.L33:
+ 672 0174 00000000 		.word	.LANCHOR1
+ 673 0178 08010000 		.word	.LC11
+ 674 017c 24010000 		.word	.LC12
+ 675 0180 3D010000 		.word	.LC13
+ 676 0184 45010000 		.word	.LC14
+ 677              		.cfi_endproc
+ 678              	.LFE3:
+ 680              		.comm	src_addr,4,4
+ 681              		.section	.rodata.qspi_ctrl,"a",%progbits
+ 682              		.align	2
+ 683              		.set	.LANCHOR1,. + 0
+ 686              	qspi_ctrl:
+ 687 0000 04       		.byte	4
+ 688 0001 01       		.byte	1
+ 689 0002 9F       		.byte	159
+ 690 0003 02       		.byte	2
+ 691 0004 00000000 		.space	4
+ 692 0008 01       		.byte	1
+ 693 0009 01       		.byte	1
+ 694 000a 9F       		.byte	159
+ 695 000b 02       		.byte	2
+ 696              		.section	.bss.usart_data,"aw",%nobits
+ 699              	usart_data:
+ 700 0000 00       		.space	1
+ 701              		.section	.data.uart,"aw",%progbits
+ 702              		.align	2
+ 703              		.set	.LANCHOR0,. + 0
+ 706              	uart:
+ 707 0000 00       		.byte	0
+ 708 0001 000000   		.space	3
+ 709 0004 00C20100 		.word	115200
+ 710 0008 00000000 		.word	0
+ 711 000c 00000000 		.word	usart_data
+ 712              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 713              	.LC0:
+ 714 0000 41435449 		.ascii	"ACTIVE_FW_ID: %d\015\012\000"
+ 714      56455F46 
+ 714      575F4944 
+ 714      3A202564 
+ 714      0D0A00
+ 715              	.LC1:
+ 716 0013 53312066 		.ascii	"S1 firmware length: %x\015\012\000"
+ 716      69726D77 
+ 716      61726520 
+ 716      6C656E67 
+ 716      74683A20 
+ 717              	.LC2:
+ 718 002c 5332206F 		.ascii	"S2 offset: %x\015\012\000"
+ 718      66667365 
+ 718      743A2025 
+ 718      780D0A00 
+ 719              	.LC3:
+ 720 003c 53312066 		.ascii	"S1 firmware size: %x\015\012\000"
+ 720      69726D77 
+ 720      61726520 
+ 720      73697A65 
+ 720      3A202578 
+ 721              	.LC4:
+ 722 0053 53322068 		.ascii	"S2 header offset: %x\015\012\000"
+ 722      65616465 
+ 722      72206F66 
+ 722      66736574 
+ 722      3A202578 
+ 723              	.LC5:
+ 724 006a 53322066 		.ascii	"S2 firmware size: %x\015\012\000"
+ 724      69726D77 
+ 724      61726520 
+ 724      73697A65 
+ 724      3A202578 
+ 725              	.LC6:
+ 726 0081 53322066 		.ascii	"S2 firmware offset without header: %x\015\012\000"
+ 726      69726D77 
+ 726      61726520 
+ 726      6F666673 
+ 726      65742077 
+ 727              	.LC7:
+ 728 00a9 50726F67 		.ascii	"Programming section %d address 0x%08X size %d\015\012"
+ 728      72616D6D 
+ 728      696E6720 
+ 728      73656374 
+ 728      696F6E20 
+ 729 00d8 00       		.ascii	"\000"
+ 730              	.LC8:
+ 731 00d9 446F6E65 		.ascii	"Done\015\000"
+ 731      0D00
+ 732              	.LC9:
+ 733 00df 4C6F6164 		.ascii	"Loaded Time %d ms\015\012\000"
+ 733      65642054 
+ 733      696D6520 
+ 733      2564206D 
+ 733      730D0A00 
+ 734              	.LC10:
+ 735 00f3 4A756D70 		.ascii	"Jump to Firmware S2\015\000"
+ 735      20746F20 
+ 735      4669726D 
+ 735      77617265 
+ 735      2053320D 
+ 736              	.LC11:
+ 737 0108 41757468 		.ascii	"Authentication Time %d ms\015\012\000"
+ 737      656E7469 
+ 737      63617469 
+ 737      6F6E2054 
+ 737      696D6520 
+ 738              	.LC12:
+ 739 0124 4C6F6164 		.ascii	"Loading S2 Firmware ...\015\000"
+ 739      696E6720 
+ 739      53322046 
+ 739      69726D77 
+ 739      61726520 
+ 740              	.LC13:
+ 741 013d 4661696C 		.ascii	"Failed\015\000"
+ 741      65640D00 
+ 742              	.LC14:
+ 743 0145 41757468 		.ascii	"Authentication Failed !!!\015\000"
+ 743      656E7469 
+ 743      63617469 
+ 743      6F6E2046 
+ 743      61696C65 
+ 744              		.text
+ 745              	.Letext0:
+ 746              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 747              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 748              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_com.h"
+ 749              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_gpio.h"
+ 750              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_pwm.h"
+ 751              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_qspi.h"
+ 752              		.file 8 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/flash.h"
+ 753              		.file 9 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdio.h"
+ 754              		.file 10 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_cache.h"
+ 755              		.file 11 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_ddr.h"
+ 756              		.file 12 "<built-in>"
+DEFINED SYMBOLS
+                            *ABS*:00000000 main.c
+     /tmp/ccGc4DjN.s:17     .text.authenticate_s2fw_flash:00000000 $a
+     /tmp/ccGc4DjN.s:19     .text.authenticate_s2fw_flash:00000000 authenticate_s2fw_flash
+     /tmp/ccGc4DjN.s:147    .text.authenticate_s2fw_flash:000000fc $d
+                            *COM*:00000004 src_addr
+     /tmp/ccGc4DjN.s:157    .text._write:00000000 $a
+     /tmp/ccGc4DjN.s:160    .text._write:00000000 _write
+     /tmp/ccGc4DjN.s:205    .text._write:0000003c $d
+     /tmp/ccGc4DjN.s:210    .text.load_fws2:00000000 $a
+     /tmp/ccGc4DjN.s:213    .text.load_fws2:00000000 load_fws2
+     /tmp/ccGc4DjN.s:450    .text.load_fws2:000001c4 $d
+     /tmp/ccGc4DjN.s:463    .text.startup.main:00000000 $a
+     /tmp/ccGc4DjN.s:466    .text.startup.main:00000000 main
+     /tmp/ccGc4DjN.s:672    .text.startup.main:00000174 $d
+     /tmp/ccGc4DjN.s:682    .rodata.qspi_ctrl:00000000 $d
+     /tmp/ccGc4DjN.s:686    .rodata.qspi_ctrl:00000000 qspi_ctrl
+     /tmp/ccGc4DjN.s:699    .bss.usart_data:00000000 usart_data
+     /tmp/ccGc4DjN.s:700    .bss.usart_data:00000000 $d
+     /tmp/ccGc4DjN.s:702    .data.uart:00000000 $d
+     /tmp/ccGc4DjN.s:706    .data.uart:00000000 uart
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+memcpy
+flash_read
+printf
+memset
+hal_com_sendbyte
+puts
+timestamp_ms
+jump_to_SRAM
+timerN_config
+timerN_enable
+hal_gpio_init
+hal_gpio_set_low
+dcache_disable
+hal_ddr_init
+dcache_invalidate
+dcache_enable
+hal_pwm_set_low
+hal_gpio_set_high
+udelay
+hal_pwm_set_high
+qspi_init
+flash_init
+timestamp_start

@@ -1,0 +1,2247 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"event_groups.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.xEventGroupCreate,"ax",%progbits
+  19              		.align	1
+  20              		.global	xEventGroupCreate
+  21              		.thumb
+  22              		.thumb_func
+  24              	xEventGroupCreate:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*
+   2:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     All rights reserved
+   4:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+   5:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
+   6:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+   7:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     This file is part of the FreeRTOS distribution.
+   8:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+   9:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     FreeRTOS is free software; you can redistribute it and/or modify it under
+  10:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     the terms of the GNU General Public License (version 2) as published by the
+  11:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
+  12:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  13:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     ***************************************************************************
+  14:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+  15:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     >>!   distribute a combined work that includes FreeRTOS without being   !<<
+  16:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     >>!   obliged to provide the source code for proprietary components     !<<
+  17:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     >>!   outside of the FreeRTOS kernel.                                   !<<
+  18:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     ***************************************************************************
+  19:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+  21:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  22:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+  23:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     link: http://www.freertos.org/a00114.html
+  24:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     ***************************************************************************
+  26:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *                                                                       *
+  27:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    FreeRTOS provides completely free yet professionally developed,    *
+  28:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    robust, strictly quality controlled, supported, and cross          *
+  29:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    platform software that is more than just the market leader, it     *
+  30:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    is the industry's de facto standard.                               *
+  31:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *                                                                       *
+  32:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    Help yourself get started quickly while simultaneously helping     *
+  33:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+  34:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    tutorial book, reference manual, or both:                          *
+  35:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *    http://www.FreeRTOS.org/Documentation                              *
+  36:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****      *                                                                       *
+  37:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     ***************************************************************************
+  38:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+  40:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     the FAQ page "My application does not run, what could be wrong?".  Have you
+  41:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     defined configASSERT()?
+  42:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     http://www.FreeRTOS.org/support - In return for receiving this top quality
+  44:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     embedded software for free we request you assist our global community by
+  45:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     participating in the support forum.
+  46:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     http://www.FreeRTOS.org/training - Investing in training allows your team to
+  48:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     be as productive as possible as early as possible.  Now you can receive
+  49:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+  50:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     Ltd, and the world's leading authority on the world's leading RTOS.
+  51:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  52:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+  53:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+  54:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     compatible FAT file system, and our tiny thread aware UDP/IP stack.
+  55:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+  57:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+  58:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  59:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+  60:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+  61:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     licenses offer ticketed support, indemnification and commercial middleware.
+  62:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+  64:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     engineered and independently SIL3 certified version for use in safety and
+  65:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     mission critical applications that require provable dependability.
+  66:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****     1 tab == 4 spaces!
+  68:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** */
+  69:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /* Standard includes. */
+  71:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #include <stdlib.h>
+  72:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
+  74:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** all the API functions to use the MPU wrappers.  That should only be done when
+  75:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** task.h is included from an application file. */
+  76:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+  77:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /* FreeRTOS includes. */
+  79:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #include "FreeRTOS.h"
+  80:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #include "task.h"
+  81:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #include "timers.h"
+  82:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #include "event_groups.h"
+  83:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  84:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /* Lint e961 and e750 are suppressed as a MISRA exception justified because the
+  85:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** MPU ports require MPU_WRAPPERS_INCLUDED_FROM_API_FILE to be defined for the
+  86:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** header files above, but not in this file, in order to generate the correct
+  87:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** privileged Vs unprivileged linkage and placement. */
+  88:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE /*lint !e961 !e750. */
+  89:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  90:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #if ( INCLUDE_xEventGroupSetBitFromISR == 1 ) && ( configUSE_TIMERS == 0 )
+  91:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#error configUSE_TIMERS must be set to 1 to make the xEventGroupSetBitFromISR() function available
+  92:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #endif
+  93:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  94:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #if ( INCLUDE_xEventGroupSetBitFromISR == 1 ) && ( INCLUDE_xTimerPendFunctionCall == 0 )
+  95:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#error INCLUDE_xTimerPendFunctionCall must also be set to one to make the xEventGroupSetBitFromISR
+  96:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #endif
+  97:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+  98:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /* The following bit fields convey control information in a task's event list
+  99:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** item value.  It is important they don't clash with the
+ 100:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** taskEVENT_LIST_ITEM_VALUE_IN_USE definition. */
+ 101:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #if configUSE_16_BIT_TICKS == 1
+ 102:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventCLEAR_EVENTS_ON_EXIT_BIT	0x0100U
+ 103:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventUNBLOCKED_DUE_TO_BIT_SET	0x0200U
+ 104:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventWAIT_FOR_ALL_BITS			0x0400U
+ 105:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventEVENT_BITS_CONTROL_BYTES	0xff00U
+ 106:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #else
+ 107:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventCLEAR_EVENTS_ON_EXIT_BIT	0x01000000UL
+ 108:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventUNBLOCKED_DUE_TO_BIT_SET	0x02000000UL
+ 109:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventWAIT_FOR_ALL_BITS			0x04000000UL
+ 110:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#define eventEVENT_BITS_CONTROL_BYTES	0xff000000UL
+ 111:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #endif
+ 112:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 113:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** typedef struct xEventGroupDefinition
+ 114:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 115:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	EventBits_t uxEventBits;
+ 116:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	List_t xTasksWaitingForBits;		/*< List of tasks waiting for a bit to be set. */
+ 117:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 118:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#if( configUSE_TRACE_FACILITY == 1 )
+ 119:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		UBaseType_t uxEventGroupNumber;
+ 120:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#endif
+ 121:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 122:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** } EventGroup_t;
+ 123:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 124:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 125:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 126:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*
+ 127:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****  * Test the bits set in uxCurrentEventBits to see if the wait condition is met.
+ 128:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****  * The wait condition is defined by xWaitForAllBits.  If xWaitForAllBits is
+ 129:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****  * pdTRUE then the wait condition is met if all the bits set in uxBitsToWaitFor
+ 130:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****  * are also set in uxCurrentEventBits.  If xWaitForAllBits is pdFALSE then the
+ 131:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****  * wait condition is met if any of the bits set in uxBitsToWait for are also set
+ 132:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****  * in uxCurrentEventBits.
+ 133:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c ****  */
+ 134:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** static BaseType_t prvTestWaitCondition( const EventBits_t uxCurrentEventBits, const EventBits_t uxB
+ 135:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 136:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 137:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 138:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroupHandle_t xEventGroupCreate( void )
+ 139:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+  27              		.loc 1 139 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+ 140:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits;
+ 141:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 142:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	pxEventBits = ( EventGroup_t * ) pvPortMalloc( sizeof( EventGroup_t ) );
+  36              		.loc 1 142 0
+  37 0002 1C20     		movs	r0, #28
+  38 0004 0649     		ldr	r1, .L7
+  39 0006 8E22     		movs	r2, #142
+  40 0008 064B     		ldr	r3, .L7+4
+  41 000a 9847     		blx	r3
+  42              	.LVL0:
+ 143:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	if( pxEventBits != NULL )
+  43              		.loc 1 143 0
+  44 000c 0446     		mov	r4, r0
+  45 000e 20B1     		cbz	r0, .L2
+ 144:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 145:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		pxEventBits->uxEventBits = 0;
+  46              		.loc 1 145 0
+  47 0010 0023     		movs	r3, #0
+  48 0012 40F8043B 		str	r3, [r0], #4
+  49              	.LVL1:
+ 146:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		vListInitialise( &( pxEventBits->xTasksWaitingForBits ) );
+  50              		.loc 1 146 0
+  51 0016 044B     		ldr	r3, .L7+8
+  52 0018 9847     		blx	r3
+  53              	.LVL2:
+  54              	.L2:
+ 147:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		traceEVENT_GROUP_CREATE( pxEventBits );
+ 148:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 149:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	else
+ 150:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 151:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		traceEVENT_GROUP_CREATE_FAILED();
+ 152:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 153:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 154:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	return ( EventGroupHandle_t ) pxEventBits;
+ 155:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+  55              		.loc 1 155 0
+  56 001a 2046     		mov	r0, r4
+  57 001c 10BD     		pop	{r4, pc}
+  58              	.LVL3:
+  59              	.L8:
+  60 001e 00BF     		.align	2
+  61              	.L7:
+  62 0020 00000000 		.word	.LANCHOR0
+  63 0024 00000000 		.word	pvPortMalloc1
+  64 0028 00000000 		.word	vListInitialise
+  65              		.cfi_endproc
+  66              	.LFE1:
+  68              		.section	.text.xEventGroupWaitBits,"ax",%progbits
+  69              		.align	1
+  70              		.global	xEventGroupWaitBits
+  71              		.thumb
+  72              		.thumb_func
+  74              	xEventGroupWaitBits:
+  75              	.LFB3:
+ 156:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 157:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 158:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t xEventGroupSync( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet, const E
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 160:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxOriginalBitValue, uxReturn;
+ 161:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 162:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** BaseType_t xAlreadyYielded;
+ 163:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** BaseType_t xTimeoutOccurred = pdFALSE;
+ 164:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( ( uxBitsToWaitFor & eventEVENT_BITS_CONTROL_BYTES ) == 0 );
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( uxBitsToWaitFor != 0 );
+ 167:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )
+ 168:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		configASSERT( !( ( xTaskGetSchedulerState() == taskSCHEDULER_SUSPENDED ) && ( xTicksToWait != 0 )
+ 170:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 171:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#endif
+ 172:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 173:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	vTaskSuspendAll();
+ 174:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 175:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		uxOriginalBitValue = pxEventBits->uxEventBits;
+ 176:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		( void ) xEventGroupSetBits( xEventGroup, uxBitsToSet );
+ 178:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 179:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( ( ( uxOriginalBitValue | uxBitsToSet ) & uxBitsToWaitFor ) == uxBitsToWaitFor )
+ 180:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 181:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* All the rendezvous bits are now set - no need to block. */
+ 182:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			uxReturn = ( uxOriginalBitValue | uxBitsToSet );
+ 183:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 184:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* Rendezvous always clear the bits.  They will have been cleared
+ 185:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			already unless this is the only task in the rendezvous. */
+ 186:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			pxEventBits->uxEventBits &= ~uxBitsToWaitFor;
+ 187:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 188:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xTicksToWait = 0;
+ 189:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 190:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 191:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 192:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			if( xTicksToWait != ( TickType_t ) 0 )
+ 193:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 194:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				traceEVENT_GROUP_SYNC_BLOCK( xEventGroup, uxBitsToSet, uxBitsToWaitFor );
+ 195:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 196:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* Store the bits that the calling task is waiting for in the
+ 197:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				task's event list item so the kernel knows when a match is
+ 198:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				found.  Then enter the blocked state. */
+ 199:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				vTaskPlaceOnUnorderedEventList( &( pxEventBits->xTasksWaitingForBits ), ( uxBitsToWaitFor | eve
+ 200:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 201:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* This assignment is obsolete as uxReturn will get set after
+ 202:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				the task unblocks, but some compilers mistakenly generate a
+ 203:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				warning about uxReturn being returned without being set if the
+ 204:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				assignment is omitted. */
+ 205:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				uxReturn = 0;
+ 206:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 207:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			else
+ 208:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 209:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* The rendezvous bits were not set, but no block time was
+ 210:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				specified - just return the current event bit value. */
+ 211:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				uxReturn = pxEventBits->uxEventBits;
+ 212:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 213:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 214:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 215:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	xAlreadyYielded = xTaskResumeAll();
+ 216:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 217:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	if( xTicksToWait != ( TickType_t ) 0 )
+ 218:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 219:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( xAlreadyYielded == pdFALSE )
+ 220:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 221:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			portYIELD_WITHIN_API();
+ 222:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 223:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 224:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 225:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			mtCOVERAGE_TEST_MARKER();
+ 226:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 227:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 228:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* The task blocked to wait for its required bits to be set - at this
+ 229:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		point either the required bits were set or the block time expired.  If
+ 230:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		the required bits were set they will have been stored in the task's
+ 231:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		event list item, and they should now be retrieved then cleared. */
+ 232:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		uxReturn = uxTaskResetEventItemValue();
+ 233:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 234:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( ( uxReturn & eventUNBLOCKED_DUE_TO_BIT_SET ) == ( EventBits_t ) 0 )
+ 235:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 236:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* The task timed out, just return the current event bit value. */
+ 237:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			taskENTER_CRITICAL();
+ 238:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 239:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				uxReturn = pxEventBits->uxEventBits;
+ 240:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 241:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* Although the task got here because it timed out before the
+ 242:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				bits it was waiting for were set, it is possible that since it
+ 243:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				unblocked another task has set the bits.  If this is the case
+ 244:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				then it needs to clear the bits before exiting. */
+ 245:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				if( ( uxReturn & uxBitsToWaitFor ) == uxBitsToWaitFor )
+ 246:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 247:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					pxEventBits->uxEventBits &= ~uxBitsToWaitFor;
+ 248:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 249:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				else
+ 250:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 251:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					mtCOVERAGE_TEST_MARKER();
+ 252:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 253:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 254:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			taskEXIT_CRITICAL();
+ 255:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 256:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xTimeoutOccurred = pdTRUE;
+ 257:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 258:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 259:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 260:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* The task unblocked because the bits were set. */
+ 261:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 262:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 263:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* Control bits might be set as the task had blocked should not be
+ 264:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		returned. */
+ 265:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		uxReturn &= ~eventEVENT_BITS_CONTROL_BYTES;
+ 266:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 267:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 268:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	traceEVENT_GROUP_SYNC_END( xEventGroup, uxBitsToSet, uxBitsToWaitFor, xTimeoutOccurred );
+ 269:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	return uxReturn;
+ 271:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 272:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 273:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 274:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t xEventGroupWaitBits( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToWaitFor,
+ 275:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+  76              		.loc 1 275 0
+  77              		.cfi_startproc
+  78              		@ args = 4, pretend = 0, frame = 0
+  79              		@ frame_needed = 0, uses_anonymous_args = 0
+  80              	.LVL4:
+  81 0000 2DE9F843 		push	{r3, r4, r5, r6, r7, r8, r9, lr}
+  82              	.LCFI1:
+  83              		.cfi_def_cfa_offset 32
+  84              		.cfi_offset 3, -32
+  85              		.cfi_offset 4, -28
+  86              		.cfi_offset 5, -24
+  87              		.cfi_offset 6, -20
+  88              		.cfi_offset 7, -16
+  89              		.cfi_offset 8, -12
+  90              		.cfi_offset 9, -8
+  91              		.cfi_offset 14, -4
+  92              		.loc 1 275 0
+  93 0004 089F     		ldr	r7, [sp, #32]
+  94 0006 0D46     		mov	r5, r1
+  95 0008 9046     		mov	r8, r2
+  96 000a 9946     		mov	r9, r3
+  97              	.LVL5:
+ 276:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 277:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxReturn, uxControlBits = 0;
+ 278:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** BaseType_t xWaitConditionMet, xAlreadyYielded;
+ 279:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** BaseType_t xTimeoutOccurred = pdFALSE;
+ 280:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 281:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	/* Check the user is not attempting to wait on the bits used by the kernel
+ 282:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	itself, and that at least one bit is being requested. */
+ 283:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( xEventGroup );
+  98              		.loc 1 283 0
+  99 000c 0646     		mov	r6, r0
+ 100 000e 58B9     		cbnz	r0, .L10
+ 101              		.loc 1 283 0 is_stmt 0 discriminator 1
+ 102              	@ 283 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 103 0010 72B6     		CPSID i   
+ 104 0012 BFF34F8F 	DSB       
+ 105 0016 BFF36F8F 	ISB         
+ 106              	@ 0 "" 2
+ 107              		.thumb
+ 108 001a 4048     		ldr	r0, .L54
+ 109              	.LVL6:
+ 110 001c 40F21B12 		movw	r2, #283
+ 111              	.LVL7:
+ 112 0020 3F49     		ldr	r1, .L54+4
+ 113              	.LVL8:
+ 114 0022 404B     		ldr	r3, .L54+8
+ 115              	.LVL9:
+ 116 0024 9847     		blx	r3
+ 117              	.LVL10:
+ 118              	.L11:
+ 119 0026 FEE7     		b	.L11
+ 120              	.LVL11:
+ 121              	.L10:
+ 284:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( ( uxBitsToWaitFor & eventEVENT_BITS_CONTROL_BYTES ) == 0 );
+ 122              		.loc 1 284 0 is_stmt 1
+ 123 0028 11F07F4F 		tst	r1, #-16777216
+ 124 002c 0BD0     		beq	.L12
+ 125              		.loc 1 284 0 is_stmt 0 discriminator 1
+ 126              	@ 284 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 127 002e 72B6     		CPSID i   
+ 128 0030 BFF34F8F 	DSB       
+ 129 0034 BFF36F8F 	ISB         
+ 130              	@ 0 "" 2
+ 131              		.thumb
+ 132 0038 3848     		ldr	r0, .L54
+ 133              	.LVL12:
+ 134 003a 4FF48E72 		mov	r2, #284
+ 135              	.LVL13:
+ 136 003e 3849     		ldr	r1, .L54+4
+ 137              	.LVL14:
+ 138 0040 384B     		ldr	r3, .L54+8
+ 139              	.LVL15:
+ 140 0042 9847     		blx	r3
+ 141              	.LVL16:
+ 142              	.L13:
+ 143              		.loc 1 284 0 discriminator 2
+ 144 0044 FEE7     		b	.L13
+ 145              	.LVL17:
+ 146              	.L12:
+ 285:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( uxBitsToWaitFor != 0 );
+ 147              		.loc 1 285 0 is_stmt 1
+ 148 0046 59B9     		cbnz	r1, .L14
+ 149              		.loc 1 285 0 is_stmt 0 discriminator 1
+ 150              	@ 285 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 151 0048 72B6     		CPSID i   
+ 152 004a BFF34F8F 	DSB       
+ 153 004e BFF36F8F 	ISB         
+ 154              	@ 0 "" 2
+ 155              		.thumb
+ 156 0052 3248     		ldr	r0, .L54
+ 157              	.LVL18:
+ 158 0054 40F21D12 		movw	r2, #285
+ 159              	.LVL19:
+ 160 0058 3149     		ldr	r1, .L54+4
+ 161              	.LVL20:
+ 162 005a 324B     		ldr	r3, .L54+8
+ 163              	.LVL21:
+ 164 005c 9847     		blx	r3
+ 165              	.LVL22:
+ 166              	.L15:
+ 167              		.loc 1 285 0 discriminator 3
+ 168 005e FEE7     		b	.L15
+ 169              	.LVL23:
+ 170              	.L14:
+ 286:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )
+ 287:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 288:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		configASSERT( !( ( xTaskGetSchedulerState() == taskSCHEDULER_SUSPENDED ) && ( xTicksToWait != 0 )
+ 171              		.loc 1 288 0 is_stmt 1
+ 172 0060 314B     		ldr	r3, .L54+12
+ 173              	.LVL24:
+ 174 0062 9847     		blx	r3
+ 175              	.LVL25:
+ 176 0064 60B9     		cbnz	r0, .L16
+ 177              		.loc 1 288 0 is_stmt 0 discriminator 2
+ 178 0066 5FB1     		cbz	r7, .L16
+ 179              		.loc 1 288 0
+ 180              	@ 288 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 181 0068 72B6     		CPSID i   
+ 182 006a BFF34F8F 	DSB       
+ 183 006e BFF36F8F 	ISB         
+ 184              	@ 0 "" 2
+ 185              		.thumb
+ 186 0072 2A48     		ldr	r0, .L54
+ 187 0074 4FF49072 		mov	r2, #288
+ 188 0078 2949     		ldr	r1, .L54+4
+ 189 007a 2A4B     		ldr	r3, .L54+8
+ 190 007c 9847     		blx	r3
+ 191              	.LVL26:
+ 192              	.L18:
+ 193              		.loc 1 288 0 discriminator 4
+ 194 007e FEE7     		b	.L18
+ 195              	.L16:
+ 289:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 290:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#endif
+ 291:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 292:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	vTaskSuspendAll();
+ 196              		.loc 1 292 0 is_stmt 1
+ 197 0080 2A4B     		ldr	r3, .L54+16
+ 198 0082 9847     		blx	r3
+ 199              	.LVL27:
+ 200              	.LBB9:
+ 293:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 294:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		const EventBits_t uxCurrentEventBits = pxEventBits->uxEventBits;
+ 201              		.loc 1 294 0
+ 202 0084 3468     		ldr	r4, [r6]
+ 203              	.LVL28:
+ 204 0086 05EA0403 		and	r3, r5, r4
+ 205              	.LBB10:
+ 206              	.LBB11:
+ 295:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 296:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* Check to see if the wait condition is already met or not. */
+ 297:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		xWaitConditionMet = prvTestWaitCondition( uxCurrentEventBits, uxBitsToWaitFor, xWaitForAllBits );
+ 298:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 299:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( xWaitConditionMet != pdFALSE )
+ 300:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 301:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* The wait condition has already been met so there is no need to
+ 302:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			block. */
+ 303:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			uxReturn = uxCurrentEventBits;
+ 304:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xTicksToWait = ( TickType_t ) 0;
+ 305:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 306:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* Clear the wait bits if requested to do so. */
+ 307:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			if( xClearOnExit != pdFALSE )
+ 308:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 309:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				pxEventBits->uxEventBits &= ~uxBitsToWaitFor;
+ 310:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 311:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			else
+ 312:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 313:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				mtCOVERAGE_TEST_MARKER();
+ 314:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 315:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 316:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else if( xTicksToWait == ( TickType_t ) 0 )
+ 317:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 318:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* The wait condition has not been met, but no block time was
+ 319:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			specified, so just return the current value. */
+ 320:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			uxReturn = uxCurrentEventBits;
+ 321:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 322:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 323:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 324:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* The task is going to block to wait for its required bits to be
+ 325:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			set.  uxControlBits are used to remember the specified behaviour of
+ 326:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			this call to xEventGroupWaitBits() - for use when the event bits
+ 327:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			unblock the task. */
+ 328:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			if( xClearOnExit != pdFALSE )
+ 329:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 330:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				uxControlBits |= eventCLEAR_EVENTS_ON_EXIT_BIT;
+ 331:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 332:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			else
+ 333:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 334:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				mtCOVERAGE_TEST_MARKER();
+ 335:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 336:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 337:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			if( xWaitForAllBits != pdFALSE )
+ 338:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 339:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				uxControlBits |= eventWAIT_FOR_ALL_BITS;
+ 340:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 341:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			else
+ 342:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 343:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				mtCOVERAGE_TEST_MARKER();
+ 344:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 345:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 346:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* Store the bits that the calling task is waiting for in the
+ 347:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			task's event list item so the kernel knows when a match is
+ 348:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			found.  Then enter the blocked state. */
+ 349:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			vTaskPlaceOnUnorderedEventList( &( pxEventBits->xTasksWaitingForBits ), ( uxBitsToWaitFor | uxCo
+ 350:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 351:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* This is obsolete as it will get set after the task unblocks, but
+ 352:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			some compilers mistakenly generate a warning about the variable
+ 353:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			being returned without being set if it is not done. */
+ 354:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			uxReturn = 0;
+ 355:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 356:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			traceEVENT_GROUP_WAIT_BITS_BLOCK( xEventGroup, uxBitsToWaitFor );
+ 357:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 358:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 359:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	xAlreadyYielded = xTaskResumeAll();
+ 360:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 361:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	if( xTicksToWait != ( TickType_t ) 0 )
+ 362:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 363:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( xAlreadyYielded == pdFALSE )
+ 364:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 365:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			portYIELD_WITHIN_API();
+ 366:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 367:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 368:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 369:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			mtCOVERAGE_TEST_MARKER();
+ 370:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 371:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 372:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* The task blocked to wait for its required bits to be set - at this
+ 373:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		point either the required bits were set or the block time expired.  If
+ 374:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		the required bits were set they will have been stored in the task's
+ 375:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		event list item, and they should now be retrieved then cleared. */
+ 376:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		uxReturn = uxTaskResetEventItemValue();
+ 377:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 378:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( ( uxReturn & eventUNBLOCKED_DUE_TO_BIT_SET ) == ( EventBits_t ) 0 )
+ 379:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 380:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			taskENTER_CRITICAL();
+ 381:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 382:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* The task timed out, just return the current event bit value. */
+ 383:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				uxReturn = pxEventBits->uxEventBits;
+ 384:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 385:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* It is possible that the event bits were updated between this
+ 386:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				task leaving the Blocked state and running again. */
+ 387:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				if( prvTestWaitCondition( uxReturn, uxBitsToWaitFor, xWaitForAllBits ) != pdFALSE )
+ 388:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 389:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					if( xClearOnExit != pdFALSE )
+ 390:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					{
+ 391:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 						pxEventBits->uxEventBits &= ~uxBitsToWaitFor;
+ 392:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					}
+ 393:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					else
+ 394:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					{
+ 395:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 						mtCOVERAGE_TEST_MARKER();
+ 396:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					}
+ 397:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 398:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				else
+ 399:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 400:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					mtCOVERAGE_TEST_MARKER();
+ 401:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 402:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 403:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			taskEXIT_CRITICAL();
+ 404:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 405:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* Prevent compiler warnings when trace macros are not used. */
+ 406:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xTimeoutOccurred = pdFALSE;
+ 407:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 408:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 409:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 410:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* The task unblocked because the bits were set. */
+ 411:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 412:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 413:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* The task blocked so control bits may have been set. */
+ 414:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		uxReturn &= ~eventEVENT_BITS_CONTROL_BYTES;
+ 415:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 416:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	traceEVENT_GROUP_WAIT_BITS_END( xEventGroup, uxBitsToWaitFor, xTimeoutOccurred );
+ 417:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 418:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	return uxReturn;
+ 419:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 420:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 421:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 422:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t xEventGroupClearBits( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToClear )
+ 423:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 424:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 425:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxReturn;
+ 426:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 427:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	/* Check the user is not attempting to clear the bits used by the kernel
+ 428:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	itself. */
+ 429:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( xEventGroup );
+ 430:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( ( uxBitsToClear & eventEVENT_BITS_CONTROL_BYTES ) == 0 );
+ 431:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 432:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	taskENTER_CRITICAL();
+ 433:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 434:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		traceEVENT_GROUP_CLEAR_BITS( xEventGroup, uxBitsToClear );
+ 435:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 436:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* The value returned is the event group value prior to the bits being
+ 437:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		cleared. */
+ 438:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		uxReturn = pxEventBits->uxEventBits;
+ 439:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 440:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* Clear the bits. */
+ 441:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		pxEventBits->uxEventBits &= ~uxBitsToClear;
+ 442:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 443:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	taskEXIT_CRITICAL();
+ 444:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 445:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	return uxReturn;
+ 446:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 447:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 448:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 449:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #if ( ( configUSE_TRACE_FACILITY == 1 ) && ( INCLUDE_xTimerPendFunctionCall == 1 ) && ( configUSE_T
+ 450:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 451:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	BaseType_t xEventGroupClearBitsFromISR( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsTo
+ 452:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 453:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		BaseType_t xReturn;
+ 454:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 455:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		traceEVENT_GROUP_CLEAR_BITS_FROM_ISR( xEventGroup, uxBitsToClear );
+ 456:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		xReturn = xTimerPendFunctionCallFromISR( vEventGroupClearBitsCallback, ( void * ) xEventGroup, ( 
+ 457:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 458:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		return xReturn;
+ 459:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 460:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 461:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #endif
+ 462:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 463:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 464:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t xEventGroupGetBitsFromISR( EventGroupHandle_t xEventGroup )
+ 465:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 466:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** UBaseType_t uxSavedInterruptStatus;
+ 467:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 468:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxReturn;
+ 469:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 470:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	uxSavedInterruptStatus = portSET_INTERRUPT_MASK_FROM_ISR();
+ 471:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 472:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		uxReturn = pxEventBits->uxEventBits;
+ 473:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 474:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	portCLEAR_INTERRUPT_MASK_FROM_ISR( uxSavedInterruptStatus );
+ 475:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 476:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	return uxReturn;
+ 477:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 478:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 479:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 480:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t xEventGroupSetBits( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSet )
+ 481:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 482:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** ListItem_t *pxListItem, *pxNext;
+ 483:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** ListItem_t const *pxListEnd;
+ 484:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** List_t *pxList;
+ 485:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxBitsToClear = 0, uxBitsWaitedFor, uxControlBits;
+ 486:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 487:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** BaseType_t xMatchFound = pdFALSE;
+ 488:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 489:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	/* Check the user is not attempting to set the bits used by the kernel
+ 490:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	itself. */
+ 491:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( xEventGroup );
+ 492:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( ( uxBitsToSet & eventEVENT_BITS_CONTROL_BYTES ) == 0 );
+ 493:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 494:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	pxList = &( pxEventBits->xTasksWaitingForBits );
+ 495:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	pxListEnd = listGET_END_MARKER( pxList ); /*lint !e826 !e740 The mini list structure is used as th
+ 496:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	vTaskSuspendAll();
+ 497:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 498:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		traceEVENT_GROUP_SET_BITS( xEventGroup, uxBitsToSet );
+ 499:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 500:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		pxListItem = listGET_HEAD_ENTRY( pxList );
+ 501:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 502:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* Set the bits. */
+ 503:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		pxEventBits->uxEventBits |= uxBitsToSet;
+ 504:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 505:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* See if the new bit value should unblock any tasks. */
+ 506:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		while( pxListItem != pxListEnd )
+ 507:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 508:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			pxNext = listGET_NEXT( pxListItem );
+ 509:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			uxBitsWaitedFor = listGET_LIST_ITEM_VALUE( pxListItem );
+ 510:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xMatchFound = pdFALSE;
+ 511:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 512:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* Split the bits waited for from the control bits. */
+ 513:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			uxControlBits = uxBitsWaitedFor & eventEVENT_BITS_CONTROL_BYTES;
+ 514:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			uxBitsWaitedFor &= ~eventEVENT_BITS_CONTROL_BYTES;
+ 515:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 516:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			if( ( uxControlBits & eventWAIT_FOR_ALL_BITS ) == ( EventBits_t ) 0 )
+ 517:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 518:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* Just looking for single bit being set. */
+ 519:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				if( ( uxBitsWaitedFor & pxEventBits->uxEventBits ) != ( EventBits_t ) 0 )
+ 520:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 521:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					xMatchFound = pdTRUE;
+ 522:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 523:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				else
+ 524:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 525:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					mtCOVERAGE_TEST_MARKER();
+ 526:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 527:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 528:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			else if( ( uxBitsWaitedFor & pxEventBits->uxEventBits ) == uxBitsWaitedFor )
+ 529:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 530:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* All bits are set. */
+ 531:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				xMatchFound = pdTRUE;
+ 532:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 533:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			else
+ 534:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 535:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* Need all bits to be set, but not all the bits were set. */
+ 536:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 537:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 538:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			if( xMatchFound != pdFALSE )
+ 539:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 540:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* The bits match.  Should the bits be cleared on exit? */
+ 541:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				if( ( uxControlBits & eventCLEAR_EVENTS_ON_EXIT_BIT ) != ( EventBits_t ) 0 )
+ 542:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 543:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					uxBitsToClear |= uxBitsWaitedFor;
+ 544:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 545:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				else
+ 546:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 547:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					mtCOVERAGE_TEST_MARKER();
+ 548:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 549:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 550:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				/* Store the actual event flag value in the task's event list
+ 551:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				item before removing the task from the event list.  The
+ 552:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				eventUNBLOCKED_DUE_TO_BIT_SET bit is set so the task knows
+ 553:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				that is was unblocked due to its required bits matching, rather
+ 554:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				than because it timed out. */
+ 555:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				( void ) xTaskRemoveFromUnorderedEventList( pxListItem, pxEventBits->uxEventBits | eventUNBLOCK
+ 556:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 557:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 558:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* Move onto the next list item.  Note pxListItem->pxNext is not
+ 559:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			used here as the list item may have been removed from the event list
+ 560:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			and inserted into the ready/pending reading list. */
+ 561:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			pxListItem = pxNext;
+ 562:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 563:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 564:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* Clear any bits that matched when the eventCLEAR_EVENTS_ON_EXIT_BIT
+ 565:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		bit was set in the control word. */
+ 566:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		pxEventBits->uxEventBits &= ~uxBitsToClear;
+ 567:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 568:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	( void ) xTaskResumeAll();
+ 569:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 570:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	return pxEventBits->uxEventBits;
+ 571:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 572:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 573:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 574:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** void vEventGroupDelete( EventGroupHandle_t xEventGroup )
+ 575:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 576:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 577:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** const List_t *pxTasksWaitingForBits = &( pxEventBits->xTasksWaitingForBits );
+ 578:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 579:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	vTaskSuspendAll();
+ 580:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 581:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		traceEVENT_GROUP_DELETE( xEventGroup );
+ 582:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 583:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		while( listCURRENT_LIST_LENGTH( pxTasksWaitingForBits ) > ( UBaseType_t ) 0 )
+ 584:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 585:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			/* Unblock the task, returning 0 as the event list is being deleted
+ 586:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			and	cannot therefore have any bits set. */
+ 587:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			configASSERT( pxTasksWaitingForBits->xListEnd.pxNext != ( ListItem_t * ) &( pxTasksWaitingForBit
+ 588:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			( void ) xTaskRemoveFromUnorderedEventList( pxTasksWaitingForBits->xListEnd.pxNext, eventUNBLOCK
+ 589:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 590:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 591:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		vPortFree( pxEventBits );
+ 592:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 593:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	( void ) xTaskResumeAll();
+ 594:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 595:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 596:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 597:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /* For internal use only - execute a 'set bits' command that was pended from
+ 598:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** an interrupt. */
+ 599:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** void vEventGroupSetBitsCallback( void *pvEventGroup, const uint32_t ulBitsToSet )
+ 600:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 601:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	( void ) xEventGroupSetBits( pvEventGroup, ( EventBits_t ) ulBitsToSet );
+ 602:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 603:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 604:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 605:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /* For internal use only - execute a 'clear bits' command that was pended from
+ 606:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** an interrupt. */
+ 607:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** void vEventGroupClearBitsCallback( void *pvEventGroup, const uint32_t ulBitsToClear )
+ 608:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 609:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	( void ) xEventGroupClearBits( pvEventGroup, ( EventBits_t ) ulBitsToClear );
+ 610:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 611:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 612:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 613:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** static BaseType_t prvTestWaitCondition( const EventBits_t uxCurrentEventBits, const EventBits_t uxB
+ 614:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** {
+ 615:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** BaseType_t xWaitConditionMet = pdFALSE;
+ 616:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 617:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	if( xWaitForAllBits == pdFALSE )
+ 207              		.loc 1 617 0
+ 208 008a B9F1000F 		cmp	r9, #0
+ 209 008e 01D1     		bne	.L52
+ 618:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 619:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* Task only has to wait for one bit within uxBitsToWaitFor to be
+ 620:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		set.  Is one already set? */
+ 621:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( ( uxCurrentEventBits & uxBitsToWaitFor ) != ( EventBits_t ) 0 )
+ 210              		.loc 1 621 0
+ 211 0090 13B9     		cbnz	r3, .L19
+ 212 0092 09E0     		b	.L20
+ 213              	.L52:
+ 622:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 623:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xWaitConditionMet = pdTRUE;
+ 624:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 625:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 626:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 627:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			mtCOVERAGE_TEST_MARKER();
+ 628:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 629:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 630:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	else
+ 631:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 632:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		/* Task has to wait for all the bits in uxBitsToWaitFor to be set.
+ 633:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		Are they set already? */
+ 634:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( ( uxCurrentEventBits & uxBitsToWaitFor ) == uxBitsToWaitFor )
+ 214              		.loc 1 634 0
+ 215 0094 AB42     		cmp	r3, r5
+ 216 0096 07D1     		bne	.L20
+ 217              	.L19:
+ 218              	.LVL29:
+ 219              	.LBE11:
+ 220              	.LBE10:
+ 307:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 221              		.loc 1 307 0
+ 222 0098 B8F1000F 		cmp	r8, #0
+ 223 009c 39D0     		beq	.L53
+ 309:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 224              		.loc 1 309 0
+ 225 009e 24EA0503 		bic	r3, r4, r5
+ 304:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 226              		.loc 1 304 0
+ 227 00a2 0027     		movs	r7, #0
+ 309:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 228              		.loc 1 309 0
+ 229 00a4 3360     		str	r3, [r6]
+ 230 00a6 11E0     		b	.L21
+ 231              	.LVL30:
+ 232              	.L20:
+ 316:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 233              		.loc 1 316 0
+ 234 00a8 87B1     		cbz	r7, .L21
+ 330:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 235              		.loc 1 330 0
+ 236 00aa B8F1000F 		cmp	r8, #0
+ 237 00ae 0CBF     		ite	eq
+ 238 00b0 0021     		moveq	r1, #0
+ 239 00b2 4FF08071 		movne	r1, #16777216
+ 240              	.LVL31:
+ 337:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 241              		.loc 1 337 0
+ 242 00b6 B9F1000F 		cmp	r9, #0
+ 243 00ba 01D0     		beq	.L23
+ 339:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 244              		.loc 1 339 0
+ 245 00bc 41F08061 		orr	r1, r1, #67108864
+ 246              	.LVL32:
+ 247              	.L23:
+ 349:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 248              		.loc 1 349 0
+ 249 00c0 301D     		adds	r0, r6, #4
+ 250 00c2 2943     		orrs	r1, r1, r5
+ 251              	.LVL33:
+ 252 00c4 3A46     		mov	r2, r7
+ 354:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 253              		.loc 1 354 0
+ 254 00c6 0024     		movs	r4, #0
+ 255              	.LVL34:
+ 349:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 256              		.loc 1 349 0
+ 257 00c8 194B     		ldr	r3, .L54+20
+ 258 00ca 9847     		blx	r3
+ 259              	.LVL35:
+ 260              	.L21:
+ 261              	.LBE9:
+ 359:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 262              		.loc 1 359 0
+ 263 00cc 194B     		ldr	r3, .L54+24
+ 264 00ce 9847     		blx	r3
+ 265              	.LVL36:
+ 361:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 266              		.loc 1 361 0
+ 267 00d0 0FB3     		cbz	r7, .L40
+ 363:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 268              		.loc 1 363 0
+ 269 00d2 10B9     		cbnz	r0, .L25
+ 365:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 270              		.loc 1 365 0
+ 271              	@ 365 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 272 00d4 00DF     		SWI 0     
+ 273 00d6 BFF36F8F 	ISB         
+ 274              	@ 0 "" 2
+ 275              		.thumb
+ 276              	.L25:
+ 376:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 277              		.loc 1 376 0
+ 278 00da 174B     		ldr	r3, .L54+28
+ 279 00dc 9847     		blx	r3
+ 280              	.LVL37:
+ 378:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 281              		.loc 1 378 0
+ 282 00de 8301     		lsls	r3, r0, #6
+ 376:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 283              		.loc 1 376 0
+ 284 00e0 0446     		mov	r4, r0
+ 285              	.LVL38:
+ 378:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 286              		.loc 1 378 0
+ 287 00e2 13D4     		bmi	.L26
+ 380:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 288              		.loc 1 380 0
+ 289 00e4 154B     		ldr	r3, .L54+32
+ 290 00e6 9847     		blx	r3
+ 291              	.LVL39:
+ 383:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 292              		.loc 1 383 0
+ 293 00e8 3468     		ldr	r4, [r6]
+ 294              	.LVL40:
+ 295 00ea 05EA0403 		and	r3, r5, r4
+ 296              	.LBB12:
+ 297              	.LBB13:
+ 617:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 298              		.loc 1 617 0
+ 299 00ee B9F1000F 		cmp	r9, #0
+ 300 00f2 01D1     		bne	.L27
+ 621:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 301              		.loc 1 621 0
+ 302 00f4 13B9     		cbnz	r3, .L28
+ 303 00f6 07E0     		b	.L29
+ 304              	.L27:
+ 305              		.loc 1 634 0
+ 306 00f8 AB42     		cmp	r3, r5
+ 307 00fa 05D1     		bne	.L29
+ 308              	.L28:
+ 309              	.LVL41:
+ 310              	.LBE13:
+ 311              	.LBE12:
+ 389:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					{
+ 312              		.loc 1 389 0
+ 313 00fc B8F1000F 		cmp	r8, #0
+ 314 0100 02D0     		beq	.L29
+ 391:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 					}
+ 315              		.loc 1 391 0
+ 316 0102 24EA0505 		bic	r5, r4, r5
+ 317              	.LVL42:
+ 318 0106 3560     		str	r5, [r6]
+ 319              	.LVL43:
+ 320              	.L29:
+ 403:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 321              		.loc 1 403 0
+ 322 0108 0D4B     		ldr	r3, .L54+36
+ 323 010a 9847     		blx	r3
+ 324              	.LVL44:
+ 325              	.L26:
+ 414:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 326              		.loc 1 414 0
+ 327 010c 24F07F44 		bic	r4, r4, #-16777216
+ 328              	.LVL45:
+ 329 0110 01E0     		b	.L40
+ 330              	.LVL46:
+ 331              	.L53:
+ 332              	.LBB14:
+ 304:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 333              		.loc 1 304 0
+ 334 0112 4746     		mov	r7, r8
+ 335 0114 DAE7     		b	.L21
+ 336              	.LVL47:
+ 337              	.L40:
+ 338              	.LBE14:
+ 419:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 339              		.loc 1 419 0
+ 340 0116 2046     		mov	r0, r4
+ 341 0118 BDE8F883 		pop	{r3, r4, r5, r6, r7, r8, r9, pc}
+ 342              	.LVL48:
+ 343              	.L55:
+ 344              		.align	2
+ 345              	.L54:
+ 346 011c 00000000 		.word	.LC0
+ 347 0120 00000000 		.word	.LANCHOR1
+ 348 0124 00000000 		.word	printf
+ 349 0128 00000000 		.word	xTaskGetSchedulerState
+ 350 012c 00000000 		.word	vTaskSuspendAll
+ 351 0130 00000000 		.word	vTaskPlaceOnUnorderedEventList
+ 352 0134 00000000 		.word	xTaskResumeAll
+ 353 0138 00000000 		.word	uxTaskResetEventItemValue
+ 354 013c 00000000 		.word	vPortEnterCritical
+ 355 0140 00000000 		.word	vPortExitCritical
+ 356              		.cfi_endproc
+ 357              	.LFE3:
+ 359              		.section	.text.xEventGroupClearBits,"ax",%progbits
+ 360              		.align	1
+ 361              		.global	xEventGroupClearBits
+ 362              		.thumb
+ 363              		.thumb_func
+ 365              	xEventGroupClearBits:
+ 366              	.LFB4:
+ 423:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 367              		.loc 1 423 0
+ 368              		.cfi_startproc
+ 369              		@ args = 0, pretend = 0, frame = 0
+ 370              		@ frame_needed = 0, uses_anonymous_args = 0
+ 371              	.LVL49:
+ 372 0000 70B5     		push	{r4, r5, r6, lr}
+ 373              	.LCFI2:
+ 374              		.cfi_def_cfa_offset 16
+ 375              		.cfi_offset 4, -16
+ 376              		.cfi_offset 5, -12
+ 377              		.cfi_offset 6, -8
+ 378              		.cfi_offset 14, -4
+ 423:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 379              		.loc 1 423 0
+ 380 0002 0C46     		mov	r4, r1
+ 429:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( ( uxBitsToClear & eventEVENT_BITS_CONTROL_BYTES ) == 0 );
+ 381              		.loc 1 429 0
+ 382 0004 0546     		mov	r5, r0
+ 383 0006 58B9     		cbnz	r0, .L57
+ 384              	.LVL50:
+ 385              	.LBB17:
+ 386              	.LBB18:
+ 387              	@ 429 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 388 0008 72B6     		CPSID i   
+ 389 000a BFF34F8F 	DSB       
+ 390 000e BFF36F8F 	ISB         
+ 391              	@ 0 "" 2
+ 392              		.thumb
+ 393 0012 1048     		ldr	r0, .L61
+ 394              	.LVL51:
+ 395 0014 40F2AD12 		movw	r2, #429
+ 396 0018 0F49     		ldr	r1, .L61+4
+ 397              	.LVL52:
+ 398 001a 104B     		ldr	r3, .L61+8
+ 399 001c 9847     		blx	r3
+ 400              	.LVL53:
+ 401              	.L58:
+ 402 001e FEE7     		b	.L58
+ 403              	.LVL54:
+ 404              	.L57:
+ 405              	.LBE18:
+ 406              	.LBE17:
+ 430:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 407              		.loc 1 430 0
+ 408 0020 11F07F4F 		tst	r1, #-16777216
+ 409 0024 0BD0     		beq	.L59
+ 430:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 410              		.loc 1 430 0 is_stmt 0 discriminator 1
+ 411              	@ 430 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 412 0026 72B6     		CPSID i   
+ 413 0028 BFF34F8F 	DSB       
+ 414 002c BFF36F8F 	ISB         
+ 415              	@ 0 "" 2
+ 416              		.thumb
+ 417 0030 0848     		ldr	r0, .L61
+ 418              	.LVL55:
+ 419 0032 4FF4D772 		mov	r2, #430
+ 420 0036 0849     		ldr	r1, .L61+4
+ 421              	.LVL56:
+ 422 0038 084B     		ldr	r3, .L61+8
+ 423 003a 9847     		blx	r3
+ 424              	.LVL57:
+ 425              	.L60:
+ 430:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 426              		.loc 1 430 0 discriminator 2
+ 427 003c FEE7     		b	.L60
+ 428              	.LVL58:
+ 429              	.L59:
+ 432:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 430              		.loc 1 432 0 is_stmt 1
+ 431 003e 084B     		ldr	r3, .L61+12
+ 432 0040 9847     		blx	r3
+ 433              	.LVL59:
+ 438:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 434              		.loc 1 438 0
+ 435 0042 2E68     		ldr	r6, [r5]
+ 436              	.LVL60:
+ 443:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 437              		.loc 1 443 0
+ 438 0044 074B     		ldr	r3, .L61+16
+ 441:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 439              		.loc 1 441 0
+ 440 0046 26EA0404 		bic	r4, r6, r4
+ 441              	.LVL61:
+ 442 004a 2C60     		str	r4, [r5]
+ 443:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 443              		.loc 1 443 0
+ 444 004c 9847     		blx	r3
+ 445              	.LVL62:
+ 446:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 446              		.loc 1 446 0
+ 447 004e 3046     		mov	r0, r6
+ 448 0050 70BD     		pop	{r4, r5, r6, pc}
+ 449              	.LVL63:
+ 450              	.L62:
+ 451 0052 00BF     		.align	2
+ 452              	.L61:
+ 453 0054 00000000 		.word	.LC0
+ 454 0058 00000000 		.word	.LANCHOR2
+ 455 005c 00000000 		.word	printf
+ 456 0060 00000000 		.word	vPortEnterCritical
+ 457 0064 00000000 		.word	vPortExitCritical
+ 458              		.cfi_endproc
+ 459              	.LFE4:
+ 461              		.section	.text.vEventGroupClearBitsCallback,"ax",%progbits
+ 462              		.align	1
+ 463              		.global	vEventGroupClearBitsCallback
+ 464              		.thumb
+ 465              		.thumb_func
+ 467              	vEventGroupClearBitsCallback:
+ 468              	.LFB10:
+ 608:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	( void ) xEventGroupClearBits( pvEventGroup, ( EventBits_t ) ulBitsToClear );
+ 469              		.loc 1 608 0
+ 470              		.cfi_startproc
+ 471              		@ args = 0, pretend = 0, frame = 0
+ 472              		@ frame_needed = 0, uses_anonymous_args = 0
+ 473              	.LVL64:
+ 474 0000 08B5     		push	{r3, lr}
+ 475              	.LCFI3:
+ 476              		.cfi_def_cfa_offset 8
+ 477              		.cfi_offset 3, -8
+ 478              		.cfi_offset 14, -4
+ 609:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 479              		.loc 1 609 0
+ 480 0002 014B     		ldr	r3, .L64
+ 481 0004 9847     		blx	r3
+ 482              	.LVL65:
+ 483 0006 08BD     		pop	{r3, pc}
+ 484              	.L65:
+ 485              		.align	2
+ 486              	.L64:
+ 487 0008 00000000 		.word	xEventGroupClearBits
+ 488              		.cfi_endproc
+ 489              	.LFE10:
+ 491              		.section	.text.xEventGroupClearBitsFromISR,"ax",%progbits
+ 492              		.align	1
+ 493              		.global	xEventGroupClearBitsFromISR
+ 494              		.thumb
+ 495              		.thumb_func
+ 497              	xEventGroupClearBitsFromISR:
+ 498              	.LFB5:
+ 452:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		BaseType_t xReturn;
+ 499              		.loc 1 452 0
+ 500              		.cfi_startproc
+ 501              		@ args = 0, pretend = 0, frame = 0
+ 502              		@ frame_needed = 0, uses_anonymous_args = 0
+ 503              	.LVL66:
+ 504 0000 0346     		mov	r3, r0
+ 505 0002 0A46     		mov	r2, r1
+ 506 0004 10B5     		push	{r4, lr}
+ 507              	.LCFI4:
+ 508              		.cfi_def_cfa_offset 8
+ 509              		.cfi_offset 4, -8
+ 510              		.cfi_offset 14, -4
+ 456:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 511              		.loc 1 456 0
+ 512 0006 1946     		mov	r1, r3
+ 513              	.LVL67:
+ 514 0008 0023     		movs	r3, #0
+ 515 000a 024C     		ldr	r4, .L67
+ 516 000c 0248     		ldr	r0, .L67+4
+ 517              	.LVL68:
+ 518 000e A047     		blx	r4
+ 519              	.LVL69:
+ 459:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 520              		.loc 1 459 0
+ 521 0010 10BD     		pop	{r4, pc}
+ 522              	.L68:
+ 523 0012 00BF     		.align	2
+ 524              	.L67:
+ 525 0014 00000000 		.word	xTimerPendFunctionCallFromISR
+ 526 0018 00000000 		.word	vEventGroupClearBitsCallback
+ 527              		.cfi_endproc
+ 528              	.LFE5:
+ 530              		.section	.text.xEventGroupGetBitsFromISR,"ax",%progbits
+ 531              		.align	1
+ 532              		.global	xEventGroupGetBitsFromISR
+ 533              		.thumb
+ 534              		.thumb_func
+ 536              	xEventGroupGetBitsFromISR:
+ 537              	.LFB6:
+ 465:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** UBaseType_t uxSavedInterruptStatus;
+ 538              		.loc 1 465 0
+ 539              		.cfi_startproc
+ 540              		@ args = 0, pretend = 0, frame = 8
+ 541              		@ frame_needed = 0, uses_anonymous_args = 0
+ 542              		@ link register save eliminated.
+ 543              	.LVL70:
+ 544 0000 82B0     		sub	sp, sp, #8
+ 545              	.LCFI5:
+ 546              		.cfi_def_cfa_offset 8
+ 547              	.LBB19:
+ 548              	.LBB20:
+ 549              		.file 2 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+   1:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*
+   2:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     All rights reserved
+   4:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+   5:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
+   6:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+   7:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     This file is part of the FreeRTOS distribution.
+   8:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+   9:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS is free software; you can redistribute it and/or modify it under
+  10:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     the terms of the GNU General Public License (version 2) as published by the
+  11:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
+  12:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  13:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  14:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+  15:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   distribute a combined work that includes FreeRTOS without being   !<<
+  16:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   obliged to provide the source code for proprietary components     !<<
+  17:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     >>!   outside of the FreeRTOS kernel.                                   !<<
+  18:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  19:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+  21:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  22:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+  23:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     link: http://www.freertos.org/a00114.html
+  24:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  26:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *                                                                       *
+  27:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    FreeRTOS provides completely free yet professionally developed,    *
+  28:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    robust, strictly quality controlled, supported, and cross          *
+  29:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    platform software that is more than just the market leader, it     *
+  30:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    is the industry's de facto standard.                               *
+  31:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *                                                                       *
+  32:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    Help yourself get started quickly while simultaneously helping     *
+  33:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+  34:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    tutorial book, reference manual, or both:                          *
+  35:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *    http://www.FreeRTOS.org/Documentation                              *
+  36:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****      *                                                                       *
+  37:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ***************************************************************************
+  38:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+  40:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     the FAQ page "My application does not run, what could be wrong?".  Have you
+  41:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     defined configASSERT()?
+  42:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/support - In return for receiving this top quality
+  44:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     embedded software for free we request you assist our global community by
+  45:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     participating in the support forum.
+  46:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/training - Investing in training allows your team to
+  48:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     be as productive as possible as early as possible.  Now you can receive
+  49:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+  50:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Ltd, and the world's leading authority on the world's leading RTOS.
+  51:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  52:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+  53:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+  54:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     compatible FAT file system, and our tiny thread aware UDP/IP stack.
+  55:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+  57:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+  58:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  59:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+  60:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+  61:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     licenses offer ticketed support, indemnification and commercial middleware.
+  62:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+  64:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     engineered and independently SIL3 certified version for use in safety and
+  65:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     mission critical applications that require provable dependability.
+  66:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     1 tab == 4 spaces!
+  68:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** */
+  69:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #ifndef PORTMACRO_H
+  71:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define PORTMACRO_H
+  72:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #ifdef __cplusplus
+  74:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     extern "C" {
+  75:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #endif
+  76:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  77:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------
+  78:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * Port specific definitions.
+  79:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *
+  80:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * The settings in this file configure FreeRTOS correctly for the given hardware
+  81:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * and compiler.
+  82:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *
+  83:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * These settings should not be altered.
+  84:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *-----------------------------------------------------------
+  85:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  */
+  86:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  87:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Type definitions. */
+  88:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portCHAR        char
+  89:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portFLOAT       float
+  90:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portDOUBLE      double
+  91:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portLONG        long
+  92:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portSHORT       short
+  93:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portSTACK_TYPE  uint32_t
+  94:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portBASE_TYPE   long
+  95:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+  96:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef portSTACK_TYPE StackType_t;
+  97:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef long BaseType_t;
+  98:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef unsigned long UBaseType_t;
+  99:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 100:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** typedef uint32_t TickType_t;
+ 101:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portMAX_DELAY ( TickType_t ) 0xffffffffUL
+ 102:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 103:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* 32-bit tick type on a 32-bit architecture, so reads of the tick count do
+ 104:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** not need to be guarded with a critical section. */
+ 105:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portTICK_TYPE_IS_ATOMIC 1
+ 106:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 107:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------*/
+ 108:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 109:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Hardware specifics. */
+ 110:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portSTACK_GROWTH            ( -1 )
+ 111:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portTICK_PERIOD_MS          ( ( TickType_t ) 1000 / configTICK_RATE_HZ )
+ 112:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portBYTE_ALIGNMENT          8
+ 113:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 114:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------*/
+ 115:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 116:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Task utilities. */
+ 117:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 118:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* Called at the end of an ISR that can cause a context switch. */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portEND_SWITCHING_ISR( xSwitchRequired )\
+ 120:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** {                                               \
+ 121:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern volatile uint32_t ulPortYieldRequired;   \
+ 122:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                                 \
+ 123:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     if( xSwitchRequired != pdFALSE )            \
+ 124:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     {                                           \
+ 125:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****         ulPortYieldRequired = pdTRUE;           \
+ 126:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     }                                           \
+ 127:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** }
+ 128:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 129:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portYIELD_FROM_ISR( x ) portEND_SWITCHING_ISR( x )
+ 130:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portYIELD() __asm volatile ( "SWI 0     \n"             \
+ 131:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                      "ISB         " );
+ 132:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 133:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 134:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /*-----------------------------------------------------------
+ 135:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  * Critical section control
+ 136:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****  *----------------------------------------------------------*/
+ 137:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 138:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortEnterCritical( void );
+ 139:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortExitCritical( void );
+ 140:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern uint32_t ulPortSetInterruptMask( void );
+ 141:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortClearInterruptMask( uint32_t ulNewMaskValue );
+ 142:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** extern void vPortInstallFreeRTOSVectorTable( void );
+ 143:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 144:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* The I bit within the CPSR. */
+ 145:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portINTERRUPT_ENABLE_BIT    ( 1 << 7 )
+ 146:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 147:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** /* In the absence of a priority mask register, these functions and macros
+ 148:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** globally enable and disable interrupts. */
+ 149:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portENTER_CRITICAL()        vPortEnterCritical();
+ 150:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portEXIT_CRITICAL()         vPortExitCritical();
+ 151:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portENABLE_INTERRUPTS()     __asm volatile ( "CPSIE i   \n" );
+ 152:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define portDISABLE_INTERRUPTS()    __asm volatile ( "CPSID i   \n"     \
+ 153:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                                      "DSB       \n"     \
+ 154:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****                                                      "ISB         " );
+ 155:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 156:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define __disable_irq()             portDISABLE_INTERRUPTS()
+ 157:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** #define __enable_irq()              portENABLE_INTERRUPTS()
+ 158:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** __attribute__( ( always_inline ) ) static __inline uint32_t portINLINE_SET_INTERRUPT_MASK_FROM_ISR(
+ 160:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** {
+ 161:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** volatile uint32_t ulCPSR;
+ 162:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h **** 
+ 163:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     __asm volatile ( "MRS %0, CPSR" : "=r" (ulCPSR) );
+ 550              		.loc 2 163 0
+ 551              	@ 163 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h"
+ 552 0002 EFF30083 		MRS r3, CPSR
+ 553              	@ 0 "" 2
+ 554              		.thumb
+ 555 0006 0193     		str	r3, [sp, #4]
+ 164:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     ulCPSR &= portINTERRUPT_ENABLE_BIT;
+ 556              		.loc 2 164 0
+ 557 0008 019B     		ldr	r3, [sp, #4]
+ 558 000a 03F08003 		and	r3, r3, #128
+ 559 000e 0193     		str	r3, [sp, #4]
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     portDISABLE_INTERRUPTS();
+ 560              		.loc 2 165 0
+ 561              	@ 165 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h"
+ 562 0010 72B6     		CPSID i   
+ 563 0012 BFF34F8F 	DSB       
+ 564 0016 BFF36F8F 	ISB         
+ 565              	@ 0 "" 2
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro.h ****     return ulCPSR;
+ 566              		.loc 2 166 0
+ 567              		.thumb
+ 568 001a 019B     		ldr	r3, [sp, #4]
+ 569              	.LBE20:
+ 570              	.LBE19:
+ 472:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 571              		.loc 1 472 0
+ 572 001c 0068     		ldr	r0, [r0]
+ 573              	.LVL71:
+ 474:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 574              		.loc 1 474 0
+ 575 001e 03B9     		cbnz	r3, .L70
+ 474:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 576              		.loc 1 474 0 is_stmt 0 discriminator 1
+ 577              	@ 474 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 578 0020 62B6     		CPSIE i   
+ 579              	
+ 580              	@ 0 "" 2
+ 581              		.thumb
+ 582              	.L70:
+ 477:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 583              		.loc 1 477 0 is_stmt 1
+ 584 0022 02B0     		add	sp, sp, #8
+ 585              	.LCFI6:
+ 586              		.cfi_def_cfa_offset 0
+ 587              		@ sp needed
+ 588 0024 7047     		bx	lr
+ 589              		.cfi_endproc
+ 590              	.LFE6:
+ 592              		.section	.text.xEventGroupSetBits,"ax",%progbits
+ 593              		.align	1
+ 594              		.global	xEventGroupSetBits
+ 595              		.thumb
+ 596              		.thumb_func
+ 598              	xEventGroupSetBits:
+ 599              	.LFB7:
+ 481:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** ListItem_t *pxListItem, *pxNext;
+ 600              		.loc 1 481 0
+ 601              		.cfi_startproc
+ 602              		@ args = 0, pretend = 0, frame = 0
+ 603              		@ frame_needed = 0, uses_anonymous_args = 0
+ 604              	.LVL72:
+ 605 0000 F8B5     		push	{r3, r4, r5, r6, r7, lr}
+ 606              	.LCFI7:
+ 607              		.cfi_def_cfa_offset 24
+ 608              		.cfi_offset 3, -24
+ 609              		.cfi_offset 4, -20
+ 610              		.cfi_offset 5, -16
+ 611              		.cfi_offset 6, -12
+ 612              		.cfi_offset 7, -8
+ 613              		.cfi_offset 14, -4
+ 481:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** ListItem_t *pxListItem, *pxNext;
+ 614              		.loc 1 481 0
+ 615 0002 0E46     		mov	r6, r1
+ 491:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( ( uxBitsToSet & eventEVENT_BITS_CONTROL_BYTES ) == 0 );
+ 616              		.loc 1 491 0
+ 617 0004 0446     		mov	r4, r0
+ 618 0006 58B9     		cbnz	r0, .L72
+ 491:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( ( uxBitsToSet & eventEVENT_BITS_CONTROL_BYTES ) == 0 );
+ 619              		.loc 1 491 0 is_stmt 0 discriminator 1
+ 620              	@ 491 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 621 0008 72B6     		CPSID i   
+ 622 000a BFF34F8F 	DSB       
+ 623 000e BFF36F8F 	ISB         
+ 624              	@ 0 "" 2
+ 625              		.thumb
+ 626 0012 1F48     		ldr	r0, .L86
+ 627              	.LVL73:
+ 628 0014 40F2EB12 		movw	r2, #491
+ 629 0018 1E49     		ldr	r1, .L86+4
+ 630              	.LVL74:
+ 631 001a 1F4B     		ldr	r3, .L86+8
+ 632 001c 9847     		blx	r3
+ 633              	.LVL75:
+ 634              	.L73:
+ 635 001e FEE7     		b	.L73
+ 636              	.LVL76:
+ 637              	.L72:
+ 492:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 638              		.loc 1 492 0 is_stmt 1
+ 639 0020 11F07F45 		ands	r5, r1, #-16777216
+ 640 0024 0BD0     		beq	.L74
+ 492:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 641              		.loc 1 492 0 is_stmt 0 discriminator 1
+ 642              	@ 492 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 643 0026 72B6     		CPSID i   
+ 644 0028 BFF34F8F 	DSB       
+ 645 002c BFF36F8F 	ISB         
+ 646              	@ 0 "" 2
+ 647              		.thumb
+ 648 0030 1748     		ldr	r0, .L86
+ 649              	.LVL77:
+ 650 0032 4FF4F672 		mov	r2, #492
+ 651 0036 1749     		ldr	r1, .L86+4
+ 652              	.LVL78:
+ 653 0038 174B     		ldr	r3, .L86+8
+ 654 003a 9847     		blx	r3
+ 655              	.LVL79:
+ 656              	.L75:
+ 492:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 657              		.loc 1 492 0 discriminator 2
+ 658 003c FEE7     		b	.L75
+ 659              	.LVL80:
+ 660              	.L74:
+ 496:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 661              		.loc 1 496 0 is_stmt 1
+ 662 003e 174B     		ldr	r3, .L86+12
+ 495:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	vTaskSuspendAll();
+ 663              		.loc 1 495 0
+ 664 0040 00F10C07 		add	r7, r0, #12
+ 665              	.LVL81:
+ 496:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 666              		.loc 1 496 0
+ 667 0044 9847     		blx	r3
+ 668              	.LVL82:
+ 503:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 669              		.loc 1 503 0
+ 670 0046 2168     		ldr	r1, [r4]
+ 500:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 671              		.loc 1 500 0
+ 672 0048 2069     		ldr	r0, [r4, #16]
+ 673              	.LVL83:
+ 503:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 674              		.loc 1 503 0
+ 675 004a 0E43     		orrs	r6, r6, r1
+ 676              	.LVL84:
+ 677 004c 2660     		str	r6, [r4]
+ 678              	.LVL85:
+ 679              	.L76:
+ 506:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 680              		.loc 1 506 0
+ 681 004e B842     		cmp	r0, r7
+ 682 0050 2168     		ldr	r1, [r4]
+ 683 0052 16D0     		beq	.L85
+ 509:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xMatchFound = pdFALSE;
+ 684              		.loc 1 509 0
+ 685 0054 90E84400 		ldmia	r0, {r2, r6}
+ 686              	.LVL86:
+ 516:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 687              		.loc 1 516 0
+ 688 0058 12F0806F 		tst	r2, #67108864
+ 514:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 689              		.loc 1 514 0
+ 690 005c 22F07F43 		bic	r3, r2, #-16777216
+ 691              	.LVL87:
+ 516:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 692              		.loc 1 516 0
+ 693 0060 02D1     		bne	.L77
+ 519:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 694              		.loc 1 519 0
+ 695 0062 0B42     		tst	r3, r1
+ 696 0064 04D1     		bne	.L78
+ 697 0066 0AE0     		b	.L79
+ 698              	.L77:
+ 528:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 699              		.loc 1 528 0
+ 700 0068 03EA010E 		and	lr, r3, r1
+ 701 006c 9E45     		cmp	lr, r3
+ 702 006e 06D1     		bne	.L79
+ 703              	.L78:
+ 704              	.LVL88:
+ 541:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 705              		.loc 1 541 0
+ 706 0070 D201     		lsls	r2, r2, #7
+ 707              	.LVL89:
+ 708 0072 00D5     		bpl	.L82
+ 543:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 709              		.loc 1 543 0
+ 710 0074 1D43     		orrs	r5, r5, r3
+ 711              	.LVL90:
+ 712              	.L82:
+ 555:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 713              		.loc 1 555 0
+ 714 0076 41F00071 		orr	r1, r1, #33554432
+ 715 007a 094B     		ldr	r3, .L86+16
+ 716              	.LVL91:
+ 717 007c 9847     		blx	r3
+ 718              	.LVL92:
+ 719              	.L79:
+ 481:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** ListItem_t *pxListItem, *pxNext;
+ 720              		.loc 1 481 0
+ 721 007e 3046     		mov	r0, r6
+ 722 0080 E5E7     		b	.L76
+ 723              	.LVL93:
+ 724              	.L85:
+ 566:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 725              		.loc 1 566 0
+ 726 0082 21EA0501 		bic	r1, r1, r5
+ 568:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 727              		.loc 1 568 0
+ 728 0086 074B     		ldr	r3, .L86+20
+ 566:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 729              		.loc 1 566 0
+ 730 0088 2160     		str	r1, [r4]
+ 568:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 731              		.loc 1 568 0
+ 732 008a 9847     		blx	r3
+ 733              	.LVL94:
+ 570:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 734              		.loc 1 570 0
+ 735 008c 2068     		ldr	r0, [r4]
+ 571:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 736              		.loc 1 571 0
+ 737 008e F8BD     		pop	{r3, r4, r5, r6, r7, pc}
+ 738              	.LVL95:
+ 739              	.L87:
+ 740              		.align	2
+ 741              	.L86:
+ 742 0090 00000000 		.word	.LC0
+ 743 0094 00000000 		.word	.LANCHOR3
+ 744 0098 00000000 		.word	printf
+ 745 009c 00000000 		.word	vTaskSuspendAll
+ 746 00a0 00000000 		.word	xTaskRemoveFromUnorderedEventList
+ 747 00a4 00000000 		.word	xTaskResumeAll
+ 748              		.cfi_endproc
+ 749              	.LFE7:
+ 751              		.section	.text.xEventGroupSync,"ax",%progbits
+ 752              		.align	1
+ 753              		.global	xEventGroupSync
+ 754              		.thumb
+ 755              		.thumb_func
+ 757              	xEventGroupSync:
+ 758              	.LFB2:
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxOriginalBitValue, uxReturn;
+ 759              		.loc 1 159 0
+ 760              		.cfi_startproc
+ 761              		@ args = 0, pretend = 0, frame = 0
+ 762              		@ frame_needed = 0, uses_anonymous_args = 0
+ 763              	.LVL96:
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( uxBitsToWaitFor != 0 );
+ 764              		.loc 1 165 0
+ 765 0000 12F07F4F 		tst	r2, #-16777216
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxOriginalBitValue, uxReturn;
+ 766              		.loc 1 159 0
+ 767 0004 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 768              	.LCFI8:
+ 769              		.cfi_def_cfa_offset 24
+ 770              		.cfi_offset 4, -24
+ 771              		.cfi_offset 5, -20
+ 772              		.cfi_offset 6, -16
+ 773              		.cfi_offset 7, -12
+ 774              		.cfi_offset 8, -8
+ 775              		.cfi_offset 14, -4
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventBits_t uxOriginalBitValue, uxReturn;
+ 776              		.loc 1 159 0
+ 777 0008 0646     		mov	r6, r0
+ 778 000a 8846     		mov	r8, r1
+ 779 000c 1546     		mov	r5, r2
+ 780              	.LVL97:
+ 781 000e 1F46     		mov	r7, r3
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( uxBitsToWaitFor != 0 );
+ 782              		.loc 1 165 0
+ 783 0010 0AD0     		beq	.L89
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	configASSERT( uxBitsToWaitFor != 0 );
+ 784              		.loc 1 165 0 is_stmt 0 discriminator 1
+ 785              	@ 165 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 786 0012 72B6     		CPSID i   
+ 787 0014 BFF34F8F 	DSB       
+ 788 0018 BFF36F8F 	ISB         
+ 789              	@ 0 "" 2
+ 790              		.thumb
+ 791 001c 2E48     		ldr	r0, .L114
+ 792              	.LVL98:
+ 793 001e A522     		movs	r2, #165
+ 794              	.LVL99:
+ 795 0020 2E49     		ldr	r1, .L114+4
+ 796              	.LVL100:
+ 797 0022 2F4B     		ldr	r3, .L114+8
+ 798              	.LVL101:
+ 799 0024 9847     		blx	r3
+ 800              	.LVL102:
+ 801              	.L90:
+ 802 0026 FEE7     		b	.L90
+ 803              	.LVL103:
+ 804              	.L89:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )
+ 805              		.loc 1 166 0 is_stmt 1
+ 806 0028 52B9     		cbnz	r2, .L91
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )
+ 807              		.loc 1 166 0 is_stmt 0 discriminator 1
+ 808              	@ 166 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 809 002a 72B6     		CPSID i   
+ 810 002c BFF34F8F 	DSB       
+ 811 0030 BFF36F8F 	ISB         
+ 812              	@ 0 "" 2
+ 813              		.thumb
+ 814 0034 2848     		ldr	r0, .L114
+ 815              	.LVL104:
+ 816 0036 A622     		movs	r2, #166
+ 817              	.LVL105:
+ 818 0038 2849     		ldr	r1, .L114+4
+ 819              	.LVL106:
+ 820 003a 294B     		ldr	r3, .L114+8
+ 821              	.LVL107:
+ 822 003c 9847     		blx	r3
+ 823              	.LVL108:
+ 824              	.L92:
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	#if ( ( INCLUDE_xTaskGetSchedulerState == 1 ) || ( configUSE_TIMERS == 1 ) )
+ 825              		.loc 1 166 0 discriminator 2
+ 826 003e FEE7     		b	.L92
+ 827              	.LVL109:
+ 828              	.L91:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 829              		.loc 1 169 0 is_stmt 1
+ 830 0040 284B     		ldr	r3, .L114+12
+ 831              	.LVL110:
+ 832 0042 9847     		blx	r3
+ 833              	.LVL111:
+ 834 0044 08B9     		cbnz	r0, .L93
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 835              		.loc 1 169 0 is_stmt 0 discriminator 2
+ 836 0046 002F     		cmp	r7, #0
+ 837 0048 38D1     		bne	.L113
+ 838              	.L93:
+ 173:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 839              		.loc 1 173 0 is_stmt 1
+ 840 004a 274B     		ldr	r3, .L114+16
+ 841 004c 9847     		blx	r3
+ 842              	.LVL112:
+ 175:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 843              		.loc 1 175 0
+ 844 004e 3468     		ldr	r4, [r6]
+ 845              	.LVL113:
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 846              		.loc 1 177 0
+ 847 0050 264B     		ldr	r3, .L114+20
+ 848 0052 3046     		mov	r0, r6
+ 849 0054 4146     		mov	r1, r8
+ 179:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 850              		.loc 1 179 0
+ 851 0056 48EA0404 		orr	r4, r8, r4
+ 852              	.LVL114:
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 853              		.loc 1 177 0
+ 854 005a 9847     		blx	r3
+ 855              	.LVL115:
+ 179:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 856              		.loc 1 179 0
+ 857 005c 05EA0403 		and	r3, r5, r4
+ 858 0060 AB42     		cmp	r3, r5
+ 859 0062 05D1     		bne	.L112
+ 860              	.LVL116:
+ 186:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 861              		.loc 1 186 0
+ 862 0064 3368     		ldr	r3, [r6]
+ 188:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 863              		.loc 1 188 0
+ 864 0066 0027     		movs	r7, #0
+ 865              	.LVL117:
+ 186:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 866              		.loc 1 186 0
+ 867 0068 23EA0503 		bic	r3, r3, r5
+ 868 006c 3360     		str	r3, [r6]
+ 869              	.LVL118:
+ 870 006e 09E0     		b	.L96
+ 871              	.LVL119:
+ 872              	.L112:
+ 192:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 873              		.loc 1 192 0
+ 874 0070 3FB1     		cbz	r7, .L97
+ 199:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 875              		.loc 1 199 0
+ 876 0072 301D     		adds	r0, r6, #4
+ 877 0074 45F0A061 		orr	r1, r5, #83886080
+ 878 0078 3A46     		mov	r2, r7
+ 205:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 879              		.loc 1 205 0
+ 880 007a 0024     		movs	r4, #0
+ 199:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 881              		.loc 1 199 0
+ 882 007c 1C4B     		ldr	r3, .L114+24
+ 883 007e 9847     		blx	r3
+ 884              	.LVL120:
+ 885 0080 00E0     		b	.L96
+ 886              	.LVL121:
+ 887              	.L97:
+ 211:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			}
+ 888              		.loc 1 211 0
+ 889 0082 3468     		ldr	r4, [r6]
+ 890              	.LVL122:
+ 891              	.L96:
+ 215:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 892              		.loc 1 215 0
+ 893 0084 1B4B     		ldr	r3, .L114+28
+ 894 0086 9847     		blx	r3
+ 895              	.LVL123:
+ 217:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 896              		.loc 1 217 0
+ 897 0088 1FB3     		cbz	r7, .L106
+ 219:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 898              		.loc 1 219 0
+ 899 008a 10B9     		cbnz	r0, .L99
+ 221:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 900              		.loc 1 221 0
+ 901              	@ 221 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 902 008c 00DF     		SWI 0     
+ 903 008e BFF36F8F 	ISB         
+ 904              	@ 0 "" 2
+ 905              		.thumb
+ 906              	.L99:
+ 232:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 907              		.loc 1 232 0
+ 908 0092 194B     		ldr	r3, .L114+32
+ 909 0094 9847     		blx	r3
+ 910              	.LVL124:
+ 234:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 911              		.loc 1 234 0
+ 912 0096 8301     		lsls	r3, r0, #6
+ 232:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 913              		.loc 1 232 0
+ 914 0098 0446     		mov	r4, r0
+ 915              	.LVL125:
+ 234:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 916              		.loc 1 234 0
+ 917 009a 0CD4     		bmi	.L100
+ 237:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			{
+ 918              		.loc 1 237 0
+ 919 009c 174B     		ldr	r3, .L114+36
+ 920 009e 9847     		blx	r3
+ 921              	.LVL126:
+ 239:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 922              		.loc 1 239 0
+ 923 00a0 3468     		ldr	r4, [r6]
+ 924              	.LVL127:
+ 245:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				{
+ 925              		.loc 1 245 0
+ 926 00a2 05EA0403 		and	r3, r5, r4
+ 927 00a6 AB42     		cmp	r3, r5
+ 247:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 928              		.loc 1 247 0
+ 929 00a8 08BF     		it	eq
+ 930 00aa 24EA0505 		biceq	r5, r4, r5
+ 931              	.LVL128:
+ 254:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 932              		.loc 1 254 0
+ 933 00ae 144B     		ldr	r3, .L114+40
+ 247:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 				}
+ 934              		.loc 1 247 0
+ 935 00b0 08BF     		it	eq
+ 936 00b2 3560     		streq	r5, [r6]
+ 254:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 937              		.loc 1 254 0
+ 938 00b4 9847     		blx	r3
+ 939              	.LVL129:
+ 940              	.L100:
+ 265:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 941              		.loc 1 265 0
+ 942 00b6 24F07F44 		bic	r4, r4, #-16777216
+ 943              	.LVL130:
+ 944 00ba 0AE0     		b	.L106
+ 945              	.LVL131:
+ 946              	.L113:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 947              		.loc 1 169 0
+ 948              	@ 169 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 949 00bc 72B6     		CPSID i   
+ 950 00be BFF34F8F 	DSB       
+ 951 00c2 BFF36F8F 	ISB         
+ 952              	@ 0 "" 2
+ 953              		.thumb
+ 954 00c6 0448     		ldr	r0, .L114
+ 955 00c8 A922     		movs	r2, #169
+ 956 00ca 0449     		ldr	r1, .L114+4
+ 957 00cc 044B     		ldr	r3, .L114+8
+ 958 00ce 9847     		blx	r3
+ 959              	.LVL132:
+ 960              	.L95:
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 961              		.loc 1 169 0 is_stmt 0 discriminator 3
+ 962 00d0 FEE7     		b	.L95
+ 963              	.LVL133:
+ 964              	.L106:
+ 271:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 965              		.loc 1 271 0 is_stmt 1
+ 966 00d2 2046     		mov	r0, r4
+ 967 00d4 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 968              	.LVL134:
+ 969              	.L115:
+ 970              		.align	2
+ 971              	.L114:
+ 972 00d8 00000000 		.word	.LC0
+ 973 00dc 00000000 		.word	.LANCHOR4
+ 974 00e0 00000000 		.word	printf
+ 975 00e4 00000000 		.word	xTaskGetSchedulerState
+ 976 00e8 00000000 		.word	vTaskSuspendAll
+ 977 00ec 00000000 		.word	xEventGroupSetBits
+ 978 00f0 00000000 		.word	vTaskPlaceOnUnorderedEventList
+ 979 00f4 00000000 		.word	xTaskResumeAll
+ 980 00f8 00000000 		.word	uxTaskResetEventItemValue
+ 981 00fc 00000000 		.word	vPortEnterCritical
+ 982 0100 00000000 		.word	vPortExitCritical
+ 983              		.cfi_endproc
+ 984              	.LFE2:
+ 986              		.section	.text.vEventGroupSetBitsCallback,"ax",%progbits
+ 987              		.align	1
+ 988              		.global	vEventGroupSetBitsCallback
+ 989              		.thumb
+ 990              		.thumb_func
+ 992              	vEventGroupSetBitsCallback:
+ 993              	.LFB9:
+ 600:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	( void ) xEventGroupSetBits( pvEventGroup, ( EventBits_t ) ulBitsToSet );
+ 994              		.loc 1 600 0
+ 995              		.cfi_startproc
+ 996              		@ args = 0, pretend = 0, frame = 0
+ 997              		@ frame_needed = 0, uses_anonymous_args = 0
+ 998              	.LVL135:
+ 999 0000 08B5     		push	{r3, lr}
+ 1000              	.LCFI9:
+ 1001              		.cfi_def_cfa_offset 8
+ 1002              		.cfi_offset 3, -8
+ 1003              		.cfi_offset 14, -4
+ 601:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 1004              		.loc 1 601 0
+ 1005 0002 014B     		ldr	r3, .L117
+ 1006 0004 9847     		blx	r3
+ 1007              	.LVL136:
+ 1008 0006 08BD     		pop	{r3, pc}
+ 1009              	.L118:
+ 1010              		.align	2
+ 1011              	.L117:
+ 1012 0008 00000000 		.word	xEventGroupSetBits
+ 1013              		.cfi_endproc
+ 1014              	.LFE9:
+ 1016              		.section	.text.vEventGroupDelete,"ax",%progbits
+ 1017              		.align	1
+ 1018              		.global	vEventGroupDelete
+ 1019              		.thumb
+ 1020              		.thumb_func
+ 1022              	vEventGroupDelete:
+ 1023              	.LFB8:
+ 575:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 1024              		.loc 1 575 0
+ 1025              		.cfi_startproc
+ 1026              		@ args = 0, pretend = 0, frame = 0
+ 1027              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1028              	.LVL137:
+ 1029 0000 10B5     		push	{r4, lr}
+ 1030              	.LCFI10:
+ 1031              		.cfi_def_cfa_offset 8
+ 1032              		.cfi_offset 4, -8
+ 1033              		.cfi_offset 14, -4
+ 579:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 1034              		.loc 1 579 0
+ 1035 0002 124B     		ldr	r3, .L125
+ 575:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 1036              		.loc 1 575 0
+ 1037 0004 0446     		mov	r4, r0
+ 1038              	.LVL138:
+ 579:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 1039              		.loc 1 579 0
+ 1040 0006 9847     		blx	r3
+ 1041              	.LVL139:
+ 1042              	.L120:
+ 583:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 1043              		.loc 1 583 0
+ 1044 0008 6368     		ldr	r3, [r4, #4]
+ 1045 000a ABB1     		cbz	r3, .L124
+ 587:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			( void ) xTaskRemoveFromUnorderedEventList( pxTasksWaitingForBits->xListEnd.pxNext, eventUNBLOCK
+ 1046              		.loc 1 587 0
+ 1047 000c 2069     		ldr	r0, [r4, #16]
+ 1048 000e 04F10C03 		add	r3, r4, #12
+ 1049 0012 9842     		cmp	r0, r3
+ 1050 0014 0BD1     		bne	.L121
+ 587:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			( void ) xTaskRemoveFromUnorderedEventList( pxTasksWaitingForBits->xListEnd.pxNext, eventUNBLOCK
+ 1051              		.loc 1 587 0 is_stmt 0 discriminator 1
+ 1052              	@ 587 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c" 1
+ 1053 0016 72B6     		CPSID i   
+ 1054 0018 BFF34F8F 	DSB       
+ 1055 001c BFF36F8F 	ISB         
+ 1056              	@ 0 "" 2
+ 1057              		.thumb
+ 1058 0020 0B48     		ldr	r0, .L125+4
+ 1059 0022 40F24B22 		movw	r2, #587
+ 1060 0026 0B49     		ldr	r1, .L125+8
+ 1061 0028 0B4B     		ldr	r3, .L125+12
+ 1062 002a 9847     		blx	r3
+ 1063              	.LVL140:
+ 1064              	.L122:
+ 1065 002c FEE7     		b	.L122
+ 1066              	.L121:
+ 588:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 1067              		.loc 1 588 0 is_stmt 1
+ 1068 002e 4FF00071 		mov	r1, #33554432
+ 1069 0032 0A4B     		ldr	r3, .L125+16
+ 1070 0034 9847     		blx	r3
+ 1071              	.LVL141:
+ 1072 0036 E7E7     		b	.L120
+ 1073              	.L124:
+ 591:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 1074              		.loc 1 591 0
+ 1075 0038 2046     		mov	r0, r4
+ 1076 003a 40F24F22 		movw	r2, #591
+ 1077 003e 0549     		ldr	r1, .L125+8
+ 1078 0040 074B     		ldr	r3, .L125+20
+ 1079 0042 9847     		blx	r3
+ 1080              	.LVL142:
+ 593:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 1081              		.loc 1 593 0
+ 1082 0044 074B     		ldr	r3, .L125+24
+ 1083 0046 9847     		blx	r3
+ 1084              	.LVL143:
+ 1085 0048 10BD     		pop	{r4, pc}
+ 1086              	.LVL144:
+ 1087              	.L126:
+ 1088 004a 00BF     		.align	2
+ 1089              	.L125:
+ 1090 004c 00000000 		.word	vTaskSuspendAll
+ 1091 0050 00000000 		.word	.LC0
+ 1092 0054 00000000 		.word	.LANCHOR5
+ 1093 0058 00000000 		.word	printf
+ 1094 005c 00000000 		.word	xTaskRemoveFromUnorderedEventList
+ 1095 0060 00000000 		.word	vPortFree1
+ 1096 0064 00000000 		.word	xTaskResumeAll
+ 1097              		.cfi_endproc
+ 1098              	.LFE8:
+ 1100              		.section	.text.xEventGroupSetBitsFromISR,"ax",%progbits
+ 1101              		.align	1
+ 1102              		.global	xEventGroupSetBitsFromISR
+ 1103              		.thumb
+ 1104              		.thumb_func
+ 1106              	xEventGroupSetBitsFromISR:
+ 1107              	.LFB12:
+ 635:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 636:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xWaitConditionMet = pdTRUE;
+ 637:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 638:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 639:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 640:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			mtCOVERAGE_TEST_MARKER();
+ 641:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 642:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 643:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 644:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	return xWaitConditionMet;
+ 645:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** }
+ 646:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 647:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 648:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #if ( ( configUSE_TRACE_FACILITY == 1 ) && ( INCLUDE_xTimerPendFunctionCall == 1 ) && ( configUSE_T
+ 649:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 650:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	BaseType_t xEventGroupSetBitsFromISR( EventGroupHandle_t xEventGroup, const EventBits_t uxBitsToSe
+ 651:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 1108              		.loc 1 651 0
+ 1109              		.cfi_startproc
+ 1110              		@ args = 0, pretend = 0, frame = 0
+ 1111              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1112              	.LVL145:
+ 1113 0000 38B5     		push	{r3, r4, r5, lr}
+ 1114              	.LCFI11:
+ 1115              		.cfi_def_cfa_offset 16
+ 1116              		.cfi_offset 3, -16
+ 1117              		.cfi_offset 4, -12
+ 1118              		.cfi_offset 5, -8
+ 1119              		.cfi_offset 14, -4
+ 1120              		.loc 1 651 0
+ 1121 0002 0546     		mov	r5, r0
+ 1122 0004 0C46     		mov	r4, r1
+ 1123 0006 1346     		mov	r3, r2
+ 652:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	BaseType_t xReturn;
+ 653:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 654:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		traceEVENT_GROUP_SET_BITS_FROM_ISR( xEventGroup, uxBitsToSet );
+ 655:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		xReturn = xTimerPendFunctionCallFromISR( vEventGroupSetBitsCallback, ( void * ) xEventGroup, ( ui
+ 1124              		.loc 1 655 0
+ 1125 0008 2946     		mov	r1, r5
+ 1126              	.LVL146:
+ 1127 000a 2246     		mov	r2, r4
+ 1128              	.LVL147:
+ 1129 000c 0148     		ldr	r0, .L128
+ 1130              	.LVL148:
+ 1131 000e 024C     		ldr	r4, .L128+4
+ 1132              	.LVL149:
+ 1133 0010 A047     		blx	r4
+ 1134              	.LVL150:
+ 656:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 657:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		return xReturn;
+ 658:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 1135              		.loc 1 658 0
+ 1136 0012 38BD     		pop	{r3, r4, r5, pc}
+ 1137              	.LVL151:
+ 1138              	.L129:
+ 1139              		.align	2
+ 1140              	.L128:
+ 1141 0014 00000000 		.word	vEventGroupSetBitsCallback
+ 1142 0018 00000000 		.word	xTimerPendFunctionCallFromISR
+ 1143              		.cfi_endproc
+ 1144              	.LFE12:
+ 1146              		.section	.text.uxEventGroupGetNumber,"ax",%progbits
+ 1147              		.align	1
+ 1148              		.global	uxEventGroupGetNumber
+ 1149              		.thumb
+ 1150              		.thumb_func
+ 1152              	uxEventGroupGetNumber:
+ 1153              	.LFB13:
+ 659:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 660:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #endif
+ 661:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** /*-----------------------------------------------------------*/
+ 662:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 663:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** #if (configUSE_TRACE_FACILITY == 1)
+ 664:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 665:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	UBaseType_t uxEventGroupGetNumber( void* xEventGroup )
+ 666:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	{
+ 1154              		.loc 1 666 0
+ 1155              		.cfi_startproc
+ 1156              		@ args = 0, pretend = 0, frame = 0
+ 1157              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1158              		@ link register save eliminated.
+ 1159              	.LVL152:
+ 667:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	UBaseType_t xReturn;
+ 668:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	EventGroup_t *pxEventBits = ( EventGroup_t * ) xEventGroup;
+ 669:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 670:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		if( xEventGroup == NULL )
+ 1160              		.loc 1 670 0
+ 1161 0000 00B1     		cbz	r0, .L131
+ 671:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 672:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xReturn = 0;
+ 673:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 674:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		else
+ 675:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		{
+ 676:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 			xReturn = pxEventBits->uxEventGroupNumber;
+ 1162              		.loc 1 676 0
+ 1163 0002 8069     		ldr	r0, [r0, #24]
+ 1164              	.LVL153:
+ 1165              	.L131:
+ 677:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		}
+ 678:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 
+ 679:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 		return xReturn;
+ 680:/home/tienluong/workspace/atlantis_fw/platform/os/Source/event_groups.c **** 	}
+ 1166              		.loc 1 680 0
+ 1167 0004 7047     		bx	lr
+ 1168              		.cfi_endproc
+ 1169              	.LFE13:
+ 1171              		.section	.rodata.__FUNCTION__.5853,"a",%progbits
+ 1172              		.set	.LANCHOR4,. + 0
+ 1175              	__FUNCTION__.5853:
+ 1176 0000 78457665 		.ascii	"xEventGroupSync\000"
+ 1176      6E744772 
+ 1176      6F757053 
+ 1176      796E6300 
+ 1177              		.section	.rodata.__FUNCTION__.5909,"a",%progbits
+ 1178              		.set	.LANCHOR3,. + 0
+ 1181              	__FUNCTION__.5909:
+ 1182 0000 78457665 		.ascii	"xEventGroupSetBits\000"
+ 1182      6E744772 
+ 1182      6F757053 
+ 1182      65744269 
+ 1182      747300
+ 1183              		.section	.rodata.__FUNCTION__.5870,"a",%progbits
+ 1184              		.set	.LANCHOR1,. + 0
+ 1187              	__FUNCTION__.5870:
+ 1188 0000 78457665 		.ascii	"xEventGroupWaitBits\000"
+ 1188      6E744772 
+ 1188      6F757057 
+ 1188      61697442 
+ 1188      69747300 
+ 1189              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 1190              	.LC0:
+ 1191 0000 0D0A5B25 		.ascii	"\015\012[%s: %d]: Invalid argument!\015\012\000"
+ 1191      733A2025 
+ 1191      645D3A20 
+ 1191      496E7661 
+ 1191      6C696420 
+ 1192              		.section	.rodata.__FUNCTION__.5882,"a",%progbits
+ 1193              		.set	.LANCHOR2,. + 0
+ 1196              	__FUNCTION__.5882:
+ 1197 0000 78457665 		.ascii	"xEventGroupClearBits\000"
+ 1197      6E744772 
+ 1197      6F757043 
+ 1197      6C656172 
+ 1197      42697473 
+ 1198              		.section	.rodata.__FUNCTION__.5920,"a",%progbits
+ 1199              		.set	.LANCHOR5,. + 0
+ 1202              	__FUNCTION__.5920:
+ 1203 0000 76457665 		.ascii	"vEventGroupDelete\000"
+ 1203      6E744772 
+ 1203      6F757044 
+ 1203      656C6574 
+ 1203      6500
+ 1204              		.section	.rodata.__FUNCTION__.5841,"a",%progbits
+ 1205              		.set	.LANCHOR0,. + 0
+ 1208              	__FUNCTION__.5841:
+ 1209 0000 78457665 		.ascii	"xEventGroupCreate\000"
+ 1209      6E744772 
+ 1209      6F757043 
+ 1209      72656174 
+ 1209      6500
+ 1210              		.text
+ 1211              	.Letext0:
+ 1212              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1213              		.file 4 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1214              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/list.h"
+ 1215              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/event_groups.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 event_groups.c
+     /tmp/ccHAcDn3.s:19     .text.xEventGroupCreate:00000000 $t
+     /tmp/ccHAcDn3.s:24     .text.xEventGroupCreate:00000000 xEventGroupCreate
+     /tmp/ccHAcDn3.s:62     .text.xEventGroupCreate:00000020 $d
+     /tmp/ccHAcDn3.s:69     .text.xEventGroupWaitBits:00000000 $t
+     /tmp/ccHAcDn3.s:74     .text.xEventGroupWaitBits:00000000 xEventGroupWaitBits
+     /tmp/ccHAcDn3.s:346    .text.xEventGroupWaitBits:0000011c $d
+     /tmp/ccHAcDn3.s:360    .text.xEventGroupClearBits:00000000 $t
+     /tmp/ccHAcDn3.s:365    .text.xEventGroupClearBits:00000000 xEventGroupClearBits
+     /tmp/ccHAcDn3.s:453    .text.xEventGroupClearBits:00000054 $d
+     /tmp/ccHAcDn3.s:462    .text.vEventGroupClearBitsCallback:00000000 $t
+     /tmp/ccHAcDn3.s:467    .text.vEventGroupClearBitsCallback:00000000 vEventGroupClearBitsCallback
+     /tmp/ccHAcDn3.s:487    .text.vEventGroupClearBitsCallback:00000008 $d
+     /tmp/ccHAcDn3.s:492    .text.xEventGroupClearBitsFromISR:00000000 $t
+     /tmp/ccHAcDn3.s:497    .text.xEventGroupClearBitsFromISR:00000000 xEventGroupClearBitsFromISR
+     /tmp/ccHAcDn3.s:525    .text.xEventGroupClearBitsFromISR:00000014 $d
+     /tmp/ccHAcDn3.s:531    .text.xEventGroupGetBitsFromISR:00000000 $t
+     /tmp/ccHAcDn3.s:536    .text.xEventGroupGetBitsFromISR:00000000 xEventGroupGetBitsFromISR
+     /tmp/ccHAcDn3.s:593    .text.xEventGroupSetBits:00000000 $t
+     /tmp/ccHAcDn3.s:598    .text.xEventGroupSetBits:00000000 xEventGroupSetBits
+     /tmp/ccHAcDn3.s:742    .text.xEventGroupSetBits:00000090 $d
+     /tmp/ccHAcDn3.s:752    .text.xEventGroupSync:00000000 $t
+     /tmp/ccHAcDn3.s:757    .text.xEventGroupSync:00000000 xEventGroupSync
+     /tmp/ccHAcDn3.s:972    .text.xEventGroupSync:000000d8 $d
+     /tmp/ccHAcDn3.s:987    .text.vEventGroupSetBitsCallback:00000000 $t
+     /tmp/ccHAcDn3.s:992    .text.vEventGroupSetBitsCallback:00000000 vEventGroupSetBitsCallback
+     /tmp/ccHAcDn3.s:1012   .text.vEventGroupSetBitsCallback:00000008 $d
+     /tmp/ccHAcDn3.s:1017   .text.vEventGroupDelete:00000000 $t
+     /tmp/ccHAcDn3.s:1022   .text.vEventGroupDelete:00000000 vEventGroupDelete
+     /tmp/ccHAcDn3.s:1090   .text.vEventGroupDelete:0000004c $d
+     /tmp/ccHAcDn3.s:1101   .text.xEventGroupSetBitsFromISR:00000000 $t
+     /tmp/ccHAcDn3.s:1106   .text.xEventGroupSetBitsFromISR:00000000 xEventGroupSetBitsFromISR
+     /tmp/ccHAcDn3.s:1141   .text.xEventGroupSetBitsFromISR:00000014 $d
+     /tmp/ccHAcDn3.s:1147   .text.uxEventGroupGetNumber:00000000 $t
+     /tmp/ccHAcDn3.s:1152   .text.uxEventGroupGetNumber:00000000 uxEventGroupGetNumber
+     /tmp/ccHAcDn3.s:1175   .rodata.__FUNCTION__.5853:00000000 __FUNCTION__.5853
+     /tmp/ccHAcDn3.s:1181   .rodata.__FUNCTION__.5909:00000000 __FUNCTION__.5909
+     /tmp/ccHAcDn3.s:1187   .rodata.__FUNCTION__.5870:00000000 __FUNCTION__.5870
+     /tmp/ccHAcDn3.s:1196   .rodata.__FUNCTION__.5882:00000000 __FUNCTION__.5882
+     /tmp/ccHAcDn3.s:1202   .rodata.__FUNCTION__.5920:00000000 __FUNCTION__.5920
+     /tmp/ccHAcDn3.s:1208   .rodata.__FUNCTION__.5841:00000000 __FUNCTION__.5841
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+pvPortMalloc1
+vListInitialise
+printf
+xTaskGetSchedulerState
+vTaskSuspendAll
+vTaskPlaceOnUnorderedEventList
+xTaskResumeAll
+uxTaskResetEventItemValue
+vPortEnterCritical
+vPortExitCritical
+xTimerPendFunctionCallFromISR
+xTaskRemoveFromUnorderedEventList
+vPortFree1

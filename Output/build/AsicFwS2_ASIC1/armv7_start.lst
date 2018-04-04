@@ -1,0 +1,103 @@
+ARM GAS  /tmp/cc9lNLKQ.s 			page 1
+
+
+   1              	# 1 "/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s"
+   1              	/******************************************************************************
+   0              	
+   0              	
+   2              	 * Copyright (c) 2016, The LightCo
+   3              	 * All rights reserved.
+   4              	 * Redistribution and use in source and binary forms, with or without
+   5              	 * modification, are strictly prohibited without prior permission
+   6              	 * of The LightCo.
+   7              	 *
+   8              	 * @file    armv7_start.s
+   9              	 * @author  The LightCo
+  10              	 * @version V1.0.0
+  11              	 * @date    Mar-15-2016
+  12              	 * @brief
+  13              	 *
+  14              	 ******************************************************************************/
+  15              	 /* This program is allocated to section "initvector" */
+  16              	
+  17              	
+  18              		.text
+  19              		.code 32
+  20              	
+  21              		.extern reset_handler
+  22              		.extern undefined_handler
+  23              		.extern svc_handler
+  24              		.extern prefetch_handler
+  25              		.extern abort_handler
+  26              		.extern reserved_handler
+  27              		.extern irq_handler
+  28              		.extern fiq_handler
+  29              		.extern swi_handler
+  30              	
+  31              		.global start
+  32              		.func   start
+  33              	
+  34              	start:
+  35 0000 48F09FE5 		ldr pc, =reset_handler                  /* Reset Vector */
+  36 0004 48F09FE5 		ldr pc, =undefined_handler
+  37              	#ifdef OS
+  38 0008 48F09FE5 		ldr pc, =FreeRTOS_SVC_Handler
+  39              	#else
+  40              		ldr pc, =swi_handler
+  41              	#endif
+  42 000c 48F09FE5 		ldr pc, =prefetch_handler
+  43 0010 48F09FE5 		ldr pc, =abort_handler
+  44 0014 48F09FE5 		ldr pc, =reserved_handler
+  45              	#ifdef OS
+  46 0018 48F09FE5 		ldr pc, =FreeRTOS_IRQ_Handler
+  47              	#else
+  48              		ldr pc, =irq_handler
+  49              	#endif
+  50 001c 48F09FE5 		ldr pc, =fiq_handler
+  51              	
+  52              	code_start:
+  53 0020 00000000 		.word    start                          /* pointer to the user application start address */
+  54              	code_end:
+ARM GAS  /tmp/cc9lNLKQ.s 			page 2
+
+
+  55 0024 00000000 		.word    end
+  56              	code_execute:
+  57 0028 00000000 		.word    execute                          /* execute address of first instruction */
+  58 002c 2E546865 		.string ".TheLightCo_CortexR4_ASICFwS2."  /* firmware validation signature */
+  58      4C696768 
+  58      74436F5F 
+  58      436F7274 
+  58      65785234 
+  59 004b 0000F020 		.align 4
+  59      E3
+  60 0050 00000000 		.end
+  60      00000000 
+  60      00000000 
+  60      00000000 
+  60      00000000 
+ARM GAS  /tmp/cc9lNLKQ.s 			page 3
+
+
+DEFINED SYMBOLS
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:34     .text:00000000 start
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:35     .text:00000000 $a
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:52     .text:00000020 code_start
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:53     .text:00000020 $d
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:54     .text:00000024 code_end
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:56     .text:00000028 code_execute
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:60     .text:00000050 $d
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:59     .text:0000004b $d
+/home/tienluong/workspace/atlantis_fw/platform/asic/cortex-r4/startup/AsicFwS2/armv7_start.s:59     .text:0000004c $a
+
+UNDEFINED SYMBOLS
+reset_handler
+undefined_handler
+FreeRTOS_SVC_Handler
+prefetch_handler
+abort_handler
+reserved_handler
+FreeRTOS_IRQ_Handler
+fiq_handler
+end
+execute

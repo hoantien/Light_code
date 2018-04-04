@@ -1,0 +1,477 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"list.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.vListInitialise,"ax",%progbits
+  19              		.align	1
+  20              		.global	vListInitialise
+  21              		.thumb
+  22              		.thumb_func
+  24              	vListInitialise:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** /*
+   2:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     All rights reserved
+   4:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+   5:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
+   6:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+   7:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     This file is part of the FreeRTOS distribution.
+   8:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+   9:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     FreeRTOS is free software; you can redistribute it and/or modify it under
+  10:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     the terms of the GNU General Public License (version 2) as published by the
+  11:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
+  12:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  13:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     ***************************************************************************
+  14:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+  15:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     >>!   distribute a combined work that includes FreeRTOS without being   !<<
+  16:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     >>!   obliged to provide the source code for proprietary components     !<<
+  17:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     >>!   outside of the FreeRTOS kernel.                                   !<<
+  18:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     ***************************************************************************
+  19:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+  21:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  22:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+  23:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     link: http://www.freertos.org/a00114.html
+  24:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     ***************************************************************************
+  26:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *                                                                       *
+  27:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    FreeRTOS provides completely free yet professionally developed,    *
+  28:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    robust, strictly quality controlled, supported, and cross          *
+  29:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    platform software that is more than just the market leader, it     *
+  30:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    is the industry's de facto standard.                               *
+  31:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *                                                                       *
+  32:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    Help yourself get started quickly while simultaneously helping     *
+  33:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+  34:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    tutorial book, reference manual, or both:                          *
+  35:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *    http://www.FreeRTOS.org/Documentation                              *
+  36:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****      *                                                                       *
+  37:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     ***************************************************************************
+  38:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+  40:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     the FAQ page "My application does not run, what could be wrong?".  Have you
+  41:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     defined configASSERT()?
+  42:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     http://www.FreeRTOS.org/support - In return for receiving this top quality
+  44:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     embedded software for free we request you assist our global community by
+  45:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     participating in the support forum.
+  46:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     http://www.FreeRTOS.org/training - Investing in training allows your team to
+  48:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     be as productive as possible as early as possible.  Now you can receive
+  49:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+  50:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     Ltd, and the world's leading authority on the world's leading RTOS.
+  51:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  52:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+  53:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+  54:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     compatible FAT file system, and our tiny thread aware UDP/IP stack.
+  55:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+  57:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+  58:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  59:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+  60:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+  61:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     licenses offer ticketed support, indemnification and commercial middleware.
+  62:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+  64:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     engineered and independently SIL3 certified version for use in safety and
+  65:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     mission critical applications that require provable dependability.
+  66:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****     1 tab == 4 spaces!
+  68:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** */
+  69:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  71:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** #include <stdlib.h>
+  72:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** #include "FreeRTOS.h"
+  73:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** #include "list.h"
+  74:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  75:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** /*-----------------------------------------------------------
+  76:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****  * PUBLIC LIST API documented in list.h
+  77:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c ****  *----------------------------------------------------------*/
+  78:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  79:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** void vListInitialise( List_t * const pxList )
+  80:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** {
+  27              		.loc 1 80 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 0
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              		@ link register save eliminated.
+  32              	.LVL0:
+  81:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* The list structure contains a list item which is used to mark the
+  82:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	end of the list.  To initialise the list the list end is inserted
+  83:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	as the only list entry. */
+  84:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxList->pxIndex = ( ListItem_t * ) &( pxList->xListEnd );			/*lint !e826 !e740 The mini list struc
+  33              		.loc 1 84 0
+  34 0000 00F10803 		add	r3, r0, #8
+  85:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  86:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* The list end value is the highest possible value in the list to
+  87:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	ensure it remains at the end of the list. */
+  88:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxList->xListEnd.xItemValue = portMAX_DELAY;
+  35              		.loc 1 88 0
+  36 0004 4FF0FF32 		mov	r2, #-1
+  84:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  37              		.loc 1 84 0
+  38 0008 4360     		str	r3, [r0, #4]
+  89:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  90:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* The list end next and previous pointers point to itself so we know
+  91:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	when the list is empty. */
+  92:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxList->xListEnd.pxNext = ( ListItem_t * ) &( pxList->xListEnd );	/*lint !e826 !e740 The mini list
+  39              		.loc 1 92 0
+  40 000a C360     		str	r3, [r0, #12]
+  93:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxList->xListEnd.pxPrevious = ( ListItem_t * ) &( pxList->xListEnd );/*lint !e826 !e740 The mini l
+  41              		.loc 1 93 0
+  42 000c 0361     		str	r3, [r0, #16]
+  94:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  95:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxList->uxNumberOfItems = ( UBaseType_t ) 0U;
+  43              		.loc 1 95 0
+  44 000e 0023     		movs	r3, #0
+  88:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  45              		.loc 1 88 0
+  46 0010 8260     		str	r2, [r0, #8]
+  47              		.loc 1 95 0
+  48 0012 0360     		str	r3, [r0]
+  49 0014 7047     		bx	lr
+  50              		.cfi_endproc
+  51              	.LFE1:
+  53              		.section	.text.vListInitialiseItem,"ax",%progbits
+  54              		.align	1
+  55              		.global	vListInitialiseItem
+  56              		.thumb
+  57              		.thumb_func
+  59              	vListInitialiseItem:
+  60              	.LFB2:
+  96:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+  97:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Write known values into the list if
+  98:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES is set to 1. */
+  99:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listSET_LIST_INTEGRITY_CHECK_1_VALUE( pxList );
+ 100:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listSET_LIST_INTEGRITY_CHECK_2_VALUE( pxList );
+ 101:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** }
+ 102:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** /*-----------------------------------------------------------*/
+ 103:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 104:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** void vListInitialiseItem( ListItem_t * const pxItem )
+ 105:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** {
+  61              		.loc 1 105 0
+  62              		.cfi_startproc
+  63              		@ args = 0, pretend = 0, frame = 0
+  64              		@ frame_needed = 0, uses_anonymous_args = 0
+  65              		@ link register save eliminated.
+  66              	.LVL1:
+ 106:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Make sure the list item is not recorded as being on a list. */
+ 107:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxItem->pvContainer = NULL;
+  67              		.loc 1 107 0
+  68 0000 0023     		movs	r3, #0
+  69 0002 0361     		str	r3, [r0, #16]
+  70 0004 7047     		bx	lr
+  71              		.cfi_endproc
+  72              	.LFE2:
+  74              		.section	.text.vListInsertEnd,"ax",%progbits
+  75              		.align	1
+  76              		.global	vListInsertEnd
+  77              		.thumb
+  78              		.thumb_func
+  80              	vListInsertEnd:
+  81              	.LFB3:
+ 108:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 109:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Write known values into the list item if
+ 110:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	configUSE_LIST_DATA_INTEGRITY_CHECK_BYTES is set to 1. */
+ 111:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listSET_FIRST_LIST_ITEM_INTEGRITY_CHECK_VALUE( pxItem );
+ 112:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listSET_SECOND_LIST_ITEM_INTEGRITY_CHECK_VALUE( pxItem );
+ 113:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** }
+ 114:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** /*-----------------------------------------------------------*/
+ 115:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 116:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** void vListInsertEnd( List_t * const pxList, ListItem_t * const pxNewListItem )
+ 117:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** {
+  82              		.loc 1 117 0
+  83              		.cfi_startproc
+  84              		@ args = 0, pretend = 0, frame = 0
+  85              		@ frame_needed = 0, uses_anonymous_args = 0
+  86              		@ link register save eliminated.
+  87              	.LVL2:
+ 118:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** ListItem_t * const pxIndex = pxList->pxIndex;
+  88              		.loc 1 118 0
+  89 0000 4368     		ldr	r3, [r0, #4]
+  90              	.LVL3:
+ 119:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 120:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Only effective when configASSERT() is also defined, these tests may catch
+ 121:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	the list data structures being overwritten in memory.  They will not catch
+ 122:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	data errors caused by incorrect configuration or use of FreeRTOS. */
+ 123:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listTEST_LIST_INTEGRITY( pxList );
+ 124:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listTEST_LIST_ITEM_INTEGRITY( pxNewListItem );
+ 125:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 126:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Insert a new list item into pxList, but rather than sort the list,
+ 127:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	makes the new list item the last item to be removed by a call to
+ 128:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listGET_OWNER_OF_NEXT_ENTRY(). */
+ 129:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxNewListItem->pxNext = pxIndex;
+  91              		.loc 1 129 0
+  92 0002 4B60     		str	r3, [r1, #4]
+ 130:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxNewListItem->pxPrevious = pxIndex->pxPrevious;
+  93              		.loc 1 130 0
+  94 0004 9A68     		ldr	r2, [r3, #8]
+  95 0006 8A60     		str	r2, [r1, #8]
+ 131:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 132:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Only used during decision coverage testing. */
+ 133:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	mtCOVERAGE_TEST_DELAY();
+ 134:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 135:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxIndex->pxPrevious->pxNext = pxNewListItem;
+  96              		.loc 1 135 0
+  97 0008 9A68     		ldr	r2, [r3, #8]
+  98 000a 5160     		str	r1, [r2, #4]
+ 136:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxIndex->pxPrevious = pxNewListItem;
+  99              		.loc 1 136 0
+ 100 000c 9960     		str	r1, [r3, #8]
+ 137:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 138:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Remember which list the item is in. */
+ 139:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxNewListItem->pvContainer = ( void * ) pxList;
+ 140:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 141:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	( pxList->uxNumberOfItems )++;
+ 101              		.loc 1 141 0
+ 102 000e 0368     		ldr	r3, [r0]
+ 103              	.LVL4:
+ 139:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 104              		.loc 1 139 0
+ 105 0010 0861     		str	r0, [r1, #16]
+ 106              		.loc 1 141 0
+ 107 0012 0133     		adds	r3, r3, #1
+ 108 0014 0360     		str	r3, [r0]
+ 109 0016 7047     		bx	lr
+ 110              		.cfi_endproc
+ 111              	.LFE3:
+ 113              		.section	.text.vListInsert,"ax",%progbits
+ 114              		.align	1
+ 115              		.global	vListInsert
+ 116              		.thumb
+ 117              		.thumb_func
+ 119              	vListInsert:
+ 120              	.LFB4:
+ 142:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** }
+ 143:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** /*-----------------------------------------------------------*/
+ 144:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 145:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** void vListInsert( List_t * const pxList, ListItem_t * const pxNewListItem )
+ 146:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** {
+ 121              		.loc 1 146 0
+ 122              		.cfi_startproc
+ 123              		@ args = 0, pretend = 0, frame = 0
+ 124              		@ frame_needed = 0, uses_anonymous_args = 0
+ 125              	.LVL5:
+ 147:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** ListItem_t *pxIterator;
+ 148:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** const TickType_t xValueOfInsertion = pxNewListItem->xItemValue;
+ 126              		.loc 1 148 0
+ 127 0000 0A68     		ldr	r2, [r1]
+ 128              	.LVL6:
+ 146:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** ListItem_t *pxIterator;
+ 129              		.loc 1 146 0
+ 130 0002 30B5     		push	{r4, r5, lr}
+ 131              	.LCFI0:
+ 132              		.cfi_def_cfa_offset 12
+ 133              		.cfi_offset 4, -12
+ 134              		.cfi_offset 5, -8
+ 135              		.cfi_offset 14, -4
+ 149:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 150:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Only effective when configASSERT() is also defined, these tests may catch
+ 151:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	the list data structures being overwritten in memory.  They will not catch
+ 152:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	data errors caused by incorrect configuration or use of FreeRTOS. */
+ 153:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listTEST_LIST_INTEGRITY( pxList );
+ 154:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	listTEST_LIST_ITEM_INTEGRITY( pxNewListItem );
+ 155:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 156:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Insert the new list item into the list, sorted in xItemValue order.
+ 157:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 158:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	If the list already contains a list item with the same item value then the
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	new list item should be placed after it.  This ensures that TCB's which are
+ 160:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	stored in ready lists (all of which have the same xItemValue value) get a
+ 161:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	share of the CPU.  However, if the xItemValue is the same as the back marker
+ 162:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	the iteration loop below will not end.  Therefore the value is checked
+ 163:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	first, and the algorithm slightly modified if necessary. */
+ 164:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	if( xValueOfInsertion == portMAX_DELAY )
+ 136              		.loc 1 164 0
+ 137 0004 531C     		adds	r3, r2, #1
+ 138 0006 01D1     		bne	.L5
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	{
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		pxIterator = pxList->xListEnd.pxPrevious;
+ 139              		.loc 1 166 0
+ 140 0008 0369     		ldr	r3, [r0, #16]
+ 141              	.LVL7:
+ 142 000a 07E0     		b	.L6
+ 143              	.LVL8:
+ 144              	.L5:
+ 167:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	}
+ 168:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	else
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	{
+ 170:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		/* *** NOTE ***********************************************************
+ 171:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		If you find your application is crashing here then likely causes are
+ 172:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		listed below.  In addition see http://www.freertos.org/FAQHelp.html for
+ 173:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		more tips, and ensure configASSERT() is defined!
+ 174:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		http://www.freertos.org/a00110.html#configASSERT
+ 175:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 176:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			1) Stack overflow -
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   see http://www.freertos.org/Stacks-and-stack-overflow-checking.html
+ 178:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			2) Incorrect interrupt priority assignment, especially on Cortex-M
+ 179:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   parts where numerically high priority values denote low actual
+ 180:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   interrupt priorities, which can seem counter intuitive.  See
+ 181:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   http://www.freertos.org/RTOS-Cortex-M3-M4.html and the definition
+ 182:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   of configMAX_SYSCALL_INTERRUPT_PRIORITY on
+ 183:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   http://www.freertos.org/a00110.html
+ 184:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			3) Calling an API function from within a critical section or when
+ 185:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   the scheduler is suspended, or calling an API function that does
+ 186:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   not end in "FromISR" from an interrupt.
+ 187:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			4) Using a queue or semaphore before it has been initialised or
+ 188:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   before the scheduler has been started (are interrupts firing
+ 189:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			   before vTaskStartScheduler() has been called?).
+ 190:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		**********************************************************************/
+ 191:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 192:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		for( pxIterator = ( ListItem_t * ) &( pxList->xListEnd ); pxIterator->pxNext->xItemValue <= xValu
+ 145              		.loc 1 192 0
+ 146 000c 00F10803 		add	r3, r0, #8
+ 147              	.LVL9:
+ 148              	.L7:
+ 149              		.loc 1 192 0 is_stmt 0 discriminator 1
+ 150 0010 5C68     		ldr	r4, [r3, #4]
+ 151 0012 2568     		ldr	r5, [r4]
+ 152 0014 9542     		cmp	r5, r2
+ 153 0016 01D8     		bhi	.L6
+ 154 0018 2346     		mov	r3, r4
+ 155              	.LVL10:
+ 156 001a F9E7     		b	.L7
+ 157              	.LVL11:
+ 158              	.L6:
+ 193:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		{
+ 194:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			/* There is nothing to do here, just iterating to the wanted
+ 195:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 			insertion position. */
+ 196:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		}
+ 197:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	}
+ 198:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 199:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxNewListItem->pxNext = pxIterator->pxNext;
+ 159              		.loc 1 199 0 is_stmt 1
+ 160 001c 5A68     		ldr	r2, [r3, #4]
+ 161              	.LVL12:
+ 162 001e 4A60     		str	r2, [r1, #4]
+ 200:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxNewListItem->pxNext->pxPrevious = pxNewListItem;
+ 163              		.loc 1 200 0
+ 164 0020 9160     		str	r1, [r2, #8]
+ 201:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxNewListItem->pxPrevious = pxIterator;
+ 165              		.loc 1 201 0
+ 166 0022 8B60     		str	r3, [r1, #8]
+ 202:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxIterator->pxNext = pxNewListItem;
+ 167              		.loc 1 202 0
+ 168 0024 5960     		str	r1, [r3, #4]
+ 203:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 204:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Remember which list the item is in.  This allows fast removal of the
+ 205:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	item later. */
+ 206:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxNewListItem->pvContainer = ( void * ) pxList;
+ 207:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 208:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	( pxList->uxNumberOfItems )++;
+ 169              		.loc 1 208 0
+ 170 0026 0368     		ldr	r3, [r0]
+ 171              	.LVL13:
+ 206:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 172              		.loc 1 206 0
+ 173 0028 0861     		str	r0, [r1, #16]
+ 174              		.loc 1 208 0
+ 175 002a 0133     		adds	r3, r3, #1
+ 176 002c 0360     		str	r3, [r0]
+ 177 002e 30BD     		pop	{r4, r5, pc}
+ 178              		.cfi_endproc
+ 179              	.LFE4:
+ 181              		.section	.text.uxListRemove,"ax",%progbits
+ 182              		.align	1
+ 183              		.global	uxListRemove
+ 184              		.thumb
+ 185              		.thumb_func
+ 187              	uxListRemove:
+ 188              	.LFB5:
+ 209:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** }
+ 210:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** /*-----------------------------------------------------------*/
+ 211:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 212:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** UBaseType_t uxListRemove( ListItem_t * const pxItemToRemove )
+ 213:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** {
+ 189              		.loc 1 213 0
+ 190              		.cfi_startproc
+ 191              		@ args = 0, pretend = 0, frame = 0
+ 192              		@ frame_needed = 0, uses_anonymous_args = 0
+ 193              		@ link register save eliminated.
+ 194              	.LVL14:
+ 214:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** /* The list item knows which list it is in.  Obtain the list from the list
+ 215:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** item. */
+ 216:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** List_t * const pxList = ( List_t * ) pxItemToRemove->pvContainer;
+ 195              		.loc 1 216 0
+ 196 0000 0369     		ldr	r3, [r0, #16]
+ 197              	.LVL15:
+ 217:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 218:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxItemToRemove->pxNext->pxPrevious = pxItemToRemove->pxPrevious;
+ 198              		.loc 1 218 0
+ 199 0002 4168     		ldr	r1, [r0, #4]
+ 200 0004 8268     		ldr	r2, [r0, #8]
+ 201 0006 8A60     		str	r2, [r1, #8]
+ 219:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxItemToRemove->pxPrevious->pxNext = pxItemToRemove->pxNext;
+ 202              		.loc 1 219 0
+ 203 0008 8268     		ldr	r2, [r0, #8]
+ 204 000a 5160     		str	r1, [r2, #4]
+ 220:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 221:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Only used during decision coverage testing. */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	mtCOVERAGE_TEST_DELAY();
+ 223:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 224:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	/* Make sure the index is left pointing to a valid item. */
+ 225:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	if( pxList->pxIndex == pxItemToRemove )
+ 205              		.loc 1 225 0
+ 206 000c 5968     		ldr	r1, [r3, #4]
+ 207 000e 8142     		cmp	r1, r0
+ 226:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	{
+ 227:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		pxList->pxIndex = pxItemToRemove->pxPrevious;
+ 208              		.loc 1 227 0
+ 209 0010 08BF     		it	eq
+ 210 0012 5A60     		streq	r2, [r3, #4]
+ 228:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	}
+ 229:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	else
+ 230:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	{
+ 231:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 		mtCOVERAGE_TEST_MARKER();
+ 232:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	}
+ 233:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 234:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	pxItemToRemove->pvContainer = NULL;
+ 211              		.loc 1 234 0
+ 212 0014 0022     		movs	r2, #0
+ 213 0016 0261     		str	r2, [r0, #16]
+ 235:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	( pxList->uxNumberOfItems )--;
+ 214              		.loc 1 235 0
+ 215 0018 1868     		ldr	r0, [r3]
+ 216              	.LVL16:
+ 217 001a 0138     		subs	r0, r0, #1
+ 218 001c 1860     		str	r0, [r3]
+ 236:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 
+ 237:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** 	return pxList->uxNumberOfItems;
+ 238:/home/tienluong/workspace/atlantis_fw/platform/os/Source/list.c **** }
+ 219              		.loc 1 238 0
+ 220 001e 7047     		bx	lr
+ 221              		.cfi_endproc
+ 222              	.LFE5:
+ 224              		.text
+ 225              	.Letext0:
+ 226              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 227              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 228              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 229              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/list.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 list.c
+     /tmp/ccdzFmSy.s:19     .text.vListInitialise:00000000 $t
+     /tmp/ccdzFmSy.s:24     .text.vListInitialise:00000000 vListInitialise
+     /tmp/ccdzFmSy.s:54     .text.vListInitialiseItem:00000000 $t
+     /tmp/ccdzFmSy.s:59     .text.vListInitialiseItem:00000000 vListInitialiseItem
+     /tmp/ccdzFmSy.s:75     .text.vListInsertEnd:00000000 $t
+     /tmp/ccdzFmSy.s:80     .text.vListInsertEnd:00000000 vListInsertEnd
+     /tmp/ccdzFmSy.s:114    .text.vListInsert:00000000 $t
+     /tmp/ccdzFmSy.s:119    .text.vListInsert:00000000 vListInsert
+     /tmp/ccdzFmSy.s:182    .text.uxListRemove:00000000 $t
+     /tmp/ccdzFmSy.s:187    .text.uxListRemove:00000000 uxListRemove
+                     .debug_frame:00000010 $d
+
+NO UNDEFINED SYMBOLS

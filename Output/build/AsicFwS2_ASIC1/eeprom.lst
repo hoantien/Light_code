@@ -1,0 +1,494 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"eeprom.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.eeprom_read,"ax",%progbits
+  19              		.align	1
+  20              		.global	eeprom_read
+  21              		.thumb
+  22              		.thumb_func
+  24              	eeprom_read:
+  25              	.LFB1:
+  26              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /*******************************************************************************
+   2:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * Copyright (c) 2016, The LightCo
+   3:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * All rights reserved.
+   4:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * Redistribution and use in source and binary forms, with or without
+   5:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * modification,are strictly prohibited without prior permission of The LightCo.
+   6:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * @file    camera_eeprom.c
+   7:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * @author  The LightCo
+   8:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * @version V2.0.0
+   9:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * @date    July-11-2016
+  10:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * @brief   This file contain definition for the eeprom's APIs.
+  11:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  ******************************************************************************/
+  12:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Includes ------------------------------------------------------------------*/
+  13:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #include "os.h"
+  14:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #include "assert.h"
+  15:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #include "eeprom.h"
+  16:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #include "lcc_system.h"
+  17:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  18:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Private define ------------------------------------------------------------*/
+  19:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #define EEPROM_SLAVE_ADDR			IMAGE_EEPROM_ADDRESS
+  20:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #define TIMEOUT						1000
+  21:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  22:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Private macro -------------------------------------------------------------*/
+  23:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #define IS_OFFSET_VALID(offset)		(offset < EEPROM_MAX_SIZE ? TRUE : FALSE)
+  24:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** #define IS_SIZE_VALID(offset, len)	(offset + len <= EEPROM_MAX_SIZE ? \
+  25:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 										TRUE : FALSE)
+  26:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  27:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Global variable -----------------------------------------------------------*/
+  28:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Private typedef -----------------------------------------------------------*/
+  29:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Private prototype functions -----------------------------------------------*/
+  30:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** static eeprom_status_t eeprom_write_page(i2c_t i2c_dev, uint16_t offset,
+  31:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 												uint16_t len, uint8_t *txbuf);
+  32:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  33:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Exported functions --------------------------------------------------------*/
+  34:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /*
+  35:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * eeprom_read
+  36:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  */
+  37:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** eeprom_status_t eeprom_read(i2c_t i2c_dev, uint16_t offset,
+  38:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 							uint16_t len, uint8_t *rxbuf)
+  39:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** {
+  27              		.loc 1 39 0
+  28              		.cfi_startproc
+  29              		@ args = 0, pretend = 0, frame = 8
+  30              		@ frame_needed = 0, uses_anonymous_args = 0
+  31              	.LVL0:
+  32 0000 F0B5     		push	{r4, r5, r6, r7, lr}
+  33              	.LCFI0:
+  34              		.cfi_def_cfa_offset 20
+  35              		.cfi_offset 4, -20
+  36              		.cfi_offset 5, -16
+  37              		.cfi_offset 6, -12
+  38              		.cfi_offset 7, -8
+  39              		.cfi_offset 14, -4
+  40 0002 0746     		mov	r7, r0
+  41 0004 85B0     		sub	sp, sp, #20
+  42              	.LCFI1:
+  43              		.cfi_def_cfa_offset 40
+  44              		.loc 1 39 0
+  45 0006 0C46     		mov	r4, r1
+  46 0008 1546     		mov	r5, r2
+  40:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	/* Checking parameter */
+  41:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	assert_param(rxbuf);
+  47              		.loc 1 41 0
+  48 000a 1E46     		mov	r6, r3
+  49 000c 1BB9     		cbnz	r3, .L2
+  50              		.loc 1 41 0 is_stmt 0 discriminator 1
+  51 000e 1348     		ldr	r0, .L6
+  52              	.LVL1:
+  53 0010 2921     		movs	r1, #41
+  54              	.LVL2:
+  55 0012 134B     		ldr	r3, .L6+4
+  56              	.LVL3:
+  57 0014 9847     		blx	r3
+  58              	.LVL4:
+  59              	.L2:
+  42:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	assert_param(IS_OFFSET_VALID(offset));
+  60              		.loc 1 42 0 is_stmt 1
+  61 0016 B4F5005F 		cmp	r4, #8192
+  62 001a 03D3     		bcc	.L3
+  63              		.loc 1 42 0 is_stmt 0 discriminator 1
+  64 001c 0F48     		ldr	r0, .L6
+  65 001e 2A21     		movs	r1, #42
+  66 0020 0F4B     		ldr	r3, .L6+4
+  67 0022 9847     		blx	r3
+  68              	.LVL5:
+  69              	.L3:
+  43:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	assert_param(IS_SIZE_VALID(offset, len));
+  70              		.loc 1 43 0 is_stmt 1
+  71 0024 6319     		adds	r3, r4, r5
+  72 0026 B3F5005F 		cmp	r3, #8192
+  73 002a 03DD     		ble	.L4
+  74              		.loc 1 43 0 is_stmt 0 discriminator 1
+  75 002c 0B48     		ldr	r0, .L6
+  76 002e 2B21     		movs	r1, #43
+  77 0030 0B4B     		ldr	r3, .L6+4
+  78 0032 9847     		blx	r3
+  79              	.LVL6:
+  80              	.L4:
+  44:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	uint16_t addr = offset;
+  45:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	uint8_t buf[2];
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	buf[0] = (uint8_t)(addr >> 8);
+  81              		.loc 1 46 0 is_stmt 1
+  82 0034 230A     		lsrs	r3, r4, #8
+  47:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	buf[1] = (uint8_t)addr;
+  83              		.loc 1 47 0
+  84 0036 8DF80D40 		strb	r4, [sp, #13]
+  48:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  49:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	return (i2cm.transceiver(i2c_dev, EEPROM_SLAVE_ADDR, buf, 2, rxbuf, len)
+  85              		.loc 1 49 0
+  86 003a 3846     		mov	r0, r7
+  46:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	buf[1] = (uint8_t)addr;
+  87              		.loc 1 46 0
+  88 003c 8DF80C30 		strb	r3, [sp, #12]
+  89              		.loc 1 49 0
+  90 0040 5021     		movs	r1, #80
+  91 0042 084B     		ldr	r3, .L6+8
+  92 0044 03AA     		add	r2, sp, #12
+  93 0046 0096     		str	r6, [sp]
+  94 0048 0195     		str	r5, [sp, #4]
+  95 004a 9C68     		ldr	r4, [r3, #8]
+  96              	.LVL7:
+  97 004c 0223     		movs	r3, #2
+  98 004e A047     		blx	r4
+  99              	.LVL8:
+  50:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 				== I2CM_ERROR_TRANSCEIVED) ?
+  51:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 			EEPROM_OK : EEPROM_TIMEOUT;
+  52:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** }
+ 100              		.loc 1 52 0
+ 101 0050 0738     		subs	r0, r0, #7
+ 102 0052 18BF     		it	ne
+ 103 0054 0120     		movne	r0, #1
+ 104 0056 05B0     		add	sp, sp, #20
+ 105              	.LCFI2:
+ 106              		.cfi_def_cfa_offset 20
+ 107              		@ sp needed
+ 108 0058 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 109              	.LVL9:
+ 110              	.L7:
+ 111 005a 00BF     		.align	2
+ 112              	.L6:
+ 113 005c 00000000 		.word	.LANCHOR0
+ 114 0060 00000000 		.word	assert_failed
+ 115 0064 00000000 		.word	i2cm
+ 116              		.cfi_endproc
+ 117              	.LFE1:
+ 119              		.section	.text.eeprom_write,"ax",%progbits
+ 120              		.align	1
+ 121              		.global	eeprom_write
+ 122              		.thumb
+ 123              		.thumb_func
+ 125              	eeprom_write:
+ 126              	.LFB2:
+  53:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  54:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /*
+  55:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * eeprom_write
+  56:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  */
+  57:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** eeprom_status_t eeprom_write(i2c_t i2c_dev, uint16_t offset,
+  58:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 								uint16_t len, uint8_t *txbuf)
+  59:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** {
+ 127              		.loc 1 59 0
+ 128              		.cfi_startproc
+ 129              		@ args = 0, pretend = 0, frame = 0
+ 130              		@ frame_needed = 0, uses_anonymous_args = 0
+ 131              	.LVL10:
+ 132 0000 2DE9F347 		push	{r0, r1, r4, r5, r6, r7, r8, r9, r10, lr}
+ 133              	.LCFI3:
+ 134              		.cfi_def_cfa_offset 40
+ 135              		.cfi_offset 4, -32
+ 136              		.cfi_offset 5, -28
+ 137              		.cfi_offset 6, -24
+ 138              		.cfi_offset 7, -20
+ 139              		.cfi_offset 8, -16
+ 140              		.cfi_offset 9, -12
+ 141              		.cfi_offset 10, -8
+ 142              		.cfi_offset 14, -4
+ 143              		.loc 1 59 0
+ 144 0004 8146     		mov	r9, r0
+ 145 0006 0D46     		mov	r5, r1
+ 146 0008 9246     		mov	r10, r2
+  60:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	eeprom_status_t ret = EEPROM_OK;
+  61:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	uint16_t num_of_data, page_offset;
+  62:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	/* Checking parameter */
+  64:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	assert_param(txbuf);
+ 147              		.loc 1 64 0
+ 148 000a 9846     		mov	r8, r3
+ 149 000c 1BB9     		cbnz	r3, .L9
+ 150              		.loc 1 64 0 is_stmt 0 discriminator 1
+ 151 000e 2D48     		ldr	r0, .L22
+ 152              	.LVL11:
+ 153 0010 4021     		movs	r1, #64
+ 154              	.LVL12:
+ 155 0012 2D4B     		ldr	r3, .L22+4
+ 156              	.LVL13:
+ 157 0014 9847     		blx	r3
+ 158              	.LVL14:
+ 159              	.L9:
+  65:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	assert_param(IS_OFFSET_VALID(offset));
+ 160              		.loc 1 65 0 is_stmt 1
+ 161 0016 B5F5005F 		cmp	r5, #8192
+ 162 001a 03D3     		bcc	.L10
+ 163              		.loc 1 65 0 is_stmt 0 discriminator 1
+ 164 001c 2948     		ldr	r0, .L22
+ 165 001e 4121     		movs	r1, #65
+ 166 0020 294B     		ldr	r3, .L22+4
+ 167 0022 9847     		blx	r3
+ 168              	.LVL15:
+ 169              	.L10:
+  66:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	assert_param(IS_SIZE_VALID(offset, len));
+ 170              		.loc 1 66 0 is_stmt 1
+ 171 0024 05EB0A03 		add	r3, r5, r10
+ 172 0028 B3F5005F 		cmp	r3, #8192
+ 173 002c 03DD     		ble	.L11
+ 174              		.loc 1 66 0 is_stmt 0 discriminator 1
+ 175 002e 2548     		ldr	r0, .L22
+ 176 0030 4221     		movs	r1, #66
+ 177 0032 254B     		ldr	r3, .L22+4
+ 178 0034 9847     		blx	r3
+ 179              	.LVL16:
+ 180              	.L11:
+ 181 0036 0020     		movs	r0, #0
+ 182              	.LVL17:
+ 183              	.L12:
+  67:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  68:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	while ((len > 0) && (ret == EEPROM_OK))
+ 184              		.loc 1 68 0 is_stmt 1
+ 185 0038 BAF1000F 		cmp	r10, #0
+ 186 003c 3FD0     		beq	.L15
+ 187              		.loc 1 68 0 is_stmt 0 discriminator 1
+ 188 003e 0028     		cmp	r0, #0
+ 189 0040 3CD1     		bne	.L21
+  69:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	{
+  70:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		page_offset = offset % EEPROM_PAGE_SIZE;
+ 190              		.loc 1 70 0 is_stmt 1
+ 191 0042 05F01F04 		and	r4, r5, #31
+ 192              	.LVL18:
+  71:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		if ((len + page_offset) <= EEPROM_PAGE_SIZE)
+ 193              		.loc 1 71 0
+ 194 0046 0AEB0403 		add	r3, r10, r4
+ 195 004a 202B     		cmp	r3, #32
+  72:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 			num_of_data = len;
+  73:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		else
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 			num_of_data = EEPROM_PAGE_SIZE - page_offset;
+ 196              		.loc 1 74 0
+ 197 004c CCBF     		ite	gt
+ 198 004e C4F12004 		rsbgt	r4, r4, #32
+ 199              	.LVL19:
+ 200 0052 5446     		movle	r4, r10
+ 201              	.LBB4:
+ 202              	.LBB5:
+  75:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  76:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		ret = eeprom_write_page(i2c_dev, offset, num_of_data, txbuf);
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		offset += num_of_data;
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		txbuf += num_of_data;
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		len -= num_of_data;
+  80:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	}
+  81:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  82:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	return ret;
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** }
+  84:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  85:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /* Private functions implementation ------------------------------------------*/
+  86:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** /*
+  87:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  * eeprom_write_page
+  88:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c ****  */
+  89:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** static eeprom_status_t eeprom_write_page(i2c_t i2c_dev, uint16_t offset,
+  90:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 												uint16_t len, uint8_t *txbuf)
+  91:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** {
+  92:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	uint8_t *data = NULL;
+  93:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	data = assert_malloc(data, (len + 2) * sizeof(uint8_t));
+ 203              		.loc 1 93 0
+ 204 0054 4FF05D02 		mov	r2, #93
+ 205              	.LBE5:
+ 206              	.LBE4:
+  74:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+ 207              		.loc 1 74 0
+ 208 0058 C8BF     		it	gt
+ 209 005a A4B2     		uxthgt	r4, r4
+ 210              	.LVL20:
+ 211              	.LBB10:
+ 212              	.LBB6:
+ 213              		.loc 1 93 0
+ 214 005c A71C     		adds	r7, r4, #2
+ 215 005e 3846     		mov	r0, r7
+ 216              	.LVL21:
+ 217 0060 1A49     		ldr	r1, .L22+8
+ 218 0062 1B4B     		ldr	r3, .L22+12
+ 219 0064 9847     		blx	r3
+ 220              	.LVL22:
+ 221 0066 0646     		mov	r6, r0
+ 222 0068 20B9     		cbnz	r0, .L14
+ 223 006a 1848     		ldr	r0, .L22+8
+ 224              	.LVL23:
+ 225 006c 5D21     		movs	r1, #93
+ 226 006e 194B     		ldr	r3, .L22+16
+ 227 0070 9847     		blx	r3
+ 228              	.LVL24:
+ 229 0072 0646     		mov	r6, r0
+ 230              	.LVL25:
+ 231              	.L14:
+  94:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	/* Copy offset to first pointer position*/
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	*data = (uint8_t)(offset >> 8);
+ 232              		.loc 1 95 0
+ 233 0074 2B0A     		lsrs	r3, r5, #8
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	*(data + 1) = (uint8_t)offset;
+  97:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	memcpy(data + 2, txbuf, len);
+ 234              		.loc 1 97 0
+ 235 0076 4146     		mov	r1, r8
+ 236 0078 2246     		mov	r2, r4
+  95:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	*(data + 1) = (uint8_t)offset;
+ 237              		.loc 1 95 0
+ 238 007a 3370     		strb	r3, [r6]
+ 239              		.loc 1 97 0
+ 240 007c B01C     		adds	r0, r6, #2
+  96:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	*(data + 1) = (uint8_t)offset;
+ 241              		.loc 1 96 0
+ 242 007e 7570     		strb	r5, [r6, #1]
+ 243              	.LBE6:
+ 244              	.LBE10:
+  78:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		len -= num_of_data;
+ 245              		.loc 1 78 0
+ 246 0080 A044     		add	r8, r8, r4
+ 247              	.LVL26:
+ 248              	.LBB11:
+ 249              	.LBB7:
+ 250              		.loc 1 97 0
+ 251 0082 154B     		ldr	r3, .L22+20
+ 252              	.LBE7:
+ 253              	.LBE11:
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		txbuf += num_of_data;
+ 254              		.loc 1 77 0
+ 255 0084 2544     		add	r5, r5, r4
+ 256              	.LVL27:
+ 257              	.LBB12:
+ 258              	.LBB8:
+ 259              		.loc 1 97 0
+ 260 0086 9847     		blx	r3
+ 261              	.LVL28:
+  98:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+  99:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	/* Increase size of transmission data by 2 */
+ 100:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	len += 2;
+ 101:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	i2cm_error_t status = i2cm.transceiver(i2c_dev, EEPROM_SLAVE_ADDR,
+ 262              		.loc 1 102 0
+ 263 0088 0023     		movs	r3, #0
+ 264 008a 5021     		movs	r1, #80
+ 265 008c 0093     		str	r3, [sp]
+ 266 008e 3246     		mov	r2, r6
+ 267 0090 0193     		str	r3, [sp, #4]
+ 268 0092 4846     		mov	r0, r9
+ 269 0094 114B     		ldr	r3, .L22+24
+ 270              	.LBE8:
+ 271              	.LBE12:
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	}
+ 272              		.loc 1 79 0
+ 273 0096 C4EB0A04 		rsb	r4, r4, r10
+ 274              	.LVL29:
+  77:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 		txbuf += num_of_data;
+ 275              		.loc 1 77 0
+ 276 009a ADB2     		uxth	r5, r5
+  79:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	}
+ 277              		.loc 1 79 0
+ 278 009c 1FFA84FA 		uxth	r10, r4
+ 279              	.LVL30:
+ 280              	.LBB13:
+ 281              	.LBB9:
+ 282              		.loc 1 102 0
+ 283 00a0 D3F808C0 		ldr	ip, [r3, #8]
+ 284 00a4 BBB2     		uxth	r3, r7
+ 285 00a6 E047     		blx	ip
+ 286              	.LVL31:
+ 103:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 											data, len, NULL, 0);
+ 104:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	/* Free tx data after it was transmitted*/
+ 105:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	vPortFree(data);
+ 287              		.loc 1 105 0
+ 288 00a8 0849     		ldr	r1, .L22+8
+ 289 00aa 6922     		movs	r2, #105
+ 290 00ac 0C4B     		ldr	r3, .L22+28
+ 102:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 											data, len, NULL, 0);
+ 291              		.loc 1 102 0
+ 292 00ae 0746     		mov	r7, r0
+ 293              	.LVL32:
+ 294              		.loc 1 105 0
+ 295 00b0 3046     		mov	r0, r6
+ 296 00b2 9847     		blx	r3
+ 297              	.LVL33:
+ 106:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+ 107:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 	return (status == I2CM_ERROR_TRANSMITTED) ?
+ 298              		.loc 1 107 0
+ 299 00b4 781F     		subs	r0, r7, #5
+ 300 00b6 18BF     		it	ne
+ 301 00b8 0120     		movne	r0, #1
+ 302              	.LVL34:
+ 303 00ba BDE7     		b	.L12
+ 304              	.LVL35:
+ 305              	.L21:
+ 306              	.LBE9:
+ 307              	.LBE13:
+ 308 00bc 0120     		movs	r0, #1
+ 309              	.LVL36:
+ 310              	.L15:
+  83:/home/tienluong/workspace/atlantis_fw/platform/driver/src/eeprom.c **** 
+ 311              		.loc 1 83 0
+ 312 00be 02B0     		add	sp, sp, #8
+ 313              	.LCFI4:
+ 314              		.cfi_def_cfa_offset 32
+ 315              		@ sp needed
+ 316 00c0 BDE8F087 		pop	{r4, r5, r6, r7, r8, r9, r10, pc}
+ 317              	.LVL37:
+ 318              	.L23:
+ 319              		.align	2
+ 320              	.L22:
+ 321 00c4 00000000 		.word	.LANCHOR1
+ 322 00c8 00000000 		.word	assert_failed
+ 323 00cc 00000000 		.word	.LANCHOR2
+ 324 00d0 00000000 		.word	pvPortMalloc1
+ 325 00d4 00000000 		.word	malloc_failed
+ 326 00d8 00000000 		.word	memcpy
+ 327 00dc 00000000 		.word	i2cm
+ 328 00e0 00000000 		.word	vPortFree1
+ 329              		.cfi_endproc
+ 330              	.LFE2:
+ 332              		.section	.rodata.__FUNCTION__.7302,"a",%progbits
+ 333              		.set	.LANCHOR2,. + 0
+ 336              	__FUNCTION__.7302:
+ 337 0000 65657072 		.ascii	"eeprom_write_page\000"
+ 337      6F6D5F77 
+ 337      72697465 
+ 337      5F706167 
+ 337      6500
+ 338              		.section	.rodata.__FUNCTION__.7279,"a",%progbits
+ 339              		.set	.LANCHOR0,. + 0
+ 342              	__FUNCTION__.7279:
+ 343 0000 65657072 		.ascii	"eeprom_read\000"
+ 343      6F6D5F72 
+ 343      65616400 
+ 344              		.section	.rodata.__FUNCTION__.7291,"a",%progbits
+ 345              		.set	.LANCHOR1,. + 0
+ 348              	__FUNCTION__.7291:
+ 349 0000 65657072 		.ascii	"eeprom_write\000"
+ 349      6F6D5F77 
+ 349      72697465 
+ 349      00
+ 350              		.text
+ 351              	.Letext0:
+ 352              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 353              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 354              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/asic/hal/include/hal_i2c.h"
+ 355              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/common/lcc_system.h"
+ 356              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/i2cm.h"
+ 357              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/driver/include/eeprom.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 eeprom.c
+     /tmp/ccH3KC3f.s:19     .text.eeprom_read:00000000 $t
+     /tmp/ccH3KC3f.s:24     .text.eeprom_read:00000000 eeprom_read
+     /tmp/ccH3KC3f.s:113    .text.eeprom_read:0000005c $d
+     /tmp/ccH3KC3f.s:120    .text.eeprom_write:00000000 $t
+     /tmp/ccH3KC3f.s:125    .text.eeprom_write:00000000 eeprom_write
+     /tmp/ccH3KC3f.s:321    .text.eeprom_write:000000c4 $d
+     /tmp/ccH3KC3f.s:336    .rodata.__FUNCTION__.7302:00000000 __FUNCTION__.7302
+     /tmp/ccH3KC3f.s:342    .rodata.__FUNCTION__.7279:00000000 __FUNCTION__.7279
+     /tmp/ccH3KC3f.s:348    .rodata.__FUNCTION__.7291:00000000 __FUNCTION__.7291
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+assert_failed
+i2cm
+pvPortMalloc1
+malloc_failed
+memcpy
+vPortFree1

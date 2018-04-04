@@ -1,0 +1,2734 @@
+   1              		.syntax unified
+   2              		.cpu cortex-r4
+   3              		.fpu softvfp
+   4              		.eabi_attribute 20, 1
+   5              		.eabi_attribute 21, 1
+   6              		.eabi_attribute 23, 3
+   7              		.eabi_attribute 24, 1
+   8              		.eabi_attribute 25, 1
+   9              		.eabi_attribute 26, 1
+  10              		.eabi_attribute 30, 4
+  11              		.eabi_attribute 34, 1
+  12              		.eabi_attribute 18, 4
+  13              		.thumb
+  14              		.file	"timers.c"
+  15              		.text
+  16              	.Ltext0:
+  17              		.cfi_sections	.debug_frame
+  18              		.section	.text.prvInsertTimerInActiveList,"ax",%progbits
+  19              		.align	1
+  20              		.thumb
+  21              		.thumb_func
+  23              	prvInsertTimerInActiveList:
+  24              	.LFB10:
+  25              		.file 1 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c"
+   1:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+   2:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     FreeRTOS V8.2.3 - Copyright (C) 2015 Real Time Engineers Ltd.
+   3:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     All rights reserved
+   4:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+   5:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     VISIT http://www.FreeRTOS.org TO ENSURE YOU ARE USING THE LATEST VERSION.
+   6:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+   7:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     This file is part of the FreeRTOS distribution.
+   8:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+   9:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     FreeRTOS is free software; you can redistribute it and/or modify it under
+  10:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     the terms of the GNU General Public License (version 2) as published by the
+  11:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     Free Software Foundation >>>> AND MODIFIED BY <<<< the FreeRTOS exception.
+  12:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  13:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     ***************************************************************************
+  14:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     >>!   NOTE: The modification to the GPL is included to allow you to     !<<
+  15:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     >>!   distribute a combined work that includes FreeRTOS without being   !<<
+  16:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     >>!   obliged to provide the source code for proprietary components     !<<
+  17:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     >>!   outside of the FreeRTOS kernel.                                   !<<
+  18:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     ***************************************************************************
+  19:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  20:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     FreeRTOS is distributed in the hope that it will be useful, but WITHOUT ANY
+  21:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+  22:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     FOR A PARTICULAR PURPOSE.  Full license text is available on the following
+  23:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     link: http://www.freertos.org/a00114.html
+  24:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  25:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     ***************************************************************************
+  26:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *                                                                       *
+  27:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    FreeRTOS provides completely free yet professionally developed,    *
+  28:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    robust, strictly quality controlled, supported, and cross          *
+  29:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    platform software that is more than just the market leader, it     *
+  30:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    is the industry's de facto standard.                               *
+  31:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *                                                                       *
+  32:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    Help yourself get started quickly while simultaneously helping     *
+  33:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    to support the FreeRTOS project by purchasing a FreeRTOS           *
+  34:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    tutorial book, reference manual, or both:                          *
+  35:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *    http://www.FreeRTOS.org/Documentation                              *
+  36:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****      *                                                                       *
+  37:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     ***************************************************************************
+  38:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  39:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     http://www.FreeRTOS.org/FAQHelp.html - Having a problem?  Start by reading
+  40:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     the FAQ page "My application does not run, what could be wrong?".  Have you
+  41:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     defined configASSERT()?
+  42:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  43:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     http://www.FreeRTOS.org/support - In return for receiving this top quality
+  44:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     embedded software for free we request you assist our global community by
+  45:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     participating in the support forum.
+  46:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  47:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     http://www.FreeRTOS.org/training - Investing in training allows your team to
+  48:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     be as productive as possible as early as possible.  Now you can receive
+  49:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     FreeRTOS training directly from Richard Barry, CEO of Real Time Engineers
+  50:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     Ltd, and the world's leading authority on the world's leading RTOS.
+  51:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  52:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     http://www.FreeRTOS.org/plus - A selection of FreeRTOS ecosystem products,
+  53:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     including FreeRTOS+Trace - an indispensable productivity tool, a DOS
+  54:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     compatible FAT file system, and our tiny thread aware UDP/IP stack.
+  55:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  56:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     http://www.FreeRTOS.org/labs - Where new FreeRTOS products go to incubate.
+  57:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     Come and try FreeRTOS+TCP, our new open source TCP/IP stack for FreeRTOS.
+  58:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  59:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     http://www.OpenRTOS.com - Real Time Engineers ltd. license FreeRTOS to High
+  60:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     Integrity Systems ltd. to sell under the OpenRTOS brand.  Low cost OpenRTOS
+  61:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     licenses offer ticketed support, indemnification and commercial middleware.
+  62:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  63:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     http://www.SafeRTOS.com - High Integrity Systems also provide a safety
+  64:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     engineered and independently SIL3 certified version for use in safety and
+  65:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     mission critical applications that require provable dependability.
+  66:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  67:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****     1 tab == 4 spaces!
+  68:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** */
+  69:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  70:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* Standard includes. */
+  71:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #include <stdlib.h>
+  72:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  73:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* Defining MPU_WRAPPERS_INCLUDED_FROM_API_FILE prevents task.h from redefining
+  74:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** all the API functions to use the MPU wrappers.  That should only be done when
+  75:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** task.h is included from an application file. */
+  76:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #define MPU_WRAPPERS_INCLUDED_FROM_API_FILE
+  77:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  78:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #include "FreeRTOS.h"
+  79:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #include "task.h"
+  80:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #include "queue.h"
+  81:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #include "timers.h"
+  82:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  83:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #if ( INCLUDE_xTimerPendFunctionCall == 1 ) && ( configUSE_TIMERS == 0 )
+  84:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	#error configUSE_TIMERS must be set to 1 to make the xTimerPendFunctionCall() function available.
+  85:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #endif
+  86:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  87:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* Lint e961 and e750 are suppressed as a MISRA exception justified because the
+  88:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** MPU ports require MPU_WRAPPERS_INCLUDED_FROM_API_FILE to be defined for the
+  89:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** header files above, but not in this file, in order to generate the correct
+  90:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** privileged Vs unprivileged linkage and placement. */
+  91:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #undef MPU_WRAPPERS_INCLUDED_FROM_API_FILE /*lint !e961 !e750. */
+  92:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  93:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  94:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* This entire source file will be skipped if the application is not configured
+  95:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** to include software timer functionality.  This #if is closed at the very bottom
+  96:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** of this file.  If you want to include software timer functionality then ensure
+  97:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** configUSE_TIMERS is set to 1 in FreeRTOSConfig.h. */
+  98:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #if ( configUSE_TIMERS == 1 )
+  99:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 100:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* Misc definitions. */
+ 101:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #define tmrNO_DELAY		( TickType_t ) 0U
+ 102:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 103:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* The definition of the timers themselves. */
+ 104:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** typedef struct tmrTimerControl
+ 105:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 106:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	const char				*pcTimerName;		/*<< Text name.  This is not used by the kernel, it is included simpl
+ 107:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	ListItem_t				xTimerListItem;		/*<< Standard linked list item as used by all kernel features for e
+ 108:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	TickType_t				xTimerPeriodInTicks;/*<< How quickly and often the timer expires. */
+ 109:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	UBaseType_t				uxAutoReload;		/*<< Set to pdTRUE if the timer should be automatically restarted on
+ 110:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	void 					*pvTimerID;			/*<< An ID to identify the timer.  This allows the timer to be identified 
+ 111:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	TimerCallbackFunction_t	pxCallbackFunction;	/*<< The function that will be called when the timer e
+ 112:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	#if( configUSE_TRACE_FACILITY == 1 )
+ 113:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		UBaseType_t			uxTimerNumber;		/*<< An ID assigned by trace tools such as FreeRTOS+Trace */
+ 114:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	#endif
+ 115:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** } xTIMER;
+ 116:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 117:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* The old xTIMER name is maintained above then typedefed to the new Timer_t
+ 118:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** name below to enable the use of older kernel aware debuggers. */
+ 119:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** typedef xTIMER Timer_t;
+ 120:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 121:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* The definition of messages that can be sent and received on the timer queue.
+ 122:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Two types of message can be queued - messages that manipulate a software timer,
+ 123:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** and messages that request the execution of a non-timer related callback.  The
+ 124:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** two message types are defined in two separate structures, xTimerParametersType
+ 125:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** and xCallbackParametersType respectively. */
+ 126:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** typedef struct tmrTimerParameters
+ 127:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 128:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	TickType_t			xMessageValue;		/*<< An optional value used by a subset of commands, for example, whe
+ 129:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	Timer_t *			pxTimer;			/*<< The timer to which the command will be applied. */
+ 130:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** } TimerParameter_t;
+ 131:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 132:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 133:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** typedef struct tmrCallbackParameters
+ 134:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 135:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	PendedFunction_t	pxCallbackFunction;	/* << The callback function to execute. */
+ 136:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	void *pvParameter1;						/* << The value that will be used as the callback functions first paramet
+ 137:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	uint32_t ulParameter2;					/* << The value that will be used as the callback functions second para
+ 138:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** } CallbackParameters_t;
+ 139:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 140:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* The structure that contains the two message types, along with an identifier
+ 141:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** that is used to determine which message type is valid. */
+ 142:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** typedef struct tmrTimerQueueMessage
+ 143:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 144:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	BaseType_t			xMessageID;			/*<< The command being sent to the timer service task. */
+ 145:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	union
+ 146:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 147:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		TimerParameter_t xTimerParameters;
+ 148:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 149:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Don't include xCallbackParameters if it is not going to be used as
+ 150:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		it makes the structure (and therefore the timer queue) larger. */
+ 151:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		#if ( INCLUDE_xTimerPendFunctionCall == 1 )
+ 152:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			CallbackParameters_t xCallbackParameters;
+ 153:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		#endif /* INCLUDE_xTimerPendFunctionCall */
+ 154:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	} u;
+ 155:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** } DaemonTaskMessage_t;
+ 156:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 157:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*lint -e956 A manual analysis and inspection has been used to determine which
+ 158:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static variables must be declared volatile. */
+ 159:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 160:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* The list in which active timers are stored.  Timers are referenced in expire
+ 161:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** time order, with the nearest expiry time at the front of the list.  Only the
+ 162:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** timer service task is allowed to access these lists. */
+ 163:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** PRIVILEGED_DATA static List_t xActiveTimerList1;
+ 164:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** PRIVILEGED_DATA static List_t xActiveTimerList2;
+ 165:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** PRIVILEGED_DATA static List_t *pxCurrentTimerList;
+ 166:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** PRIVILEGED_DATA static List_t *pxOverflowTimerList;
+ 167:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 168:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /* A queue that is used to send commands to the timer service task. */
+ 169:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** PRIVILEGED_DATA static QueueHandle_t xTimerQueue = NULL;
+ 170:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 171:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #if ( INCLUDE_xTimerGetTimerDaemonTaskHandle == 1 )
+ 172:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 173:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	PRIVILEGED_DATA static TaskHandle_t xTimerTaskHandle = NULL;
+ 174:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 175:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #endif
+ 176:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 177:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*lint +e956 */
+ 178:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 179:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 180:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 181:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 182:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * Initialise the infrastructure used by the timer service task if it has not
+ 183:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * been initialised already.
+ 184:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 185:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvCheckForValidListAndQueue( void ) PRIVILEGED_FUNCTION;
+ 186:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 187:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 188:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * The timer service task (daemon).  Timer functionality is controlled by this
+ 189:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * task.  Other tasks communicate with the timer service task using the
+ 190:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * xTimerQueue queue.
+ 191:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 192:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvTimerTask( void *pvParameters ) PRIVILEGED_FUNCTION;
+ 193:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 194:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 195:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * Called by the timer service task to interpret and process a command it
+ 196:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * received on the timer queue.
+ 197:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 198:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvProcessReceivedCommands( void ) PRIVILEGED_FUNCTION;
+ 199:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 200:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 201:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * Insert the timer into either xActiveTimerList1, or xActiveTimerList2,
+ 202:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * depending on if the expire time causes a timer counter overflow.
+ 203:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 204:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static BaseType_t prvInsertTimerInActiveList( Timer_t * const pxTimer, const TickType_t xNextExpiry
+ 205:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 206:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 207:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * An active timer has reached its expire time.  Reload the timer if it is an
+ 208:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * auto reload timer, then call its callback.
+ 209:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 210:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvProcessExpiredTimer( const TickType_t xNextExpireTime, const TickType_t xTimeNow ) P
+ 211:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 212:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 213:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * The tick count has overflowed.  Switch the timer lists after ensuring the
+ 214:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * current timer list does not still reference some timers.
+ 215:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 216:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvSwitchTimerLists( void ) PRIVILEGED_FUNCTION;
+ 217:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 218:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 219:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * Obtain the current tick count, setting *pxTimerListsWereSwitched to pdTRUE
+ 220:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * if a tick count overflow occurred since prvSampleTimeNow() was last called.
+ 221:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 222:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static TickType_t prvSampleTimeNow( BaseType_t * const pxTimerListsWereSwitched ) PRIVILEGED_FUNCTI
+ 223:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 224:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 225:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * If the timer list contains any active timers then return the expire time of
+ 226:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * the timer that will expire first and set *pxListWasEmpty to false.  If the
+ 227:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * timer list does not contain any timers then return 0 and set *pxListWasEmpty
+ 228:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * to pdTRUE.
+ 229:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 230:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static TickType_t prvGetNextExpireTime( BaseType_t * const pxListWasEmpty ) PRIVILEGED_FUNCTION;
+ 231:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 232:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*
+ 233:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * If a timer has expired, process it.  Otherwise, block the timer service task
+ 234:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  * until either a timer does expire or a command is received.
+ 235:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c ****  */
+ 236:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvProcessTimerOrBlockTask( const TickType_t xNextExpireTime, BaseType_t xListWasEmpty 
+ 237:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 238:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 239:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 240:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xTimerCreateTimerTask( void )
+ 241:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 242:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xReturn = pdFAIL;
+ 243:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 244:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* This function is called when the scheduler is started if
+ 245:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configUSE_TIMERS is set to 1.  Check that the infrastructure used by the
+ 246:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	timer service task has been created/initialised.  If timers have already
+ 247:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	been created then the initialisation will already have been performed. */
+ 248:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	prvCheckForValidListAndQueue();
+ 249:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 250:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( xTimerQueue != NULL )
+ 251:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 252:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		#if ( INCLUDE_xTimerGetTimerDaemonTaskHandle == 1 )
+ 253:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 254:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* Create the timer task, storing its handle in xTimerTaskHandle so
+ 255:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			it can be returned by the xTimerGetTimerDaemonTaskHandle() function. */
+ 256:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xReturn = xTaskCreate( prvTimerTask, "Tmr Svc", ( uint16_t ) configTIMER_TASK_STACK_DEPTH, NULL,
+ 257:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 258:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		#else
+ 259:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 260:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* Create the timer task without storing its handle. */
+ 261:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xReturn = xTaskCreate( prvTimerTask, "Tmr Svc", ( uint16_t ) configTIMER_TASK_STACK_DEPTH, NULL,
+ 262:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 263:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		#endif
+ 264:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 265:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	else
+ 266:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 267:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		mtCOVERAGE_TEST_MARKER();
+ 268:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 269:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configASSERT( xReturn );
+ 271:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xReturn;
+ 272:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 273:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 274:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 275:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TimerHandle_t xTimerCreate( const char * const pcTimerName, const TickType_t xTimerPeriodInTicks, c
+ 276:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 277:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxNewTimer;
+ 278:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 279:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Allocate the timer structure. */
+ 280:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( xTimerPeriodInTicks == ( TickType_t ) 0U )
+ 281:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 282:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		pxNewTimer = NULL;
+ 283:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 284:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	else
+ 285:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 286:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		pxNewTimer = ( Timer_t * ) pvPortMalloc( sizeof( Timer_t ) );
+ 287:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( pxNewTimer != NULL )
+ 288:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 289:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* Ensure the infrastructure used by the timer service task has been
+ 290:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			created/initialised. */
+ 291:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			prvCheckForValidListAndQueue();
+ 292:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 293:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* Initialise the timer structure members using the function parameters. */
+ 294:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->pcTimerName = pcTimerName;
+ 295:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->xTimerPeriodInTicks = xTimerPeriodInTicks;
+ 296:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->uxAutoReload = uxAutoReload;
+ 297:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->pvTimerID = pvTimerID;
+ 298:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->pxCallbackFunction = pxCallbackFunction;
+ 299:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			vListInitialiseItem( &( pxNewTimer->xTimerListItem ) );
+ 300:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 301:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			traceTIMER_CREATE( pxNewTimer );
+ 302:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 303:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 304:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 305:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			traceTIMER_CREATE_FAILED();
+ 306:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 307:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 308:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 309:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* 0 is not a valid value for xTimerPeriodInTicks. */
+ 310:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configASSERT( ( xTimerPeriodInTicks > 0 ) );
+ 311:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 312:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return ( TimerHandle_t ) pxNewTimer;
+ 313:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 314:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 315:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 316:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xTimerGenericCommand( TimerHandle_t xTimer, const BaseType_t xCommandID, const TickType_
+ 317:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 318:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xReturn = pdFAIL;
+ 319:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** DaemonTaskMessage_t xMessage;
+ 320:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 321:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configASSERT( xTimer );
+ 322:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 323:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Send a message to the timer service task to perform a particular action
+ 324:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	on a particular timer definition. */
+ 325:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( xTimerQueue != NULL )
+ 326:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 327:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Send a command to the timer service task to start the xTimer timer. */
+ 328:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.xMessageID = xCommandID;
+ 329:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xTimerParameters.xMessageValue = xOptionalValue;
+ 330:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xTimerParameters.pxTimer = ( Timer_t * ) xTimer;
+ 331:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 332:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( xCommandID < tmrFIRST_FROM_ISR_COMMAND )
+ 333:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 334:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			if( xTaskGetSchedulerState() == taskSCHEDULER_RUNNING )
+ 335:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 336:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				xReturn = xQueueSendToBack( xTimerQueue, &xMessage, xTicksToWait );
+ 337:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 338:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			else
+ 339:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 340:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				xReturn = xQueueSendToBack( xTimerQueue, &xMessage, tmrNO_DELAY );
+ 341:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 342:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 343:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 344:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 345:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xReturn = xQueueSendToBackFromISR( xTimerQueue, &xMessage, pxHigherPriorityTaskWoken );
+ 346:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 347:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 348:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		traceTIMER_COMMAND_SEND( xTimer, xCommandID, xOptionalValue, xReturn );
+ 349:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 350:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	else
+ 351:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 352:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		mtCOVERAGE_TEST_MARKER();
+ 353:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 354:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 355:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xReturn;
+ 356:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 357:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 358:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 359:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #if ( INCLUDE_xTimerGetTimerDaemonTaskHandle == 1 )
+ 360:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 361:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	TaskHandle_t xTimerGetTimerDaemonTaskHandle( void )
+ 362:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 363:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* If xTimerGetTimerDaemonTaskHandle() is called before the scheduler has been
+ 364:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		started, then xTimerTaskHandle will be NULL. */
+ 365:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		configASSERT( ( xTimerTaskHandle != NULL ) );
+ 366:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		return xTimerTaskHandle;
+ 367:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 368:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 369:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #endif
+ 370:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 371:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 372:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** const char * pcTimerGetTimerName( TimerHandle_t xTimer )
+ 373:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 374:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxTimer = ( Timer_t * ) xTimer;
+ 375:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 376:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configASSERT( xTimer );
+ 377:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return pxTimer->pcTimerName;
+ 378:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 379:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 380:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 381:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvProcessExpiredTimer( const TickType_t xNextExpireTime, const TickType_t xTimeNow )
+ 382:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 383:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xResult;
+ 384:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t * const pxTimer = ( Timer_t * ) listGET_OWNER_OF_HEAD_ENTRY( pxCurrentTimerList );
+ 385:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 386:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Remove the timer from the list of active timers.  A check has already
+ 387:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	been performed to ensure the list is not empty. */
+ 388:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	( void ) uxListRemove( &( pxTimer->xTimerListItem ) );
+ 389:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	traceTIMER_EXPIRED( pxTimer );
+ 390:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 391:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* If the timer is an auto reload timer then calculate the next
+ 392:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	expiry time and re-insert the timer in the list of active timers. */
+ 393:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( pxTimer->uxAutoReload == ( UBaseType_t ) pdTRUE )
+ 394:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 395:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* The timer is inserted into a list using a time relative to anything
+ 396:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		other than the current time.  It will therefore be inserted into the
+ 397:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		correct list relative to the time this task thinks it is now. */
+ 398:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( prvInsertTimerInActiveList( pxTimer, ( xNextExpireTime + pxTimer->xTimerPeriodInTicks ), xTim
+ 399:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 400:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* The timer expired before it was added to the active timer
+ 401:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			list.  Reload it now.  */
+ 402:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xResult = xTimerGenericCommand( pxTimer, tmrCOMMAND_START_DONT_TRACE, xNextExpireTime, NULL, tmr
+ 403:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			configASSERT( xResult );
+ 404:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			( void ) xResult;
+ 405:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 406:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 407:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 408:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			mtCOVERAGE_TEST_MARKER();
+ 409:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 410:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 411:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	else
+ 412:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 413:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		mtCOVERAGE_TEST_MARKER();
+ 414:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 415:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 416:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Call the timer callback. */
+ 417:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	pxTimer->pxCallbackFunction( ( TimerHandle_t ) pxTimer );
+ 418:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 419:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 420:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 421:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvTimerTask( void *pvParameters )
+ 422:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 423:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xNextExpireTime;
+ 424:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xListWasEmpty;
+ 425:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 426:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Just to avoid compiler warnings. */
+ 427:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	( void ) pvParameters;
+ 428:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 429:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	for( ;; )
+ 430:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 431:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Query the timers list to see if it contains any timers, and if so,
+ 432:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		obtain the time at which the next timer will expire. */
+ 433:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xNextExpireTime = prvGetNextExpireTime( &xListWasEmpty );
+ 434:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 435:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* If a timer has expired, process it.  Otherwise, block this task
+ 436:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		until either a timer does expire, or a command is received. */
+ 437:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		prvProcessTimerOrBlockTask( xNextExpireTime, xListWasEmpty );
+ 438:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 439:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Empty the command queue. */
+ 440:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		prvProcessReceivedCommands();
+ 441:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 442:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 443:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 444:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 445:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvProcessTimerOrBlockTask( const TickType_t xNextExpireTime, BaseType_t xListWasEmpty 
+ 446:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 447:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xTimeNow;
+ 448:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xTimerListsWereSwitched;
+ 449:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 450:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	vTaskSuspendAll();
+ 451:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 452:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Obtain the time now to make an assessment as to whether the timer
+ 453:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		has expired or not.  If obtaining the time causes the lists to switch
+ 454:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		then don't process this timer as any timers that remained in the list
+ 455:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		when the lists were switched will have been processed within the
+ 456:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		prvSampleTimeNow() function. */
+ 457:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xTimeNow = prvSampleTimeNow( &xTimerListsWereSwitched );
+ 458:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( xTimerListsWereSwitched == pdFALSE )
+ 459:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 460:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* The tick count has not overflowed, has the timer expired? */
+ 461:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			if( ( xListWasEmpty == pdFALSE ) && ( xNextExpireTime <= xTimeNow ) )
+ 462:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 463:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				( void ) xTaskResumeAll();
+ 464:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				prvProcessExpiredTimer( xNextExpireTime, xTimeNow );
+ 465:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 466:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			else
+ 467:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 468:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				/* The tick count has not overflowed, and the next expire
+ 469:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				time has not been reached yet.  This task should therefore
+ 470:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				block to wait for the next expire time or a command to be
+ 471:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				received - whichever comes first.  The following line cannot
+ 472:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				be reached unless xNextExpireTime > xTimeNow, except in the
+ 473:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case when the current timer list is empty. */
+ 474:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				if( xListWasEmpty != pdFALSE )
+ 475:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				{
+ 476:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					/* The current timer list is empty - is the overflow list
+ 477:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					also empty? */
+ 478:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					xListWasEmpty = listLIST_IS_EMPTY( pxOverflowTimerList );
+ 479:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				}
+ 480:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 481:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				vQueueWaitForMessageRestricted( xTimerQueue, ( xNextExpireTime - xTimeNow ), xListWasEmpty );
+ 482:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 483:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				if( xTaskResumeAll() == pdFALSE )
+ 484:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				{
+ 485:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					/* Yield to wait for either a command to arrive, or the
+ 486:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					block time to expire.  If a command arrived between the
+ 487:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					critical section being exited and this yield then the yield
+ 488:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					will not cause the task to block. */
+ 489:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					portYIELD_WITHIN_API();
+ 490:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				}
+ 491:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				else
+ 492:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				{
+ 493:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					mtCOVERAGE_TEST_MARKER();
+ 494:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				}
+ 495:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 496:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 497:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 498:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 499:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			( void ) xTaskResumeAll();
+ 500:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 501:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 502:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 503:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 504:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 505:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static TickType_t prvGetNextExpireTime( BaseType_t * const pxListWasEmpty )
+ 506:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 507:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xNextExpireTime;
+ 508:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 509:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Timers are listed in expiry time order, with the head of the list
+ 510:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	referencing the task that will expire first.  Obtain the time at which
+ 511:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	the timer with the nearest expiry time will expire.  If there are no
+ 512:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	active timers then just set the next expire time to 0.  That will cause
+ 513:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	this task to unblock when the tick count overflows, at which point the
+ 514:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	timer lists will be switched and the next expiry time can be
+ 515:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	re-assessed.  */
+ 516:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	*pxListWasEmpty = listLIST_IS_EMPTY( pxCurrentTimerList );
+ 517:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( *pxListWasEmpty == pdFALSE )
+ 518:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 519:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xNextExpireTime = listGET_ITEM_VALUE_OF_HEAD_ENTRY( pxCurrentTimerList );
+ 520:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 521:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	else
+ 522:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 523:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Ensure the task unblocks when the tick count rolls over. */
+ 524:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xNextExpireTime = ( TickType_t ) 0U;
+ 525:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 526:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 527:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xNextExpireTime;
+ 528:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 529:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 530:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 531:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static TickType_t prvSampleTimeNow( BaseType_t * const pxTimerListsWereSwitched )
+ 532:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 533:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xTimeNow;
+ 534:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** PRIVILEGED_DATA static TickType_t xLastTime = ( TickType_t ) 0U; /*lint !e956 Variable is only acce
+ 535:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 536:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	xTimeNow = xTaskGetTickCount();
+ 537:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 538:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( xTimeNow < xLastTime )
+ 539:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 540:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		prvSwitchTimerLists();
+ 541:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		*pxTimerListsWereSwitched = pdTRUE;
+ 542:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 543:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	else
+ 544:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 545:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		*pxTimerListsWereSwitched = pdFALSE;
+ 546:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 547:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 548:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	xLastTime = xTimeNow;
+ 549:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 550:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xTimeNow;
+ 551:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 552:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 553:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 554:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static BaseType_t prvInsertTimerInActiveList( Timer_t * const pxTimer, const TickType_t xNextExpiry
+ 555:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+  26              		.loc 1 555 0
+  27              		.cfi_startproc
+  28              		@ args = 0, pretend = 0, frame = 0
+  29              		@ frame_needed = 0, uses_anonymous_args = 0
+  30              	.LVL0:
+  31 0000 10B5     		push	{r4, lr}
+  32              	.LCFI0:
+  33              		.cfi_def_cfa_offset 8
+  34              		.cfi_offset 4, -8
+  35              		.cfi_offset 14, -4
+ 556:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xProcessTimerNow = pdFALSE;
+ 557:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 558:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	listSET_LIST_ITEM_VALUE( &( pxTimer->xTimerListItem ), xNextExpiryTime );
+ 559:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	listSET_LIST_ITEM_OWNER( &( pxTimer->xTimerListItem ), pxTimer );
+ 560:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 561:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( xNextExpiryTime <= xTimeNow )
+  36              		.loc 1 561 0
+  37 0002 9142     		cmp	r1, r2
+ 555:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xProcessTimerNow = pdFALSE;
+  38              		.loc 1 555 0
+  39 0004 0446     		mov	r4, r0
+  40              	.LVL1:
+ 558:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	listSET_LIST_ITEM_OWNER( &( pxTimer->xTimerListItem ), pxTimer );
+  41              		.loc 1 558 0
+  42 0006 4160     		str	r1, [r0, #4]
+ 559:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  43              		.loc 1 559 0
+  44 0008 2061     		str	r0, [r4, #16]
+  45              		.loc 1 561 0
+  46 000a 05D8     		bhi	.L2
+ 562:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 563:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Has the expiry time elapsed between the command to start/reset a
+ 564:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		timer was issued, and the time the command was processed? */
+ 565:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( ( xTimeNow - xCommandTime ) >= pxTimer->xTimerPeriodInTicks )
+  47              		.loc 1 565 0
+  48 000c D21A     		subs	r2, r2, r3
+  49              	.LVL2:
+  50 000e 8369     		ldr	r3, [r0, #24]
+  51              	.LVL3:
+  52 0010 9A42     		cmp	r2, r3
+  53 0012 0CD2     		bcs	.L6
+  54              	.LVL4:
+  55              	.LBB4:
+  56              	.LBB5:
+ 566:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 567:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* The time between a command being issued and the command being
+ 568:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			processed actually exceeds the timers period.  */
+ 569:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xProcessTimerNow = pdTRUE;
+ 570:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 571:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 572:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 573:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			vListInsert( pxOverflowTimerList, &( pxTimer->xTimerListItem ) );
+  57              		.loc 1 573 0
+  58 0014 074B     		ldr	r3, .L9
+  59 0016 04E0     		b	.L7
+  60              	.LVL5:
+  61              	.L2:
+  62              	.LBE5:
+  63              	.LBE4:
+ 574:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 575:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 576:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	else
+ 577:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 578:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( ( xTimeNow < xCommandTime ) && ( xNextExpiryTime >= xCommandTime ) )
+  64              		.loc 1 578 0
+  65 0018 9A42     		cmp	r2, r3
+  66 001a 01D2     		bcs	.L4
+  67              		.loc 1 578 0 is_stmt 0 discriminator 1
+  68 001c 9942     		cmp	r1, r3
+  69 001e 06D2     		bcs	.L6
+  70              	.L4:
+ 579:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 580:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* If, since the command was issued, the tick count has overflowed
+ 581:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			but the expiry time has not, then the timer must have already passed
+ 582:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			its expiry time and should be processed immediately. */
+ 583:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xProcessTimerNow = pdTRUE;
+ 584:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 585:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 586:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 587:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			vListInsert( pxCurrentTimerList, &( pxTimer->xTimerListItem ) );
+  71              		.loc 1 587 0 is_stmt 1
+  72 0020 054B     		ldr	r3, .L9+4
+  73              	.LVL6:
+  74              	.L7:
+  75 0022 1868     		ldr	r0, [r3]
+  76              	.LVL7:
+  77 0024 211D     		adds	r1, r4, #4
+  78              	.LVL8:
+  79 0026 054B     		ldr	r3, .L9+8
+  80 0028 9847     		blx	r3
+  81              	.LVL9:
+ 556:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+  82              		.loc 1 556 0
+  83 002a 0020     		movs	r0, #0
+  84 002c 10BD     		pop	{r4, pc}
+  85              	.LVL10:
+  86              	.L6:
+ 569:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+  87              		.loc 1 569 0
+  88 002e 0120     		movs	r0, #1
+  89              	.LVL11:
+ 588:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 589:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 590:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 591:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xProcessTimerNow;
+ 592:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+  90              		.loc 1 592 0
+  91 0030 10BD     		pop	{r4, pc}
+  92              	.LVL12:
+  93              	.L10:
+  94 0032 00BF     		.align	2
+  95              	.L9:
+  96 0034 00000000 		.word	.LANCHOR0
+  97 0038 00000000 		.word	.LANCHOR1
+  98 003c 00000000 		.word	vListInsert
+  99              		.cfi_endproc
+ 100              	.LFE10:
+ 102              		.section	.text.prvCheckForValidListAndQueue,"ax",%progbits
+ 103              		.align	1
+ 104              		.thumb
+ 105              		.thumb_func
+ 107              	prvCheckForValidListAndQueue:
+ 108              	.LFB13:
+ 593:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 594:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 595:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void	prvProcessReceivedCommands( void )
+ 596:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 597:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** DaemonTaskMessage_t xMessage;
+ 598:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxTimer;
+ 599:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xTimerListsWereSwitched, xResult;
+ 600:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xTimeNow;
+ 601:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 602:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	while( xQueueReceive( xTimerQueue, &xMessage, tmrNO_DELAY ) != pdFAIL ) /*lint !e603 xMessage does
+ 603:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 604:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		#if ( INCLUDE_xTimerPendFunctionCall == 1 )
+ 605:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 606:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* Negative commands are pended function calls rather than timer
+ 607:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			commands. */
+ 608:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			if( xMessage.xMessageID < ( BaseType_t ) 0 )
+ 609:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 610:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				const CallbackParameters_t * const pxCallback = &( xMessage.u.xCallbackParameters );
+ 611:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 612:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				/* The timer uses the xCallbackParameters member to request a
+ 613:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				callback be executed.  Check the callback is not NULL. */
+ 614:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				configASSERT( pxCallback );
+ 615:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 616:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				/* Call the function. */
+ 617:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				pxCallback->pxCallbackFunction( pxCallback->pvParameter1, pxCallback->ulParameter2 );
+ 618:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 619:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			else
+ 620:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 621:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				mtCOVERAGE_TEST_MARKER();
+ 622:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 623:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 624:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		#endif /* INCLUDE_xTimerPendFunctionCall */
+ 625:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 626:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Commands that are positive are timer commands rather than pended
+ 627:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		function calls. */
+ 628:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( xMessage.xMessageID >= ( BaseType_t ) 0 )
+ 629:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 630:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* The messages uses the xTimerParameters member to work on a
+ 631:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			software timer. */
+ 632:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxTimer = xMessage.u.xTimerParameters.pxTimer;
+ 633:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 634:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			if( listIS_CONTAINED_WITHIN( NULL, &( pxTimer->xTimerListItem ) ) == pdFALSE )
+ 635:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 636:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				/* The timer is in a list, remove it. */
+ 637:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				( void ) uxListRemove( &( pxTimer->xTimerListItem ) );
+ 638:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 639:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			else
+ 640:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 641:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				mtCOVERAGE_TEST_MARKER();
+ 642:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 643:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 644:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			traceTIMER_COMMAND_RECEIVED( pxTimer, xMessage.xMessageID, xMessage.u.xTimerParameters.xMessageV
+ 645:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 646:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* In this case the xTimerListsWereSwitched parameter is not used, but
+ 647:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			it must be present in the function call.  prvSampleTimeNow() must be
+ 648:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			called after the message is received from xTimerQueue so there is no
+ 649:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			possibility of a higher priority task adding a message to the message
+ 650:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			queue with a time that is ahead of the timer daemon task (because it
+ 651:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pre-empted the timer daemon task after the xTimeNow value was set). */
+ 652:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xTimeNow = prvSampleTimeNow( &xTimerListsWereSwitched );
+ 653:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 654:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			switch( xMessage.xMessageID )
+ 655:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 656:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case tmrCOMMAND_START :
+ 657:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			    case tmrCOMMAND_START_FROM_ISR :
+ 658:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			    case tmrCOMMAND_RESET :
+ 659:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			    case tmrCOMMAND_RESET_FROM_ISR :
+ 660:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case tmrCOMMAND_START_DONT_TRACE :
+ 661:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					/* Start or restart a timer. */
+ 662:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					if( prvInsertTimerInActiveList( pxTimer,  xMessage.u.xTimerParameters.xMessageValue + pxTimer-
+ 663:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					{
+ 664:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						/* The timer expired before it was added to the active
+ 665:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						timer list.  Process it now. */
+ 666:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						pxTimer->pxCallbackFunction( ( TimerHandle_t ) pxTimer );
+ 667:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						traceTIMER_EXPIRED( pxTimer );
+ 668:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 669:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						if( pxTimer->uxAutoReload == ( UBaseType_t ) pdTRUE )
+ 670:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						{
+ 671:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 							xResult = xTimerGenericCommand( pxTimer, tmrCOMMAND_START_DONT_TRACE, xMessage.u.xTimerParam
+ 672:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 							configASSERT( xResult );
+ 673:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 							( void ) xResult;
+ 674:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						}
+ 675:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						else
+ 676:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						{
+ 677:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 							mtCOVERAGE_TEST_MARKER();
+ 678:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						}
+ 679:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					}
+ 680:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					else
+ 681:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					{
+ 682:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						mtCOVERAGE_TEST_MARKER();
+ 683:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					}
+ 684:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					break;
+ 685:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 686:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case tmrCOMMAND_STOP :
+ 687:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case tmrCOMMAND_STOP_FROM_ISR :
+ 688:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					/* The timer has already been removed from the active list.
+ 689:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					There is nothing to do here. */
+ 690:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					break;
+ 691:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 692:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case tmrCOMMAND_CHANGE_PERIOD :
+ 693:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case tmrCOMMAND_CHANGE_PERIOD_FROM_ISR :
+ 694:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					pxTimer->xTimerPeriodInTicks = xMessage.u.xTimerParameters.xMessageValue;
+ 695:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					configASSERT( ( pxTimer->xTimerPeriodInTicks > 0 ) );
+ 696:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 697:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					/* The new period does not really have a reference, and can be
+ 698:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					longer or shorter than the old one.  The command time is
+ 699:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					therefore set to the current time, and as the period cannot be
+ 700:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					zero the next expiry time can only be in the future, meaning
+ 701:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					(unlike for the xTimerStart() case above) there is no fail case
+ 702:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					that needs to be handled here. */
+ 703:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					( void ) prvInsertTimerInActiveList( pxTimer, ( xTimeNow + pxTimer->xTimerPeriodInTicks ), xTi
+ 704:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					break;
+ 705:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 706:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				case tmrCOMMAND_DELETE :
+ 707:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					/* The timer has already been removed from the active list,
+ 708:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					just free up the memory. */
+ 709:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					vPortFree( pxTimer );
+ 710:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					break;
+ 711:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 712:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				default	:
+ 713:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					/* Don't expect to get here. */
+ 714:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					break;
+ 715:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 716:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 717:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 718:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 719:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 720:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 721:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvSwitchTimerLists( void )
+ 722:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 723:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xNextExpireTime, xReloadTime;
+ 724:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** List_t *pxTemp;
+ 725:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxTimer;
+ 726:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xResult;
+ 727:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 728:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* The tick count has overflowed.  The timer lists must be switched.
+ 729:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	If there are any timers still referenced from the current timer list
+ 730:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	then they must have expired and should be processed before the lists
+ 731:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	are switched. */
+ 732:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	while( listLIST_IS_EMPTY( pxCurrentTimerList ) == pdFALSE )
+ 733:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 734:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xNextExpireTime = listGET_ITEM_VALUE_OF_HEAD_ENTRY( pxCurrentTimerList );
+ 735:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 736:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Remove the timer from the list. */
+ 737:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		pxTimer = ( Timer_t * ) listGET_OWNER_OF_HEAD_ENTRY( pxCurrentTimerList );
+ 738:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		( void ) uxListRemove( &( pxTimer->xTimerListItem ) );
+ 739:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		traceTIMER_EXPIRED( pxTimer );
+ 740:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 741:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Execute its callback, then send a command to restart the timer if
+ 742:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		it is an auto-reload timer.  It cannot be restarted here as the lists
+ 743:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		have not yet been switched. */
+ 744:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		pxTimer->pxCallbackFunction( ( TimerHandle_t ) pxTimer );
+ 745:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 746:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( pxTimer->uxAutoReload == ( UBaseType_t ) pdTRUE )
+ 747:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 748:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			/* Calculate the reload value, and if the reload value results in
+ 749:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			the timer going into the same timer list then it has already expired
+ 750:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			and the timer should be re-inserted into the current list so it is
+ 751:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			processed again within this loop.  Otherwise a command should be sent
+ 752:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			to restart the timer to ensure it is only inserted into a list after
+ 753:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			the lists have been swapped. */
+ 754:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xReloadTime = ( xNextExpireTime + pxTimer->xTimerPeriodInTicks );
+ 755:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			if( xReloadTime > xNextExpireTime )
+ 756:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 757:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				listSET_LIST_ITEM_VALUE( &( pxTimer->xTimerListItem ), xReloadTime );
+ 758:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				listSET_LIST_ITEM_OWNER( &( pxTimer->xTimerListItem ), pxTimer );
+ 759:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				vListInsert( pxCurrentTimerList, &( pxTimer->xTimerListItem ) );
+ 760:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 761:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			else
+ 762:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 763:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				xResult = xTimerGenericCommand( pxTimer, tmrCOMMAND_START_DONT_TRACE, xNextExpireTime, NULL, tm
+ 764:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				configASSERT( xResult );
+ 765:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				( void ) xResult;
+ 766:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 767:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 768:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 769:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 770:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			mtCOVERAGE_TEST_MARKER();
+ 771:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 772:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 773:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 774:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	pxTemp = pxCurrentTimerList;
+ 775:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	pxCurrentTimerList = pxOverflowTimerList;
+ 776:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	pxOverflowTimerList = pxTemp;
+ 777:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 778:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 779:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 780:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** static void prvCheckForValidListAndQueue( void )
+ 781:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 109              		.loc 1 781 0
+ 110              		.cfi_startproc
+ 111              		@ args = 0, pretend = 0, frame = 0
+ 112              		@ frame_needed = 0, uses_anonymous_args = 0
+ 113 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 114              	.LCFI1:
+ 115              		.cfi_def_cfa_offset 24
+ 116              		.cfi_offset 4, -24
+ 117              		.cfi_offset 5, -20
+ 118              		.cfi_offset 6, -16
+ 119              		.cfi_offset 7, -12
+ 120              		.cfi_offset 8, -8
+ 121              		.cfi_offset 14, -4
+ 782:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Check that the list from which active timers are referenced, and the
+ 783:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	queue used to communicate with the timer service, have been
+ 784:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	initialised. */
+ 785:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskENTER_CRITICAL();
+ 786:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 787:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( xTimerQueue == NULL )
+ 122              		.loc 1 787 0
+ 123 0004 154C     		ldr	r4, .L15
+ 785:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 124              		.loc 1 785 0
+ 125 0006 164B     		ldr	r3, .L15+4
+ 126 0008 9847     		blx	r3
+ 127              	.LVL13:
+ 128              		.loc 1 787 0
+ 129 000a 2568     		ldr	r5, [r4]
+ 130 000c 0DBB     		cbnz	r5, .L12
+ 788:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 789:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			vListInitialise( &xActiveTimerList1 );
+ 131              		.loc 1 789 0
+ 132 000e 154F     		ldr	r7, .L15+8
+ 133 0010 3846     		mov	r0, r7
+ 134 0012 DFF87C80 		ldr	r8, .L15+52
+ 790:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			vListInitialise( &xActiveTimerList2 );
+ 135              		.loc 1 790 0
+ 136 0016 144E     		ldr	r6, .L15+12
+ 789:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			vListInitialise( &xActiveTimerList2 );
+ 137              		.loc 1 789 0
+ 138 0018 C047     		blx	r8
+ 139              	.LVL14:
+ 140              		.loc 1 790 0
+ 141 001a 3046     		mov	r0, r6
+ 142 001c C047     		blx	r8
+ 143              	.LVL15:
+ 791:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxCurrentTimerList = &xActiveTimerList1;
+ 144              		.loc 1 791 0
+ 145 001e 134B     		ldr	r3, .L15+16
+ 146 0020 1F60     		str	r7, [r3]
+ 792:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxOverflowTimerList = &xActiveTimerList2;
+ 793:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			xTimerQueue = xQueueCreate( ( UBaseType_t ) configTIMER_QUEUE_LENGTH, sizeof( DaemonTaskMessage_
+ 147              		.loc 1 793 0
+ 148 0022 0520     		movs	r0, #5
+ 792:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxOverflowTimerList = &xActiveTimerList2;
+ 149              		.loc 1 792 0
+ 150 0024 124B     		ldr	r3, .L15+20
+ 151              		.loc 1 793 0
+ 152 0026 1021     		movs	r1, #16
+ 792:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxOverflowTimerList = &xActiveTimerList2;
+ 153              		.loc 1 792 0
+ 154 0028 1E60     		str	r6, [r3]
+ 155              		.loc 1 793 0
+ 156 002a 2A46     		mov	r2, r5
+ 157 002c 114B     		ldr	r3, .L15+24
+ 158 002e 9847     		blx	r3
+ 159              	.LVL16:
+ 160 0030 2060     		str	r0, [r4]
+ 794:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			configASSERT( xTimerQueue );
+ 161              		.loc 1 794 0
+ 162 0032 58B9     		cbnz	r0, .L13
+ 163              	.LBB8:
+ 164              	.LBB9:
+ 165              	@ 794 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 166 0034 72B6     		CPSID i   
+ 167 0036 BFF34F8F 	DSB       
+ 168 003a BFF36F8F 	ISB         
+ 169              	@ 0 "" 2
+ 170              		.thumb
+ 171 003e 0E48     		ldr	r0, .L15+28
+ 172 0040 40F21A32 		movw	r2, #794
+ 173 0044 0D49     		ldr	r1, .L15+32
+ 174 0046 0E4B     		ldr	r3, .L15+36
+ 175 0048 9847     		blx	r3
+ 176              	.LVL17:
+ 177              	.L14:
+ 178 004a FEE7     		b	.L14
+ 179              	.L13:
+ 180              	.LBE9:
+ 181              	.LBE8:
+ 795:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 796:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			#if ( configQUEUE_REGISTRY_SIZE > 0 )
+ 797:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 798:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				if( xTimerQueue != NULL )
+ 799:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				{
+ 800:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					vQueueAddToRegistry( xTimerQueue, "TmrQ" );
+ 182              		.loc 1 800 0
+ 183 004c 0D49     		ldr	r1, .L15+40
+ 184 004e 0E4B     		ldr	r3, .L15+44
+ 185 0050 9847     		blx	r3
+ 186              	.LVL18:
+ 187              	.L12:
+ 801:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				}
+ 802:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				else
+ 803:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				{
+ 804:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					mtCOVERAGE_TEST_MARKER();
+ 805:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				}
+ 806:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 807:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			#endif /* configQUEUE_REGISTRY_SIZE */
+ 808:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 809:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		else
+ 810:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 811:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			mtCOVERAGE_TEST_MARKER();
+ 812:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 813:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 814:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskEXIT_CRITICAL();
+ 188              		.loc 1 814 0
+ 189 0052 0E4B     		ldr	r3, .L15+48
+ 190 0054 9847     		blx	r3
+ 191              	.LVL19:
+ 192 0056 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 193              	.L16:
+ 194 005a 00BF     		.align	2
+ 195              	.L15:
+ 196 005c 00000000 		.word	.LANCHOR2
+ 197 0060 00000000 		.word	vPortEnterCritical
+ 198 0064 00000000 		.word	.LANCHOR3
+ 199 0068 00000000 		.word	.LANCHOR4
+ 200 006c 00000000 		.word	.LANCHOR1
+ 201 0070 00000000 		.word	.LANCHOR0
+ 202 0074 00000000 		.word	xQueueGenericCreate
+ 203 0078 00000000 		.word	.LC0
+ 204 007c 00000000 		.word	.LANCHOR5
+ 205 0080 00000000 		.word	printf
+ 206 0084 20000000 		.word	.LC1
+ 207 0088 00000000 		.word	vQueueAddToRegistry
+ 208 008c 00000000 		.word	vPortExitCritical
+ 209 0090 00000000 		.word	vListInitialise
+ 210              		.cfi_endproc
+ 211              	.LFE13:
+ 213              		.section	.text.xTimerCreateTimerTask,"ax",%progbits
+ 214              		.align	1
+ 215              		.global	xTimerCreateTimerTask
+ 216              		.thumb
+ 217              		.thumb_func
+ 219              	xTimerCreateTimerTask:
+ 220              	.LFB1:
+ 241:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xReturn = pdFAIL;
+ 221              		.loc 1 241 0
+ 222              		.cfi_startproc
+ 223              		@ args = 0, pretend = 0, frame = 0
+ 224              		@ frame_needed = 0, uses_anonymous_args = 0
+ 225              	.LVL20:
+ 226 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 227              	.LCFI2:
+ 228              		.cfi_def_cfa_offset 24
+ 229              		.cfi_offset 4, -8
+ 230              		.cfi_offset 14, -4
+ 248:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 231              		.loc 1 248 0
+ 232 0002 114B     		ldr	r3, .L26
+ 233 0004 9847     		blx	r3
+ 234              	.LVL21:
+ 250:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 235              		.loc 1 250 0
+ 236 0006 114B     		ldr	r3, .L26+4
+ 237 0008 1B68     		ldr	r3, [r3]
+ 238 000a 5BB9     		cbnz	r3, .L18
+ 239              	.LVL22:
+ 240              	.L20:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xReturn;
+ 241              		.loc 1 270 0
+ 242              	@ 270 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 243 000c 72B6     		CPSID i   
+ 244 000e BFF34F8F 	DSB       
+ 245 0012 BFF36F8F 	ISB         
+ 246              	@ 0 "" 2
+ 247              		.thumb
+ 248 0016 0E49     		ldr	r1, .L26+8
+ 249 0018 4FF48772 		mov	r2, #270
+ 250 001c 0D4B     		ldr	r3, .L26+12
+ 251 001e 0E48     		ldr	r0, .L26+16
+ 252 0020 9847     		blx	r3
+ 253              	.LVL23:
+ 254 0022 0FE0     		b	.L19
+ 255              	.LVL24:
+ 256              	.L18:
+ 261:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 257              		.loc 1 261 0
+ 258 0024 0F23     		movs	r3, #15
+ 259 0026 0D48     		ldr	r0, .L26+20
+ 260 0028 4FF48072 		mov	r2, #256
+ 261 002c 0093     		str	r3, [sp]
+ 262 002e 0023     		movs	r3, #0
+ 263 0030 0B49     		ldr	r1, .L26+24
+ 264 0032 0193     		str	r3, [sp, #4]
+ 265 0034 0293     		str	r3, [sp, #8]
+ 266 0036 0393     		str	r3, [sp, #12]
+ 267 0038 0A4C     		ldr	r4, .L26+28
+ 268 003a A047     		blx	r4
+ 269              	.LVL25:
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xReturn;
+ 270              		.loc 1 270 0
+ 271 003c 0028     		cmp	r0, #0
+ 272 003e E5D0     		beq	.L20
+ 272:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 273              		.loc 1 272 0
+ 274 0040 04B0     		add	sp, sp, #16
+ 275              	.LCFI3:
+ 276              		.cfi_remember_state
+ 277              		.cfi_def_cfa_offset 8
+ 278              		@ sp needed
+ 279 0042 10BD     		pop	{r4, pc}
+ 280              	.LVL26:
+ 281              	.L19:
+ 282              	.LCFI4:
+ 283              		.cfi_restore_state
+ 270:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xReturn;
+ 284              		.loc 1 270 0 discriminator 1
+ 285 0044 FEE7     		b	.L19
+ 286              	.L27:
+ 287 0046 00BF     		.align	2
+ 288              	.L26:
+ 289 0048 00000000 		.word	prvCheckForValidListAndQueue
+ 290 004c 00000000 		.word	.LANCHOR2
+ 291 0050 00000000 		.word	.LANCHOR6
+ 292 0054 00000000 		.word	printf
+ 293 0058 00000000 		.word	.LC0
+ 294 005c 00000000 		.word	prvTimerTask
+ 295 0060 25000000 		.word	.LC2
+ 296 0064 00000000 		.word	xTaskGenericCreate
+ 297              		.cfi_endproc
+ 298              	.LFE1:
+ 300              		.section	.text.xTimerCreate,"ax",%progbits
+ 301              		.align	1
+ 302              		.global	xTimerCreate
+ 303              		.thumb
+ 304              		.thumb_func
+ 306              	xTimerCreate:
+ 307              	.LFB2:
+ 276:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxNewTimer;
+ 308              		.loc 1 276 0
+ 309              		.cfi_startproc
+ 310              		@ args = 4, pretend = 0, frame = 0
+ 311              		@ frame_needed = 0, uses_anonymous_args = 0
+ 312              	.LVL27:
+ 313 0000 2DE9F041 		push	{r4, r5, r6, r7, r8, lr}
+ 314              	.LCFI5:
+ 315              		.cfi_def_cfa_offset 24
+ 316              		.cfi_offset 4, -24
+ 317              		.cfi_offset 5, -20
+ 318              		.cfi_offset 6, -16
+ 319              		.cfi_offset 7, -12
+ 320              		.cfi_offset 8, -8
+ 321              		.cfi_offset 14, -4
+ 276:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxNewTimer;
+ 322              		.loc 1 276 0
+ 323 0004 8046     		mov	r8, r0
+ 324 0006 1746     		mov	r7, r2
+ 325 0008 1E46     		mov	r6, r3
+ 280:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 326              		.loc 1 280 0
+ 327 000a 0D46     		mov	r5, r1
+ 328 000c A1B1     		cbz	r1, .L29
+ 286:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		if( pxNewTimer != NULL )
+ 329              		.loc 1 286 0
+ 330 000e 2C20     		movs	r0, #44
+ 331              	.LVL28:
+ 332 0010 1149     		ldr	r1, .L36
+ 333              	.LVL29:
+ 334 0012 4FF48F72 		mov	r2, #286
+ 335              	.LVL30:
+ 336 0016 114B     		ldr	r3, .L36+4
+ 337              	.LVL31:
+ 338 0018 9847     		blx	r3
+ 339              	.LVL32:
+ 287:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 340              		.loc 1 287 0
+ 341 001a 0446     		mov	r4, r0
+ 342 001c C0B1     		cbz	r0, .L33
+ 291:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 343              		.loc 1 291 0
+ 344 001e 104B     		ldr	r3, .L36+8
+ 345 0020 9847     		blx	r3
+ 346              	.LVL33:
+ 298:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			vListInitialiseItem( &( pxNewTimer->xTimerListItem ) );
+ 347              		.loc 1 298 0
+ 348 0022 069B     		ldr	r3, [sp, #24]
+ 349 0024 6362     		str	r3, [r4, #36]
+ 299:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 350              		.loc 1 299 0
+ 351 0026 201D     		adds	r0, r4, #4
+ 294:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->xTimerPeriodInTicks = xTimerPeriodInTicks;
+ 352              		.loc 1 294 0
+ 353 0028 C4F80080 		str	r8, [r4]
+ 295:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->uxAutoReload = uxAutoReload;
+ 354              		.loc 1 295 0
+ 355 002c A561     		str	r5, [r4, #24]
+ 296:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->pvTimerID = pvTimerID;
+ 356              		.loc 1 296 0
+ 357 002e E761     		str	r7, [r4, #28]
+ 297:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			pxNewTimer->pxCallbackFunction = pxCallbackFunction;
+ 358              		.loc 1 297 0
+ 359 0030 2662     		str	r6, [r4, #32]
+ 299:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 360              		.loc 1 299 0
+ 361 0032 0C4B     		ldr	r3, .L36+12
+ 362 0034 9847     		blx	r3
+ 363              	.LVL34:
+ 364 0036 0BE0     		b	.L33
+ 365              	.LVL35:
+ 366              	.L29:
+ 310:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 367              		.loc 1 310 0
+ 368              	@ 310 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 369 0038 72B6     		CPSID i   
+ 370 003a BFF34F8F 	DSB       
+ 371 003e BFF36F8F 	ISB         
+ 372              	@ 0 "" 2
+ 373              		.thumb
+ 374 0042 0948     		ldr	r0, .L36+16
+ 375              	.LVL36:
+ 376 0044 4FF49B72 		mov	r2, #310
+ 377              	.LVL37:
+ 378 0048 0349     		ldr	r1, .L36
+ 379              	.LVL38:
+ 380 004a 084B     		ldr	r3, .L36+20
+ 381              	.LVL39:
+ 382 004c 9847     		blx	r3
+ 383              	.LVL40:
+ 384              	.L31:
+ 310:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 385              		.loc 1 310 0 is_stmt 0 discriminator 1
+ 386 004e FEE7     		b	.L31
+ 387              	.LVL41:
+ 388              	.L33:
+ 313:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 389              		.loc 1 313 0 is_stmt 1
+ 390 0050 2046     		mov	r0, r4
+ 391 0052 BDE8F081 		pop	{r4, r5, r6, r7, r8, pc}
+ 392              	.LVL42:
+ 393              	.L37:
+ 394 0056 00BF     		.align	2
+ 395              	.L36:
+ 396 0058 00000000 		.word	.LANCHOR7
+ 397 005c 00000000 		.word	pvPortMalloc1
+ 398 0060 00000000 		.word	prvCheckForValidListAndQueue
+ 399 0064 00000000 		.word	vListInitialiseItem
+ 400 0068 00000000 		.word	.LC0
+ 401 006c 00000000 		.word	printf
+ 402              		.cfi_endproc
+ 403              	.LFE2:
+ 405              		.section	.text.xTimerGenericCommand,"ax",%progbits
+ 406              		.align	1
+ 407              		.global	xTimerGenericCommand
+ 408              		.thumb
+ 409              		.thumb_func
+ 411              	xTimerGenericCommand:
+ 412              	.LFB3:
+ 317:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xReturn = pdFAIL;
+ 413              		.loc 1 317 0
+ 414              		.cfi_startproc
+ 415              		@ args = 4, pretend = 0, frame = 16
+ 416              		@ frame_needed = 0, uses_anonymous_args = 0
+ 417              	.LVL43:
+ 418 0000 30B5     		push	{r4, r5, lr}
+ 419              	.LCFI6:
+ 420              		.cfi_def_cfa_offset 12
+ 421              		.cfi_offset 4, -12
+ 422              		.cfi_offset 5, -8
+ 423              		.cfi_offset 14, -4
+ 321:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 424              		.loc 1 321 0
+ 425 0002 0546     		mov	r5, r0
+ 317:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xReturn = pdFAIL;
+ 426              		.loc 1 317 0
+ 427 0004 85B0     		sub	sp, sp, #20
+ 428              	.LCFI7:
+ 429              		.cfi_def_cfa_offset 32
+ 430              	.LVL44:
+ 321:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 431              		.loc 1 321 0
+ 432 0006 58B9     		cbnz	r0, .L39
+ 433              	.LVL45:
+ 434              	.LBB12:
+ 435              	.LBB13:
+ 436              	@ 321 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 437 0008 72B6     		CPSID i   
+ 438 000a BFF34F8F 	DSB       
+ 439 000e BFF36F8F 	ISB         
+ 440              	@ 0 "" 2
+ 441              		.thumb
+ 442 0012 1148     		ldr	r0, .L46
+ 443              	.LVL46:
+ 444 0014 40F24112 		movw	r2, #321
+ 445              	.LVL47:
+ 446 0018 1049     		ldr	r1, .L46+4
+ 447              	.LVL48:
+ 448 001a 114B     		ldr	r3, .L46+8
+ 449              	.LVL49:
+ 450 001c 9847     		blx	r3
+ 451              	.LVL50:
+ 452              	.L40:
+ 453 001e FEE7     		b	.L40
+ 454              	.LVL51:
+ 455              	.L39:
+ 456              	.LBE13:
+ 457              	.LBE12:
+ 325:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 458              		.loc 1 325 0
+ 459 0020 104C     		ldr	r4, .L46+12
+ 460 0022 2068     		ldr	r0, [r4]
+ 461              	.LVL52:
+ 462 0024 B0B1     		cbz	r0, .L41
+ 332:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 463              		.loc 1 332 0
+ 464 0026 0529     		cmp	r1, #5
+ 330:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 465              		.loc 1 330 0
+ 466 0028 8DE82600 		stmia	sp, {r1, r2, r5}
+ 332:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 467              		.loc 1 332 0
+ 468 002c 0DDC     		bgt	.L42
+ 334:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 469              		.loc 1 334 0
+ 470 002e 0E4B     		ldr	r3, .L46+16
+ 471              	.LVL53:
+ 472 0030 9847     		blx	r3
+ 473              	.LVL54:
+ 474 0032 0E4D     		ldr	r5, .L46+20
+ 475              	.LVL55:
+ 336:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 476              		.loc 1 336 0
+ 477 0034 6946     		mov	r1, sp
+ 334:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 478              		.loc 1 334 0
+ 479 0036 0228     		cmp	r0, #2
+ 340:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 480              		.loc 1 340 0
+ 481 0038 18BF     		it	ne
+ 482 003a 0022     		movne	r2, #0
+ 336:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 483              		.loc 1 336 0
+ 484 003c 2068     		ldr	r0, [r4]
+ 485 003e 06BF     		itte	eq
+ 486 0040 0023     		moveq	r3, #0
+ 487 0042 089A     		ldreq	r2, [sp, #32]
+ 340:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 488              		.loc 1 340 0
+ 489 0044 1346     		movne	r3, r2
+ 490 0046 A847     		blx	r5
+ 491              	.LVL56:
+ 492 0048 04E0     		b	.L41
+ 493              	.LVL57:
+ 494              	.L42:
+ 345:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 495              		.loc 1 345 0
+ 496 004a 1A46     		mov	r2, r3
+ 497              	.LVL58:
+ 498 004c 6946     		mov	r1, sp
+ 499              	.LVL59:
+ 500 004e 0023     		movs	r3, #0
+ 501              	.LVL60:
+ 502 0050 074C     		ldr	r4, .L46+24
+ 503 0052 A047     		blx	r4
+ 504              	.LVL61:
+ 505              	.L41:
+ 356:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 506              		.loc 1 356 0
+ 507 0054 05B0     		add	sp, sp, #20
+ 508              	.LCFI8:
+ 509              		.cfi_def_cfa_offset 12
+ 510              		@ sp needed
+ 511 0056 30BD     		pop	{r4, r5, pc}
+ 512              	.LVL62:
+ 513              	.L47:
+ 514              		.align	2
+ 515              	.L46:
+ 516 0058 00000000 		.word	.LC0
+ 517 005c 00000000 		.word	.LANCHOR8
+ 518 0060 00000000 		.word	printf
+ 519 0064 00000000 		.word	.LANCHOR2
+ 520 0068 00000000 		.word	xTaskGetSchedulerState
+ 521 006c 00000000 		.word	xQueueGenericSend
+ 522 0070 00000000 		.word	xQueueGenericSendFromISR
+ 523              		.cfi_endproc
+ 524              	.LFE3:
+ 526              		.section	.text.prvSwitchTimerLists,"ax",%progbits
+ 527              		.align	1
+ 528              		.thumb
+ 529              		.thumb_func
+ 531              	prvSwitchTimerLists:
+ 532              	.LFB12:
+ 722:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xNextExpireTime, xReloadTime;
+ 533              		.loc 1 722 0
+ 534              		.cfi_startproc
+ 535              		@ args = 0, pretend = 0, frame = 0
+ 536              		@ frame_needed = 0, uses_anonymous_args = 0
+ 537 0000 F7B5     		push	{r0, r1, r2, r4, r5, r6, r7, lr}
+ 538              	.LCFI9:
+ 539              		.cfi_def_cfa_offset 32
+ 540              		.cfi_offset 4, -20
+ 541              		.cfi_offset 5, -16
+ 542              		.cfi_offset 6, -12
+ 543              		.cfi_offset 7, -8
+ 544              		.cfi_offset 14, -4
+ 545              	.L50:
+ 732:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 546              		.loc 1 732 0
+ 547 0002 1C4D     		ldr	r5, .L57
+ 548 0004 2B68     		ldr	r3, [r5]
+ 549 0006 1A68     		ldr	r2, [r3]
+ 550 0008 002A     		cmp	r2, #0
+ 551 000a 2CD0     		beq	.L56
+ 734:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 552              		.loc 1 734 0
+ 553 000c DB68     		ldr	r3, [r3, #12]
+ 737:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		( void ) uxListRemove( &( pxTimer->xTimerListItem ) );
+ 554              		.loc 1 737 0
+ 555 000e DC68     		ldr	r4, [r3, #12]
+ 734:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 556              		.loc 1 734 0
+ 557 0010 1E68     		ldr	r6, [r3]
+ 558              	.LVL63:
+ 738:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		traceTIMER_EXPIRED( pxTimer );
+ 559              		.loc 1 738 0
+ 560 0012 271D     		adds	r7, r4, #4
+ 561 0014 184B     		ldr	r3, .L57+4
+ 562 0016 3846     		mov	r0, r7
+ 563 0018 9847     		blx	r3
+ 564              	.LVL64:
+ 744:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 565              		.loc 1 744 0
+ 566 001a 636A     		ldr	r3, [r4, #36]
+ 567 001c 2046     		mov	r0, r4
+ 568 001e 9847     		blx	r3
+ 569              	.LVL65:
+ 746:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 570              		.loc 1 746 0
+ 571 0020 E369     		ldr	r3, [r4, #28]
+ 572 0022 012B     		cmp	r3, #1
+ 573 0024 EDD1     		bne	.L50
+ 754:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			if( xReloadTime > xNextExpireTime )
+ 574              		.loc 1 754 0
+ 575 0026 A369     		ldr	r3, [r4, #24]
+ 576 0028 3344     		add	r3, r3, r6
+ 577              	.LVL66:
+ 755:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 578              		.loc 1 755 0
+ 579 002a B342     		cmp	r3, r6
+ 580 002c 06D9     		bls	.L51
+ 757:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				listSET_LIST_ITEM_OWNER( &( pxTimer->xTimerListItem ), pxTimer );
+ 581              		.loc 1 757 0
+ 582 002e 6360     		str	r3, [r4, #4]
+ 759:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 583              		.loc 1 759 0
+ 584 0030 3946     		mov	r1, r7
+ 758:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				vListInsert( pxCurrentTimerList, &( pxTimer->xTimerListItem ) );
+ 585              		.loc 1 758 0
+ 586 0032 2461     		str	r4, [r4, #16]
+ 759:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 587              		.loc 1 759 0
+ 588 0034 2868     		ldr	r0, [r5]
+ 589 0036 114B     		ldr	r3, .L57+8
+ 590              	.LVL67:
+ 591 0038 9847     		blx	r3
+ 592              	.LVL68:
+ 593 003a E2E7     		b	.L50
+ 594              	.LVL69:
+ 595              	.L51:
+ 763:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				configASSERT( xResult );
+ 596              		.loc 1 763 0
+ 597 003c 0021     		movs	r1, #0
+ 598 003e 2046     		mov	r0, r4
+ 599 0040 3246     		mov	r2, r6
+ 600 0042 0091     		str	r1, [sp]
+ 601 0044 0B46     		mov	r3, r1
+ 602              	.LVL70:
+ 603 0046 0E4C     		ldr	r4, .L57+12
+ 604              	.LVL71:
+ 605 0048 A047     		blx	r4
+ 606              	.LVL72:
+ 764:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				( void ) xResult;
+ 607              		.loc 1 764 0
+ 608 004a 0028     		cmp	r0, #0
+ 609 004c D9D1     		bne	.L50
+ 764:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				( void ) xResult;
+ 610              		.loc 1 764 0 is_stmt 0 discriminator 1
+ 611              	@ 764 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 612 004e 72B6     		CPSID i   
+ 613 0050 BFF34F8F 	DSB       
+ 614 0054 BFF36F8F 	ISB         
+ 615              	@ 0 "" 2
+ 616              		.thumb
+ 617 0058 0A48     		ldr	r0, .L57+16
+ 618              	.LVL73:
+ 619 005a 4FF43F72 		mov	r2, #764
+ 620 005e 0A49     		ldr	r1, .L57+20
+ 621 0060 0A4B     		ldr	r3, .L57+24
+ 622 0062 9847     		blx	r3
+ 623              	.LVL74:
+ 624              	.L53:
+ 625 0064 FEE7     		b	.L53
+ 626              	.LVL75:
+ 627              	.L56:
+ 775:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	pxOverflowTimerList = pxTemp;
+ 628              		.loc 1 775 0 is_stmt 1
+ 629 0066 0A4A     		ldr	r2, .L57+28
+ 630 0068 1168     		ldr	r1, [r2]
+ 631 006a 2960     		str	r1, [r5]
+ 776:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 632              		.loc 1 776 0
+ 633 006c 1360     		str	r3, [r2]
+ 777:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 634              		.loc 1 777 0
+ 635 006e 03B0     		add	sp, sp, #12
+ 636              	.LCFI10:
+ 637              		.cfi_def_cfa_offset 20
+ 638              		@ sp needed
+ 639 0070 F0BD     		pop	{r4, r5, r6, r7, pc}
+ 640              	.L58:
+ 641 0072 00BF     		.align	2
+ 642              	.L57:
+ 643 0074 00000000 		.word	.LANCHOR1
+ 644 0078 00000000 		.word	uxListRemove
+ 645 007c 00000000 		.word	vListInsert
+ 646 0080 00000000 		.word	xTimerGenericCommand
+ 647 0084 00000000 		.word	.LC0
+ 648 0088 00000000 		.word	.LANCHOR9
+ 649 008c 00000000 		.word	printf
+ 650 0090 00000000 		.word	.LANCHOR0
+ 651              		.cfi_endproc
+ 652              	.LFE12:
+ 654              		.section	.text.prvTimerTask,"ax",%progbits
+ 655              		.align	1
+ 656              		.thumb
+ 657              		.thumb_func
+ 659              	prvTimerTask:
+ 660              	.LFB6:
+ 422:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** TickType_t xNextExpireTime;
+ 661              		.loc 1 422 0
+ 662              		.cfi_startproc
+ 663              		@ args = 0, pretend = 0, frame = 16
+ 664              		@ frame_needed = 0, uses_anonymous_args = 0
+ 665              	.LVL76:
+ 666 0000 2DE9F047 		push	{r4, r5, r6, r7, r8, r9, r10, lr}
+ 667              	.LCFI11:
+ 668              		.cfi_def_cfa_offset 32
+ 669              		.cfi_offset 4, -32
+ 670              		.cfi_offset 5, -28
+ 671              		.cfi_offset 6, -24
+ 672              		.cfi_offset 7, -20
+ 673              		.cfi_offset 8, -16
+ 674              		.cfi_offset 9, -12
+ 675              		.cfi_offset 10, -8
+ 676              		.cfi_offset 14, -4
+ 677 0004 86B0     		sub	sp, sp, #24
+ 678              	.LCFI12:
+ 679              		.cfi_def_cfa_offset 56
+ 680              	.LVL77:
+ 681              	.L84:
+ 682              	.LBB27:
+ 683              	.LBB28:
+ 516:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	if( *pxListWasEmpty == pdFALSE )
+ 684              		.loc 1 516 0 discriminator 1
+ 685 0006 DFF8FCA1 		ldr	r10, .L93+68
+ 686 000a DAF80030 		ldr	r3, [r10]
+ 687 000e 1C68     		ldr	r4, [r3]
+ 688 0010 B4FA84F4 		clz	r4, r4
+ 689 0014 6409     		lsrs	r4, r4, #5
+ 690              	.LVL78:
+ 517:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 691              		.loc 1 517 0 discriminator 1
+ 692 0016 1CB9     		cbnz	r4, .L85
+ 519:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 693              		.loc 1 519 0
+ 694 0018 DB68     		ldr	r3, [r3, #12]
+ 695 001a D3F80080 		ldr	r8, [r3]
+ 696              	.LVL79:
+ 697 001e 01E0     		b	.L60
+ 698              	.LVL80:
+ 699              	.L85:
+ 524:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 700              		.loc 1 524 0
+ 701 0020 4FF00008 		mov	r8, #0
+ 702              	.L60:
+ 703              	.LVL81:
+ 704              	.LBE28:
+ 705              	.LBE27:
+ 706              	.LBB29:
+ 707              	.LBB30:
+ 450:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 708              		.loc 1 450 0
+ 709 0024 664B     		ldr	r3, .L93
+ 710              	.LBB31:
+ 711              	.LBB32:
+ 536:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 712              		.loc 1 536 0
+ 713 0026 674E     		ldr	r6, .L93+4
+ 714              	.LBE32:
+ 715              	.LBE31:
+ 450:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 716              		.loc 1 450 0
+ 717 0028 9847     		blx	r3
+ 718              	.LVL82:
+ 719              	.LBB34:
+ 720              	.LBB33:
+ 536:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 721              		.loc 1 536 0
+ 722 002a B047     		blx	r6
+ 723              	.LVL83:
+ 538:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 724              		.loc 1 538 0
+ 725 002c 664D     		ldr	r5, .L93+8
+ 726 002e 2F46     		mov	r7, r5
+ 727 0030 2B68     		ldr	r3, [r5]
+ 728 0032 9842     		cmp	r0, r3
+ 536:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 729              		.loc 1 536 0
+ 730 0034 8146     		mov	r9, r0
+ 731              	.LVL84:
+ 538:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 732              		.loc 1 538 0
+ 733 0036 03D2     		bcs	.L86
+ 540:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		*pxTimerListsWereSwitched = pdTRUE;
+ 734              		.loc 1 540 0
+ 735 0038 644B     		ldr	r3, .L93+12
+ 736 003a 9847     		blx	r3
+ 737              	.LVL85:
+ 541:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 738              		.loc 1 541 0
+ 739 003c 0123     		movs	r3, #1
+ 740 003e 00E0     		b	.L61
+ 741              	.LVL86:
+ 742              	.L86:
+ 545:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 743              		.loc 1 545 0
+ 744 0040 0023     		movs	r3, #0
+ 745              	.LVL87:
+ 746              	.L61:
+ 548:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 747              		.loc 1 548 0
+ 748 0042 C5F80090 		str	r9, [r5]
+ 749 0046 624D     		ldr	r5, .L93+16
+ 750              	.LBE33:
+ 751              	.LBE34:
+ 458:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 752              		.loc 1 458 0
+ 753 0048 002B     		cmp	r3, #0
+ 754 004a 44D1     		bne	.L62
+ 755              	.LVL88:
+ 461:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 756              		.loc 1 461 0
+ 757 004c 002C     		cmp	r4, #0
+ 758 004e 2ED1     		bne	.L63
+ 759 0050 C845     		cmp	r8, r9
+ 760 0052 33D8     		bhi	.L87
+ 463:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				prvProcessExpiredTimer( xNextExpireTime, xTimeNow );
+ 761              		.loc 1 463 0
+ 762 0054 A847     		blx	r5
+ 763              	.LVL89:
+ 764              	.LBB35:
+ 765              	.LBB36:
+ 384:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 766              		.loc 1 384 0
+ 767 0056 DAF80030 		ldr	r3, [r10]
+ 768 005a DB68     		ldr	r3, [r3, #12]
+ 769 005c DD68     		ldr	r5, [r3, #12]
+ 770              	.LVL90:
+ 388:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	traceTIMER_EXPIRED( pxTimer );
+ 771              		.loc 1 388 0
+ 772 005e 5D4B     		ldr	r3, .L93+20
+ 773 0060 281D     		adds	r0, r5, #4
+ 774 0062 9847     		blx	r3
+ 775              	.LVL91:
+ 393:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 776              		.loc 1 393 0
+ 777 0064 EB69     		ldr	r3, [r5, #28]
+ 778 0066 012B     		cmp	r3, #1
+ 779 0068 1DD1     		bne	.L65
+ 398:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 780              		.loc 1 398 0
+ 781 006a A969     		ldr	r1, [r5, #24]
+ 782 006c 2846     		mov	r0, r5
+ 783 006e 4A46     		mov	r2, r9
+ 784 0070 4346     		mov	r3, r8
+ 785 0072 4144     		add	r1, r1, r8
+ 786 0074 DFF888C1 		ldr	ip, .L93+64
+ 787 0078 E047     		blx	ip
+ 788              	.LVL92:
+ 789 007a 0128     		cmp	r0, #1
+ 790 007c 13D1     		bne	.L65
+ 402:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			configASSERT( xResult );
+ 791              		.loc 1 402 0
+ 792 007e 0094     		str	r4, [sp]
+ 793 0080 2146     		mov	r1, r4
+ 794 0082 2346     		mov	r3, r4
+ 795 0084 2846     		mov	r0, r5
+ 796 0086 4246     		mov	r2, r8
+ 797 0088 534C     		ldr	r4, .L93+24
+ 798              	.LVL93:
+ 799 008a A047     		blx	r4
+ 800              	.LVL94:
+ 403:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			( void ) xResult;
+ 801              		.loc 1 403 0
+ 802 008c 58B9     		cbnz	r0, .L65
+ 803              	@ 403 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 804 008e 72B6     		CPSID i   
+ 805 0090 BFF34F8F 	DSB       
+ 806 0094 BFF36F8F 	ISB         
+ 807              	@ 0 "" 2
+ 808              		.thumb
+ 809 0098 5048     		ldr	r0, .L93+28
+ 810              	.LVL95:
+ 811 009a 40F29312 		movw	r2, #403
+ 812 009e 5049     		ldr	r1, .L93+32
+ 813 00a0 504B     		ldr	r3, .L93+36
+ 814 00a2 9847     		blx	r3
+ 815              	.LVL96:
+ 816              	.L66:
+ 817 00a4 FEE7     		b	.L66
+ 818              	.L65:
+ 417:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 819              		.loc 1 417 0
+ 820 00a6 6B6A     		ldr	r3, [r5, #36]
+ 821 00a8 2846     		mov	r0, r5
+ 822 00aa 9847     		blx	r3
+ 823              	.LVL97:
+ 824 00ac 1FE0     		b	.L70
+ 825              	.LVL98:
+ 826              	.L63:
+ 827              	.LBE36:
+ 828              	.LBE35:
+ 478:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				}
+ 829              		.loc 1 478 0
+ 830 00ae 4E4B     		ldr	r3, .L93+40
+ 831 00b0 1B68     		ldr	r3, [r3]
+ 832 00b2 1C68     		ldr	r4, [r3]
+ 833              	.LVL99:
+ 834 00b4 B4FA84F2 		clz	r2, r4
+ 835 00b8 5209     		lsrs	r2, r2, #5
+ 836              	.LVL100:
+ 837 00ba 00E0     		b	.L64
+ 838              	.LVL101:
+ 839              	.L87:
+ 461:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 840              		.loc 1 461 0
+ 841 00bc 2246     		mov	r2, r4
+ 842              	.LVL102:
+ 843              	.L64:
+ 481:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 844              		.loc 1 481 0
+ 845 00be 4B4B     		ldr	r3, .L93+44
+ 846 00c0 C9EB0801 		rsb	r1, r9, r8
+ 847 00c4 1868     		ldr	r0, [r3]
+ 848 00c6 4A4B     		ldr	r3, .L93+48
+ 849 00c8 9847     		blx	r3
+ 850              	.LVL103:
+ 483:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				{
+ 851              		.loc 1 483 0
+ 852 00ca A847     		blx	r5
+ 853              	.LVL104:
+ 854 00cc 78B9     		cbnz	r0, .L70
+ 489:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 				}
+ 855              		.loc 1 489 0
+ 856              	@ 489 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 857 00ce 00DF     		SWI 0     
+ 858 00d0 BFF36F8F 	ISB         
+ 859              	@ 0 "" 2
+ 860              		.thumb
+ 861 00d4 0BE0     		b	.L70
+ 862              	.LVL105:
+ 863              	.L62:
+ 499:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		}
+ 864              		.loc 1 499 0
+ 865 00d6 A847     		blx	r5
+ 866              	.LVL106:
+ 867 00d8 09E0     		b	.L70
+ 868              	.LVL107:
+ 869              	.L83:
+ 870              	.LBE30:
+ 871              	.LBE29:
+ 872              	.LBB37:
+ 873              	.LBB38:
+ 608:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 874              		.loc 1 608 0
+ 875 00da 029B     		ldr	r3, [sp, #8]
+ 876 00dc 002B     		cmp	r3, #0
+ 877 00de 03DA     		bge	.L69
+ 878              	.LVL108:
+ 879              	.LBB39:
+ 617:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 880              		.loc 1 617 0
+ 881 00e0 0498     		ldr	r0, [sp, #16]
+ 882 00e2 0599     		ldr	r1, [sp, #20]
+ 883 00e4 039B     		ldr	r3, [sp, #12]
+ 884 00e6 9847     		blx	r3
+ 885              	.LVL109:
+ 886              	.L69:
+ 887              	.LBE39:
+ 628:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		{
+ 888              		.loc 1 628 0
+ 889 00e8 029B     		ldr	r3, [sp, #8]
+ 890 00ea 002B     		cmp	r3, #0
+ 891 00ec 09DA     		bge	.L92
+ 892              	.L70:
+ 602:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 893              		.loc 1 602 0
+ 894 00ee 3F4B     		ldr	r3, .L93+44
+ 895 00f0 0022     		movs	r2, #0
+ 896 00f2 02A9     		add	r1, sp, #8
+ 897 00f4 3F4C     		ldr	r4, .L93+52
+ 898 00f6 1868     		ldr	r0, [r3]
+ 899 00f8 1346     		mov	r3, r2
+ 900 00fa A047     		blx	r4
+ 901              	.LVL110:
+ 902 00fc 0028     		cmp	r0, #0
+ 903 00fe ECD1     		bne	.L83
+ 904 0100 81E7     		b	.L84
+ 905              	.L92:
+ 632:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 906              		.loc 1 632 0
+ 907 0102 049C     		ldr	r4, [sp, #16]
+ 908              	.LVL111:
+ 634:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			{
+ 909              		.loc 1 634 0
+ 910 0104 6369     		ldr	r3, [r4, #20]
+ 911 0106 13B1     		cbz	r3, .L71
+ 637:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 			}
+ 912              		.loc 1 637 0
+ 913 0108 201D     		adds	r0, r4, #4
+ 914 010a 324B     		ldr	r3, .L93+20
+ 915 010c 9847     		blx	r3
+ 916              	.LVL112:
+ 917              	.L71:
+ 918              	.LBB40:
+ 919              	.LBB41:
+ 536:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 920              		.loc 1 536 0
+ 921 010e B047     		blx	r6
+ 922              	.LVL113:
+ 538:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 923              		.loc 1 538 0
+ 924 0110 3B68     		ldr	r3, [r7]
+ 925 0112 9842     		cmp	r0, r3
+ 536:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 926              		.loc 1 536 0
+ 927 0114 0546     		mov	r5, r0
+ 928              	.LVL114:
+ 538:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 929              		.loc 1 538 0
+ 930 0116 01D2     		bcs	.L72
+ 540:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		*pxTimerListsWereSwitched = pdTRUE;
+ 931              		.loc 1 540 0
+ 932 0118 2C4B     		ldr	r3, .L93+12
+ 933 011a 9847     		blx	r3
+ 934              	.LVL115:
+ 935              	.L72:
+ 936 011c 029A     		ldr	r2, [sp, #8]
+ 548:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 937              		.loc 1 548 0
+ 938 011e 3D60     		str	r5, [r7]
+ 939 0120 092A     		cmp	r2, #9
+ 940 0122 E4D8     		bhi	.L70
+ 941 0124 0123     		movs	r3, #1
+ 942 0126 9340     		lsls	r3, r3, r2
+ 943 0128 13F40478 		ands	r8, r3, #528
+ 944 012c 32D1     		bne	.L74
+ 945 012e 13F0C70F 		tst	r3, #199
+ 946 0132 08D1     		bne	.L75
+ 947 0134 9B06     		lsls	r3, r3, #26
+ 948 0136 DAD5     		bpl	.L70
+ 949              	.LBE41:
+ 950              	.LBE40:
+ 709:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					break;
+ 951              		.loc 1 709 0
+ 952 0138 2046     		mov	r0, r4
+ 953 013a 40F2C522 		movw	r2, #709
+ 954 013e 2E49     		ldr	r1, .L93+56
+ 955 0140 2E4B     		ldr	r3, .L93+60
+ 956 0142 9847     		blx	r3
+ 957              	.LVL116:
+ 958 0144 D3E7     		b	.L70
+ 959              	.L75:
+ 662:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					{
+ 960              		.loc 1 662 0
+ 961 0146 039B     		ldr	r3, [sp, #12]
+ 962 0148 2A46     		mov	r2, r5
+ 963 014a A169     		ldr	r1, [r4, #24]
+ 964 014c 2046     		mov	r0, r4
+ 965 014e 2C4D     		ldr	r5, .L93+64
+ 966              	.LVL117:
+ 967 0150 1944     		add	r1, r1, r3
+ 968 0152 A847     		blx	r5
+ 969              	.LVL118:
+ 970 0154 0128     		cmp	r0, #1
+ 971 0156 CAD1     		bne	.L70
+ 666:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						traceTIMER_EXPIRED( pxTimer );
+ 972              		.loc 1 666 0
+ 973 0158 636A     		ldr	r3, [r4, #36]
+ 974 015a 2046     		mov	r0, r4
+ 975 015c 9847     		blx	r3
+ 976              	.LVL119:
+ 669:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 						{
+ 977              		.loc 1 669 0
+ 978 015e E369     		ldr	r3, [r4, #28]
+ 979 0160 012B     		cmp	r3, #1
+ 980 0162 C4D1     		bne	.L70
+ 671:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 							configASSERT( xResult );
+ 981              		.loc 1 671 0
+ 982 0164 A269     		ldr	r2, [r4, #24]
+ 983 0166 2046     		mov	r0, r4
+ 984 0168 039B     		ldr	r3, [sp, #12]
+ 985 016a 4146     		mov	r1, r8
+ 986 016c CDF80080 		str	r8, [sp]
+ 987 0170 1A44     		add	r2, r2, r3
+ 988 0172 194C     		ldr	r4, .L93+24
+ 989              	.LVL120:
+ 990 0174 4346     		mov	r3, r8
+ 991 0176 A047     		blx	r4
+ 992              	.LVL121:
+ 672:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 							( void ) xResult;
+ 993              		.loc 1 672 0
+ 994 0178 0028     		cmp	r0, #0
+ 995 017a B8D1     		bne	.L70
+ 996              	@ 672 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 997 017c 72B6     		CPSID i   
+ 998 017e BFF34F8F 	DSB       
+ 999 0182 BFF36F8F 	ISB         
+ 1000              	@ 0 "" 2
+ 1001              		.thumb
+ 1002 0186 1548     		ldr	r0, .L93+28
+ 1003              	.LVL122:
+ 1004 0188 4FF42872 		mov	r2, #672
+ 1005 018c 1A49     		ldr	r1, .L93+56
+ 1006 018e 154B     		ldr	r3, .L93+36
+ 1007 0190 9847     		blx	r3
+ 1008              	.LVL123:
+ 1009              	.L80:
+ 1010 0192 FEE7     		b	.L80
+ 1011              	.LVL124:
+ 1012              	.L74:
+ 694:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					configASSERT( ( pxTimer->xTimerPeriodInTicks > 0 ) );
+ 1013              		.loc 1 694 0
+ 1014 0194 0399     		ldr	r1, [sp, #12]
+ 1015 0196 A161     		str	r1, [r4, #24]
+ 695:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 1016              		.loc 1 695 0
+ 1017 0198 59B9     		cbnz	r1, .L81
+ 1018              	@ 695 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 1019 019a 72B6     		CPSID i   
+ 1020 019c BFF34F8F 	DSB       
+ 1021 01a0 BFF36F8F 	ISB         
+ 1022              	@ 0 "" 2
+ 1023              		.thumb
+ 1024 01a4 0D48     		ldr	r0, .L93+28
+ 1025 01a6 40F2B722 		movw	r2, #695
+ 1026 01aa 1349     		ldr	r1, .L93+56
+ 1027 01ac 0D4B     		ldr	r3, .L93+36
+ 1028 01ae 9847     		blx	r3
+ 1029              	.LVL125:
+ 1030              	.L82:
+ 1031 01b0 FEE7     		b	.L82
+ 1032              	.L81:
+ 703:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 					break;
+ 1033              		.loc 1 703 0
+ 1034 01b2 2046     		mov	r0, r4
+ 1035 01b4 2944     		add	r1, r1, r5
+ 1036 01b6 2A46     		mov	r2, r5
+ 1037 01b8 2B46     		mov	r3, r5
+ 1038 01ba 114C     		ldr	r4, .L93+64
+ 1039              	.LVL126:
+ 1040 01bc A047     		blx	r4
+ 1041              	.LVL127:
+ 1042 01be 96E7     		b	.L70
+ 1043              	.L94:
+ 1044              		.align	2
+ 1045              	.L93:
+ 1046 01c0 00000000 		.word	vTaskSuspendAll
+ 1047 01c4 00000000 		.word	xTaskGetTickCount
+ 1048 01c8 00000000 		.word	.LANCHOR10
+ 1049 01cc 00000000 		.word	prvSwitchTimerLists
+ 1050 01d0 00000000 		.word	xTaskResumeAll
+ 1051 01d4 00000000 		.word	uxListRemove
+ 1052 01d8 00000000 		.word	xTimerGenericCommand
+ 1053 01dc 00000000 		.word	.LC0
+ 1054 01e0 00000000 		.word	.LANCHOR11
+ 1055 01e4 00000000 		.word	printf
+ 1056 01e8 00000000 		.word	.LANCHOR0
+ 1057 01ec 00000000 		.word	.LANCHOR2
+ 1058 01f0 00000000 		.word	vQueueWaitForMessageRestricted
+ 1059 01f4 00000000 		.word	xQueueGenericReceive
+ 1060 01f8 00000000 		.word	.LANCHOR12
+ 1061 01fc 00000000 		.word	vPortFree1
+ 1062 0200 00000000 		.word	prvInsertTimerInActiveList
+ 1063 0204 00000000 		.word	.LANCHOR1
+ 1064              	.LBE38:
+ 1065              	.LBE37:
+ 1066              		.cfi_endproc
+ 1067              	.LFE6:
+ 1069              		.section	.text.pcTimerGetTimerName,"ax",%progbits
+ 1070              		.align	1
+ 1071              		.global	pcTimerGetTimerName
+ 1072              		.thumb
+ 1073              		.thumb_func
+ 1075              	pcTimerGetTimerName:
+ 1076              	.LFB4:
+ 373:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxTimer = ( Timer_t * ) xTimer;
+ 1077              		.loc 1 373 0
+ 1078              		.cfi_startproc
+ 1079              		@ args = 0, pretend = 0, frame = 0
+ 1080              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1081              	.LVL128:
+ 1082 0000 08B5     		push	{r3, lr}
+ 1083              	.LCFI13:
+ 1084              		.cfi_def_cfa_offset 8
+ 1085              		.cfi_offset 3, -8
+ 1086              		.cfi_offset 14, -4
+ 376:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return pxTimer->pcTimerName;
+ 1087              		.loc 1 376 0
+ 1088 0002 58B9     		cbnz	r0, .L96
+ 376:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return pxTimer->pcTimerName;
+ 1089              		.loc 1 376 0 is_stmt 0 discriminator 1
+ 1090              	@ 376 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 1091 0004 72B6     		CPSID i   
+ 1092 0006 BFF34F8F 	DSB       
+ 1093 000a BFF36F8F 	ISB         
+ 1094              	@ 0 "" 2
+ 1095              		.thumb
+ 1096 000e 0448     		ldr	r0, .L98
+ 1097              	.LVL129:
+ 1098 0010 4FF4BC72 		mov	r2, #376
+ 1099 0014 0349     		ldr	r1, .L98+4
+ 1100 0016 044B     		ldr	r3, .L98+8
+ 1101 0018 9847     		blx	r3
+ 1102              	.LVL130:
+ 1103              	.L97:
+ 1104 001a FEE7     		b	.L97
+ 1105              	.LVL131:
+ 1106              	.L96:
+ 378:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 1107              		.loc 1 378 0 is_stmt 1
+ 1108 001c 0068     		ldr	r0, [r0]
+ 1109              	.LVL132:
+ 1110 001e 08BD     		pop	{r3, pc}
+ 1111              	.L99:
+ 1112              		.align	2
+ 1113              	.L98:
+ 1114 0020 00000000 		.word	.LC0
+ 1115 0024 00000000 		.word	.LANCHOR13
+ 1116 0028 00000000 		.word	printf
+ 1117              		.cfi_endproc
+ 1118              	.LFE4:
+ 1120              		.section	.text.xTimerIsTimerActive,"ax",%progbits
+ 1121              		.align	1
+ 1122              		.global	xTimerIsTimerActive
+ 1123              		.thumb
+ 1124              		.thumb_func
+ 1126              	xTimerIsTimerActive:
+ 1127              	.LFB14:
+ 815:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 816:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 817:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 818:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xTimerIsTimerActive( TimerHandle_t xTimer )
+ 819:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 1128              		.loc 1 819 0
+ 1129              		.cfi_startproc
+ 1130              		@ args = 0, pretend = 0, frame = 0
+ 1131              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1132              	.LVL133:
+ 1133 0000 10B5     		push	{r4, lr}
+ 1134              	.LCFI14:
+ 1135              		.cfi_def_cfa_offset 8
+ 1136              		.cfi_offset 4, -8
+ 1137              		.cfi_offset 14, -4
+ 820:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** BaseType_t xTimerIsInActiveList;
+ 821:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t *pxTimer = ( Timer_t * ) xTimer;
+ 822:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 823:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configASSERT( xTimer );
+ 1138              		.loc 1 823 0
+ 1139 0002 0446     		mov	r4, r0
+ 1140 0004 58B9     		cbnz	r0, .L101
+ 1141              		.loc 1 823 0 is_stmt 0 discriminator 1
+ 1142              	@ 823 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 1143 0006 72B6     		CPSID i   
+ 1144 0008 BFF34F8F 	DSB       
+ 1145 000c BFF36F8F 	ISB         
+ 1146              	@ 0 "" 2
+ 1147              		.thumb
+ 1148 0010 0848     		ldr	r0, .L103
+ 1149              	.LVL134:
+ 1150 0012 40F23732 		movw	r2, #823
+ 1151 0016 0849     		ldr	r1, .L103+4
+ 1152 0018 084B     		ldr	r3, .L103+8
+ 1153 001a 9847     		blx	r3
+ 1154              	.LVL135:
+ 1155              	.L102:
+ 1156 001c FEE7     		b	.L102
+ 1157              	.LVL136:
+ 1158              	.L101:
+ 824:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 825:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	/* Is the timer in the list of active timers? */
+ 826:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskENTER_CRITICAL();
+ 1159              		.loc 1 826 0 is_stmt 1
+ 1160 001e 084B     		ldr	r3, .L103+12
+ 1161 0020 9847     		blx	r3
+ 1162              	.LVL137:
+ 827:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 828:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Checking to see if it is in the NULL list in effect checks to see if
+ 829:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		it is referenced from either the current or the overflow timer lists in
+ 830:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		one go, but the logic has to be reversed, hence the '!'. */
+ 831:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xTimerIsInActiveList = ( BaseType_t ) !( listIS_CONTAINED_WITHIN( NULL, &( pxTimer->xTimerListIte
+ 1163              		.loc 1 831 0
+ 1164 0022 6469     		ldr	r4, [r4, #20]
+ 1165              	.LVL138:
+ 832:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 833:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskEXIT_CRITICAL();
+ 1166              		.loc 1 833 0
+ 1167 0024 074B     		ldr	r3, .L103+16
+ 831:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 1168              		.loc 1 831 0
+ 1169 0026 0034     		adds	r4, r4, #0
+ 1170 0028 18BF     		it	ne
+ 1171 002a 0124     		movne	r4, #1
+ 1172              	.LVL139:
+ 1173              		.loc 1 833 0
+ 1174 002c 9847     		blx	r3
+ 1175              	.LVL140:
+ 834:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 835:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return xTimerIsInActiveList;
+ 836:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** } /*lint !e818 Can't be pointer to const due to the typedef. */
+ 1176              		.loc 1 836 0
+ 1177 002e 2046     		mov	r0, r4
+ 1178 0030 10BD     		pop	{r4, pc}
+ 1179              	.LVL141:
+ 1180              	.L104:
+ 1181 0032 00BF     		.align	2
+ 1182              	.L103:
+ 1183 0034 00000000 		.word	.LC0
+ 1184 0038 00000000 		.word	.LANCHOR14
+ 1185 003c 00000000 		.word	printf
+ 1186 0040 00000000 		.word	vPortEnterCritical
+ 1187 0044 00000000 		.word	vPortExitCritical
+ 1188              		.cfi_endproc
+ 1189              	.LFE14:
+ 1191              		.section	.text.pvTimerGetTimerID,"ax",%progbits
+ 1192              		.align	1
+ 1193              		.global	pvTimerGetTimerID
+ 1194              		.thumb
+ 1195              		.thumb_func
+ 1197              	pvTimerGetTimerID:
+ 1198              	.LFB15:
+ 837:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 838:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 839:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** void *pvTimerGetTimerID( const TimerHandle_t xTimer )
+ 840:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 1199              		.loc 1 840 0
+ 1200              		.cfi_startproc
+ 1201              		@ args = 0, pretend = 0, frame = 0
+ 1202              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1203              	.LVL142:
+ 1204 0000 10B5     		push	{r4, lr}
+ 1205              	.LCFI15:
+ 1206              		.cfi_def_cfa_offset 8
+ 1207              		.cfi_offset 4, -8
+ 1208              		.cfi_offset 14, -4
+ 841:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t * const pxTimer = ( Timer_t * ) xTimer;
+ 842:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** void *pvReturn;
+ 843:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 844:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configASSERT( xTimer );
+ 1209              		.loc 1 844 0
+ 1210 0002 0446     		mov	r4, r0
+ 1211 0004 58B9     		cbnz	r0, .L106
+ 1212              		.loc 1 844 0 is_stmt 0 discriminator 1
+ 1213              	@ 844 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 1214 0006 72B6     		CPSID i   
+ 1215 0008 BFF34F8F 	DSB       
+ 1216 000c BFF36F8F 	ISB         
+ 1217              	@ 0 "" 2
+ 1218              		.thumb
+ 1219 0010 0648     		ldr	r0, .L108
+ 1220              	.LVL143:
+ 1221 0012 4FF45372 		mov	r2, #844
+ 1222 0016 0649     		ldr	r1, .L108+4
+ 1223 0018 064B     		ldr	r3, .L108+8
+ 1224 001a 9847     		blx	r3
+ 1225              	.LVL144:
+ 1226              	.L107:
+ 1227 001c FEE7     		b	.L107
+ 1228              	.LVL145:
+ 1229              	.L106:
+ 845:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 846:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskENTER_CRITICAL();
+ 1230              		.loc 1 846 0 is_stmt 1
+ 1231 001e 064B     		ldr	r3, .L108+12
+ 1232 0020 9847     		blx	r3
+ 1233              	.LVL146:
+ 847:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 848:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		pvReturn = pxTimer->pvTimerID;
+ 1234              		.loc 1 848 0
+ 1235 0022 246A     		ldr	r4, [r4, #32]
+ 1236              	.LVL147:
+ 849:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 850:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskEXIT_CRITICAL();
+ 1237              		.loc 1 850 0
+ 1238 0024 054B     		ldr	r3, .L108+16
+ 1239 0026 9847     		blx	r3
+ 1240              	.LVL148:
+ 851:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 852:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	return pvReturn;
+ 853:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 1241              		.loc 1 853 0
+ 1242 0028 2046     		mov	r0, r4
+ 1243 002a 10BD     		pop	{r4, pc}
+ 1244              	.LVL149:
+ 1245              	.L109:
+ 1246              		.align	2
+ 1247              	.L108:
+ 1248 002c 00000000 		.word	.LC0
+ 1249 0030 00000000 		.word	.LANCHOR15
+ 1250 0034 00000000 		.word	printf
+ 1251 0038 00000000 		.word	vPortEnterCritical
+ 1252 003c 00000000 		.word	vPortExitCritical
+ 1253              		.cfi_endproc
+ 1254              	.LFE15:
+ 1256              		.section	.text.vTimerSetTimerID,"ax",%progbits
+ 1257              		.align	1
+ 1258              		.global	vTimerSetTimerID
+ 1259              		.thumb
+ 1260              		.thumb_func
+ 1262              	vTimerSetTimerID:
+ 1263              	.LFB16:
+ 854:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 855:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 856:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** void vTimerSetTimerID( TimerHandle_t xTimer, void *pvNewID )
+ 857:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** {
+ 1264              		.loc 1 857 0
+ 1265              		.cfi_startproc
+ 1266              		@ args = 0, pretend = 0, frame = 0
+ 1267              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1268              	.LVL150:
+ 1269 0000 38B5     		push	{r3, r4, r5, lr}
+ 1270              	.LCFI16:
+ 1271              		.cfi_def_cfa_offset 16
+ 1272              		.cfi_offset 3, -16
+ 1273              		.cfi_offset 4, -12
+ 1274              		.cfi_offset 5, -8
+ 1275              		.cfi_offset 14, -4
+ 1276              		.loc 1 857 0
+ 1277 0002 0D46     		mov	r5, r1
+ 858:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** Timer_t * const pxTimer = ( Timer_t * ) xTimer;
+ 859:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 860:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	configASSERT( xTimer );
+ 1278              		.loc 1 860 0
+ 1279 0004 0446     		mov	r4, r0
+ 1280 0006 58B9     		cbnz	r0, .L111
+ 1281              		.loc 1 860 0 is_stmt 0 discriminator 1
+ 1282              	@ 860 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 1283 0008 72B6     		CPSID i   
+ 1284 000a BFF34F8F 	DSB       
+ 1285 000e BFF36F8F 	ISB         
+ 1286              	@ 0 "" 2
+ 1287              		.thumb
+ 1288 0012 0648     		ldr	r0, .L113
+ 1289              	.LVL151:
+ 1290 0014 4FF45772 		mov	r2, #860
+ 1291 0018 0549     		ldr	r1, .L113+4
+ 1292              	.LVL152:
+ 1293 001a 064B     		ldr	r3, .L113+8
+ 1294 001c 9847     		blx	r3
+ 1295              	.LVL153:
+ 1296              	.L112:
+ 1297 001e FEE7     		b	.L112
+ 1298              	.LVL154:
+ 1299              	.L111:
+ 861:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 862:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskENTER_CRITICAL();
+ 1300              		.loc 1 862 0 is_stmt 1
+ 1301 0020 054B     		ldr	r3, .L113+12
+ 1302 0022 9847     		blx	r3
+ 1303              	.LVL155:
+ 863:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 864:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		pxTimer->pvTimerID = pvNewID;
+ 1304              		.loc 1 864 0
+ 1305 0024 2562     		str	r5, [r4, #32]
+ 865:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 866:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	taskEXIT_CRITICAL();
+ 1306              		.loc 1 866 0
+ 1307 0026 054B     		ldr	r3, .L113+16
+ 1308 0028 9847     		blx	r3
+ 1309              	.LVL156:
+ 1310 002a 38BD     		pop	{r3, r4, r5, pc}
+ 1311              	.LVL157:
+ 1312              	.L114:
+ 1313              		.align	2
+ 1314              	.L113:
+ 1315 002c 00000000 		.word	.LC0
+ 1316 0030 00000000 		.word	.LANCHOR16
+ 1317 0034 00000000 		.word	printf
+ 1318 0038 00000000 		.word	vPortEnterCritical
+ 1319 003c 00000000 		.word	vPortExitCritical
+ 1320              		.cfi_endproc
+ 1321              	.LFE16:
+ 1323              		.section	.text.xTimerPendFunctionCallFromISR,"ax",%progbits
+ 1324              		.align	1
+ 1325              		.global	xTimerPendFunctionCallFromISR
+ 1326              		.thumb
+ 1327              		.thumb_func
+ 1329              	xTimerPendFunctionCallFromISR:
+ 1330              	.LFB17:
+ 867:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** }
+ 868:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 869:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 870:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #if( INCLUDE_xTimerPendFunctionCall == 1 )
+ 871:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 872:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	BaseType_t xTimerPendFunctionCallFromISR( PendedFunction_t xFunctionToPend, void *pvParameter1, ui
+ 873:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 1331              		.loc 1 873 0
+ 1332              		.cfi_startproc
+ 1333              		@ args = 0, pretend = 0, frame = 16
+ 1334              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1335              	.LVL158:
+ 1336 0000 1FB5     		push	{r0, r1, r2, r3, r4, lr}
+ 1337              	.LCFI17:
+ 1338              		.cfi_def_cfa_offset 24
+ 1339              		.cfi_offset 4, -8
+ 1340              		.cfi_offset 14, -4
+ 874:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	DaemonTaskMessage_t xMessage;
+ 875:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	BaseType_t xReturn;
+ 876:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 877:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Complete the message with the function parameters and post it to the
+ 878:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		daemon task. */
+ 879:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.xMessageID = tmrCOMMAND_EXECUTE_CALLBACK_FROM_ISR;
+ 880:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pxCallbackFunction = xFunctionToPend;
+ 881:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pvParameter1 = pvParameter1;
+ 882:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.ulParameter2 = ulParameter2;
+ 1341              		.loc 1 882 0
+ 1342 0002 0392     		str	r2, [sp, #12]
+ 879:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pxCallbackFunction = xFunctionToPend;
+ 1343              		.loc 1 879 0
+ 1344 0004 6FF00104 		mvn	r4, #1
+ 883:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 884:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xReturn = xQueueSendFromISR( xTimerQueue, &xMessage, pxHigherPriorityTaskWoken );
+ 1345              		.loc 1 884 0
+ 1346 0008 054A     		ldr	r2, .L116
+ 1347              	.LVL159:
+ 879:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pxCallbackFunction = xFunctionToPend;
+ 1348              		.loc 1 879 0
+ 1349 000a 0094     		str	r4, [sp]
+ 880:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pvParameter1 = pvParameter1;
+ 1350              		.loc 1 880 0
+ 1351 000c 0190     		str	r0, [sp, #4]
+ 881:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.ulParameter2 = ulParameter2;
+ 1352              		.loc 1 881 0
+ 1353 000e 0291     		str	r1, [sp, #8]
+ 1354              		.loc 1 884 0
+ 1355 0010 6946     		mov	r1, sp
+ 1356              	.LVL160:
+ 1357 0012 1068     		ldr	r0, [r2]
+ 1358              	.LVL161:
+ 1359 0014 1A46     		mov	r2, r3
+ 1360 0016 034C     		ldr	r4, .L116+4
+ 1361 0018 0023     		movs	r3, #0
+ 1362              	.LVL162:
+ 1363 001a A047     		blx	r4
+ 1364              	.LVL163:
+ 885:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 886:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		tracePEND_FUNC_CALL_FROM_ISR( xFunctionToPend, pvParameter1, ulParameter2, xReturn );
+ 887:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 888:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		return xReturn;
+ 889:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 1365              		.loc 1 889 0
+ 1366 001c 04B0     		add	sp, sp, #16
+ 1367              	.LCFI18:
+ 1368              		.cfi_def_cfa_offset 8
+ 1369              		@ sp needed
+ 1370 001e 10BD     		pop	{r4, pc}
+ 1371              	.L117:
+ 1372              		.align	2
+ 1373              	.L116:
+ 1374 0020 00000000 		.word	.LANCHOR2
+ 1375 0024 00000000 		.word	xQueueGenericSendFromISR
+ 1376              		.cfi_endproc
+ 1377              	.LFE17:
+ 1379              		.section	.text.xTimerPendFunctionCall,"ax",%progbits
+ 1380              		.align	1
+ 1381              		.global	xTimerPendFunctionCall
+ 1382              		.thumb
+ 1383              		.thumb_func
+ 1385              	xTimerPendFunctionCall:
+ 1386              	.LFB18:
+ 890:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 891:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #endif /* INCLUDE_xTimerPendFunctionCall */
+ 892:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** /*-----------------------------------------------------------*/
+ 893:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 894:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** #if( INCLUDE_xTimerPendFunctionCall == 1 )
+ 895:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 896:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	BaseType_t xTimerPendFunctionCall( PendedFunction_t xFunctionToPend, void *pvParameter1, uint32_t 
+ 897:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	{
+ 1387              		.loc 1 897 0
+ 1388              		.cfi_startproc
+ 1389              		@ args = 0, pretend = 0, frame = 16
+ 1390              		@ frame_needed = 0, uses_anonymous_args = 0
+ 1391              	.LVL164:
+ 1392 0000 30B5     		push	{r4, r5, lr}
+ 1393              	.LCFI19:
+ 1394              		.cfi_def_cfa_offset 12
+ 1395              		.cfi_offset 4, -12
+ 1396              		.cfi_offset 5, -8
+ 1397              		.cfi_offset 14, -4
+ 1398 0002 0446     		mov	r4, r0
+ 1399 0004 85B0     		sub	sp, sp, #20
+ 1400              	.LCFI20:
+ 1401              		.cfi_def_cfa_offset 32
+ 898:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	DaemonTaskMessage_t xMessage;
+ 899:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	BaseType_t xReturn;
+ 900:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 901:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* This function can only be called after a timer has been created or
+ 902:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		after the scheduler has been started because, until then, the timer
+ 903:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		queue does not exist. */
+ 904:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		configASSERT( xTimerQueue );
+ 1402              		.loc 1 904 0
+ 1403 0006 0E48     		ldr	r0, .L121
+ 1404              	.LVL165:
+ 1405 0008 0068     		ldr	r0, [r0]
+ 1406 000a 58B9     		cbnz	r0, .L119
+ 1407              		.loc 1 904 0 is_stmt 0 discriminator 1
+ 1408              	@ 904 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c" 1
+ 1409 000c 72B6     		CPSID i   
+ 1410 000e BFF34F8F 	DSB       
+ 1411 0012 BFF36F8F 	ISB         
+ 1412              	@ 0 "" 2
+ 1413              		.thumb
+ 1414 0016 0B48     		ldr	r0, .L121+4
+ 1415 0018 4FF46272 		mov	r2, #904
+ 1416              	.LVL166:
+ 1417 001c 0A49     		ldr	r1, .L121+8
+ 1418              	.LVL167:
+ 1419 001e 0B4B     		ldr	r3, .L121+12
+ 1420              	.LVL168:
+ 1421 0020 9847     		blx	r3
+ 1422              	.LVL169:
+ 1423              	.L120:
+ 1424 0022 FEE7     		b	.L120
+ 1425              	.LVL170:
+ 1426              	.L119:
+ 905:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 906:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		/* Complete the message with the function parameters and post it to the
+ 907:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		daemon task. */
+ 908:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.xMessageID = tmrCOMMAND_EXECUTE_CALLBACK;
+ 1427              		.loc 1 908 0 is_stmt 1
+ 1428 0024 4FF0FF35 		mov	r5, #-1
+ 909:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pxCallbackFunction = xFunctionToPend;
+ 1429              		.loc 1 909 0
+ 1430 0028 0194     		str	r4, [sp, #4]
+ 910:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pvParameter1 = pvParameter1;
+ 1431              		.loc 1 910 0
+ 1432 002a 0291     		str	r1, [sp, #8]
+ 911:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.ulParameter2 = ulParameter2;
+ 912:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 913:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xReturn = xQueueSendToBack( xTimerQueue, &xMessage, xTicksToWait );
+ 1433              		.loc 1 913 0
+ 1434 002c 6946     		mov	r1, sp
+ 1435              	.LVL171:
+ 911:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.ulParameter2 = ulParameter2;
+ 1436              		.loc 1 911 0
+ 1437 002e 0392     		str	r2, [sp, #12]
+ 1438              		.loc 1 913 0
+ 1439 0030 1A46     		mov	r2, r3
+ 1440              	.LVL172:
+ 1441 0032 074C     		ldr	r4, .L121+16
+ 1442              	.LVL173:
+ 1443 0034 0023     		movs	r3, #0
+ 1444              	.LVL174:
+ 908:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		xMessage.u.xCallbackParameters.pxCallbackFunction = xFunctionToPend;
+ 1445              		.loc 1 908 0
+ 1446 0036 0095     		str	r5, [sp]
+ 1447              		.loc 1 913 0
+ 1448 0038 A047     		blx	r4
+ 1449              	.LVL175:
+ 914:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 915:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		tracePEND_FUNC_CALL( xFunctionToPend, pvParameter1, ulParameter2, xReturn );
+ 916:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 
+ 917:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 		return xReturn;
+ 918:/home/tienluong/workspace/atlantis_fw/platform/os/Source/timers.c **** 	}
+ 1450              		.loc 1 918 0
+ 1451 003a 05B0     		add	sp, sp, #20
+ 1452              	.LCFI21:
+ 1453              		.cfi_def_cfa_offset 12
+ 1454              		@ sp needed
+ 1455 003c 30BD     		pop	{r4, r5, pc}
+ 1456              	.L122:
+ 1457 003e 00BF     		.align	2
+ 1458              	.L121:
+ 1459 0040 00000000 		.word	.LANCHOR2
+ 1460 0044 00000000 		.word	.LC0
+ 1461 0048 00000000 		.word	.LANCHOR17
+ 1462 004c 00000000 		.word	printf
+ 1463 0050 00000000 		.word	xQueueGenericSend
+ 1464              		.cfi_endproc
+ 1465              	.LFE18:
+ 1467              		.section	.bss.pxCurrentTimerList,"aw",%nobits
+ 1468              		.align	2
+ 1469              		.set	.LANCHOR1,. + 0
+ 1472              	pxCurrentTimerList:
+ 1473 0000 00000000 		.space	4
+ 1474              		.section	.rodata.__FUNCTION__.6069,"a",%progbits
+ 1475              		.set	.LANCHOR5,. + 0
+ 1478              	__FUNCTION__.6069:
+ 1479 0000 70727643 		.ascii	"prvCheckForValidListAndQueue\000"
+ 1479      6865636B 
+ 1479      466F7256 
+ 1479      616C6964 
+ 1479      4C697374 
+ 1480              		.section	.bss.xActiveTimerList1,"aw",%nobits
+ 1481              		.align	2
+ 1482              		.set	.LANCHOR3,. + 0
+ 1485              	xActiveTimerList1:
+ 1486 0000 00000000 		.space	20
+ 1486      00000000 
+ 1486      00000000 
+ 1486      00000000 
+ 1486      00000000 
+ 1487              		.section	.bss.xActiveTimerList2,"aw",%nobits
+ 1488              		.align	2
+ 1489              		.set	.LANCHOR4,. + 0
+ 1492              	xActiveTimerList2:
+ 1493 0000 00000000 		.space	20
+ 1493      00000000 
+ 1493      00000000 
+ 1493      00000000 
+ 1493      00000000 
+ 1494              		.section	.rodata.__FUNCTION__.5970,"a",%progbits
+ 1495              		.set	.LANCHOR7,. + 0
+ 1498              	__FUNCTION__.5970:
+ 1499 0000 7854696D 		.ascii	"xTimerCreate\000"
+ 1499      65724372 
+ 1499      65617465 
+ 1499      00
+ 1500              		.section	.rodata.__FUNCTION__.6076,"a",%progbits
+ 1501              		.set	.LANCHOR14,. + 0
+ 1504              	__FUNCTION__.6076:
+ 1505 0000 7854696D 		.ascii	"xTimerIsTimerActive\000"
+ 1505      65724973 
+ 1505      54696D65 
+ 1505      72416374 
+ 1505      69766500 
+ 1506              		.section	.rodata.__FUNCTION__.6090,"a",%progbits
+ 1507              		.set	.LANCHOR16,. + 0
+ 1510              	__FUNCTION__.6090:
+ 1511 0000 7654696D 		.ascii	"vTimerSetTimerID\000"
+ 1511      65725365 
+ 1511      7454696D 
+ 1511      65724944 
+ 1511      00
+ 1512              		.section	.rodata.__FUNCTION__.5981,"a",%progbits
+ 1513              		.set	.LANCHOR8,. + 0
+ 1516              	__FUNCTION__.5981:
+ 1517 0000 7854696D 		.ascii	"xTimerGenericCommand\000"
+ 1517      65724765 
+ 1517      6E657269 
+ 1517      63436F6D 
+ 1517      6D616E64 
+ 1518              		.section	.rodata.__FUNCTION__.6034,"a",%progbits
+ 1519              		.set	.LANCHOR12,. + 0
+ 1522              	__FUNCTION__.6034:
+ 1523 0000 70727650 		.ascii	"prvProcessReceivedCommands\000"
+ 1523      726F6365 
+ 1523      73735265 
+ 1523      63656976 
+ 1523      6564436F 
+ 1524              		.section	.rodata.__FUNCTION__.6061,"a",%progbits
+ 1525              		.set	.LANCHOR9,. + 0
+ 1528              	__FUNCTION__.6061:
+ 1529 0000 70727653 		.ascii	"prvSwitchTimerLists\000"
+ 1529      77697463 
+ 1529      6854696D 
+ 1529      65724C69 
+ 1529      73747300 
+ 1530              		.section	.rodata.str1.1,"aMS",%progbits,1
+ 1531              	.LC0:
+ 1532 0000 0D0A5B25 		.ascii	"\015\012[%s: %d]: Invalid argument!\015\012\000"
+ 1532      733A2025 
+ 1532      645D3A20 
+ 1532      496E7661 
+ 1532      6C696420 
+ 1533              	.LC1:
+ 1534 0020 546D7251 		.ascii	"TmrQ\000"
+ 1534      00
+ 1535              	.LC2:
+ 1536 0025 546D7220 		.ascii	"Tmr Svc\000"
+ 1536      53766300 
+ 1537              		.section	.bss.xLastTime.6017,"aw",%nobits
+ 1538              		.align	2
+ 1539              		.set	.LANCHOR10,. + 0
+ 1542              	xLastTime.6017:
+ 1543 0000 00000000 		.space	4
+ 1544              		.section	.rodata.__FUNCTION__.5987,"a",%progbits
+ 1545              		.set	.LANCHOR13,. + 0
+ 1548              	__FUNCTION__.5987:
+ 1549 0000 70635469 		.ascii	"pcTimerGetTimerName\000"
+ 1549      6D657247 
+ 1549      65745469 
+ 1549      6D65724E 
+ 1549      616D6500 
+ 1550              		.section	.rodata.__FUNCTION__.5995,"a",%progbits
+ 1551              		.set	.LANCHOR11,. + 0
+ 1554              	__FUNCTION__.5995:
+ 1555 0000 70727650 		.ascii	"prvProcessExpiredTimer\000"
+ 1555      726F6365 
+ 1555      73734578 
+ 1555      70697265 
+ 1555      6454696D 
+ 1556              		.section	.rodata.__FUNCTION__.6083,"a",%progbits
+ 1557              		.set	.LANCHOR15,. + 0
+ 1560              	__FUNCTION__.6083:
+ 1561 0000 70765469 		.ascii	"pvTimerGetTimerID\000"
+ 1561      6D657247 
+ 1561      65745469 
+ 1561      6D657249 
+ 1561      4400
+ 1562              		.section	.bss.xTimerQueue,"aw",%nobits
+ 1563              		.align	2
+ 1564              		.set	.LANCHOR2,. + 0
+ 1567              	xTimerQueue:
+ 1568 0000 00000000 		.space	4
+ 1569              		.section	.rodata.__FUNCTION__.6108,"a",%progbits
+ 1570              		.set	.LANCHOR17,. + 0
+ 1573              	__FUNCTION__.6108:
+ 1574 0000 7854696D 		.ascii	"xTimerPendFunctionCall\000"
+ 1574      65725065 
+ 1574      6E644675 
+ 1574      6E637469 
+ 1574      6F6E4361 
+ 1575              		.section	.bss.pxOverflowTimerList,"aw",%nobits
+ 1576              		.align	2
+ 1577              		.set	.LANCHOR0,. + 0
+ 1580              	pxOverflowTimerList:
+ 1581 0000 00000000 		.space	4
+ 1582              		.section	.rodata.__FUNCTION__.5960,"a",%progbits
+ 1583              		.set	.LANCHOR6,. + 0
+ 1586              	__FUNCTION__.5960:
+ 1587 0000 7854696D 		.ascii	"xTimerCreateTimerTask\000"
+ 1587      65724372 
+ 1587      65617465 
+ 1587      54696D65 
+ 1587      72546173 
+ 1588              		.text
+ 1589              	.Letext0:
+ 1590              		.file 2 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/machine/_default_types
+ 1591              		.file 3 "/opt/toolchains/gcc-arm-none-eabi-4_9-2015q1/arm-none-eabi/include/stdint.h"
+ 1592              		.file 4 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/portable/GCC/cortex-r4/portmacro
+ 1593              		.file 5 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/list.h"
+ 1594              		.file 6 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/queue.h"
+ 1595              		.file 7 "/home/tienluong/workspace/atlantis_fw/platform/os/Source/include/timers.h"
+DEFINED SYMBOLS
+                            *ABS*:00000000 timers.c
+     /tmp/ccEW2IJw.s:19     .text.prvInsertTimerInActiveList:00000000 $t
+     /tmp/ccEW2IJw.s:23     .text.prvInsertTimerInActiveList:00000000 prvInsertTimerInActiveList
+     /tmp/ccEW2IJw.s:96     .text.prvInsertTimerInActiveList:00000034 $d
+     /tmp/ccEW2IJw.s:103    .text.prvCheckForValidListAndQueue:00000000 $t
+     /tmp/ccEW2IJw.s:107    .text.prvCheckForValidListAndQueue:00000000 prvCheckForValidListAndQueue
+     /tmp/ccEW2IJw.s:196    .text.prvCheckForValidListAndQueue:0000005c $d
+     /tmp/ccEW2IJw.s:214    .text.xTimerCreateTimerTask:00000000 $t
+     /tmp/ccEW2IJw.s:219    .text.xTimerCreateTimerTask:00000000 xTimerCreateTimerTask
+     /tmp/ccEW2IJw.s:289    .text.xTimerCreateTimerTask:00000048 $d
+     /tmp/ccEW2IJw.s:659    .text.prvTimerTask:00000000 prvTimerTask
+     /tmp/ccEW2IJw.s:301    .text.xTimerCreate:00000000 $t
+     /tmp/ccEW2IJw.s:306    .text.xTimerCreate:00000000 xTimerCreate
+     /tmp/ccEW2IJw.s:396    .text.xTimerCreate:00000058 $d
+     /tmp/ccEW2IJw.s:406    .text.xTimerGenericCommand:00000000 $t
+     /tmp/ccEW2IJw.s:411    .text.xTimerGenericCommand:00000000 xTimerGenericCommand
+     /tmp/ccEW2IJw.s:516    .text.xTimerGenericCommand:00000058 $d
+     /tmp/ccEW2IJw.s:527    .text.prvSwitchTimerLists:00000000 $t
+     /tmp/ccEW2IJw.s:531    .text.prvSwitchTimerLists:00000000 prvSwitchTimerLists
+     /tmp/ccEW2IJw.s:643    .text.prvSwitchTimerLists:00000074 $d
+     /tmp/ccEW2IJw.s:655    .text.prvTimerTask:00000000 $t
+     /tmp/ccEW2IJw.s:1046   .text.prvTimerTask:000001c0 $d
+     /tmp/ccEW2IJw.s:1070   .text.pcTimerGetTimerName:00000000 $t
+     /tmp/ccEW2IJw.s:1075   .text.pcTimerGetTimerName:00000000 pcTimerGetTimerName
+     /tmp/ccEW2IJw.s:1114   .text.pcTimerGetTimerName:00000020 $d
+     /tmp/ccEW2IJw.s:1121   .text.xTimerIsTimerActive:00000000 $t
+     /tmp/ccEW2IJw.s:1126   .text.xTimerIsTimerActive:00000000 xTimerIsTimerActive
+     /tmp/ccEW2IJw.s:1183   .text.xTimerIsTimerActive:00000034 $d
+     /tmp/ccEW2IJw.s:1192   .text.pvTimerGetTimerID:00000000 $t
+     /tmp/ccEW2IJw.s:1197   .text.pvTimerGetTimerID:00000000 pvTimerGetTimerID
+     /tmp/ccEW2IJw.s:1248   .text.pvTimerGetTimerID:0000002c $d
+     /tmp/ccEW2IJw.s:1257   .text.vTimerSetTimerID:00000000 $t
+     /tmp/ccEW2IJw.s:1262   .text.vTimerSetTimerID:00000000 vTimerSetTimerID
+     /tmp/ccEW2IJw.s:1315   .text.vTimerSetTimerID:0000002c $d
+     /tmp/ccEW2IJw.s:1324   .text.xTimerPendFunctionCallFromISR:00000000 $t
+     /tmp/ccEW2IJw.s:1329   .text.xTimerPendFunctionCallFromISR:00000000 xTimerPendFunctionCallFromISR
+     /tmp/ccEW2IJw.s:1374   .text.xTimerPendFunctionCallFromISR:00000020 $d
+     /tmp/ccEW2IJw.s:1380   .text.xTimerPendFunctionCall:00000000 $t
+     /tmp/ccEW2IJw.s:1385   .text.xTimerPendFunctionCall:00000000 xTimerPendFunctionCall
+     /tmp/ccEW2IJw.s:1459   .text.xTimerPendFunctionCall:00000040 $d
+     /tmp/ccEW2IJw.s:1468   .bss.pxCurrentTimerList:00000000 $d
+     /tmp/ccEW2IJw.s:1472   .bss.pxCurrentTimerList:00000000 pxCurrentTimerList
+     /tmp/ccEW2IJw.s:1478   .rodata.__FUNCTION__.6069:00000000 __FUNCTION__.6069
+     /tmp/ccEW2IJw.s:1481   .bss.xActiveTimerList1:00000000 $d
+     /tmp/ccEW2IJw.s:1485   .bss.xActiveTimerList1:00000000 xActiveTimerList1
+     /tmp/ccEW2IJw.s:1488   .bss.xActiveTimerList2:00000000 $d
+     /tmp/ccEW2IJw.s:1492   .bss.xActiveTimerList2:00000000 xActiveTimerList2
+     /tmp/ccEW2IJw.s:1498   .rodata.__FUNCTION__.5970:00000000 __FUNCTION__.5970
+     /tmp/ccEW2IJw.s:1504   .rodata.__FUNCTION__.6076:00000000 __FUNCTION__.6076
+     /tmp/ccEW2IJw.s:1510   .rodata.__FUNCTION__.6090:00000000 __FUNCTION__.6090
+     /tmp/ccEW2IJw.s:1516   .rodata.__FUNCTION__.5981:00000000 __FUNCTION__.5981
+     /tmp/ccEW2IJw.s:1522   .rodata.__FUNCTION__.6034:00000000 __FUNCTION__.6034
+     /tmp/ccEW2IJw.s:1528   .rodata.__FUNCTION__.6061:00000000 __FUNCTION__.6061
+     /tmp/ccEW2IJw.s:1538   .bss.xLastTime.6017:00000000 $d
+     /tmp/ccEW2IJw.s:1542   .bss.xLastTime.6017:00000000 xLastTime.6017
+     /tmp/ccEW2IJw.s:1548   .rodata.__FUNCTION__.5987:00000000 __FUNCTION__.5987
+     /tmp/ccEW2IJw.s:1554   .rodata.__FUNCTION__.5995:00000000 __FUNCTION__.5995
+     /tmp/ccEW2IJw.s:1560   .rodata.__FUNCTION__.6083:00000000 __FUNCTION__.6083
+     /tmp/ccEW2IJw.s:1563   .bss.xTimerQueue:00000000 $d
+     /tmp/ccEW2IJw.s:1567   .bss.xTimerQueue:00000000 xTimerQueue
+     /tmp/ccEW2IJw.s:1573   .rodata.__FUNCTION__.6108:00000000 __FUNCTION__.6108
+     /tmp/ccEW2IJw.s:1576   .bss.pxOverflowTimerList:00000000 $d
+     /tmp/ccEW2IJw.s:1580   .bss.pxOverflowTimerList:00000000 pxOverflowTimerList
+     /tmp/ccEW2IJw.s:1586   .rodata.__FUNCTION__.5960:00000000 __FUNCTION__.5960
+                     .debug_frame:00000010 $d
+
+UNDEFINED SYMBOLS
+vListInsert
+vPortEnterCritical
+xQueueGenericCreate
+printf
+vQueueAddToRegistry
+vPortExitCritical
+vListInitialise
+xTaskGenericCreate
+pvPortMalloc1
+vListInitialiseItem
+xTaskGetSchedulerState
+xQueueGenericSend
+xQueueGenericSendFromISR
+uxListRemove
+vTaskSuspendAll
+xTaskGetTickCount
+xTaskResumeAll
+vQueueWaitForMessageRestricted
+xQueueGenericReceive
+vPortFree1
